@@ -1,0 +1,14 @@
+target
+.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+.DS_Store
+.git
+.gitignore
+.env
+README.md

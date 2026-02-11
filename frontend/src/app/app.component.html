@@ -1,0 +1,8 @@
+<div style="padding: 20px">
+  <h1>Items</h1>
+  <input [(ngModel)]="name" placeholder="Item name" />
+  <button (click)="addItem()">Add Item</button>
+  <ul>
+    <li *ngFor="let item of items">{{ item.name }}</li>
+  </ul>
+</div>
