@@ -4,6 +4,7 @@ services:
     container_name: traefik
     command:
       - "--configFile=/etc/traefik/traefik.yml"
+      - "--providers.docker.apiVersion=1.44"
     ports:
       - "80:80"
       - "8080:8080"
