@@ -3,6 +3,7 @@ node_modules/
 backend/target/
 .angular/
 dist/
+package-lock.json
 
 # IDE
 .vscode/
