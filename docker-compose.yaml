@@ -1,10 +1,9 @@
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:latest
     container_name: traefik
     command:
       - "--configFile=/etc/traefik/traefik.yml"
-      - "--providers.docker.apiVersion=1.44"
     ports:
       - "80:80"
       - "8080:8080"
@@ -12,8 +11,6 @@ services:
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml
       - ./traefik/acme.json:/acme.json
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - DOCKER_API_VERSION=1.44
     networks:
       - web
     healthcheck:
