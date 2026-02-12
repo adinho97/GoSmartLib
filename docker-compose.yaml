@@ -13,12 +13,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - web
-    healthcheck:
-      test: ["CMD", "traefik", "healthcheck", "--ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   db:
     image: mysql:8
@@ -31,12 +25,6 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - web
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   backend:
     build: ./backend
@@ -56,12 +44,6 @@ services:
         condition: service_healthy
     networks:
       - web
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   frontend:
     build: ./frontend
@@ -76,12 +58,6 @@ services:
       - backend
     networks:
       - web
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
 volumes:
   db_data:
