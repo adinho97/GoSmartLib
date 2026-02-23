@@ -6,7 +6,8 @@ services:
       - "--configFile=/etc/traefik/traefik.yml"
     ports:
       - "80:80"
-      - "8080:8080"
+      - "443:443"
+      - "127.0.0.1:8080:8080"
     volumes:
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml
       - ./traefik/acme.json:/acme.json
@@ -39,7 +40,9 @@ services:
       - "8081:8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
+      - "traefik.http.routers.backend.rule=(Host(`${DOMAIN:-localhost}`) || Host(`localhost`)) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.priority=10"
+      - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${MYSQL_DATABASE}
@@ -49,7 +52,7 @@ services:
       db:
         condition: service_healthy
     networks:
-      - web  
+      - web
 
   frontend:
     build: ./frontend
@@ -58,7 +61,8 @@ services:
       - "3000:80"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN:-localhost}`) || Host(`localhost`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     depends_on:
       - backend
@@ -67,8 +71,6 @@ services:
 
 volumes:
   db_data:
-  traefik_acme:
-  frontend_data:
 
 networks:
   web:
