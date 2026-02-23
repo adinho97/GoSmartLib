@@ -3,9 +3,7 @@ import axios from "axios";
 
 @Injectable({ providedIn: "root" })
 export class ItemService {
-  baseUrl = "http://195.201.39.72:8081/api/items";
-  //localhosturl:
-  // baseUrl = "http://localhost:8081/api/items";
+  baseUrl = "/api/items";
 
   async getItems() {
     const res = await axios.get(this.baseUrl);
