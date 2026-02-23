@@ -5,6 +5,11 @@ api:
 entryPoints:
   web:
     address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
   websecure:
     address: ":443"
 
@@ -12,6 +17,14 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: adrian.dyszczak@student.ap.be
+      storage: /acme.json
+      httpChallenge:
+        entryPoint: web
 
 log:
   level: INFO
