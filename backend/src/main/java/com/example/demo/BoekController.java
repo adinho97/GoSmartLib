@@ -2,25 +2,26 @@ package com.example.demo;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/items")
+@RequestMapping("/api/boeken")
 @CrossOrigin(origins = "*")
-public class ItemController {
-    private final ItemRepository repo;
+public class BoekController {
+    private final BoekRepository repo;
 
-    public ItemController(ItemRepository repo) {
+    public BoekController(BoekRepository repo) {
         this.repo = repo;
     }
 
     @GetMapping
-    public List<Item> getAll() {
+    public List<Boek> getAll() {
         return repo.findAll();
     }
 
     @PostMapping
-    public Item create(@Valid @RequestBody Item item) {
-        return repo.save(item);
+    public Boek create(@Valid @RequestBody Boek boek) {
+        return repo.save(boek);
     }
 }
