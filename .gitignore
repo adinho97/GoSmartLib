@@ -20,6 +20,9 @@ package-lock.json
 # Docker
 docker-compose.override.yml
 
+# Traefik / SSL
+traefik/acme.json
+
 # Logs
 *.log
 npm-debug.log*
