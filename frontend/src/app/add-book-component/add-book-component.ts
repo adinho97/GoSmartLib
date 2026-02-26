@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
 import { NgForm } from "@angular/forms";
-import { ItemService } from "./item.service";
+import { ItemService } from "../item.service";
 
 export enum Taal {
   Nederlands = "Nederlands",
