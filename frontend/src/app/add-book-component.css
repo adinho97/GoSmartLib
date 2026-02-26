@@ -57,6 +57,7 @@ label {
 
 /* Inputs & textarea */
 input,
+select,
 textarea {
   padding: 12px;
   border-radius: 10px;
@@ -68,6 +69,7 @@ textarea {
 
 /* Focus effect */
 input:focus,
+select:focus,
 textarea:focus {
   border-color: #871f42;
   background: #fff;

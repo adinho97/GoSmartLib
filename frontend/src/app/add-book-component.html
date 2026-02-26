@@ -105,7 +105,10 @@
 
     <div class="form-row">
       <label for="taal">Taal</label>
-      <input id="taal" name="taal" [(ngModel)]="book.taal" maxlength="50" />
+      <select id="taal" name="taal" [(ngModel)]="book.taal">
+        <option value="">Kies een taal</option>
+        <option *ngFor="let taal of talen" [value]="taal">{{ taal }}</option>
+      </select>
     </div>
 
     <div class="form-row">

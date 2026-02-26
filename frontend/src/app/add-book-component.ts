@@ -2,12 +2,23 @@ import { Component } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { ItemService } from "./item.service";
 
+export enum Taal {
+  Nederlands = "Nederlands",
+  Engels = "Engels",
+  Frans = "Frans",
+  Duits = "Duits",
+  Spaans = "Spaans",
+  Italiaans = "Italiaans",
+  Portugees = "Portugees",
+}
+
 @Component({
   selector: "app-add-book",
   templateUrl: "./add-book-component.html",
   styleUrls: ["./add-book-component.css"],
 })
 export class AddBookComponent {
+  readonly talen = Object.values(Taal);
   selectedCoverFile: File | null = null;
   coverPreviewUrl: string | null = null;
   isSaving = false;
@@ -23,7 +34,7 @@ export class AddBookComponent {
     genre: "",
     uitgaveDatum: "",
     paginas: null as number | null,
-    taal: "",
+    taal: "" as Taal | "",
     uitgeverij: "",
   };
 
