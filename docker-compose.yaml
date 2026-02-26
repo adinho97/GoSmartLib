@@ -40,7 +40,7 @@ services:
       - "8081:8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=(Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.priority=10"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
