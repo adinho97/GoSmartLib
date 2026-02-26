@@ -45,10 +45,17 @@
         id="cover"
         name="cover"
         #coverInput
+        class="cover-file-input"
         type="file"
         accept="image/*"
         (change)="onCoverSelected($event)"
       />
+      <div class="cover-upload-row">
+        <label for="cover" class="cover-upload-button">Kies afbeelding</label>
+        <span class="cover-file-name">
+          {{ selectedCoverFile?.name || "Geen bestand geselecteerd" }}
+        </span>
+      </div>
       <div *ngIf="coverPreviewUrl" class="cover-preview-wrapper">
         <img
           [src]="coverPreviewUrl"
