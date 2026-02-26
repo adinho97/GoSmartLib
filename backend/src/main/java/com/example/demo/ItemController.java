@@ -1,11 +1,11 @@
 package com.example.demo;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/items")
-@CrossOrigin(origins = "*")
 public class ItemController {
     private final ItemRepository repo;
 
@@ -19,7 +19,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public Item create(@RequestBody Item item) {
+    public Item create(@Valid @RequestBody Item item) {
         return repo.save(item);
     }
 }
