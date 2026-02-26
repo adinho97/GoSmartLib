@@ -8,7 +8,7 @@ export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
   {
     path: "dashboard",
-    component: TestComponentComponent,
+    component: TestComponentComponent, // change to actual dashboard
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder", "admin"] },
   },
