@@ -10,6 +10,7 @@ export enum Taal {
   Spaans = "Spaans",
   Italiaans = "Italiaans",
   Portugees = "Portugees",
+  Latijn = "Latijn",
 }
 
 @Component({
