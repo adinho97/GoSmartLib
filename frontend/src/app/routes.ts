@@ -10,7 +10,7 @@ export const appRoutes: Routes = [
     path: "dashboard",
     component: TestComponentComponent, // change to actual dashboard
     canActivate: [AuthGuard],
-    data: { roles: ["leerling", "leerkracht", "bibbeheerder", "admin"] },
+    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
   { path: "", redirectTo: "/dashboard", pathMatch: "full" },
 ];
