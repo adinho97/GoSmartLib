@@ -1,0 +1,222 @@
+/* Page background */
+body {
+  background: linear-gradient(135deg, #f6f3ff 0%, #fdf0f5 50%, #eef9ff 100%);
+  font-family: Arial, sans-serif;
+}
+
+/* Main container */
+.add-book-page {
+  max-width: 650px;
+  margin: 50px auto;
+  padding: 35px;
+  background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
+  border: 1px solid #f0dde5;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Title */
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #871f42;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+/* Form rows */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.form-row:nth-child(odd) {
+  background: #fff8fb;
+}
+
+.form-row:nth-child(even) {
+  background: #f8fbff;
+}
+
+.form-row:focus-within {
+  border-color: #c8859d;
+  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.08);
+}
+
+/* Labels */
+label {
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #5c2b3c;
+}
+
+/* Inputs & textarea */
+input,
+select,
+textarea {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+
+/* Focus effect */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #871f42;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 6px rgba(135, 31, 66, 0.25);
+}
+
+/* Textarea */
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* File upload */
+.cover-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cover-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.cover-upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid #a53a63;
+  background: linear-gradient(135deg, #fff7fa, #f6f0ff);
+  color: #7a1b3a;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cover-upload-button:hover {
+  background: linear-gradient(135deg, #fbe8ef, #efe6ff);
+  box-shadow: 0 4px 10px rgba(135, 31, 66, 0.18);
+}
+
+.cover-upload-button:active {
+  transform: translateY(1px);
+}
+
+.cover-file-name {
+  font-size: 14px;
+  color: #4e5f72;
+}
+
+/* Cover preview */
+.cover-preview-wrapper {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.cover-preview {
+  width: 140px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
+/* Button */
+button {
+  margin-top: 20px;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #871f42, #b23a65, #60162f);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* Button hover */
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(135, 31, 66, 0.3);
+}
+
+/* Disabled button */
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Messages */
+.success-message {
+  margin-top: 15px;
+  color: #1a7f37;
+  font-weight: 600;
+  text-align: center;
+}
+
+.error-message {
+  margin-top: 15px;
+  color: #c62828;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Validation */
+.field-invalid {
+  border-color: #c62828;
+  background: #fff5f5;
+}
+
+.field-error {
+  margin-top: 5px;
+  color: #c62828;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .add-book-page {
+    margin: 20px;
+    padding: 25px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .cover-upload-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
