@@ -28,7 +28,11 @@ public class BoekController {
     }
 
     @PostMapping
-    public Boek create(@Valid @RequestBody Boek boek) {
-        return repo.save(boek);
+    public BoekDto create(@Valid @RequestBody BoekDto boekDto) {
+        Boek entity = BoekMapper.toEntity(boekDto);
+        entity.setId(null); // id altijd door de database laten bepalen
+
+        Boek saved = repo.save(entity);
+        return BoekMapper.toDto(saved);
     }
 }
