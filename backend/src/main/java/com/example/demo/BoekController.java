@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.example.demo.entities.Boek;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 

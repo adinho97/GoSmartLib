@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.entities;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -129,3 +129,4 @@ public class Boek {
         this.uitgeverij = uitgeverij;
     }
 }
+
