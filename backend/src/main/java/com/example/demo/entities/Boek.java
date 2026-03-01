@@ -24,6 +24,11 @@ public class Boek {
     @Size(max = 255)
     private String auteur;
 
+    @NotBlank
+    @Size(max = 20)
+    @Column(unique = true)
+    private String isbn;
+
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     @Size(max = 10_000_000)
@@ -71,6 +76,14 @@ public class Boek {
 
     public void setAuteur(String auteur) {
         this.auteur = auteur;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
     }
 
     public String getCover() {

@@ -6,6 +6,7 @@ public class BoekDto {
     private Long id;
     private String titel;
     private String auteur;
+    private String isbn;
     private String cover;
     private String beschrijving;
     private String genre;
@@ -36,6 +37,14 @@ public class BoekDto {
 
     public void setAuteur(String auteur) {
         this.auteur = auteur;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
     }
 
     public String getCover() {
