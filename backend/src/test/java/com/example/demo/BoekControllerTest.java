@@ -11,7 +11,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -96,4 +98,21 @@ class BoekControllerTest {
                         .content(invalidJson))
                 .andExpect(status().isBadRequest());
     }
+
+        @Test
+        void deleteShouldReturnNoContentWhenBookExists() throws Exception {
+                when(boekRepository.existsById(1L)).thenReturn(true);
+                doNothing().when(boekRepository).deleteById(1L);
+
+                mockMvc.perform(delete("/api/boeken/1"))
+                                .andExpect(status().isNoContent());
+        }
+
+        @Test
+        void deleteShouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
+                when(boekRepository.existsById(999L)).thenReturn(false);
+
+                mockMvc.perform(delete("/api/boeken/999"))
+                                .andExpect(status().isNotFound());
+        }
 }
