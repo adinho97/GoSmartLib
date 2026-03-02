@@ -2,7 +2,11 @@ package com.example.demo.services;
 
 import com.example.demo.BoekRepository;
 import com.example.demo.dto.BoekDto;
+import com.example.demo.entities.Boek;
+import com.example.demo.mappers.BoekMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class BoekService {
@@ -14,6 +18,7 @@ public class BoekService {
     }
 
     public BoekDto importByIsbn(String isbn) {
-        return null;
+        Optional<Boek> bestaand = boekRepository.findByIsbn(isbn);
+        return bestaand.map(BoekMapper::toDto).orElse(null);
     }
 }
