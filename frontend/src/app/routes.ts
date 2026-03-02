@@ -4,6 +4,7 @@ import { AuthGuard } from "./auth.guard";
 import { LoginComponent } from "./login/login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
+import { DetailComponent } from "./detail/detail.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
@@ -14,6 +15,12 @@ export const appRoutes: Routes = [
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
   { path: "", redirectTo: "/dashboard", pathMatch: "full" },
+  { 
+    path: "detail/:id", 
+    component: DetailComponent, 
+    canActivate: [AuthGuard],
+    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] }
+  },
   { 
     path: "add", 
     component: AddBookComponent, 

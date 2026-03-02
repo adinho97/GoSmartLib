@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,7 +11,7 @@ export class DashboardComponent implements OnInit {
   featuredBooks: any[] = [];
   loading: boolean = true;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit() {
     this.fetchBooks();
@@ -35,11 +36,13 @@ export class DashboardComponent implements OnInit {
       // Beschrijving: We gebruiken de 'first_publish_year' of een standaard tekst
       beschrijving: book.first_publish_year 
         ? `Dit populaire werk verscheen voor het eerst in ${book.first_publish_year} en heeft inmiddels ${book.edition_count} edities.` 
-        : 'Een veelgelezen favoriet uit onze collectie.'
+        : 'Een veelgelezen favoriet uit onze collectie.',
+      id: book.key.split('/').pop() 
     }));
     this.loading = false;
   });
 }
+seeDetail(book: any) {
+  this.router.navigate(['/detail', book.id]);
 }
-
-
+}
