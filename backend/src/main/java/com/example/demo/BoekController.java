@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.dto.BoekDto;
 import com.example.demo.entities.Boek;
 import com.example.demo.mappers.BoekMapper;
+import com.example.demo.services.BoekService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +15,11 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class BoekController {
     private final BoekRepository repo;
+    private final BoekService boekService;
 
-    public BoekController(BoekRepository repo) {
+    public BoekController(BoekRepository repo, BoekService boekService) {
         this.repo = repo;
+        this.boekService = boekService;
     }
 
     @GetMapping
@@ -34,5 +37,10 @@ public class BoekController {
 
         Boek saved = repo.save(entity);
         return BoekMapper.toDto(saved);
+    }
+
+    @GetMapping("/isbn/{isbn}")
+    public BoekDto getOrImportByIsbn(@PathVariable String isbn) {
+        return boekService.importByIsbn(isbn);
     }
 }
