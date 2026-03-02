@@ -1,0 +1,72 @@
+<div class="book-list-page">
+  <header class="book-list-header">
+    <div class="header-text">
+      <h1>Boekenlijst</h1>
+      <p>Ontdek en beheer alle beschikbare boeken op één plek.</p>
+    </div>
+    <div class="header-actions">
+      <a class="header-button secondary" [routerLink]="['/dashboard']"
+        >Terug naar dashboard</a
+      >
+      <a *ngIf="isBibbeheerder" class="header-button" [routerLink]="['/add']"
+        >Boek toevoegen</a
+      >
+    </div>
+  </header>
+
+  <p *ngIf="isLoading" class="info-message">Boeken laden...</p>
+  <p *ngIf="error" class="error-message">{{ error }}</p>
+
+  <div *ngIf="!isLoading && !error && boeken.length === 0" class="info-message">
+    Er zijn nog geen boeken beschikbaar.
+  </div>
+
+  <div class="books-grid" *ngIf="!isLoading && !error && boeken.length > 0">
+    <article
+      class="book-card"
+      *ngFor="let boek of pagedBoeken"
+      [routerLink]="['/details', boek.id]"
+    >
+      <img
+        *ngIf="boek.cover"
+        [src]="boek.cover"
+        [alt]="boek.titel"
+        class="book-cover"
+      />
+      <div class="book-content">
+        <h2>{{ boek.titel }}</h2>
+        <p class="book-author">{{ boek.auteur }}</p>
+        <p class="book-meta" *ngIf="boek.genre">
+          <strong>Genre:</strong> {{ boek.genre }}
+        </p>
+        <p class="book-meta" *ngIf="boek.taal">
+          <strong>Taal:</strong> {{ boek.taal }}
+        </p>
+        <button
+          *ngIf="isBibbeheerder"
+          type="button"
+          class="delete-button"
+          (click)="verwijderBoek($event, boek)"
+        >
+          Verwijder
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <nav
+    class="pagination"
+    *ngIf="!isLoading && !error && totalPages > 1"
+    aria-label="Paginering boekenlijst"
+  >
+    <button
+      type="button"
+      class="pagination-button"
+      *ngFor="let page of pageNumbers"
+      [class.active]="page === currentPage"
+      (click)="gaNaarPagina(page)"
+    >
+      {{ page }}
+    </button>
+  </nav>
+</div>
