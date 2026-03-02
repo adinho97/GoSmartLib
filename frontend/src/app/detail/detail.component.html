@@ -1,17 +1,30 @@
-<div *ngIf="book">
+<div *ngIf="book" class="book-container">
+
   <h1>{{ book.titel }}</h1>
 
-  <img *ngIf="book.cover"
-       [src]="book.cover"
-       alt="{{ book.titel }}"
-       width="250">
+  <div class="book-content">
 
-  <p><strong>Auteur:</strong> {{ book.auteur }}</p>
-  <p><strong>Genre:</strong> {{ book.genre }}</p>
-  <p><strong>Taal:</strong> {{ book.taal }}</p>
-  <p><strong>Aantal pagina's:</strong> {{ book.paginas }}</p>
-  <p><strong>Uitgave datum:</strong> {{ book.uitgaveDatum | date }}</p>
-  <p><strong>Uitgeverij:</strong> {{ book.uitgeverij }}</p>
+    <div class="book-cover">
+      <img *ngIf="book.cover"
+           [src]="book.cover"
+           alt="{{ book.titel }}">
+    </div>
 
-  <p>{{ book.beschrijving }}</p>
+    <div class="book-info">
+      <p><strong>Auteur:</strong> {{ book.auteur }}</p>
+      <p><strong>Genre:</strong> {{ book.genre }}</p>
+      <p><strong>Taal:</strong> {{ book.taal }}</p>
+      <p><strong>Aantal pagina's:</strong> {{ book.paginas }}</p>
+      <p><strong>Uitgave datum:</strong> {{ book.uitgaveDatum | date }}</p>
+      <p><strong>Uitgeverij:</strong> {{ book.uitgeverij }}</p>
+
+      <div class="book-description">
+        <p>{{ book.beschrijving }}</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="back-button-wrapper">
+  <button (click)="goBack()">← Terug</button>
 </div>

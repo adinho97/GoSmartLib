@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BookService } from '../services/book.service';
 import { Book } from '../models/book';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-detail',
@@ -12,6 +13,7 @@ export class DetailComponent implements OnInit {
   book!: Book;
 
   constructor(
+    private location: Location,
     private route: ActivatedRoute,
     private bookService: BookService
   ) {}
@@ -24,4 +26,8 @@ export class DetailComponent implements OnInit {
         this.book = data;
       });
   }
+
+  goBack() {
+  this.location.back();
+}
 }
