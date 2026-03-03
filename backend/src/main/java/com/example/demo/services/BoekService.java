@@ -4,8 +4,16 @@ import com.example.demo.BoekRepository;
 import com.example.demo.dto.BoekDto;
 import com.example.demo.entities.Boek;
 import com.example.demo.mappers.BoekMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -18,7 +26,108 @@ public class BoekService {
     }
 
     public BoekDto importByIsbn(String isbn) {
-        Optional<Boek> bestaand = boekRepository.findByIsbn(isbn);
-        return bestaand.map(BoekMapper::toDto).orElse(null);
+        Optional<Boek> existing = boekRepository.findByIsbn(isbn);
+        if (existing.isPresent()) {
+            return BoekMapper.toDto(existing.get());
+        }
+
+        Boek fetched = fetchBookFromOpenLibrary(isbn);
+        if (fetched == null) {
+            return null;
+        }
+
+        Boek saved = boekRepository.save(fetched);
+        return BoekMapper.toDto(saved);
+    }
+
+    private Boek fetchBookFromOpenLibrary(String isbn) {
+        String url = "https://openlibrary.org/isbn/" + isbn + ".json";
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                return null;
+            }
+
+            Map<String, Object> body = response.getBody();
+
+            Boek book = new Boek();
+            book.setIsbn(isbn);
+
+            Object title = body.get("title");
+            book.setTitel(title instanceof String ? (String) title : "Unknown title");
+
+            // Pages
+            Object pages = body.get("number_of_pages");
+            if (pages instanceof Number) {
+                book.setPaginas(((Number) pages).intValue());
+            }
+
+            // Description (can be string or object in OpenLibrary)
+            Object description = body.get("description");
+            if (description instanceof String) {
+                book.setBeschrijving((String) description);
+            } else if (description instanceof Map) {
+                Object value = ((Map<?, ?>) description).get("value");
+                if (value instanceof String) {
+                    book.setBeschrijving((String) value);
+                }
+            }
+
+            // Publish date (best-effort parsing)
+            Object publishDate = body.get("publish_date");
+            if (publishDate instanceof String publishDateStr) {
+                LocalDate parsed = tryParsePublishDate(publishDateStr);
+                if (parsed != null) {
+                    book.setUitgaveDatum(parsed);
+                }
+            }
+
+            book.setTaal("EN");
+
+            // Cover image
+            Object covers = body.get("covers");
+            if (covers instanceof List<?> coverList && !coverList.isEmpty()) {
+                Object first = coverList.get(0);
+                if (first instanceof Number) {
+                    int coverId = ((Number) first).intValue();
+                    String coverUrl = "https://covers.openlibrary.org/b/id/" + coverId + "-M.jpg";
+                    book.setCover(coverUrl);
+                }
+            }
+
+            // Publisher
+            Object publishers = body.get("publishers");
+            if (publishers instanceof List<?> publisherList && !publisherList.isEmpty()) {
+                Object first = publisherList.get(0);
+                if (first instanceof String) {
+                    book.setUitgeverij((String) first);
+                }
+            }
+
+            // Author: proper names require extra calls; keep it simple for now.
+            book.setAuteur("Unknown author");
+
+            return book;
+        } catch (HttpClientErrorException.NotFound e) {
+            // ISBN not found in OpenLibrary
+            return null;
+        } catch (Exception e) {
+            // Network or parsing error etc.
+            return null;
+        }
+    }
+
+    private LocalDate tryParsePublishDate(String value) {
+        String[] patterns = { "yyyy-MM-dd", "yyyy", "MMMM d, yyyy", "MMM d, yyyy" };
+        for (String pattern : patterns) {
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+                return LocalDate.parse(value, formatter);
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+        return null;
     }
 }

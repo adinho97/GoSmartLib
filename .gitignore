@@ -16,6 +16,7 @@ package-lock.json
 # Environment
 .env
 .env.local
+backend/src/main/resources/application-local.properties
 
 # Docker
 docker-compose.override.yml
