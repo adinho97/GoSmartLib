@@ -26,7 +26,7 @@ export class BookListComponent implements OnInit {
   isLoading = true;
   error = "";
   readonly isBibbeheerder = localStorage.getItem("role") === "bibbeheerder";
-  readonly pageSize = 25;
+  readonly pageSize = 32;
   currentPage = 1;
   searchInput = "";
   searchQuery = "";
