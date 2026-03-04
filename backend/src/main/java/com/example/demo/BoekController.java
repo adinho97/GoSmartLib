@@ -5,6 +5,7 @@ import com.example.demo.entities.Boek;
 import com.example.demo.mappers.BoekMapper;
 import com.example.demo.services.BoekService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,7 +41,18 @@ public class BoekController {
     }
 
     @GetMapping("/isbn/{isbn}")
-    public BoekDto getOrImportByIsbn(@PathVariable String isbn) {
-        return boekService.importByIsbn(isbn);
+    public ResponseEntity<BoekDto> getByIsbn(@PathVariable String isbn) {
+        return boekService.findByIsbn(isbn)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/import/isbn/{isbn}")
+    public ResponseEntity<BoekDto> importByIsbn(@PathVariable String isbn) {
+        BoekDto dto = boekService.importByIsbn(isbn);
+        if (dto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(dto);
     }
 }
