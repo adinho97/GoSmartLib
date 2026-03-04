@@ -26,7 +26,7 @@ public class Boek {
 
     @NotBlank
     @Size(max = 20)
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String isbn;
 
     @Lob
@@ -142,4 +142,3 @@ public class Boek {
         this.uitgeverij = uitgeverij;
     }
 }
-
