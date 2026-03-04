@@ -25,6 +25,11 @@ public class BoekService {
         this.boekRepository = boekRepository;
     }
 
+    public Optional<BoekDto> findByIsbn(String isbn) {
+        return boekRepository.findByIsbn(isbn)
+                .map(BoekMapper::toDto);
+    }
+
     public BoekDto importByIsbn(String isbn) {
         Optional<Boek> existing = boekRepository.findByIsbn(isbn);
         if (existing.isPresent()) {
