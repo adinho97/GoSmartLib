@@ -30,8 +30,8 @@
             <span> • {{ book.paginas }} pag.</span>
           </div>
 
-          <p class="desc">{{ book.desc }}</p>
-          <button class="details-btn">Bekijk Details</button>
+          <p class="desc">{{ book.beschrijving }}</p>
+          <button class="details-btn" (click)="seeDetail(book)">Details</button>
         </div>
       </div>
     </div>

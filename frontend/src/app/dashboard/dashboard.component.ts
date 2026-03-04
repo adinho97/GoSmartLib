@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { ItemService } from '../item.service';
 
 @Component({
@@ -10,7 +12,7 @@ export class DashboardComponent implements OnInit {
   featuredBooks: any[] = [];
   loading = true;
 
-  constructor(private itemService: ItemService) {}
+  constructor(private http: HttpClient, private router: Router, private itemService: ItemService) {}
 
   ngOnInit() {
     this.fetchBooks();
@@ -20,7 +22,6 @@ export class DashboardComponent implements OnInit {
     this.loading = true;
     try {
       const data = await this.itemService.getBoeken();
-      
       // We mappen de database velden naar ons visuele model
       this.featuredBooks = data.map((book: any) => ({
         titel: book.titel,
@@ -39,4 +40,7 @@ export class DashboardComponent implements OnInit {
       this.loading = false;
     }
   }
+seeDetail(book: any) {
+  this.router.navigate(['/detail', book.id]);
+}
 }
