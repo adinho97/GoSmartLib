@@ -1,134 +1,114 @@
 :host {
   display: block;
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 60px 20px;
   background: #f8f5f7;
-  box-sizing: border-box;
   font-family: "Segoe UI", Roboto, sans-serif;
 }
 
-.book-container {
-  max-width: 900px;
+.detail-wrapper {
+  max-width: 1100px;
   margin: 0 auto;
+}
+
+.detail-card {
   background: white;
-  padding: 50px 40px;
-  border-radius: 14px;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+  padding: 50px;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+  position: relative;
 }
 
-/* Header */
-.book-container h1 {
+.back-btn {
+  position: absolute;
+  top: 25px;
+  left: 25px;
+  background: transparent;
+  border: 2px solid #871F42;
   color: #871F42;
-  margin-bottom: 30px;
-  font-size: 28px;
-  text-align: center;
-  border-bottom: 3px solid #871F42;
-  padding-bottom: 15px;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
-/* Content layout */
-.book-content {
+.back-btn:hover {
+  background: #871F42;
+  color: white;
+}
+
+.book-title {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 50px;
+  color: #871F42;
+}
+
+.detail-content {
   display: flex;
-  gap: 40px;
+  gap: 60px;
   align-items: flex-start;
 }
 
-/* Cover */
 .book-cover img {
-  width: 250px;
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  width: 280px;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
-/* Info */
 .book-info {
   flex: 1;
 }
 
-.book-info p {
-  margin: 8px 0;
-  font-size: 15px;
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 40px;
+  margin-bottom: 30px;
 }
 
-.book-info strong {
+.info-grid div {
+  font-size: 15px;
+  color: #333;
+}
+
+.info-grid span {
+  display: block;
+  font-weight: 600;
   color: #871F42;
+  margin-bottom: 4px;
 }
 
 .book-description {
-  margin-top: 25px;
-  line-height: 1.6;
-  color: #444;
   border-top: 1px solid #eee;
-  padding-top: 20px;
+  padding-top: 25px;
 }
 
-/* Back Button */
-.back-button-wrapper {
-  margin-bottom: 20px;
-  text-align: left;
+.book-description h3 {
+  color: #871F42;
+  margin-bottom: 10px;
 }
 
-.back-button-wrapper button {
-  background-color: #871F42;
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  font-size: 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
+.book-description p {
+  line-height: 1.7;
+  color: #444;
 }
 
-.back-button-wrapper button:hover {
-  background-color: #6e1836;
-  transform: translateY(-2px);
-}
-
-.back-button-wrapper button:active {
-  transform: translateY(0);
-}
-
-/* ------------------ */
-/* RESPONSIVE (same structure as login) */
-/* ------------------ */
-
-@media (max-width: 768px) {
-  .book-container {
-    padding: 35px 25px;
-  }
-
-  .book-content {
+/* Responsive */
+@media (max-width: 900px) {
+  .detail-content {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
 
-  .book-cover img {
-    width: 200px;
+  .info-grid {
+    grid-template-columns: 1fr;
   }
 
-  .back-button-wrapper button {
-    font-size: 14px;
-    padding: 9px 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .book-container h1 {
-    font-size: 22px;
-  }
-
-  .book-info p {
-    font-size: 14px;
-  }
-
-  .book-cover img {
-    width: 170px;
-  }
-
-  .back-button-wrapper button {
-    font-size: 13px;
-    padding: 8px 14px;
+  .back-btn {
+    position: static;
+    margin-bottom: 20px;
   }
 }
