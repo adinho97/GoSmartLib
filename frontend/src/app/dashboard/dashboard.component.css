@@ -1,143 +1,201 @@
+/* Algemene instellingen */
 .home-wrapper {
-  font-family: 'Segoe UI', sans-serif;
-  background: #fff;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+  color: #333;
 }
 
+/* Hero sectie */
 .hero {
   text-align: center;
-  padding: 50px 20px;
-  background: #fcfcfc;
-  border-bottom: 4px solid #8B0000; /* Dark Red */
+  padding: 60px 20px;
+  background: white;
+  border-bottom: 4px solid #8B0000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .hero h1 {
   color: #8B0000;
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   margin: 0;
+  font-weight: 800;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
 .section-title {
-  font-size: 1.5rem;
-  border-left: 5px solid #8B0000;
+  font-size: 1.6rem;
+  border-left: 6px solid #8B0000;
   padding-left: 15px;
   margin-bottom: 30px;
-  color: #333;
+  font-weight: 700;
 }
 
-/* HORIZONTAAL SCROLLEN */
+/* Horizontaal Scrollen */
 .horizontal-scroll-wrapper {
   display: flex;
-  gap: 20px;
+  gap: 25px;
   overflow-x: auto;
-  padding: 10px 5px 30px 5px;
+  padding: 20px 10px 40px 10px;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
 }
 
-/* Rode Scrollbar */
+/* Custom Scrollbar (Donkerrood) */
 .horizontal-scroll-wrapper::-webkit-scrollbar {
-  height: 6px;
+  height: 8px;
 }
 .horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
   background: #8B0000;
   border-radius: 10px;
 }
 
-/* KLEINE KAARTJES */
+/* Moderne Boek Kaart */
 .book-card {
-  flex: 0 0 240px; /* Lekker compact */
+  flex: 0 0 260px;
   scroll-snap-align: start;
-  border: 1px solid #eee;
-  padding: 15px;
-  background: #fff;
+  background: white;
+  border-radius: 20px; /* Mooie ronde hoeken */
+  padding: 25px;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s;
+  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.04);
 }
 
+/* Hover Effecten */
 .book-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  transform: translateY(-10px);
+  border-color: #8B0000; /* Rode border verschijnt */
+  box-shadow: 0 15px 35px rgba(139, 0, 0, 0.12);
 }
 
+/* Elementen in de kaart */
 .genre-tag {
   background: #8B0000;
   color: white;
-  font-size: 0.55rem;
-  padding: 2px 8px;
+  font-size: 0.65rem;
+  padding: 4px 12px;
   text-transform: uppercase;
   align-self: center;
-  margin-bottom: 10px;
-  border-radius: 2px;
+  margin-bottom: 15px;
+  border-radius: 20px;
+  font-weight: bold;
 }
 
 .book-cover {
-  width: 90px;
-  height: 130px;
-  margin: 0 auto 15px;
+  width: 110px;
+  height: 160px;
+  margin: 0 auto 20px;
 }
 
 .book-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-left: 3px solid #8B0000;
+  border-radius: 10px;
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.15);
+}
+
+.cover-placeholder {
+  display: flex;           
+  justify-content: center;   
+  align-items: center;       
+  text-align: center;        
+  width: 100%;               
+  height: 100%;      
+  border-radius: 10px; 
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.15);       
+  background-color: #eee;    
+}
+
+.book-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Zorgt dat de inhoud de kaart vult */
+  text-align: center;
 }
 
 .book-content h4 {
   color: #8B0000;
-  font-size: 1rem;
-  margin: 0 0 5px 0;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 1.1rem;
+  margin: 0 0 8px 0;
+  font-weight: 700;
 }
 
 .author {
-  font-size: 0.85rem;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #555;
 }
 
 .book-meta {
-  font-size: 0.7rem;
-  color: #777;
-  text-align: center;
-  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 15px;
 }
 
 .desc {
-  font-size: 0.75rem;
-  color: #555;
-  line-height: 1.4;
-  text-align: left;
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 20px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
+/* Gecentreerde Knop */
 .details-btn {
-  margin-top: auto;
-  background: transparent;
-  border: 1px solid #8B0000;
-  color: #8B0000;
-  padding: 6px;
-  font-size: 0.75rem;
+  margin-top: auto; /* Duwt de knop naar de bodem */
+  background: #8B0000;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
   font-weight: bold;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.3s ease;
+  width: 60%; /* Iets smaller dan de kaart voor een luchtige look */
+  align-self: center; /* Centreert de knop horizontaal */
 }
 
 .details-btn:hover {
-  background: #8B0000;
-  color: white;
+  background: #a00000;
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(139, 0, 0, 0.3);
+}
+
+/* Loading Animatie */
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px;
+  color: #8B0000;
+  font-weight: bold;
+}
+
+.spinner {
+  width: 45px;
+  height: 45px;
+  border: 4px solid rgba(139, 0, 0, 0.1);
+  border-top: 4px solid #8B0000;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

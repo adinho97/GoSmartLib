@@ -1,25 +1,29 @@
 <div class="home-wrapper">
   <header class="hero">
     <h1>GoSmartLib</h1>
-    <p>Ontdek de meest populaire boeken van dit moment.</p>
+    <p>Vind je nieuwe favoriete boek</p>
   </header>
 
   <main class="container">
-    <h2 class="section-title">Populaire Collectie</h2>
+    <h2 class="section-title">Uitgelichte boeken</h2>
     
-    <div class="horizontal-scroll-wrapper" *ngIf="!loading">
+    <div class="loader-container" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Boeken ophalen uit database...</p>
+    </div>
+
+    <div class="horizontal-scroll-wrapper" *ngIf="!loading && featuredBooks.length > 0">
       <div class="book-card" *ngFor="let book of featuredBooks">
-        
         <div class="genre-tag">{{ book.genre }}</div>
 
         <div class="book-cover">
           <img *ngIf="book.coverUrl" [src]="book.coverUrl" [alt]="book.titel">
-          <div *ngIf="!book.coverUrl" style="width:100%; height:100%; background:#eee; border-left:3px solid #8B0000;"></div>
+          <div *ngIf="!book.coverUrl" class="cover-placeholder"><span>Geen Cover</span></div>
         </div>
 
         <div class="book-content">
           <h4>{{ book.titel }}</h4>
-          <p class="author">{{ book.auteur }}</p>
+          <p class="author">door {{ book.auteur }}</p>
           
           <div class="book-meta">
             <span>{{ book.taal }}</span>
@@ -30,6 +34,11 @@
           <button class="details-btn" (click)="seeDetail(book)">Details</button>
         </div>
       </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && featuredBooks.length === 0">
+      <p>Je bibliotheek is momenteel nog leeg.</p>
+      <p style="font-size: 0.8rem;">Gebruik het menu om nieuwe boeken te registreren.</p>
     </div>
   </main>
 </div>

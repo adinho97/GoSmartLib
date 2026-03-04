@@ -7,6 +7,7 @@ import { AppComponent } from "./app.component";
 import { LoginComponent } from "./login/login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
+import { BookListComponent } from "./book-list/book-list.component";
 import { provideHttpClient } from "@angular/common/http";
 import { DetailComponent } from './detail/detail.component';
 
@@ -17,6 +18,7 @@ import { DetailComponent } from './detail/detail.component';
     DashboardComponent,
     AddBookComponent,
     DetailComponent,
+    BookListComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideHttpClient()],
