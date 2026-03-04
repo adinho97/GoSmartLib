@@ -1,18 +1,46 @@
 package com.example.demo.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDate;
 
 public class BoekDto {
     private Long id;
+
+    @NotBlank
+    @Size(max = 255)
     private String titel;
+
+    @NotBlank
+    @Size(max = 255)
     private String auteur;
+
+    @NotBlank
+    @Size(max = 20)
     private String isbn;
+
+    @Size(max = 10_000_000)
     private String cover;
+
+    @Size(max = 5000)
     private String beschrijving;
+
+    @Size(max = 100)
     private String genre;
+
     private LocalDate uitgaveDatum;
+
+    @Min(1)
+    @Max(100_000)
     private Integer paginas;
+
+    @Size(max = 50)
     private String taal;
+
+    @Size(max = 255)
     private String uitgeverij;
 
     public Long getId() {
