@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -30,6 +31,7 @@ public class BoekService {
                 .map(BoekMapper::toDto);
     }
 
+    @Transactional
     public BoekDto importByIsbn(String isbn) {
         Optional<Boek> existing = boekRepository.findByIsbn(isbn);
         if (existing.isPresent()) {
