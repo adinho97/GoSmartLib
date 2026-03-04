@@ -210,6 +210,7 @@
   width: 100%;
   height: 4px;
   background: linear-gradient(90deg, #871f42, #60162f);
+  pointer-events: none;
 }
 
 /* Subtle top glow on hover */
@@ -225,6 +226,7 @@
   );
   opacity: 0;
   transition: opacity 0.25s ease;
+  pointer-events: none;
 }
 
 .book-card:hover::before {

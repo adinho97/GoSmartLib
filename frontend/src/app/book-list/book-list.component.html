@@ -46,7 +46,7 @@
           *ngIf="isBibbeheerder"
           type="button"
           class="delete-button"
-          (click)="verwijderBoek($event, boek)"
+          (click)="$event.stopPropagation(); $event.preventDefault(); verwijderBoek($event, boek)"
         >
           Verwijder
         </button>
