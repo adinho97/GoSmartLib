@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule, NgForm } from "@angular/forms";
-import { AddBookComponent } from "./add-book-component";
+import { AddBookComponent } from "./add-book-component/add-book-component";
 import { ItemService } from "./item.service";
 
 class MockItemService {

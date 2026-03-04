@@ -1,0 +1,289 @@
+/* Page base */
+.book-list-page {
+  padding: 2.5rem;
+  background: linear-gradient(180deg, #f8f5f6 0%, #f3ecef 100%);
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+  color: #2c2c2c;
+}
+
+/* Title */
+.book-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.3rem 1.5rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff7fa 0%, #f6edf1 100%);
+  border: 1px solid rgba(96, 22, 47, 0.1);
+}
+
+.book-list-page h1 {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 2.75rem;
+  margin: 0;
+  text-align: left;
+  color: #60162f;
+  letter-spacing: 0.8px;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(96, 22, 47, 0.12);
+}
+
+.header-text p {
+  margin: 0.4rem 0 0;
+  color: #6f4b58;
+  font-size: 0.95rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.header-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #871f42;
+  background-color: #871f42;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.header-button:hover {
+  background-color: #60162f;
+  border-color: #60162f;
+  transform: translateY(-1px);
+}
+
+.header-button.secondary {
+  background-color: transparent;
+  color: #871f42;
+}
+
+.header-button.secondary:hover {
+  color: #fff;
+}
+
+/* Messages */
+.info-message,
+.error-message {
+  text-align: center;
+  margin: 2rem 0;
+  font-size: 1.1rem;
+}
+
+.error-message {
+  color: #871f42;
+  font-weight: 500;
+}
+
+/* Grid */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2.2rem;
+}
+
+/* Card */
+.book-card {
+  background: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(96, 22, 47, 0.08);
+  box-shadow: 0 6px 18px rgba(96, 22, 47, 0.08);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Hover = lift + glow */
+.book-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 14px 30px rgba(96, 22, 47, 0.18);
+}
+
+/* Cover */
+.book-cover {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  background: linear-gradient(135deg, #f0e6ea, #e6d6dc);
+  transition: transform 0.3s ease;
+}
+
+/* Slight zoom on hover */
+.book-card:hover .book-cover {
+  transform: scale(1.03);
+}
+
+/* Content */
+.book-content {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* Title */
+.book-content h2 {
+  font-family: "Merriweather", serif;
+  font-size: 1.25rem;
+  margin: 0;
+  color: #60162f;
+  line-height: 1.3;
+}
+
+/* Author */
+.book-author {
+  font-size: 0.95rem;
+  color: #871f42;
+  font-style: italic;
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* Description */
+.book-content p {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #444;
+}
+
+/* Clamp long descriptions */
+.book-content p:not(.book-author):not(.book-meta) {
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Meta */
+.book-meta {
+  font-size: 0.78rem;
+  color: #5a3a45;
+  margin: 0;
+}
+
+.book-meta strong {
+  color: #871f42;
+}
+
+/* Delete button */
+.delete-button {
+  margin-top: auto;
+  padding: 0.4rem 0.7rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #871f42;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Prevent click bubbling to card */
+.delete-button:hover {
+  background-color: #60162f;
+  transform: scale(1.05);
+}
+
+/* Accent bar */
+.book-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #871f42, #60162f);
+  pointer-events: none;
+}
+
+/* Subtle top glow on hover */
+.book-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: radial-gradient(
+    circle at top,
+    rgba(135, 31, 66, 0.08),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.book-card:hover::before {
+  opacity: 1;
+}
+
+.pagination {
+  margin-top: 2rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pagination-button {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #871f42;
+  background: #fff;
+  color: #871f42;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-button:hover {
+  background: #f7e9ef;
+}
+
+.pagination-button.active {
+  background: #871f42;
+  color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .book-list-page {
+    padding: 1.2rem;
+  }
+
+  .book-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .book-list-page h1 {
+    font-size: 2.2rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .book-cover {
+    height: 260px;
+  }
+}
