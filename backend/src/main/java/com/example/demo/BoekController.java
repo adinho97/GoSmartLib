@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,5 +24,15 @@ public class BoekController {
     @PostMapping
     public Boek create(@Valid @RequestBody Boek boek) {
         return repo.save(boek);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (!repo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        repo.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
