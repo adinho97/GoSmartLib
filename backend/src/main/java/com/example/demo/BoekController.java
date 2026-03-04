@@ -47,7 +47,7 @@ public class BoekController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/import/isbn/{isbn}")
+    @PostMapping("/isbn/{isbn}")
     public ResponseEntity<BoekDto> importByIsbn(@PathVariable String isbn) {
         BoekDto dto = boekService.importByIsbn(isbn);
         if (dto == null) {
