@@ -29,11 +29,7 @@
       <h2>Filters</h2>
 
       <label for="genreFilter">Genre</label>
-      <select
-        id="genreFilter"
-        [(ngModel)]="selectedGenre"
-        (ngModelChange)="onFiltersChanged()"
-      >
+      <select id="genreFilter" [(ngModel)]="selectedGenre">
         <option value="">Alle genres</option>
         <option *ngFor="let genre of availableGenres" [value]="genre">
           {{ genre }}
@@ -41,11 +37,7 @@
       </select>
 
       <label for="taalFilter">Taal</label>
-      <select
-        id="taalFilter"
-        [(ngModel)]="selectedTaal"
-        (ngModelChange)="onFiltersChanged()"
-      >
+      <select id="taalFilter" [(ngModel)]="selectedTaal">
         <option value="">Alle talen</option>
         <option *ngFor="let taal of availableTalen" [value]="taal">
           {{ taal }}
@@ -53,20 +45,10 @@
       </select>
 
       <label for="releaseFrom">Uitgave vanaf</label>
-      <input
-        id="releaseFrom"
-        type="date"
-        [(ngModel)]="releaseDateFrom"
-        (ngModelChange)="onFiltersChanged()"
-      />
+      <input id="releaseFrom" type="date" [(ngModel)]="releaseDateFrom" />
 
       <label for="releaseTo">Uitgave tot</label>
-      <input
-        id="releaseTo"
-        type="date"
-        [(ngModel)]="releaseDateTo"
-        (ngModelChange)="onFiltersChanged()"
-      />
+      <input id="releaseTo" type="date" [(ngModel)]="releaseDateTo" />
 
       <div class="page-slider-group">
         <label for="minPages">Pagina's: {{ minPages }} - {{ maxPages }}</label>
@@ -102,6 +84,14 @@
 
       <button
         type="button"
+        class="apply-filters-button"
+        (click)="applyFilters()"
+      >
+        Filters toepassen
+      </button>
+
+      <button
+        type="button"
         class="reset-filters-button"
         (click)="clearFilters()"
       >
@@ -110,6 +100,22 @@
     </aside>
 
     <section class="books-content">
+      <div class="search-bar-wrapper">
+        <label for="bookSearch">Zoek op titel of auteur</label>
+        <div class="search-controls">
+          <input
+            id="bookSearch"
+            type="text"
+            placeholder="Bijv. Harry Potter of J.K. Rowling"
+            [(ngModel)]="searchInput"
+            (keydown.enter)="applySearch()"
+          />
+          <button type="button" class="search-button" (click)="applySearch()">
+            Zoeken
+          </button>
+        </div>
+      </div>
+
       <p class="filter-result-count" *ngIf="filteredBoeken.length > 0">
         {{ filteredBoeken.length }} boek(en) gevonden
       </p>

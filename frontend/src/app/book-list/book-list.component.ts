@@ -28,14 +28,22 @@ export class BookListComponent implements OnInit {
   readonly isBibbeheerder = localStorage.getItem("role") === "bibbeheerder";
   readonly pageSize = 25;
   currentPage = 1;
+  searchInput = "";
+  searchQuery = "";
   selectedGenre = "";
   selectedTaal = "";
   releaseDateFrom = "";
   releaseDateTo = "";
+  appliedGenre = "";
+  appliedTaal = "";
+  appliedReleaseDateFrom = "";
+  appliedReleaseDateTo = "";
   minAvailablePages = this.minPageFilterLimit;
   maxAvailablePages = this.maxPageFilterLimit;
   minPages = this.minPageFilterLimit;
   maxPages = this.maxPageFilterLimit;
+  appliedMinPages = this.minPageFilterLimit;
+  appliedMaxPages = this.maxPageFilterLimit;
 
   constructor(private itemService: ItemService) {}
 
@@ -84,18 +92,25 @@ export class BookListComponent implements OnInit {
   }
 
   get filteredBoeken(): Boek[] {
+    const normalizedQuery = this.searchQuery.trim().toLowerCase();
+
     return this.boeken.filter((boek) => {
+      const titleOrAuthorMatches =
+        !normalizedQuery ||
+        (boek.titel || "").toLowerCase().includes(normalizedQuery) ||
+        (boek.auteur || "").toLowerCase().includes(normalizedQuery);
+
       const genreMatches =
-        !this.selectedGenre ||
-        (boek.genre || "").toLowerCase() === this.selectedGenre.toLowerCase();
+        !this.appliedGenre ||
+        (boek.genre || "").toLowerCase() === this.appliedGenre.toLowerCase();
 
       const taalMatches =
-        !this.selectedTaal ||
-        (boek.taal || "").toLowerCase() === this.selectedTaal.toLowerCase();
+        !this.appliedTaal ||
+        (boek.taal || "").toLowerCase() === this.appliedTaal.toLowerCase();
 
       const boekDatum = this.parseDate(boek.uitgaveDatum);
-      const fromDate = this.parseDate(this.releaseDateFrom);
-      const toDate = this.parseDate(this.releaseDateTo);
+      const fromDate = this.parseDate(this.appliedReleaseDateFrom);
+      const toDate = this.parseDate(this.appliedReleaseDateTo);
 
       const dateFromMatches =
         !fromDate || (!!boekDatum && boekDatum >= fromDate);
@@ -103,9 +118,10 @@ export class BookListComponent implements OnInit {
 
       const paginas = boek.paginas ?? 0;
       const paginaMatches =
-        paginas >= this.minPages && paginas <= this.maxPages;
+        paginas >= this.appliedMinPages && paginas <= this.appliedMaxPages;
 
       return (
+        titleOrAuthorMatches &&
         genreMatches &&
         taalMatches &&
         dateFromMatches &&
@@ -164,8 +180,19 @@ export class BookListComponent implements OnInit {
     return `calc(8px + (${100 - this.maxPagesPercent} * (100% - 16px) / 100))`;
   }
 
-  onFiltersChanged() {
+  applySearch() {
+    this.searchQuery = this.searchInput.trim();
+    this.currentPage = 1;
+  }
+
+  applyFilters() {
     this.ensurePageRangeValidity();
+    this.appliedGenre = this.selectedGenre;
+    this.appliedTaal = this.selectedTaal;
+    this.appliedReleaseDateFrom = this.releaseDateFrom;
+    this.appliedReleaseDateTo = this.releaseDateTo;
+    this.appliedMinPages = this.minPages;
+    this.appliedMaxPages = this.maxPages;
     this.currentPage = 1;
   }
 
@@ -175,8 +202,6 @@ export class BookListComponent implements OnInit {
     if (this.minPages > this.maxPages) {
       this.maxPages = this.minPages;
     }
-
-    this.onFiltersChanged();
   }
 
   onMaxPagesChange(value: number | string) {
@@ -185,17 +210,23 @@ export class BookListComponent implements OnInit {
     if (this.maxPages < this.minPages) {
       this.minPages = this.maxPages;
     }
-
-    this.onFiltersChanged();
   }
 
   clearFilters() {
+    this.searchInput = "";
+    this.searchQuery = "";
     this.selectedGenre = "";
     this.selectedTaal = "";
     this.releaseDateFrom = "";
     this.releaseDateTo = "";
+    this.appliedGenre = "";
+    this.appliedTaal = "";
+    this.appliedReleaseDateFrom = "";
+    this.appliedReleaseDateTo = "";
     this.minPages = this.minPageFilterLimit;
     this.maxPages = this.maxPageFilterLimit;
+    this.appliedMinPages = this.minPageFilterLimit;
+    this.appliedMaxPages = this.maxPageFilterLimit;
     this.currentPage = 1;
   }
 
