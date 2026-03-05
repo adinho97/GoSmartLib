@@ -16,27 +16,4 @@ export class ItemService {
     return res.data;
   }
 
-  async addBoek(boek: {
-    titel: string;
-    auteur: string;
-    cover: string;
-    beschrijving: string;
-    genre: string;
-    uitgaveDatum: string;
-    paginas: number | null;
-    taal: string;
-    uitgeverij: string;
-  }) {
-    const res = await axios.post(this.boekenUrl, boek);
-    return res.data;
-  }
-
-  async getBoeken() {
-    const res = await axios.get(this.boekenUrl);
-    return res.data;
-  }
-
-  async deleteBoek(id: number) {
-    await axios.delete(`${this.boekenUrl}/${id}`);
-  }
 }
