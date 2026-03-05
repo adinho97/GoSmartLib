@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { ItemService } from '../item.service';
+import { BookService } from '../services/book.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,7 +12,7 @@ export class DashboardComponent implements OnInit {
   featuredBooks: any[] = [];
   loading = true;
 
-  constructor(private http: HttpClient, private router: Router, private itemService: ItemService) {}
+  constructor(private http: HttpClient, private router: Router, private bookService: BookService) {}
 
   ngOnInit() {
     this.fetchBooks();
@@ -21,7 +21,7 @@ export class DashboardComponent implements OnInit {
   async fetchBooks() {
     this.loading = true;
     try {
-      const data = await this.itemService.getBoeken();
+      const data = await this.bookService.getBoeken();
       // We mappen de database velden naar ons visuele model
       this.featuredBooks = data.map((book: any) => ({
         titel: book.titel,
