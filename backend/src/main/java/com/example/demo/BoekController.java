@@ -21,6 +21,13 @@ public class BoekController {
         return repo.findAll();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Boek> getBook(@PathVariable Long id) {
+        return repo.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public Boek create(@Valid @RequestBody Boek boek) {
         return repo.save(boek);
