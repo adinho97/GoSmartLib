@@ -1,0 +1,47 @@
+<div class="isbn-page">
+  <h1>Zoek boek via ISBN</h1>
+
+  <div class="isbn-input-row">
+    <input
+      type="text"
+      placeholder="Voer ISBN in (bv. 9780553808049)"
+      [(ngModel)]="isbn"
+      (keyup.enter)="zoekBoek()"
+      [disabled]="isLoading"
+    />
+    <button (click)="zoekBoek()" [disabled]="isLoading">
+      {{ isLoading ? "Zoeken..." : "Zoek" }}
+    </button>
+  </div>
+
+  <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+  <div *ngIf="book" class="book-result">
+    <div class="book-card">
+      <img
+        *ngIf="book.cover"
+        [src]="book.cover"
+        alt="Cover van {{ book.titel }}"
+        class="book-cover"
+      />
+      <div class="book-info">
+        <h2>{{ book.titel }}</h2>
+        <p><strong>Auteur:</strong> {{ book.auteur }}</p>
+        <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+        <p *ngIf="book.uitgeverij">
+          <strong>Uitgeverij:</strong> {{ book.uitgeverij }}
+        </p>
+        <p *ngIf="book.paginas">
+          <strong>Pagina's:</strong> {{ book.paginas }}
+        </p>
+        <p *ngIf="book.taal"><strong>Taal:</strong> {{ book.taal }}</p>
+        <p *ngIf="book.uitgaveDatum">
+          <strong>Uitgavedatum:</strong> {{ book.uitgaveDatum }}
+        </p>
+        <p *ngIf="book.beschrijving" class="book-description">
+          <strong>Beschrijving:</strong> {{ book.beschrijving }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
