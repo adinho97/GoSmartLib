@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { AuthGuard } from '../auth.guard';
+import { Component, HostListener } from '@angular/core';
+import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -8,31 +9,51 @@ import { AuthGuard } from '../auth.guard';
 })
 export class ProfileComponent {
 
-  role = "User";
-
-  favoriteBooks = [
-    { title: "The Hobbit", author: "J.R.R. Tolkien", cover: "https://covers.openlibrary.org/b/id/6979861-L.jpg" },
-    { title: "1984", author: "George Orwell", cover: "https://covers.openlibrary.org/b/id/6979862-L.jpg" }
-  ];
-
-  readingHistory = [
-    { title: "Dune", finishedDate: new Date("2025-12-12"), cover: "https://covers.openlibrary.org/b/id/6979863-L.jpg" }
-  ];
-
-  borrowedBooks = [
-    { title: "Harry Potter", deadline: new Date("2026-03-20"), cover: "https://covers.openlibrary.org/b/id/6979864-L.jpg" }
-  ];
+  role = localStorage.getItem('role') || 'gebruiker';
 
   dashboardSettings = {
-  showFavorites: true,
-  showReadingHistory: true,
-  showBorrowed: true
-};
+    showFavorites: true,
+    showReadingHistory: true,
+    showBorrowed: true
+  };
 
-saveDashboardSettings() {
-  localStorage.setItem(
-    'dashboardSettings',
-    JSON.stringify(this.dashboardSettings)
-  );
-}
+  settingsOpen = false;
+
+  favoriteBooks = [{ title: 'Book One', author: 'Author A', cover: '', id: 1 }, { title: 'Book Two', author: 'Author B', cover: '', id: 2 }];
+  readingHistory = [{ title: 'Book Three', finishedDate: new Date(), cover: '', id: 3 }];
+  borrowedBooks = [{ title: 'Book Four', deadline: new Date(), cover: '', id: 4 }];
+
+  constructor(private location: Location, private router: Router) {}
+
+  ngOnInit() {
+    const saved = localStorage.getItem('dashboardSettings');
+    if (saved) {
+      this.dashboardSettings = JSON.parse(saved);
+    }
+  }
+
+  goBack() {
+    this.location.back();
+  }
+
+  toggleSettings() {
+    this.settingsOpen = !this.settingsOpen;
+  }
+
+  saveDashboardSettings() {
+    localStorage.setItem('dashboardSettings', JSON.stringify(this.dashboardSettings));
+    this.settingsOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.settings-dropdown')) {
+      this.settingsOpen = false;
+    }
+  }
+
+  goToDetail(bookId: number) {
+    this.router.navigate(['/detail', bookId]);
+  }
 }

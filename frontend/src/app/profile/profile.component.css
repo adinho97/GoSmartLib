@@ -6,9 +6,12 @@
   color: #333;
 }
 
-/* Header (same style as dashboard hero) */
+/* Header */
 .profile-header {
-  text-align: center;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 60px 20px;
   background: white;
   border-bottom: 4px solid #871F42;
@@ -23,24 +26,93 @@
 }
 
 .profile-role {
-  margin-top: 10px;
+  position: absolute;
+  bottom: 15px;
   font-size: 0.85rem;
   font-weight: bold;
   color: white;
   background: #871F42;
-  display: inline-block;
   padding: 6px 14px;
   border-radius: 20px;
 }
 
-/* Container same width as dashboard */
+/* Back button */
+.back-btn {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #871F42;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  z-index: 10;
+}
+.back-btn:hover {
+  background: #9c254b;
+  transform: translateY(-50%) scale(1.05);
+}
+
+/* Settings dropdown */
+.settings-dropdown {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  z-index: 20;
+}
+.settings-btn {
+  background: #871F42;
+  color: white;
+  border: none;
+  font-size: 1.2rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.settings-btn:hover {
+  background: #9c254b;
+  transform: scale(1.05);
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  padding: 15px;
+  min-width: 220px;
+  flex-direction: column;
+  gap: 10px;
+}
+.dropdown-menu.show {
+  display: flex;
+}
+.setting-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+.dropdown-menu .save-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  font-size: 0.85rem;
+}
+
+/* Profile container */
 .profile-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
-/* Section titles */
+/* Sections */
 .section-title {
   font-size: 1.6rem;
   border-left: 6px solid #871F42;
@@ -49,7 +121,7 @@
   font-weight: 700;
 }
 
-/* Horizontal scrolling (same as dashboard) */
+/* Horizontal scroll */
 .horizontal-scroll-wrapper {
   display: flex;
   gap: 25px;
@@ -58,12 +130,9 @@
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
 }
-
-/* Scrollbar */
 .horizontal-scroll-wrapper::-webkit-scrollbar {
   height: 8px;
 }
-
 .horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
   background: #871F42;
   border-radius: 10px;
@@ -71,31 +140,29 @@
 
 /* Book cards */
 .profile-book-card {
-  flex: 0 0 200px;
+  flex: 0 0 260px;
   scroll-snap-align: start;
   background: white;
-  border-radius: 20px;
-  padding: 20px;
-  border: 2px solid transparent;
+  border-radius: 20px; /* Mooie ronde hoeken */
+  padding: 25px;
   display: flex;
   flex-direction: column;
-  transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   box-shadow: 0 5px 15px rgba(0,0,0,0.04);
 }
 
+/* Hover Effecten */
 .profile-book-card:hover {
-  transform: translateY(-8px);
-  border-color: #871F42;
-  box-shadow: 0 15px 35px rgba(135,31,66,0.12);
+  transform: translateY(-10px);
+  border-color: #8B0000; /* Rode border verschijnt */
+  box-shadow: 0 15px 35px rgba(139, 0, 0, 0.12);
 }
-
-/* Cover */
 .book-cover {
   width: 100px;
   height: 150px;
   margin: 0 auto 15px;
 }
-
 .book-cover img {
   width: 100%;
   height: 100%;
@@ -103,7 +170,6 @@
   border-radius: 10px;
   box-shadow: 4px 4px 12px rgba(0,0,0,0.15);
 }
-
 .cover-placeholder {
   width: 100px;
   height: 150px;
@@ -115,187 +181,36 @@
   border-radius: 10px;
   font-size: 0.75rem;
 }
+.book-content { text-align: center; }
+.book-content h4 { color: #871F42; font-size: 1rem; margin: 0 0 5px; }
+.author { font-size: 0.85rem; color: #666; }
+.deadline { font-size: 0.8rem; color: #060606; font-weight: 600; }
 
-/* Text */
-.book-content {
-  text-align: center;
-}
-
-.book-content h4 {
-  color: #871F42;
-  font-size: 1rem;
-  margin: 0 0 5px;
-}
-
-.author {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.deadline {
-  font-size: 0.8rem;
-  color: #060606;
-  font-weight: 600;
-}
-
-.dashboard-settings-card {
-  background: white;
-  border-radius: 20px;
-  padding: 25px;
-  border: 2px solid transparent;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.04);
-}
-
-.setting-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.9rem;
-  margin-bottom: 12px;
-}
-
-.save-btn {
-  margin-top: 15px;
-  background: #871F42;
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.save-btn:hover {
-  background: #9c254b;
-  transform: scale(1.05);
-}
-
+/* Responsive Media Queries */
 @media (max-width: 768px) {
-
-  .profile-header {
-    padding: 40px 15px;
-  }
-
-  .profile-header h1 {
-    font-size: 2rem;
-  }
-
-  .profile-role {
-    font-size: 0.75rem;
-    padding: 5px 12px;
-  }
-
-  .profile-container {
-    padding: 30px 15px;
-  }
-
-  .section-title {
-    font-size: 1.3rem;
-    margin-bottom: 20px;
-  }
-
-  .horizontal-scroll-wrapper {
-    gap: 18px;
-  }
-
-  .profile-book-card {
-    flex: 0 0 170px;
-    padding: 16px;
-  }
-
-  .book-cover {
-    width: 85px;
-    height: 130px;
-  }
-
-  .cover-placeholder {
-    width: 85px;
-    height: 130px;
-  }
-
-  .book-content h4 {
-    font-size: 0.9rem;
-  }
-
-  .author {
-    font-size: 0.8rem;
-  }
-
-  .deadline {
-    font-size: 0.75rem;
-  }
-
-  .dashboard-settings-card {
-    padding: 20px;
-  }
-
+  .profile-header { padding: 40px 15px; }
+  .profile-header h1 { font-size: 2rem; }
+  .back-btn { padding: 6px 12px; font-size: 0.85rem; }
+  .settings-btn { padding: 6px 10px; font-size: 1rem; }
+  .profile-container { padding: 30px 15px; }
+  .section-title { font-size: 1.3rem; margin-bottom: 20px; }
+  .profile-book-card { flex: 0 0 170px; padding: 16px; }
+  .book-cover, .cover-placeholder { width: 85px; height: 130px; }
+  .book-content h4 { font-size: 0.9rem; }
+  .author { font-size: 0.8rem; }
+  .deadline { font-size: 0.75rem; }
 }
 
 @media (max-width: 480px) {
-
-  .profile-header {
-    padding: 30px 10px;
-  }
-
-  .profile-header h1 {
-    font-size: 1.6rem;
-  }
-
-  .profile-role {
-    font-size: 0.7rem;
-    padding: 4px 10px;
-  }
-
-  .profile-container {
-    padding: 25px 10px;
-  }
-
-  .section-title {
-    font-size: 1.15rem;
-    padding-left: 10px;
-  }
-
-  .horizontal-scroll-wrapper {
-    gap: 14px;
-    padding: 15px 5px 30px 5px;
-  }
-
-  .profile-book-card {
-    flex: 0 0 140px;
-    padding: 14px;
-  }
-
-  .book-cover {
-    width: 70px;
-    height: 105px;
-  }
-
-  .cover-placeholder {
-    width: 70px;
-    height: 105px;
-    font-size: 0.65rem;
-  }
-
-  .book-content h4 {
-    font-size: 0.85rem;
-  }
-
-  .author {
-    font-size: 0.75rem;
-  }
-
-  .deadline {
-    font-size: 0.7rem;
-  }
-
-  .setting-option {
-    font-size: 0.85rem;
-  }
-
-  .save-btn {
-    width: 100%;
-    padding: 10px;
-  }
-
+  .profile-header { padding: 30px 10px; }
+  .profile-header h1 { font-size: 1.6rem; }
+  .back-btn { padding: 5px 10px; font-size: 0.8rem; }
+  .settings-btn { padding: 5px 8px; font-size: 0.95rem; }
+  .profile-container { padding: 25px 10px; }
+  .section-title { font-size: 1.15rem; padding-left: 10px; }
+  .profile-book-card { flex: 0 0 140px; padding: 14px; }
+  .book-cover, .cover-placeholder { width: 70px; height: 105px; font-size: 0.65rem; }
+  .book-content h4 { font-size: 0.85rem; }
+  .author { font-size: 0.75rem; }
+  .deadline { font-size: 0.7rem; }
 }
