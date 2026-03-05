@@ -30,4 +30,9 @@ export class ItemService {
     const res = await axios.post(this.boekenUrl, boek);
     return res.data;
   }
+
+  async fetchBoekByIsbn(isbn: string) {
+    const res = await axios.get(`${this.boekenUrl}/preview/${isbn}`);
+    return res.data;
+  }
 }
