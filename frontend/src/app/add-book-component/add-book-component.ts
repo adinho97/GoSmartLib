@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
 import { NgForm } from "@angular/forms";
-import { ItemService } from "../item.service";
+import { BookService } from "../services/book.service";
 
 export enum Taal {
   Nederlands = "Nederlands",
@@ -39,7 +39,7 @@ export class AddBookComponent {
     uitgeverij: "",
   };
 
-  constructor(private itemService: ItemService) {}
+  constructor(private bookService: BookService) {}
 
   onCoverSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -87,7 +87,7 @@ export class AddBookComponent {
         ? await this.toBase64(this.selectedCoverFile)
         : "";
 
-      await this.itemService.addBoek({
+      await this.bookService.addBoek({
         ...this.book,
         cover: coverData,
       });

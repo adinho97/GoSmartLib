@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { ItemService } from "../item.service";
+import { BookService } from "../services/book.service";
 
 type Boek = {
   id?: number;
@@ -27,7 +27,7 @@ export class BookListComponent implements OnInit {
   readonly pageSize = 25;
   currentPage = 1;
 
-  constructor(private itemService: ItemService) {}
+  constructor(private bookService: BookService) {}
 
   async ngOnInit() {
     await this.loadBoeken();
@@ -38,7 +38,7 @@ export class BookListComponent implements OnInit {
     this.error = "";
 
     try {
-      const boeken = await this.itemService.getBoeken();
+      const boeken = await this.bookService.getBoeken();
       this.boeken = boeken.sort((a: Boek, b: Boek) =>
         (a.titel || "").localeCompare(b.titel || "", "nl", {
           sensitivity: "base",
@@ -91,7 +91,7 @@ export class BookListComponent implements OnInit {
     }
 
     try {
-      await this.itemService.deleteBoek(boek.id);
+      await this.bookService.deleteBoek(boek.id);
       this.boeken = this.boeken.filter((b) => b.id !== boek.id);
 
       if (this.currentPage > this.totalPages && this.totalPages > 0) {
