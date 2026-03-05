@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { ItemService } from '../item.service';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { BookService } from '../services/book.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,7 +12,7 @@ export class DashboardComponent implements OnInit {
   featuredBooks: any[] = [];
   loading = true;
 
-  constructor(private itemService: ItemService) {}
+  constructor(private http: HttpClient, private router: Router, private bookService: BookService) {}
 
   ngOnInit() {
     this.fetchBooks();

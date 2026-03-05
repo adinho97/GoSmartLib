@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 
 import { BookListComponent } from "./book-list.component";
-import { ItemService } from "../item.service";
+import { BookService } from "../services/book.service";
 
 type TestBoek = {
   id?: number;
@@ -17,7 +17,11 @@ type TestBoek = {
   uitgeverij: string;
 };
 
-const createBoek = (id: number, titel: string): TestBoek => ({
+const createBoek = (
+  id: number,
+  titel: string,
+  overrides: Partial<TestBoek> = {},
+): TestBoek => ({
   id,
   titel,
   auteur: "Auteur",
@@ -28,25 +32,26 @@ const createBoek = (id: number, titel: string): TestBoek => ({
   paginas: null,
   taal: "",
   uitgeverij: "",
+  ...overrides,
 });
 
 describe("BookListComponent", () => {
   let component: BookListComponent;
   let fixture: ComponentFixture<BookListComponent>;
-  let itemServiceSpy: jasmine.SpyObj<ItemService>;
+  let bookServiceSpy: jasmine.SpyObj<BookService>;
 
   beforeEach(() => {
-    itemServiceSpy = jasmine.createSpyObj<ItemService>("ItemService", [
+    bookServiceSpy = jasmine.createSpyObj<BookService>("BookService", [
       "getBoeken",
       "deleteBoek",
     ]);
-    itemServiceSpy.getBoeken.and.resolveTo([]);
-    itemServiceSpy.deleteBoek.and.resolveTo();
+    bookServiceSpy.getBoeken.and.resolveTo([]);
+    bookServiceSpy.deleteBoek.and.resolveTo();
 
     TestBed.configureTestingModule({
       declarations: [BookListComponent],
       imports: [RouterTestingModule],
-      providers: [{ provide: ItemService, useValue: itemServiceSpy }],
+      providers: [{ provide: BookService, useValue: bookServiceSpy }],
     });
 
     fixture = TestBed.createComponent(BookListComponent);
@@ -59,7 +64,7 @@ describe("BookListComponent", () => {
   });
 
   it("loads and sorts books alphabetically on init", async () => {
-    itemServiceSpy.getBoeken.and.resolveTo([
+    bookServiceSpy.getBoeken.and.resolveTo([
       createBoek(2, "Zebra"),
       createBoek(1, "Aap"),
     ]);
@@ -67,14 +72,14 @@ describe("BookListComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(itemServiceSpy.getBoeken).toHaveBeenCalled();
+    expect(bookServiceSpy.getBoeken).toHaveBeenCalled();
     expect(component.boeken.map((b) => b.titel)).toEqual(["Aap", "Zebra"]);
     expect(component.isLoading).toBeFalse();
     expect(component.currentPage).toBe(1);
   });
 
   it("sets error when loading books fails", async () => {
-    itemServiceSpy.getBoeken.and.rejectWith(new Error("failed"));
+    bookServiceSpy.getBoeken.and.rejectWith(new Error("failed"));
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -86,20 +91,106 @@ describe("BookListComponent", () => {
   });
 
   it("computes pagination values", () => {
-    component.boeken = Array.from({ length: 30 }, (_, index) =>
+    component.boeken = Array.from({ length: 40 }, (_, index) =>
       createBoek(index + 1, `Boek ${index + 1}`),
     );
     component.currentPage = 2;
 
     expect(component.totalPages).toBe(2);
     expect(component.pageNumbers).toEqual([1, 2]);
-    expect(component.pagedBoeken.length).toBe(5);
-    expect(component.pagedBoeken[0].id).toBe(26);
+    expect(component.pagedBoeken.length).toBe(8);
+    expect(component.pagedBoeken[0].id).toBe(33);
+  });
+
+  it("applies genre and taal filters only after applyFilters", () => {
+    component.boeken = [
+      createBoek(1, "Boek 1", { genre: "Fantasy", taal: "Nederlands" }),
+      createBoek(2, "Boek 2", { genre: "Fantasy", taal: "Engels" }),
+      createBoek(3, "Boek 3", { genre: "Sci-fi", taal: "Nederlands" }),
+    ];
+
+    component.selectedGenre = "Fantasy";
+    component.selectedTaal = "Nederlands";
+
+    expect(component.filteredBoeken.map((boek) => boek.id)).toEqual([1, 2, 3]);
+
+    component.applyFilters();
+
+    expect(component.filteredBoeken.map((boek) => boek.id)).toEqual([1]);
+  });
+
+  it("applies release date range filter inclusively", () => {
+    component.boeken = [
+      createBoek(1, "Boek 1", { uitgaveDatum: "2022-01-01" }),
+      createBoek(2, "Boek 2", { uitgaveDatum: "2023-06-15" }),
+      createBoek(3, "Boek 3", { uitgaveDatum: "2024-01-01" }),
+    ];
+
+    component.releaseDateFrom = "2023-01-01";
+    component.releaseDateTo = "2023-12-31";
+    component.applyFilters();
+
+    expect(component.filteredBoeken.map((boek) => boek.id)).toEqual([2]);
+  });
+
+  it("applies min and max page filters", () => {
+    component.boeken = [
+      createBoek(1, "Boek 1", { paginas: 90 }),
+      createBoek(2, "Boek 2", { paginas: 250 }),
+      createBoek(3, "Boek 3", { paginas: 450 }),
+    ];
+
+    component.onMinPagesChange(100);
+    component.onMaxPagesChange(300);
+    component.applyFilters();
+
+    expect(component.filteredBoeken.map((boek) => boek.id)).toEqual([2]);
+  });
+
+  it("keeps min and max pages consistent while changing sliders", () => {
+    component.minPages = 100;
+    component.maxPages = 300;
+
+    component.onMinPagesChange(350);
+    expect(component.minPages).toBe(350);
+    expect(component.maxPages).toBe(350);
+
+    component.onMaxPagesChange(200);
+    expect(component.maxPages).toBe(200);
+    expect(component.minPages).toBe(200);
+  });
+
+  it("clearFilters resets applied filter state and search", () => {
+    component.boeken = [
+      createBoek(1, "Fantasy Boek", { genre: "Fantasy", taal: "Nederlands" }),
+      createBoek(2, "Sci-fi Boek", { genre: "Sci-fi", taal: "Engels" }),
+    ];
+
+    component.searchInput = "Fantasy";
+    component.applySearch();
+    component.selectedGenre = "Fantasy";
+    component.selectedTaal = "Nederlands";
+    component.releaseDateFrom = "2020-01-01";
+    component.releaseDateTo = "2025-01-01";
+    component.onMinPagesChange(100);
+    component.onMaxPagesChange(200);
+    component.applyFilters();
+
+    component.clearFilters();
+
+    expect(component.searchInput).toBe("");
+    expect(component.searchQuery).toBe("");
+    expect(component.appliedGenre).toBe("");
+    expect(component.appliedTaal).toBe("");
+    expect(component.appliedReleaseDateFrom).toBe("");
+    expect(component.appliedReleaseDateTo).toBe("");
+    expect(component.appliedMinPages).toBe(component.minPageFilterLimit);
+    expect(component.appliedMaxPages).toBe(component.maxPageFilterLimit);
   });
 
   it("navigates to a valid page and scrolls to top", () => {
     spyOn(window, "scrollTo");
-    component.boeken = Array.from({ length: 30 }, (_, index) =>
+    component.boeken = Array.from({ length: 40 }, (_, index) =>
       createBoek(index + 1, `Boek ${index + 1}`),
     );
 
@@ -137,7 +228,7 @@ describe("BookListComponent", () => {
 
     expect(stopPropagation).toHaveBeenCalled();
     expect(preventDefault).toHaveBeenCalled();
-    expect(itemServiceSpy.deleteBoek).not.toHaveBeenCalled();
+    expect(bookServiceSpy.deleteBoek).not.toHaveBeenCalled();
     expect(component.boeken.length).toBe(1);
   });
 
@@ -151,7 +242,7 @@ describe("BookListComponent", () => {
 
     await component.verwijderBoek(event, component.boeken[0]);
 
-    expect(itemServiceSpy.deleteBoek).toHaveBeenCalledWith(1);
+    expect(bookServiceSpy.deleteBoek).toHaveBeenCalledWith(1);
     expect(component.boeken.map((b) => b.id)).toEqual([2]);
   });
 
@@ -162,7 +253,7 @@ describe("BookListComponent", () => {
     } as unknown as MouseEvent;
     component.boeken = [createBoek(1, "Aap")];
     spyOn(window, "confirm").and.returnValue(true);
-    itemServiceSpy.deleteBoek.and.rejectWith(new Error("failed"));
+    bookServiceSpy.deleteBoek.and.rejectWith(new Error("failed"));
 
     await component.verwijderBoek(event, component.boeken[0]);
 
