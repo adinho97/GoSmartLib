@@ -1,0 +1,139 @@
+/* Wrapper */
+.profile-wrapper {
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+  color: #333;
+}
+
+/* Header (same style as dashboard hero) */
+.profile-header {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-bottom: 4px solid #871F42;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.profile-header h1 {
+  color: #871F42;
+  font-size: 2.6rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.profile-role {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: white;
+  background: #871F42;
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+/* Container same width as dashboard */
+.profile-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* Section titles */
+.section-title {
+  font-size: 1.6rem;
+  border-left: 6px solid #871F42;
+  padding-left: 15px;
+  margin-bottom: 25px;
+  font-weight: 700;
+}
+
+/* Horizontal scrolling (same as dashboard) */
+.horizontal-scroll-wrapper {
+  display: flex;
+  gap: 25px;
+  overflow-x: auto;
+  padding: 20px 10px 40px 10px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+/* Scrollbar */
+.horizontal-scroll-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #871F42;
+  border-radius: 10px;
+}
+
+/* Book cards */
+.profile-book-card {
+  flex: 0 0 200px;
+  scroll-snap-align: start;
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+}
+
+.profile-book-card:hover {
+  transform: translateY(-8px);
+  border-color: #871F42;
+  box-shadow: 0 15px 35px rgba(135,31,66,0.12);
+}
+
+/* Cover */
+.book-cover {
+  width: 100px;
+  height: 150px;
+  margin: 0 auto 15px;
+}
+
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.15);
+}
+
+.cover-placeholder {
+  width: 100px;
+  height: 150px;
+  margin: 0 auto 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #eee;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+
+/* Text */
+.book-content {
+  text-align: center;
+}
+
+.book-content h4 {
+  color: #871F42;
+  font-size: 1rem;
+  margin: 0 0 5px;
+}
+
+.author {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.deadline {
+  font-size: 0.8rem;
+  color: #060606;
+  font-weight: 600;
+}

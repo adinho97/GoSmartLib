@@ -1,0 +1,91 @@
+<div class="profile-wrapper">
+
+  <div class="profile-header">
+    <h1>John Doe</h1>
+    <div class="profile-role">{{ role }}</div>
+  </div>
+
+  <div class="profile-container">
+
+    <!-- FAVORITE BOOKS -->
+    <section class="profile-section">
+      <h3 class="section-title">Favorite Books</h3>
+
+      <div class="horizontal-scroll-wrapper">
+
+        <div class="profile-book-card" *ngFor="let book of favoriteBooks">
+
+          <div class="book-cover" *ngIf="book.cover">
+            <img [src]="book.cover" alt="{{book.title}}">
+          </div>
+
+          <div class="cover-placeholder" *ngIf="!book.cover">
+            No Cover
+          </div>
+
+          <div class="book-content">
+            <h4>{{book.title}}</h4>
+            <div class="author">{{book.author}}</div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- READING HISTORY -->
+    <section class="profile-section">
+      <h3 class="section-title">Reading History</h3>
+
+      <div class="horizontal-scroll-wrapper">
+
+        <div class="profile-book-card" *ngFor="let book of readingHistory">
+
+          <div class="book-cover" *ngIf="book.cover">
+            <img [src]="book.cover">
+          </div>
+
+          <div class="cover-placeholder" *ngIf="!book.cover">
+            No Cover
+          </div>
+
+          <div class="book-content">
+            <h4>{{book.title}}</h4>
+            <div class="book-meta">
+              Finished {{book.finishedDate | date}}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- BORROWED BOOKS -->
+    <section class="profile-section">
+      <h3 class="section-title">Borrowed Books</h3>
+
+      <div class="horizontal-scroll-wrapper">
+
+        <div class="profile-book-card" *ngFor="let book of borrowedBooks">
+
+          <div class="book-cover">
+            <img [src]="book.cover">
+          </div>
+
+          <div class="book-content">
+            <h4>{{book.title}}</h4>
+            <div class="deadline">
+              Return before {{book.deadline | date}}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+</div>

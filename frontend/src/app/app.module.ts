@@ -10,6 +10,7 @@ import { AddBookComponent } from "./add-book-component/add-book-component";
 import { BookListComponent } from "./book-list/book-list.component";
 import { provideHttpClient } from "@angular/common/http";
 import { DetailComponent } from './detail/detail.component';
+import { ProfileComponent } from './profile/profile.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { DetailComponent } from './detail/detail.component';
     AddBookComponent,
     DetailComponent,
     BookListComponent,
+    ProfileComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideHttpClient()],
