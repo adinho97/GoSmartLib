@@ -16,27 +16,29 @@ export class DashboardComponent implements OnInit {
     this.fetchBooks();
   }
 
-  async fetchBooks() {
-    this.loading = true;
-    try {
-      const data = await this.itemService.getBoeken();
-      
-      // We mappen de database velden naar ons visuele model
-      this.featuredBooks = data.map((book: any) => ({
-        titel: book.titel,
-        auteur: book.auteur,
-        genre: book.genre || "Algemeen",
-        // Taal inkorten naar 2 letters (bijv. "Nederlands" -> "NE")
-        taal: book.taal ? book.taal.substring(0, 2).toUpperCase() : "??",
-        paginas: book.paginas || "?",
-        // book.cover bevat de Base64 string van je @Lob uit Java
-        coverUrl: book.cover || null,
-        desc: book.beschrijving || "Geen beschrijving beschikbaar."
-      }));
-    } catch (error) {
-      console.error("Fout bij ophalen boeken:", error);
-    } finally {
-      this.loading = false;
-    }
+ async fetchBooks() {
+  this.loading = true;
+  try {
+    const data = await this.bookService.getBoeken();
+    this.featuredBooks = data.map((book: any) => ({
+      id: book.id,
+      titel: book.titel,
+      auteur: book.auteur,
+      genre: book.genre || "Algemeen",
+      taal: book.taal ? book.taal.substring(0, 2).toUpperCase() : "??",
+      paginas: book.paginas || "?",
+      coverUrl: book.cover || null,
+      desc: book.beschrijving || "Geen beschrijving beschikbaar."
+    }));
+  } catch (error) {
+    console.error("Fout bij ophalen boeken:", error);
+  } finally {
+    this.loading = false;
   }
+}
+seeDetail(book: any) {
+  console.log('Navigeren naar ID:', book.id); 
+  this.router.navigate(['/detail', book.id]);
+}
+
 }
