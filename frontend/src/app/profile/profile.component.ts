@@ -14,7 +14,9 @@ export class ProfileComponent {
   dashboardSettings = {
     showFavorites: true,
     showReadingHistory: true,
-    showBorrowed: true
+    showBorrowed: true,
+    showHighlighted: true,
+    showDeadline: true
   };
 
   settingsOpen = false;
@@ -22,6 +24,7 @@ export class ProfileComponent {
   favoriteBooks = [{ title: 'Book One', author: 'Author A', cover: '', id: 1 }, { title: 'Book Two', author: 'Author B', cover: '', id: 2 }];
   readingHistory = [{ title: 'Book Three', finishedDate: new Date(), cover: '', id: 3 }];
   borrowedBooks = [{ title: 'Book Four', deadline: new Date(), cover: '', id: 4 }];
+  readingList = [{ title: 'Book Five', author: 'Author C', cover: '', id: 5 }];
 
   constructor(private location: Location, private router: Router) {}
 
