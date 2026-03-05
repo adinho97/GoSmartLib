@@ -1,13 +1,10 @@
 package com.example.demo.ratelimit;
 
+import com.example.demo.exception.RateLimitExceededException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-/**
- * Applies rate limiting to selected endpoints, based on client IP address.
- */
 public class RateLimitingInterceptor implements HandlerInterceptor {
 
     private final InMemoryRateLimiter limiter;
@@ -17,25 +14,23 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         // Only limit the ISBN import endpoint and only POSTs
         String path = request.getRequestURI();
         String method = request.getMethod();
 
         // Controller maps POST /api/boeken/isbn/{isbn}
         if (!"POST".equalsIgnoreCase(method) || !path.startsWith("/api/boeken/isbn/")) {
-            return true; // niet van toepassing, laat door
+            return true;
         }
 
         String clientIp = resolveClientIp(request);
         boolean allowed = limiter.tryAcquire(clientIp);
         if (!allowed) {
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value()); // 429
-            return false; // blokkeer de request
+            throw new RateLimitExceededException();
         }
 
-        return true; // toegestaan
+        return true;
     }
 
     private String resolveClientIp(HttpServletRequest request) {
