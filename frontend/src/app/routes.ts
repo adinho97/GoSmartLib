@@ -16,6 +16,7 @@ export const appRoutes: Routes = [
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
   { path: "", redirectTo: "/dashboard", pathMatch: "full" },
+
   { 
     path: "detail/:id", 
     component: DetailComponent, 
