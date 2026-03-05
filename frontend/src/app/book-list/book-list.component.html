@@ -128,7 +128,7 @@
         <article
           class="book-card"
           *ngFor="let boek of pagedBoeken"
-          [routerLink]="['/details', boek.id]"
+          [routerLink]="['/detail', boek.id]"
         >
           <img
             *ngIf="boek.cover"
