@@ -1,27 +1,27 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule, NgForm } from "@angular/forms";
-import { AddBookComponent } from "./add-book-component/add-book-component";
-import { ItemService } from "./item.service";
+import { AddBookComponent } from "./add-book-component";
+import { BookService } from "../services/book.service";
 
-class MockItemService {
+class MockBookService {
   addBoek = jasmine.createSpy("addBoek").and.returnValue(Promise.resolve());
 }
 
 describe("AddBookComponent", () => {
   let component: AddBookComponent;
   let fixture: ComponentFixture<AddBookComponent>;
-  let itemService: MockItemService;
+  let bookService: MockBookService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AddBookComponent],
       imports: [FormsModule],
-      providers: [{ provide: ItemService, useClass: MockItemService }],
+      providers: [{ provide: BookService, useClass: MockBookService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddBookComponent);
     component = fixture.componentInstance;
-    itemService = TestBed.inject(ItemService) as any;
+    bookService = TestBed.inject(BookService) as any;
     fixture.detectChanges();
   });
 
@@ -58,13 +58,13 @@ describe("AddBookComponent", () => {
 
     await component.onSubmit(mockForm);
 
-    expect(itemService.addBoek).toHaveBeenCalled();
+    expect(bookService.addBoek).toHaveBeenCalled();
     expect(component.submitState).toBe("success");
     expect(component.isSaving).toBeFalse();
   });
 
   it("should handle service error", async () => {
-    itemService.addBoek.and.returnValue(Promise.reject());
+    bookService.addBoek.and.returnValue(Promise.reject());
 
     const mockForm = {
       invalid: false,
