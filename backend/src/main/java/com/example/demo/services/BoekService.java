@@ -148,7 +148,8 @@ public class BoekService {
                         ResponseEntity<Map> authorResp = restTemplate.getForEntity(authorUrl, Map.class);
                         if (authorResp.getBody() != null) {
                             Object name = authorResp.getBody().get("name");
-                            if (name instanceof String) return (String) name;
+                            if (name instanceof String)
+                                return (String) name;
                         }
                     }
                 }
@@ -173,10 +174,12 @@ public class BoekService {
                                         Object aKey = authorRefMap.get("key");
                                         if (aKey instanceof String authorKey) {
                                             String authorUrl = "https://openlibrary.org" + authorKey + ".json";
-                                            ResponseEntity<Map> authorResp = restTemplate.getForEntity(authorUrl, Map.class);
+                                            ResponseEntity<Map> authorResp = restTemplate.getForEntity(authorUrl,
+                                                    Map.class);
                                             if (authorResp.getBody() != null) {
                                                 Object name = authorResp.getBody().get("name");
-                                                if (name instanceof String) return (String) name;
+                                                if (name instanceof String)
+                                                    return (String) name;
                                             }
                                         }
                                     }

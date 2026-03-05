@@ -7,6 +7,7 @@ import { AppComponent } from "./app.component";
 import { LoginComponent } from "./login/login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
+import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
 import { provideHttpClient } from "@angular/common/http";
 
 @NgModule({
@@ -15,6 +16,7 @@ import { provideHttpClient } from "@angular/common/http";
     LoginComponent,
     DashboardComponent,
     AddBookComponent,
+    AddIsbnComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideHttpClient()],
