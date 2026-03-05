@@ -130,21 +130,30 @@
           *ngFor="let boek of pagedBoeken"
           [routerLink]="['/detail', boek.id]"
         >
-          <img
-            *ngIf="boek.cover"
-            [src]="boek.cover"
-            [alt]="boek.titel"
-            class="book-cover"
-          />
+          <div class="book-cover-slot">
+            <img
+              *ngIf="(boek.cover || '').trim(); else coverPlaceholder"
+              [src]="boek.cover"
+              [alt]="boek.titel"
+              class="book-cover"
+            />
+            <ng-template #coverPlaceholder>
+              <div class="book-cover-placeholder" aria-label="Geen cover">
+                Geen cover beschikbaar
+              </div>
+            </ng-template>
+          </div>
           <div class="book-content">
             <h2>{{ boek.titel }}</h2>
             <p class="book-author">{{ boek.auteur }}</p>
-            <p class="book-meta" *ngIf="boek.genre">
-              <strong>Genre:</strong> {{ boek.genre }}
-            </p>
-            <p class="book-meta" *ngIf="boek.taal">
-              <strong>Taal:</strong> {{ boek.taal }}
-            </p>
+            <div class="book-meta-group">
+              <p class="book-meta">
+                <strong>Genre:</strong> {{ boek.genre || "Onbekend" }}
+              </p>
+              <p class="book-meta">
+                <strong>Taal:</strong> {{ boek.taal || "Onbekend" }}
+              </p>
+            </div>
             <button
               *ngIf="isBibbeheerder"
               type="button"
