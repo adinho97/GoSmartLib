@@ -31,6 +31,14 @@ public class BoekService {
                 .map(BoekMapper::toDto);
     }
 
+    public BoekDto fetchPreviewByIsbn(String isbn) {
+        Boek fetched = fetchBookFromOpenLibrary(isbn);
+        if (fetched == null) {
+            return null;
+        }
+        return BoekMapper.toDto(fetched);
+    }
+
     @Transactional
     public BoekDto importByIsbn(String isbn) {
         Optional<Boek> existing = boekRepository.findByIsbn(isbn);
@@ -113,8 +121,8 @@ public class BoekService {
                 }
             }
 
-            // Author: proper names require extra calls; keep it simple for now.
-            book.setAuteur("Unknown author");
+            // Author: fetch from OpenLibrary authors API
+            book.setAuteur(fetchAuthorName(body, restTemplate));
 
             return book;
         } catch (HttpClientErrorException.NotFound e) {
@@ -124,6 +132,64 @@ public class BoekService {
             // Network or parsing error etc.
             return null;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String fetchAuthorName(Map<String, Object> editionBody, RestTemplate restTemplate) {
+        try {
+            // Edition-level authors
+            Object authors = editionBody.get("authors");
+            if (authors instanceof List<?> authorList && !authorList.isEmpty()) {
+                Object firstAuthor = authorList.get(0);
+                if (firstAuthor instanceof Map<?, ?> authorMap) {
+                    Object key = authorMap.get("key");
+                    if (key instanceof String authorKey) {
+                        String authorUrl = "https://openlibrary.org" + authorKey + ".json";
+                        ResponseEntity<Map> authorResp = restTemplate.getForEntity(authorUrl, Map.class);
+                        if (authorResp.getBody() != null) {
+                            Object name = authorResp.getBody().get("name");
+                            if (name instanceof String) return (String) name;
+                        }
+                    }
+                }
+            }
+
+            // Fallback: fetch via works endpoint
+            Object works = editionBody.get("works");
+            if (works instanceof List<?> workList && !workList.isEmpty()) {
+                Object firstWork = workList.get(0);
+                if (firstWork instanceof Map<?, ?> workMap) {
+                    Object key = workMap.get("key");
+                    if (key instanceof String workKey) {
+                        String workUrl = "https://openlibrary.org" + workKey + ".json";
+                        ResponseEntity<Map> workResp = restTemplate.getForEntity(workUrl, Map.class);
+                        if (workResp.getBody() != null) {
+                            Object workAuthors = workResp.getBody().get("authors");
+                            if (workAuthors instanceof List<?> waList && !waList.isEmpty()) {
+                                Object wa = waList.get(0);
+                                if (wa instanceof Map<?, ?> waMap) {
+                                    Object authorRef = waMap.get("author");
+                                    if (authorRef instanceof Map<?, ?> authorRefMap) {
+                                        Object aKey = authorRefMap.get("key");
+                                        if (aKey instanceof String authorKey) {
+                                            String authorUrl = "https://openlibrary.org" + authorKey + ".json";
+                                            ResponseEntity<Map> authorResp = restTemplate.getForEntity(authorUrl, Map.class);
+                                            if (authorResp.getBody() != null) {
+                                                Object name = authorResp.getBody().get("name");
+                                                if (name instanceof String) return (String) name;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // Author lookup failed, fall through
+        }
+        return "Onbekende auteur";
     }
 
     private LocalDate tryParsePublishDate(String value) {
