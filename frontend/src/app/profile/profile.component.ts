@@ -23,13 +23,16 @@ export class ProfileComponent {
     { title: "Harry Potter", deadline: new Date("2026-03-20"), cover: "https://covers.openlibrary.org/b/id/6979864-L.jpg" }
   ];
 
-  settings = {
-    showFavorites: true,
-    showReadingHistory: true,
-    showDeadlines: true
-  };
+  dashboardSettings = {
+  showFavorites: true,
+  showReadingHistory: true,
+  showBorrowed: true
+};
 
-  saveSettings() {
-    console.log("Saved settings:", this.settings);
-  }
+saveDashboardSettings() {
+  localStorage.setItem(
+    'dashboardSettings',
+    JSON.stringify(this.dashboardSettings)
+  );
+}
 }

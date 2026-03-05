@@ -7,9 +7,8 @@
 
   <div class="profile-container">
 
-    <!-- FAVORITE BOOKS -->
     <section class="profile-section">
-      <h3 class="section-title">Favorite Books</h3>
+      <h3 class="section-title">Favoriete Boeken</h3>
 
       <div class="horizontal-scroll-wrapper">
 
@@ -20,7 +19,7 @@
           </div>
 
           <div class="cover-placeholder" *ngIf="!book.cover">
-            No Cover
+            Geen Cover
           </div>
 
           <div class="book-content">
@@ -34,9 +33,8 @@
     </section>
 
 
-    <!-- READING HISTORY -->
     <section class="profile-section">
-      <h3 class="section-title">Reading History</h3>
+      <h3 class="section-title">Leeshistoriek</h3>
 
       <div class="horizontal-scroll-wrapper">
 
@@ -47,13 +45,13 @@
           </div>
 
           <div class="cover-placeholder" *ngIf="!book.cover">
-            No Cover
+            Geen Cover
           </div>
 
           <div class="book-content">
             <h4>{{book.title}}</h4>
             <div class="book-meta">
-              Finished {{book.finishedDate | date}}
+              Uitgelezen {{book.finishedDate | date}}
             </div>
           </div>
 
@@ -63,9 +61,8 @@
     </section>
 
 
-    <!-- BORROWED BOOKS -->
     <section class="profile-section">
-      <h3 class="section-title">Borrowed Books</h3>
+      <h3 class="section-title">Geleende Boeken</h3>
 
       <div class="horizontal-scroll-wrapper">
 
@@ -86,6 +83,33 @@
 
       </div>
     </section>
+
+    <section class="profile-section">
+  <h3 class="section-title">Dashboard Instellingen</h3>
+
+  <div class="dashboard-settings-card">
+
+    <label class="setting-option">
+      <input type="checkbox" [(ngModel)]="dashboardSettings.showFavorites">
+      Favoriete boeken tonen op dashboard
+    </label>
+
+    <label class="setting-option">
+      <input type="checkbox" [(ngModel)]="dashboardSettings.showReadingHistory">
+      Leeshistoriek tonen op dashboard
+    </label>
+
+    <label class="setting-option">
+      <input type="checkbox" [(ngModel)]="dashboardSettings.showBorrowed">
+      Geleende boeken tonen op dashboard
+    </label>
+
+    <button class="save-btn" (click)="saveDashboardSettings()">
+      Instellingen opslaan
+    </button>
+
+  </div>
+</section>
 
   </div>
 </div>
