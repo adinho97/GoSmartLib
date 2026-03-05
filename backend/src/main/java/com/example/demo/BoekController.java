@@ -47,6 +47,15 @@ public class BoekController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/preview/{isbn}")
+    public ResponseEntity<BoekDto> previewByIsbn(@PathVariable String isbn) {
+        BoekDto dto = boekService.fetchPreviewByIsbn(isbn);
+        if (dto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(dto);
+    }
+
     @PostMapping("/isbn/{isbn}")
     public ResponseEntity<BoekDto> importByIsbn(@PathVariable String isbn) {
         BoekDto dto = boekService.importByIsbn(isbn);
