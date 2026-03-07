@@ -2,9 +2,9 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { AddIsbnComponent } from "./add-isbn.component";
-import { ItemService } from "../item.service";
+import { BookService } from "../services/book.service";
 
-class MockItemService {
+class MockBookService {
   fetchBoekByIsbn = jasmine
     .createSpy("fetchBoekByIsbn")
     .and.returnValue(
@@ -25,18 +25,18 @@ class MockItemService {
 describe("AddIsbnComponent", () => {
   let component: AddIsbnComponent;
   let fixture: ComponentFixture<AddIsbnComponent>;
-  let itemService: MockItemService;
+  let bookService: MockBookService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AddIsbnComponent],
       imports: [FormsModule, CommonModule],
-      providers: [{ provide: ItemService, useClass: MockItemService }],
+      providers: [{ provide: BookService, useClass: MockBookService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddIsbnComponent);
     component = fixture.componentInstance;
-    itemService = TestBed.inject(ItemService) as any;
+    bookService = TestBed.inject(BookService) as any;
     fixture.detectChanges();
   });
 
@@ -59,7 +59,7 @@ describe("AddIsbnComponent", () => {
     await component.zoekBoek();
 
     expect(component.errorMessage).toBe("Voer een ISBN-nummer in.");
-    expect(itemService.fetchBoekByIsbn).not.toHaveBeenCalled();
+    expect(bookService.fetchBoekByIsbn).not.toHaveBeenCalled();
     expect(component.book).toBeNull();
   });
 
@@ -67,8 +67,8 @@ describe("AddIsbnComponent", () => {
     component.isbn = "9780553808049";
     await component.zoekBoek();
 
-    expect(itemService.fetchBoekByIsbn).toHaveBeenCalledWith("9780553808049");
-    expect(itemService.bestaatBoekInBibliotheek).toHaveBeenCalledWith("9780553808049");
+    expect(bookService.fetchBoekByIsbn).toHaveBeenCalledWith("9780553808049");
+    expect(bookService.bestaatBoekInBibliotheek).toHaveBeenCalledWith("9780553808049");
     expect(component.book).toBeTruthy();
     expect(component.book.titel).toBe("Dune");
     expect(component.hasCheckedLibraryStatus).toBeTrue();
@@ -76,7 +76,7 @@ describe("AddIsbnComponent", () => {
   });
 
   it("zoekBoek should set isAlreadyInLibrary and successMessage when book is in library", async () => {
-    itemService.bestaatBoekInBibliotheek.and.returnValue(Promise.resolve(true));
+    bookService.bestaatBoekInBibliotheek.and.returnValue(Promise.resolve(true));
     component.isbn = "9780553808049";
     await component.zoekBoek();
 
@@ -86,7 +86,7 @@ describe("AddIsbnComponent", () => {
   });
 
   it("zoekBoek should show 404 error message when book not found", async () => {
-    itemService.fetchBoekByIsbn.and.returnValue(
+    bookService.fetchBoekByIsbn.and.returnValue(
       Promise.reject({ response: { status: 404 } })
     );
     component.isbn = "0000000000000";
@@ -98,7 +98,7 @@ describe("AddIsbnComponent", () => {
   });
 
   it("zoekBoek should show generic error message on unexpected failure", async () => {
-    itemService.fetchBoekByIsbn.and.returnValue(Promise.reject(new Error("Network error")));
+    bookService.fetchBoekByIsbn.and.returnValue(Promise.reject(new Error("Network error")));
     component.isbn = "9780553808049";
     await component.zoekBoek();
 
@@ -129,7 +129,7 @@ describe("AddIsbnComponent", () => {
 
     await component.voegToeAanBibliotheek();
 
-    expect(itemService.importBoekByIsbn).toHaveBeenCalledWith("9780553808049");
+    expect(bookService.importBoekByIsbn).toHaveBeenCalledWith("9780553808049");
     expect(component.successMessage).toBe("Boek toegevoegd aan bibliotheek.");
     expect(component.isAlreadyInLibrary).toBeTrue();
     expect(component.hasCheckedLibraryStatus).toBeTrue();
@@ -141,7 +141,7 @@ describe("AddIsbnComponent", () => {
 
     await component.voegToeAanBibliotheek();
 
-    expect(itemService.importBoekByIsbn).not.toHaveBeenCalled();
+    expect(bookService.importBoekByIsbn).not.toHaveBeenCalled();
     expect(component.successMessage).toBe("Reeds in de bibliotheek.");
   });
 
@@ -149,7 +149,7 @@ describe("AddIsbnComponent", () => {
     component.book = { titel: "Dune", auteur: "Frank Herbert", isbn: "9780553808049" };
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
-    itemService.importBoekByIsbn.and.returnValue(
+    bookService.importBoekByIsbn.and.returnValue(
       Promise.reject({ response: { status: 500 } })
     );
 
@@ -165,7 +165,7 @@ describe("AddIsbnComponent", () => {
     component.book = { titel: "Dune", auteur: "Frank Herbert", isbn: "9780553808049" };
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
-    itemService.importBoekByIsbn.and.returnValue(
+    bookService.importBoekByIsbn.and.returnValue(
       Promise.reject({ response: { status: 404 } })
     );
 

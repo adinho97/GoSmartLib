@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { ItemService } from "../item.service";
+import { BookService } from "../services/book.service";
 
 @Component({
   selector: "app-add-isbn",
@@ -16,7 +16,7 @@ export class AddIsbnComponent {
   successMessage = "";
   book: any = null;
 
-  constructor(private itemService: ItemService) {}
+  constructor(private bookService: BookService) {}
 
   async zoekBoek() {
     const trimmed = this.isbn.trim();
@@ -33,8 +33,8 @@ export class AddIsbnComponent {
     this.book = null;
 
     try {
-      this.book = await this.itemService.fetchBoekByIsbn(trimmed);
-      this.isAlreadyInLibrary = await this.itemService.bestaatBoekInBibliotheek(trimmed);
+      this.book = await this.bookService.fetchBoekByIsbn(trimmed);
+      this.isAlreadyInLibrary = await this.bookService.bestaatBoekInBibliotheek(trimmed);
       this.hasCheckedLibraryStatus = true;
       if (this.isAlreadyInLibrary) {
         this.successMessage = "Reeds in de bibliotheek.";
@@ -67,7 +67,7 @@ export class AddIsbnComponent {
     this.successMessage = "";
 
     try {
-      const savedBook = await this.itemService.importBoekByIsbn(isbnToImport);
+      const savedBook = await this.bookService.importBoekByIsbn(isbnToImport);
       this.book = savedBook;
       this.isAlreadyInLibrary = true;
       this.hasCheckedLibraryStatus = true;
