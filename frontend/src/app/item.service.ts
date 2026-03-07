@@ -35,4 +35,9 @@ export class ItemService {
     const res = await axios.get(`${this.boekenUrl}/preview/${isbn}`);
     return res.data;
   }
+
+  async importBoekByIsbn(isbn: string) {
+    const res = await axios.post(`${this.boekenUrl}/isbn/${isbn}`);
+    return res.data;
+  }
 }
