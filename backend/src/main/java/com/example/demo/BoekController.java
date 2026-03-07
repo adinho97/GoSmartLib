@@ -32,6 +32,13 @@ public class BoekController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Boek> getBook(@PathVariable Long id) {
+        return repo.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<BoekDto> create(@Valid @RequestBody BoekDto boekDto) {
         if (repo.findByIsbn(boekDto.getIsbn()).isPresent()) {
@@ -68,5 +75,15 @@ public class BoekController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (!repo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        repo.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
