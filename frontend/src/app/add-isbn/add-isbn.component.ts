@@ -10,6 +10,8 @@ export class AddIsbnComponent {
   isbn = "";
   isLoading = false;
   isImporting = false;
+  isAlreadyInLibrary = false;
+  hasCheckedLibraryStatus = false;
   errorMessage = "";
   successMessage = "";
   book: any = null;
@@ -26,10 +28,17 @@ export class AddIsbnComponent {
     this.isLoading = true;
     this.errorMessage = "";
     this.successMessage = "";
+    this.isAlreadyInLibrary = false;
+    this.hasCheckedLibraryStatus = false;
     this.book = null;
 
     try {
       this.book = await this.itemService.fetchBoekByIsbn(trimmed);
+      this.isAlreadyInLibrary = await this.itemService.bestaatBoekInBibliotheek(trimmed);
+      this.hasCheckedLibraryStatus = true;
+      if (this.isAlreadyInLibrary) {
+        this.successMessage = "Reeds in de bibliotheek.";
+      }
     } catch (err: any) {
       if (err?.response?.status === 404) {
         this.errorMessage = "Geen boek gevonden voor dit ISBN-nummer.";
@@ -42,6 +51,11 @@ export class AddIsbnComponent {
   }
 
   async voegToeAanBibliotheek() {
+    if (this.isAlreadyInLibrary) {
+      this.successMessage = "Reeds in de bibliotheek.";
+      return;
+    }
+
     const isbnToImport = (this.book?.isbn || this.isbn).trim();
     if (!isbnToImport) {
       this.errorMessage = "Geen ISBN beschikbaar om toe te voegen.";
@@ -55,6 +69,8 @@ export class AddIsbnComponent {
     try {
       const savedBook = await this.itemService.importBoekByIsbn(isbnToImport);
       this.book = savedBook;
+      this.isAlreadyInLibrary = true;
+      this.hasCheckedLibraryStatus = true;
       this.successMessage = "Boek toegevoegd aan bibliotheek.";
     } catch (err: any) {
       if (err?.response?.status === 404) {

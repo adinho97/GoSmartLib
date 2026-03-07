@@ -40,4 +40,16 @@ export class ItemService {
     const res = await axios.post(`${this.boekenUrl}/isbn/${isbn}`);
     return res.data;
   }
+
+  async bestaatBoekInBibliotheek(isbn: string): Promise<boolean> {
+    try {
+      await axios.get(`${this.boekenUrl}/isbn/${isbn}`);
+      return true;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return false;
+      }
+      throw err;
+    }
+  }
 }

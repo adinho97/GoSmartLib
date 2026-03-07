@@ -120,6 +120,12 @@ h1 {
   overflow-y: auto;
 }
 
+.already-message {
+  margin-top: 14px;
+  font-weight: 700;
+  color: #2a6f3f;
+}
+
 .add-button {
   margin-top: 14px;
   padding: 10px 16px;
