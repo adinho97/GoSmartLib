@@ -9,7 +9,9 @@ import { ItemService } from "../item.service";
 export class AddIsbnComponent {
   isbn = "";
   isLoading = false;
+  isImporting = false;
   errorMessage = "";
+  successMessage = "";
   book: any = null;
 
   constructor(private itemService: ItemService) {}
@@ -23,6 +25,7 @@ export class AddIsbnComponent {
 
     this.isLoading = true;
     this.errorMessage = "";
+    this.successMessage = "";
     this.book = null;
 
     try {
@@ -35,6 +38,32 @@ export class AddIsbnComponent {
       }
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  async voegToeAanBibliotheek() {
+    const isbnToImport = (this.book?.isbn || this.isbn).trim();
+    if (!isbnToImport) {
+      this.errorMessage = "Geen ISBN beschikbaar om toe te voegen.";
+      return;
+    }
+
+    this.isImporting = true;
+    this.errorMessage = "";
+    this.successMessage = "";
+
+    try {
+      const savedBook = await this.itemService.importBoekByIsbn(isbnToImport);
+      this.book = savedBook;
+      this.successMessage = "Boek toegevoegd aan bibliotheek.";
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        this.errorMessage = "Boek niet gevonden om te importeren.";
+      } else {
+        this.errorMessage = "Er ging iets mis bij het toevoegen aan de bibliotheek.";
+      }
+    } finally {
+      this.isImporting = false;
     }
   }
 }

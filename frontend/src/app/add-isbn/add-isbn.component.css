@@ -69,6 +69,13 @@ h1 {
   margin-bottom: 16px;
 }
 
+.success-message {
+  color: #1f7a3a;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
 .book-result {
   margin-top: 20px;
 }
@@ -111,4 +118,26 @@ h1 {
   line-height: 1.5;
   max-height: 150px;
   overflow-y: auto;
+}
+
+.add-button {
+  margin-top: 14px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #357a38 0%, #1f7a3a 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.add-button:hover:not(:disabled) {
+  box-shadow: 0 4px 14px rgba(31, 122, 58, 0.28);
+}
+
+.add-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

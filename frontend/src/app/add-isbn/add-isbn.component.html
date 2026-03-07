@@ -15,6 +15,7 @@
   </div>
 
   <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="success-message">{{ successMessage }}</p>
 
   <div *ngIf="book" class="book-result">
     <div class="book-card">
@@ -41,6 +42,13 @@
         <p *ngIf="book.beschrijving" class="book-description">
           <strong>Beschrijving:</strong> {{ book.beschrijving }}
         </p>
+        <button
+          class="add-button"
+          (click)="voegToeAanBibliotheek()"
+          [disabled]="isLoading || isImporting"
+        >
+          {{ isImporting ? "Toevoegen..." : "Voeg toe aan bibliotheek" }}
+        </button>
       </div>
     </div>
   </div>
