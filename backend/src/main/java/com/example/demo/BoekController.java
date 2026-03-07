@@ -5,6 +5,7 @@ import com.example.demo.entities.Boek;
 import com.example.demo.mappers.BoekMapper;
 import com.example.demo.services.BoekService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,12 +33,16 @@ public class BoekController {
     }
 
     @PostMapping
-    public BoekDto create(@Valid @RequestBody BoekDto boekDto) {
+    public ResponseEntity<BoekDto> create(@Valid @RequestBody BoekDto boekDto) {
+        if (repo.findByIsbn(boekDto.getIsbn()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
         Boek entity = BoekMapper.toEntity(boekDto);
         entity.setId(null); // id altijd door de database laten bepalen
 
         Boek saved = repo.save(entity);
-        return BoekMapper.toDto(saved);
+        return ResponseEntity.ok(BoekMapper.toDto(saved));
     }
 
     @GetMapping("/isbn/{isbn}")
