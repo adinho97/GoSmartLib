@@ -1,0 +1,104 @@
+<div class="profile-wrapper">
+
+  <div class="profile-header">
+
+    <!-- Back Button -->
+    <button class="back-btn" (click)="goBack()">← Terug</button>
+
+    <h1>John Doe</h1> <!-- Naam van gebruiker -->
+    <div class="profile-role">{{ role }}</div>
+
+    <div class="settings-dropdown" (click)="$event.stopPropagation()">
+      <button class="settings-btn" (click)="toggleSettings()">⚙</button>
+
+      <div class="dropdown-menu" [class.show]="settingsOpen">
+        <label class="setting-option">
+          <input type="checkbox" [(ngModel)]="dashboardSettings.showFavorites">
+          Favoriete boeken tonen op dashboard
+        </label>
+
+        <label class="setting-option">
+          <input type="checkbox" [(ngModel)]="dashboardSettings.showReadingHistory">
+          Leeshistoriek tonen op dashboard
+        </label>
+
+        <label class="setting-option">
+          <input type="checkbox" [(ngModel)]="dashboardSettings.showBorrowed">
+          Geleende boeken tonen op dashboard
+        </label>
+
+        <label class="setting-option">
+          <input type="checkbox" [(ngModel)]="dashboardSettings.showHighlighted">
+          Uitgelichte boeken tonen op dashboard
+        </label>
+
+        <label class="setting-option">
+          <input type="checkbox" [(ngModel)]="dashboardSettings.showDeadline">
+          Deadline tonen op dashboard
+        </label>
+
+        <button class="save-btn" (click)="saveDashboardSettings()">Opslaan</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="profile-container">
+    <section class="profile-section">
+      <h3 class="section-title">Geleende Boeken</h3>
+      <div class="horizontal-scroll-wrapper">
+        <div class="profile-book-card" *ngFor="let book of borrowedBooks" (click)="goToDetail(book.id)">
+          <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover"></div>
+          <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
+          <div class="book-content">
+            <h4>{{book.title}}</h4>
+            <div class="deadline">Terugbrengen voor {{book.deadline | date}}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h3 class="section-title">Klasleeslijst</h3>
+      <div class="horizontal-scroll-wrapper">
+        <div class="profile-book-card" *ngFor="let book of readingList" (click)="goToDetail(book.id)">
+          <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover"></div>
+          <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
+          <div class="book-content">
+            <h4>{{book.title}}</h4>
+            <div class="author">{{book.author}}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h3 class="section-title">Favoriete Boeken</h3>
+      <div class="horizontal-scroll-wrapper">
+        <div class="profile-book-card" *ngFor="let book of favoriteBooks" (click)="goToDetail(book.id)">
+          <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover" alt="{{book.title}}"></div>
+          <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
+          <div class="book-content">
+            <h4>{{book.title}}</h4>
+            <div class="author">{{book.author}}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h3 class="section-title">Leeshistoriek</h3>
+      <div class="horizontal-scroll-wrapper">
+        <div class="profile-book-card" *ngFor="let book of readingHistory" (click)="goToDetail(book.id)">
+          <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover"></div>
+          <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
+          <div class="book-content">
+            <h4>{{book.title}}</h4>
+            <div class="book-meta">Uitgelezen {{book.finishedDate | date}}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
