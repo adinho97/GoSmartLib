@@ -143,7 +143,7 @@
   flex: 0 0 260px;
   scroll-snap-align: start;
   background: white;
-  border-radius: 20px; /* Mooie ronde hoeken */
+  border-radius: 20px;
   padding: 25px;
   display: flex;
   flex-direction: column;
@@ -155,7 +155,7 @@
 /* Hover Effecten */
 .profile-book-card:hover {
   transform: translateY(-10px);
-  border-color: #8B0000; /* Rode border verschijnt */
+  border-color: #8B0000; 
   box-shadow: 0 15px 35px rgba(139, 0, 0, 0.12);
 }
 .book-cover {

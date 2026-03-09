@@ -5,11 +5,9 @@
     <!-- Back Button -->
     <button class="back-btn" (click)="goBack()">← Terug</button>
 
-    <!-- Title -->
-    <h1>John Doe</h1>
+    <h1>John Doe</h1> <!-- Naam van gebruiker -->
     <div class="profile-role">{{ role }}</div>
 
-    <!-- Dashboard Settings Dropdown -->
     <div class="settings-dropdown" (click)="$event.stopPropagation()">
       <button class="settings-btn" (click)="toggleSettings()">⚙</button>
 
@@ -45,9 +43,7 @@
 
   </div>
 
-  <!-- Content -->
   <div class="profile-container">
-
     <section class="profile-section">
       <h3 class="section-title">Geleende Boeken</h3>
       <div class="horizontal-scroll-wrapper">
