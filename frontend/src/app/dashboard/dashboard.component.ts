@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BookService } from '../services/book.service';
 
@@ -10,19 +9,43 @@ import { BookService } from '../services/book.service';
 })
 export class DashboardComponent implements OnInit {
   featuredBooks: any[] = [];
+  didacticBooks: any[] = [];
   loading = true;
 
-  constructor(private http: HttpClient, private router: Router, private bookService: BookService) {}
-
-  ngOnInit() {
-    this.fetchBooks();
+  get canSeeDidactic(): boolean {
+    const role = localStorage.getItem('role');
+    return role === 'leerkracht' || role === 'bibbeheerder';
   }
 
- async fetchBooks() {
-  this.loading = true;
-  try {
-    const data = await this.bookService.getBoeken();
-    this.featuredBooks = data.map((book: any) => ({
+  constructor(private router: Router, private bookService: BookService) {}
+
+  async ngOnInit() {
+    await this.fetchBooks();
+  }
+
+  async fetchBooks() {
+    this.loading = true;
+    try {
+      // Gebruik de axios-gebaseerde methode uit je nieuwe service
+      const data = await this.bookService.getBoeken();
+      
+      this.featuredBooks = data
+        .filter((b: any) => (b.genre || "").toLowerCase() !== 'didactiek')
+        .map((book: any) => this.mapBook(book));
+
+      this.didacticBooks = data
+        .filter((b: any) => (b.genre || "").toLowerCase() === 'didactiek')
+        .map((book: any) => this.mapBook(book));
+
+    } catch (error) {
+      console.error("Fout bij ophalen boeken:", error);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  private mapBook(book: any) {
+    return {
       id: book.id,
       titel: book.titel,
       auteur: book.auteur,
@@ -31,16 +54,10 @@ export class DashboardComponent implements OnInit {
       paginas: book.paginas || "?",
       coverUrl: book.cover || null,
       desc: book.beschrijving || "Geen beschrijving beschikbaar."
-    }));
-  } catch (error) {
-    console.error("Fout bij ophalen boeken:", error);
-  } finally {
-    this.loading = false;
+    };
   }
-}
-seeDetail(book: any) {
-  console.log('Navigeren naar ID:', book.id); 
-  this.router.navigate(['/detail', book.id]);
-}
 
-}
+  seeDetail(book: any) {
+    this.router.navigate(['/detail', book.id]);
+  }
+} 

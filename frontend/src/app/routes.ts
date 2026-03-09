@@ -7,6 +7,7 @@ import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
 import { DetailComponent } from "./detail/detail.component";
 import { BookListComponent } from "./book-list/book-list.component";
+import { ProfileComponent } from "./profile/profile.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
@@ -43,7 +44,12 @@ export const appRoutes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
-
+  {
+    path: "profile",
+    component: ProfileComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
+  }
 ];
 
 @NgModule({

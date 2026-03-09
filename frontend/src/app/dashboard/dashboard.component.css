@@ -60,23 +60,24 @@
   flex: 0 0 260px;
   scroll-snap-align: start;
   background: white;
-  border-radius: 20px; /* Mooie ronde hoeken */
+  border-radius: 20px; 
   padding: 25px;
   display: flex;
   flex-direction: column;
   border: 2px solid transparent;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Hover Effecten */
 .book-card:hover {
   transform: translateY(-10px);
-  border-color: #8B0000; /* Rode border verschijnt */
+  border-color: #8B0000; 
   box-shadow: 0 15px 35px rgba(139, 0, 0, 0.12);
 }
 
-/* Elementen in de kaart */
+/* Genre Tag */
 .genre-tag {
   background: #8B0000;
   color: white;
@@ -87,6 +88,7 @@
   margin-bottom: 15px;
   border-radius: 20px;
   font-weight: bold;
+  z-index: 2;
 }
 
 .book-cover {
@@ -111,14 +113,13 @@
   width: 100%;               
   height: 100%;      
   border-radius: 10px; 
-  box-shadow: 4px 4px 12px rgba(0,0,0,0.15);       
   background-color: #eee;    
 }
 
 .book-content {
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* Zorgt dat de inhoud de kaart vult */
+  flex-grow: 1; 
   text-align: center;
 }
 
@@ -142,20 +143,9 @@
   margin-bottom: 15px;
 }
 
-.desc {
-  font-size: 0.8rem;
-  color: #666;
-  line-height: 1.5;
-  margin-bottom: 20px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Gecentreerde Knop */
+/* Knoppen */
 .details-btn {
-  margin-top: auto; /* Duwt de knop naar de bodem */
+  margin-top: auto; 
   background: #8B0000;
   color: white;
   border: none;
@@ -164,25 +154,64 @@
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 60%; /* Iets smaller dan de kaart voor een luchtige look */
-  align-self: center; /* Centreert de knop horizontaal */
+  width: 80%; 
+  align-self: center; 
 }
 
 .details-btn:hover {
   background: #a00000;
   transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(139, 0, 0, 0.3);
 }
 
-/* Loading Animatie */
+/* =========================================
+   SPECIFIEKE DIDACTIEK STYLING (ORANJE)
+   ========================================= */
+
+.teacher-only-title {
+  margin-top: 50px;
+  color: #d35400;
+  border-left: 6px solid #e67e22; /* Oranje marker */
+  padding-left: 15px;
+}
+
+.didactic-wrapper {
+  background-color: rgba(230, 126, 34, 0.05);
+  padding: 20px 10px;
+  border-radius: 15px;
+}
+
+/* De oranje zijrand voor didactische boeken */
+.book-card.teacher-card {
+  border: none;
+  border-left: 10px solid #e67e22 !important; /* De dikke oranje rand */
+  background: #fffdfb;
+}
+
+.book-card.teacher-card:hover {
+  border-left-width: 15px !important;
+  border-color: #e67e22;
+  box-shadow: 0 15px 35px rgba(230, 126, 34, 0.15);
+}
+
+.teacher-card h4 {
+  color: #d35400;
+}
+
+.teacher-tag {
+  background-color: #e67e22 !important;
+}
+
+.teacher-btn {
+  background-color: #d35400 !important;
+}
+
+/* Loader */
 .loader-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 80px;
   color: #8B0000;
-  font-weight: bold;
 }
 
 .spinner {
