@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.entities;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -23,6 +23,11 @@ public class Boek {
     @NotBlank
     @Size(max = 255)
     private String auteur;
+
+    @NotBlank
+    @Size(max = 20)
+    @Column(unique = true, nullable = false)
+    private String isbn;
 
     @Lob
     @Column(columnDefinition = "LONGTEXT")
@@ -71,6 +76,14 @@ public class Boek {
 
     public void setAuteur(String auteur) {
         this.auteur = auteur;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
     }
 
     public String getCover() {

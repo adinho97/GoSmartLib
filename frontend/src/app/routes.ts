@@ -4,6 +4,7 @@ import { AuthGuard } from "./auth.guard";
 import { LoginComponent } from "./login/login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
+import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
 import { DetailComponent } from "./detail/detail.component";
 import { BookListComponent } from "./book-list/book-list.component";
 import { ProfileComponent } from "./profile/profile.component";
@@ -17,6 +18,7 @@ export const appRoutes: Routes = [
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
   { path: "", redirectTo: "/dashboard", pathMatch: "full" },
+
   { 
     path: "detail/:id", 
     component: DetailComponent, 
@@ -27,8 +29,15 @@ export const appRoutes: Routes = [
     path: "add", 
     component: AddBookComponent, 
     canActivate: [AuthGuard],
-    data: { roles: ["bibbeheerder"] },
+    data: { roles: ["bibbeheerder"] }
   },
+  { 
+    path: "isbn", 
+    component: AddIsbnComponent, 
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] }
+  }
+,
   {
     path: "books",
     component: BookListComponent,
