@@ -1,6 +1,8 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
+import { School } from "../models/school";
 
 export enum Taal {
   Nederlands = "Nederlands",
@@ -18,8 +20,10 @@ export enum Taal {
   templateUrl: "./add-book-component.html",
   styleUrls: ["./add-book-component.css"],
 })
-export class AddBookComponent {
+export class AddBookComponent implements OnInit {
   readonly talen = Object.values(Taal);
+  scholen: School[] = [];
+  selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
   coverPreviewUrl: string | null = null;
   isSaving = false;
@@ -39,7 +43,37 @@ export class AddBookComponent {
     uitgeverij: "",
   };
 
-  constructor(private bookService: BookService) {}
+  constructor(
+    private bookService: BookService,
+    private schoolService: SchoolService,
+  ) {}
+
+  async ngOnInit() {
+    await this.loadScholen();
+  }
+
+  async loadScholen() {
+    try {
+      this.scholen = await this.schoolService.getScholen();
+      const storedSchoolId = this.schoolService.getSelectedSchoolId();
+      const hasStoredSchool =
+        storedSchoolId !== null &&
+        this.scholen.some((school) => school.id === storedSchoolId);
+
+      const fallbackSchoolId =
+        this.scholen.length > 0 ? this.scholen[0].id : null;
+      this.selectedSchoolId = hasStoredSchool
+        ? storedSchoolId
+        : fallbackSchoolId;
+
+      if (this.selectedSchoolId !== null) {
+        this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
+      }
+    } catch {
+      this.scholen = [];
+      this.selectedSchoolId = null;
+    }
+  }
 
   onCoverSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -78,6 +112,12 @@ export class AddBookComponent {
       return;
     }
 
+    if (this.selectedSchoolId === null) {
+      this.submitState = "error";
+      this.submitMessage = "Kies een school.";
+      return;
+    }
+
     this.isSaving = true;
     this.submitMessage = "";
     this.submitState = "";
@@ -87,10 +127,13 @@ export class AddBookComponent {
         ? await this.toBase64(this.selectedCoverFile)
         : "";
 
-      await this.bookService.addBoek({
-        ...this.book,
-        cover: coverData,
-      });
+      await this.bookService.addBoek(
+        {
+          ...this.book,
+          cover: coverData,
+        },
+        this.selectedSchoolId,
+      );
 
       this.book = {
         titel: "",

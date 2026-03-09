@@ -2,6 +2,29 @@
   <h1>Voeg manueel een boek toe</h1>
   <form (ngSubmit)="onSubmit(bookForm)" #bookForm="ngForm" class="book-form">
     <div class="form-row">
+      <label for="school">School</label>
+      <select
+        id="school"
+        name="school"
+        #school="ngModel"
+        [(ngModel)]="selectedSchoolId"
+        required
+        [class.field-invalid]="school.invalid && (school.touched || isSubmitted)"
+      >
+        <option [ngValue]="null">Kies een school</option>
+        <option *ngFor="let school of scholen" [ngValue]="school.id">
+          {{ school.naam }}
+        </option>
+      </select>
+      <small
+        *ngIf="school.errors?.['required'] && (school.touched || isSubmitted)"
+        class="field-error"
+      >
+        School is verplicht.
+      </small>
+    </div>
+
+    <div class="form-row">
       <label for="titel">Titel</label>
       <input
         id="titel"
@@ -121,7 +144,10 @@
       />
     </div>
 
-    <button type="submit" [disabled]="isSaving || bookForm.invalid">
+    <button
+      type="submit"
+      [disabled]="isSaving || bookForm.invalid || selectedSchoolId === null"
+    >
       {{ isSaving ? "Opslaan..." : "Opslaan" }}
     </button>
 
