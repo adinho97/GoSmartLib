@@ -2,7 +2,9 @@ package com.example.demo;
 
 import com.example.demo.dto.BoekDto;
 import com.example.demo.entities.Boek;
+import com.example.demo.entities.School;
 import com.example.demo.services.BoekService;
+import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,6 +34,16 @@ class BoekServiceTest {
     @InjectMocks
     private BoekService boekService;
 
+    @Mock
+    private SchoolService schoolService;
+
+    private School makeSchool() {
+        School school = new School();
+        school.setId(1L);
+        school.setNaam("GO! Atheneum Antwerpen");
+        return school;
+    }
+
     private Boek makeBoek() {
         Boek b = new Boek();
         b.setId(1L);
@@ -47,7 +59,7 @@ class BoekServiceTest {
     void findByIsbnShouldReturnDtoWhenBookIsInDb() {
         when(boekRepository.findByIsbn("9780553808049")).thenReturn(Optional.of(makeBoek()));
 
-        Optional<BoekDto> result = boekService.findByIsbn("9780553808049");
+        Optional<BoekDto> result = boekService.findByIsbn("9780553808049", null);
 
         assertTrue(result.isPresent());
         assertEquals("Dune", result.get().getTitel());
@@ -59,7 +71,7 @@ class BoekServiceTest {
     void findByIsbnShouldReturnEmptyWhenNotInDb() {
         when(boekRepository.findByIsbn("0000000000000")).thenReturn(Optional.empty());
 
-        Optional<BoekDto> result = boekService.findByIsbn("0000000000000");
+        Optional<BoekDto> result = boekService.findByIsbn("0000000000000", null);
 
         assertFalse(result.isPresent());
     }
@@ -68,9 +80,10 @@ class BoekServiceTest {
 
     @Test
     void importByIsbnShouldReturnExistingBookWithoutCallingOpenLibrary() {
-        when(boekRepository.findByIsbn("9780553808049")).thenReturn(Optional.of(makeBoek()));
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
+        when(boekRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.of(makeBoek()));
 
-        BoekDto result = boekService.importByIsbn("9780553808049");
+        BoekDto result = boekService.importByIsbn("9780553808049", 1L);
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
@@ -80,7 +93,8 @@ class BoekServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void importByIsbnShouldFetchFromOpenLibrarySaveAndReturnNewBook() {
-        when(boekRepository.findByIsbn("9780553808049")).thenReturn(Optional.empty());
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
+        when(boekRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.empty());
         when(boekRepository.save(any(Boek.class))).thenReturn(makeBoek());
 
         Map<String, Object> bookBody = new HashMap<>();
@@ -96,7 +110,7 @@ class BoekServiceTest {
             when(rt.getForEntity(contains("authors"), eq(Map.class)))
                     .thenReturn(ResponseEntity.ok(authorBody));
         })) {
-            BoekDto result = boekService.importByIsbn("9780553808049");
+            BoekDto result = boekService.importByIsbn("9780553808049", 1L);
 
             assertNotNull(result);
             assertEquals("Dune", result.getTitel());
@@ -106,12 +120,13 @@ class BoekServiceTest {
 
     @Test
     void importByIsbnShouldReturnNullWhenIsbnNotFoundInOpenLibrary() {
-        when(boekRepository.findByIsbn("0000000000000")).thenReturn(Optional.empty());
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
+        when(boekRepository.findByIsbnAndSchool_Id("0000000000000", 1L)).thenReturn(Optional.empty());
 
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class,
                 (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Map.class)))
                         .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND)))) {
-            BoekDto result = boekService.importByIsbn("0000000000000");
+            BoekDto result = boekService.importByIsbn("0000000000000", 1L);
 
             assertNull(result);
             verify(boekRepository, never()).save(any());

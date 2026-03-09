@@ -2,7 +2,9 @@ package com.example.demo;
 
 import com.example.demo.dto.BoekDto;
 import com.example.demo.entities.Boek;
+import com.example.demo.entities.School;
 import com.example.demo.services.BoekService;
+import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,6 +39,9 @@ class BoekControllerTest {
         @MockBean
         private BoekService boekService;
 
+        @MockBean
+        private SchoolService schoolService;
+
         @Test
         void getAllShouldReturnBooks() throws Exception {
                 Boek boek = new Boek();
@@ -56,6 +61,10 @@ class BoekControllerTest {
 
         @Test
         void createShouldPersistAndReturnBookWhenPayloadIsValid() throws Exception {
+                School school = new School();
+                school.setId(1L);
+                school.setNaam("GO! Atheneum Antwerpen");
+
                 Boek saved = new Boek();
                 saved.setId(7L);
                 saved.setTitel("Clean Code");
@@ -69,7 +78,8 @@ class BoekControllerTest {
                 saved.setTaal("English");
                 saved.setUitgeverij("Prentice Hall");
 
-                when(boekRepository.findByIsbn("9780132350884")).thenReturn(Optional.empty());
+                when(schoolService.getByIdOrDefault(any())).thenReturn(school);
+                when(boekRepository.findByIsbnAndSchool_Id("9780132350884", 1L)).thenReturn(Optional.empty());
                 when(boekRepository.save(any(Boek.class))).thenReturn(saved);
 
                 String json = """
@@ -99,13 +109,17 @@ class BoekControllerTest {
 
         @Test
         void createShouldReturnConflictWhenIsbnAlreadyExists() throws Exception {
+                School school = new School();
+                school.setId(1L);
+
                 Boek existing = new Boek();
                 existing.setId(5L);
                 existing.setTitel("Existing Book");
                 existing.setAuteur("Existing Author");
                 existing.setIsbn("9780132350884");
 
-                when(boekRepository.findByIsbn("9780132350884")).thenReturn(Optional.of(existing));
+                when(schoolService.getByIdOrDefault(any())).thenReturn(school);
+                when(boekRepository.findByIsbnAndSchool_Id("9780132350884", 1L)).thenReturn(Optional.of(existing));
 
                 String json = """
                                 {
@@ -140,7 +154,7 @@ class BoekControllerTest {
 
         @Test
         void getByIsbnShouldReturnBookWhenFoundInDb() throws Exception {
-                when(boekService.findByIsbn("9780553808049")).thenReturn(Optional.of(makeDto()));
+                when(boekService.findByIsbn("9780553808049", null)).thenReturn(Optional.of(makeDto()));
 
                 mockMvc.perform(get("/api/boeken/isbn/9780553808049"))
                                 .andExpect(status().isOk())
@@ -151,7 +165,7 @@ class BoekControllerTest {
 
         @Test
         void getByIsbnShouldReturn404WhenNotInDb() throws Exception {
-                when(boekService.findByIsbn("0000000000000")).thenReturn(Optional.empty());
+                when(boekService.findByIsbn("0000000000000", null)).thenReturn(Optional.empty());
 
                 mockMvc.perform(get("/api/boeken/isbn/0000000000000"))
                                 .andExpect(status().isNotFound());
@@ -181,7 +195,7 @@ class BoekControllerTest {
 
         @Test
         void importByIsbnShouldReturnSavedBook() throws Exception {
-                when(boekService.importByIsbn("9780553808049")).thenReturn(makeDto());
+                when(boekService.importByIsbn("9780553808049", null)).thenReturn(makeDto());
 
                 mockMvc.perform(post("/api/boeken/isbn/9780553808049"))
                                 .andExpect(status().isOk())
@@ -191,7 +205,7 @@ class BoekControllerTest {
 
         @Test
         void importByIsbnShouldReturn404WhenNotFoundInOpenLibrary() throws Exception {
-                when(boekService.importByIsbn("0000000000000")).thenReturn(null);
+                when(boekService.importByIsbn("0000000000000", null)).thenReturn(null);
 
                 mockMvc.perform(post("/api/boeken/isbn/0000000000000"))
                                 .andExpect(status().isNotFound());
