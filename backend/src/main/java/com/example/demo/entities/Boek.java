@@ -26,7 +26,7 @@ public class Boek {
 
     @NotBlank
     @Size(max = 20)
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String isbn;
 
     @Lob
@@ -53,6 +53,10 @@ public class Boek {
 
     @Size(max = 255)
     private String uitgeverij;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id")
+    private School school;
 
     public Long getId() {
         return id;
@@ -140,5 +144,13 @@ public class Boek {
 
     public void setUitgeverij(String uitgeverij) {
         this.uitgeverij = uitgeverij;
+    }
+
+    public School getSchool() {
+        return school;
+    }
+
+    public void setSchool(School school) {
+        this.school = school;
     }
 }

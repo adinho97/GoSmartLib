@@ -2,8 +2,10 @@ package com.example.demo;
 
 import com.example.demo.dto.BoekDto;
 import com.example.demo.entities.Boek;
+import com.example.demo.entities.School;
 import com.example.demo.mappers.BoekMapper;
 import com.example.demo.services.BoekService;
+import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,43 +20,55 @@ import java.util.stream.Collectors;
 public class BoekController {
     private final BoekRepository repo;
     private final BoekService boekService;
+    private final SchoolService schoolService;
 
-    public BoekController(BoekRepository repo, BoekService boekService) {
+    public BoekController(BoekRepository repo, BoekService boekService, SchoolService schoolService) {
         this.repo = repo;
         this.boekService = boekService;
+        this.schoolService = schoolService;
     }
 
     @GetMapping
-    public List<BoekDto> getAll() {
-        return repo.findAll()
+    public List<BoekDto> getAll(@RequestParam(required = false) Long schoolId) {
+        List<Boek> boeken = schoolId == null ? repo.findAll() : repo.findAllBySchool_Id(schoolId);
+
+        return boeken
                 .stream()
                 .map(BoekMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Boek> getBook(@PathVariable Long id) {
-        return repo.findById(id)
+    public ResponseEntity<Boek> getBook(@PathVariable Long id, @RequestParam(required = false) Long schoolId) {
+        return (schoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, schoolId))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<BoekDto> create(@Valid @RequestBody BoekDto boekDto) {
-        if (repo.findByIsbn(boekDto.getIsbn()).isPresent()) {
+        School school;
+        try {
+            school = schoolService.getByIdOrDefault(boekDto.getSchoolId());
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (repo.findByIsbnAndSchool_Id(boekDto.getIsbn(), school.getId()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
         Boek entity = BoekMapper.toEntity(boekDto);
         entity.setId(null); // id altijd door de database laten bepalen
+        entity.setSchool(school);
 
         Boek saved = repo.save(entity);
         return ResponseEntity.ok(BoekMapper.toDto(saved));
     }
 
     @GetMapping("/isbn/{isbn}")
-    public ResponseEntity<BoekDto> getByIsbn(@PathVariable String isbn) {
-        return boekService.findByIsbn(isbn)
+    public ResponseEntity<BoekDto> getByIsbn(@PathVariable String isbn, @RequestParam(required = false) Long schoolId) {
+        return boekService.findByIsbn(isbn, schoolId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -69,8 +83,14 @@ public class BoekController {
     }
 
     @PostMapping("/isbn/{isbn}")
-    public ResponseEntity<BoekDto> importByIsbn(@PathVariable String isbn) {
-        BoekDto dto = boekService.importByIsbn(isbn);
+    public ResponseEntity<BoekDto> importByIsbn(@PathVariable String isbn, @RequestParam(required = false) Long schoolId) {
+        BoekDto dto;
+        try {
+            dto = boekService.importByIsbn(isbn, schoolId);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
@@ -78,8 +98,9 @@ public class BoekController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!repo.existsById(id)) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, @RequestParam(required = false) Long schoolId) {
+        boolean exists = schoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, schoolId);
+        if (!exists) {
             return ResponseEntity.notFound().build();
         }
 

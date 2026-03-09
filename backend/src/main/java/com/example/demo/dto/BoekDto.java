@@ -43,6 +43,10 @@ public class BoekDto {
     @Size(max = 255)
     private String uitgeverij;
 
+    private Long schoolId;
+
+    private String schoolNaam;
+
     public Long getId() {
         return id;
     }
@@ -129,6 +133,22 @@ public class BoekDto {
 
     public void setUitgeverij(String uitgeverij) {
         this.uitgeverij = uitgeverij;
+    }
+
+    public Long getSchoolId() {
+        return schoolId;
+    }
+
+    public void setSchoolId(Long schoolId) {
+        this.schoolId = schoolId;
+    }
+
+    public String getSchoolNaam() {
+        return schoolNaam;
+    }
+
+    public void setSchoolNaam(String schoolNaam) {
+        this.schoolNaam = schoolNaam;
     }
 }
 

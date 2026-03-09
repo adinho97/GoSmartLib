@@ -3,6 +3,7 @@ package com.example.demo.services;
 import com.example.demo.BoekRepository;
 import com.example.demo.dto.BoekDto;
 import com.example.demo.entities.Boek;
+import com.example.demo.entities.School;
 import com.example.demo.mappers.BoekMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,13 +22,20 @@ import java.util.Optional;
 public class BoekService {
 
     private final BoekRepository boekRepository;
+    private final SchoolService schoolService;
 
-    public BoekService(BoekRepository boekRepository) {
+    public BoekService(BoekRepository boekRepository, SchoolService schoolService) {
         this.boekRepository = boekRepository;
+        this.schoolService = schoolService;
     }
 
-    public Optional<BoekDto> findByIsbn(String isbn) {
-        return boekRepository.findByIsbn(isbn)
+    public Optional<BoekDto> findByIsbn(String isbn, Long schoolId) {
+        if (schoolId == null) {
+            return boekRepository.findByIsbn(isbn)
+                    .map(BoekMapper::toDto);
+        }
+
+        return boekRepository.findByIsbnAndSchool_Id(isbn, schoolId)
                 .map(BoekMapper::toDto);
     }
 
@@ -40,8 +48,10 @@ public class BoekService {
     }
 
     @Transactional
-    public BoekDto importByIsbn(String isbn) {
-        Optional<Boek> existing = boekRepository.findByIsbn(isbn);
+    public BoekDto importByIsbn(String isbn, Long schoolId) {
+        School school = schoolService.getByIdOrDefault(schoolId);
+
+        Optional<Boek> existing = boekRepository.findByIsbnAndSchool_Id(isbn, school.getId());
         if (existing.isPresent()) {
             return BoekMapper.toDto(existing.get());
         }
@@ -51,6 +61,7 @@ public class BoekService {
             return null;
         }
 
+        fetched.setSchool(school);
         Boek saved = boekRepository.save(fetched);
         return BoekMapper.toDto(saved);
     }
