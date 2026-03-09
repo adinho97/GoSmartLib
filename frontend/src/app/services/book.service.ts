@@ -44,4 +44,26 @@ export class BookService {
   async deleteBoek(id: number) {
     await axios.delete(`${this.apiUrl}/${id}`);
   }
+
+  async fetchBoekByIsbn(isbn: string) {
+    const res = await axios.get(`${this.apiUrl}/preview/${isbn}`);
+    return res.data;
+  }
+
+  async importBoekByIsbn(isbn: string) {
+    const res = await axios.post(`${this.apiUrl}/isbn/${isbn}`);
+    return res.data;
+  }
+
+  async bestaatBoekInBibliotheek(isbn: string): Promise<boolean> {
+    try {
+      await axios.get(`${this.apiUrl}/isbn/${isbn}`);
+      return true;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return false;
+      }
+      throw err;
+    }
+  }
 }
