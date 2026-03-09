@@ -1,5 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
+import { School } from "../models/school";
 
 type Boek = {
   id?: number;
@@ -26,7 +28,10 @@ export class BookListComponent implements OnInit {
   isLoading = true;
   error = "";
   readonly isBibbeheerder = localStorage.getItem("role") === "bibbeheerder";
+  readonly isLeerkracht = localStorage.getItem("role") === "leerkracht";
   readonly pageSize = 32;
+  scholen: School[] = [];
+  selectedSchoolId: number | null = null;
   currentPage = 1;
   searchInput = "";
   searchQuery = "";
@@ -45,10 +50,37 @@ export class BookListComponent implements OnInit {
   appliedMinPages = this.minPageFilterLimit;
   appliedMaxPages = this.maxPageFilterLimit;
 
-  constructor(private bookService: BookService) {}
+  constructor(
+    private bookService: BookService,
+    private schoolService: SchoolService,
+  ) {}
 
   async ngOnInit() {
+    await this.loadScholen();
     await this.loadBoeken();
+  }
+
+  async loadScholen() {
+    try {
+      this.scholen = await this.schoolService.getScholen();
+      const storedSchoolId = this.schoolService.getSelectedSchoolId();
+      const hasStoredSchool =
+        storedSchoolId !== null &&
+        this.scholen.some((school) => school.id === storedSchoolId);
+
+      const fallbackSchoolId =
+        this.scholen.length > 0 ? this.scholen[0].id : null;
+      this.selectedSchoolId = hasStoredSchool
+        ? storedSchoolId
+        : fallbackSchoolId;
+
+      if (this.selectedSchoolId !== null) {
+        this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
+      }
+    } catch {
+      this.scholen = [];
+      this.selectedSchoolId = null;
+    }
   }
 
   async loadBoeken() {
@@ -56,7 +88,9 @@ export class BookListComponent implements OnInit {
     this.error = "";
 
     try {
-      const boeken = await this.bookService.getBoeken();
+      const boeken = await this.bookService.getBoeken(
+        this.selectedSchoolId ?? undefined,
+      );
       this.boeken = boeken.sort((a: Boek, b: Boek) =>
         (a.titel || "").localeCompare(b.titel || "", "nl", {
           sensitivity: "base",
@@ -256,7 +290,10 @@ export class BookListComponent implements OnInit {
     }
 
     try {
-      await this.bookService.deleteBoek(boek.id);
+      await this.bookService.deleteBoek(
+        boek.id,
+        this.selectedSchoolId ?? undefined,
+      );
       this.boeken = this.boeken.filter((b) => b.id !== boek.id);
       this.updatePageBounds();
 
@@ -299,5 +336,15 @@ export class BookListComponent implements OnInit {
 
     parsedDate.setHours(0, 0, 0, 0);
     return parsedDate;
+  }
+
+  async onSchoolChange(value: string) {
+    this.selectedSchoolId = value ? Number(value) : null;
+
+    if (this.selectedSchoolId !== null) {
+      this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
+    }
+
+    await this.loadBoeken();
   }
 }
