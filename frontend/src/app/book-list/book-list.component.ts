@@ -21,7 +21,7 @@ type Boek = {
 })
 export class BookListComponent implements OnInit {
   readonly minPageFilterLimit = 0;
-  readonly maxPageFilterLimit = 10000;
+  readonly maxPageFilterLimit = 5000;
   boeken: Boek[] = [];
   isLoading = true;
   error = "";
@@ -133,7 +133,9 @@ export class BookListComponent implements OnInit {
 
   clearFilters() {
     this.searchInput = ""; this.searchQuery = ""; this.selectedGenre = ""; this.selectedTaal = "";
-    this.releaseDateFrom = ""; this.releaseDateTo = ""; this.minPages = 0; this.maxPages = 2000;
+    this.releaseDateFrom = ""; this.releaseDateTo = ""; 
+    this.minPages = this.minPageFilterLimit; 
+    this.maxPages = this.maxPageFilterLimit;
     this.applyFilters();
   }
 
@@ -153,13 +155,10 @@ export class BookListComponent implements OnInit {
   private parseDate(v: string): Date | null { return v ? new Date(v) : null; }
 
   get selectedRangeLeft(): string {
-    return ((this.minPages - 0) / this.maxPageFilterLimit * 100) + '%';
+    return ((this.minPages / this.maxPageFilterLimit) * 100) + '%';
   }
 
   get selectedRangeRight(): string {
-    return (100 - (this.maxPages / this.maxPageFilterLimit * 100)) + '%';
+    return (100 - (this.maxPages / this.maxPageFilterLimit) * 100) + '%';
   }
 }
-
-
-
