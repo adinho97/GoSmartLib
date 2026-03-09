@@ -126,6 +126,7 @@ class BoekServiceTest {
         Map<String, Object> bookBody = new HashMap<>();
         bookBody.put("title", "Dune");
         bookBody.put("authors", List.of(Map.of("key", "/authors/OL2732061A")));
+        bookBody.put("languages", List.of(Map.of("key", "/languages/eng")));
 
         Map<String, Object> authorBody = new HashMap<>();
         authorBody.put("name", "Frank Herbert");
@@ -141,7 +142,32 @@ class BoekServiceTest {
             assertNotNull(result);
             assertEquals("Dune", result.getTitel());
             assertEquals("Frank Herbert", result.getAuteur());
+            assertEquals("Engels", result.getTaal());
             verify(boekRepository, never()).save(any());
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void fetchPreviewByIsbnShouldMapFrenchLanguageToFrans() {
+        Map<String, Object> bookBody = new HashMap<>();
+        bookBody.put("title", "Le Petit Prince");
+        bookBody.put("authors", List.of(Map.of("key", "/authors/OL1000000A")));
+        bookBody.put("languages", List.of(Map.of("key", "/languages/fre")));
+
+        Map<String, Object> authorBody = new HashMap<>();
+        authorBody.put("name", "Antoine de Saint-Exupery");
+
+        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (rt, ctx) -> {
+            when(rt.getForEntity(contains("isbn"), eq(Map.class)))
+                    .thenReturn(ResponseEntity.ok(bookBody));
+            when(rt.getForEntity(contains("authors"), eq(Map.class)))
+                    .thenReturn(ResponseEntity.ok(authorBody));
+        })) {
+            BoekDto result = boekService.fetchPreviewByIsbn("9780156012195");
+
+            assertNotNull(result);
+            assertEquals("Frans", result.getTaal());
         }
     }
 

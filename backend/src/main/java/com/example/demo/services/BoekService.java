@@ -1,5 +1,7 @@
 package com.example.demo.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.demo.BoekRepository;
 import com.example.demo.dto.BoekDto;
 import com.example.demo.entities.Boek;
@@ -10,15 +12,22 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class BoekService {
+
+    private static final String LANGUAGE_MAPPING_RESOURCE = "language-mapping.json";
+    private static final Map<String, String> LANGUAGE_TRANSLATIONS = loadLanguageTranslations();
 
     private final BoekRepository boekRepository;
 
@@ -99,7 +108,7 @@ public class BoekService {
                 }
             }
 
-            book.setTaal("EN");
+            book.setTaal(resolveTaal(body));
 
             // Cover image
             Object covers = body.get("covers");
@@ -205,5 +214,56 @@ public class BoekService {
             }
         }
         return null;
+    }
+
+    private String resolveTaal(Map<String, Object> body) {
+        Object languages = body.get("languages");
+        if (languages instanceof List<?> languageList && !languageList.isEmpty()) {
+            Object first = languageList.get(0);
+            if (first instanceof Map<?, ?> langMap) {
+                Object key = langMap.get("key");
+                if (key instanceof String langKey) {
+                    return mapLanguageCodeToDutch(langKey);
+                }
+            } else if (first instanceof String langCode) {
+                return mapLanguageCodeToDutch(langCode);
+            }
+        }
+
+        // Fallbacks sometimes present in third-party payloads
+        Object language = body.get("language");
+        if (language instanceof String lang) {
+            return mapLanguageCodeToDutch(lang);
+        }
+
+        return "Onbekend";
+    }
+
+    private String mapLanguageCodeToDutch(String rawCode) {
+        if (rawCode == null)
+            return "Onbekend";
+        String code = rawCode.trim().toLowerCase(Locale.ROOT);
+        int slash = code.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < code.length())
+            code = code.substring(slash + 1);
+        return code.isEmpty() ? "Onbekend" : LANGUAGE_TRANSLATIONS.getOrDefault(code, "Onbekend");
+    }
+
+    private static Map<String, String> loadLanguageTranslations() {
+        try (InputStream in = BoekService.class.getClassLoader()
+                .getResourceAsStream(LANGUAGE_MAPPING_RESOURCE)) {
+            if (in == null)
+                return Collections.emptyMap();
+            Map<String, String> raw = new ObjectMapper().readValue(in, new TypeReference<>() {
+            });
+            Map<String, String> result = new HashMap<>();
+            raw.forEach((k, v) -> {
+                if (k != null && !k.isBlank())
+                    result.put(k.trim().toLowerCase(Locale.ROOT), v != null ? v : "Onbekend");
+            });
+            return Collections.unmodifiableMap(result);
+        } catch (Exception ignored) {
+            return Collections.emptyMap();
+        }
     }
 }
