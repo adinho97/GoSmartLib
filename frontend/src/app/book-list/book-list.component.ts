@@ -21,7 +21,7 @@ type Boek = {
 })
 export class BookListComponent implements OnInit {
   readonly minPageFilterLimit = 0;
-  readonly maxPageFilterLimit = 2000;
+  readonly maxPageFilterLimit = 10000;
   boeken: Boek[] = [];
   isLoading = true;
   error = "";
@@ -68,7 +68,7 @@ export class BookListComponent implements OnInit {
       );
       this.currentPage = 1;
     } catch (err) {
-      this.error = "Boeken laden mislukt. Probeer later opnieuw.";
+      this.error = "Boeken laden mislukt.";
     } finally {
       this.isLoading = false;
     }
@@ -133,7 +133,7 @@ export class BookListComponent implements OnInit {
 
   clearFilters() {
     this.searchInput = ""; this.searchQuery = ""; this.selectedGenre = ""; this.selectedTaal = "";
-    this.releaseDateFrom = ""; this.releaseDateTo = ""; this.minPages = 0; this.maxPages = 1000;
+    this.releaseDateFrom = ""; this.releaseDateTo = ""; this.minPages = 0; this.maxPages = 2000;
     this.applyFilters();
   }
 
@@ -143,15 +143,23 @@ export class BookListComponent implements OnInit {
 
   async verwijderBoek(event: MouseEvent, boek: Boek) {
     event.stopPropagation();
-    if (!boek.id || !confirm(`Weet je zeker dat je "${boek.titel}" wilt verwijderen?`)) return;
+    if (!boek.id || !confirm(`Verwijderen?`)) return;
     try {
       await this.bookService.deleteBoek(boek.id);
       this.boeken = this.boeken.filter(b => b.id !== boek.id);
-    } catch { this.error = "Verwijderen mislukt."; }
+    } catch { this.error = "Fout bij verwijderen."; }
   }
 
   private parseDate(v: string): Date | null { return v ? new Date(v) : null; }
 
-  get selectedRangeLeft(): string { return `calc(8px + (${((this.minPages - 0) / 1000) * 100} * (100% - 16px) / 100))`; }
-  get selectedRangeRight(): string { return `calc(8px + (${100 - ((this.maxPages - 0) / 1000) * 100} * (100% - 16px) / 100))`; }
+  get selectedRangeLeft(): string {
+    return ((this.minPages - 0) / this.maxPageFilterLimit * 100) + '%';
+  }
+
+  get selectedRangeRight(): string {
+    return (100 - (this.maxPages / this.maxPageFilterLimit * 100)) + '%';
+  }
 }
+
+
+
