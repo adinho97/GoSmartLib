@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BoekService {
@@ -133,6 +134,9 @@ public class BoekService {
             // Author: fetch from OpenLibrary authors API
             book.setAuteur(fetchAuthorName(body, restTemplate));
 
+            // Genre: derived from subjects on edition or work
+            book.setGenre(resolveGenre(body, restTemplate));
+
             return book;
         } catch (HttpClientErrorException.NotFound e) {
             // ISBN not found in OpenLibrary
@@ -202,6 +206,46 @@ public class BoekService {
             // Author lookup failed, fall through
         }
         return "Onbekende auteur";
+    }
+
+    private String resolveGenre(Map<String, Object> body, RestTemplate restTemplate) {
+        List<String> subjects = extractSubjects(body);
+
+        if (subjects.isEmpty()) {
+            // Fall back to subjects on the linked work
+            try {
+                Object works = body.get("works");
+                if (works instanceof List<?> workList && !workList.isEmpty()) {
+                    Object firstWork = workList.get(0);
+                    if (firstWork instanceof Map<?, ?> workMap) {
+                        Object key = workMap.get("key");
+                        if (key instanceof String workKey) {
+                            String workUrl = "https://openlibrary.org" + workKey + ".json";
+                            ResponseEntity<Map> workResp = restTemplate.getForEntity(workUrl, Map.class);
+                            if (workResp.getBody() != null)
+                                subjects = extractSubjects(workResp.getBody());
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (subjects.isEmpty()) return null;
+
+        String genre = subjects.stream().limit(3).collect(Collectors.joining(", "));
+        return genre.length() > 100 ? genre.substring(0, 100) : genre;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> extractSubjects(Map<?, ?> body) {
+        Object subjects = body.get("subjects");
+        if (subjects instanceof List<?> list) {
+            return list.stream()
+                    .filter(s -> s instanceof String)
+                    .map(s -> (String) s)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     private LocalDate tryParsePublishDate(String value) {
