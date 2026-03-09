@@ -30,6 +30,9 @@ public class BoekService {
     private static final String LANGUAGE_MAPPING_RESOURCE = "language-mapping.json";
     private static final Map<String, String> LANGUAGE_TRANSLATIONS = loadLanguageTranslations();
 
+    private static final String GENRE_MAPPING_RESOURCE = "genre-mapping.json";
+    private static final Map<String, String> GENRE_TRANSLATIONS = loadJsonMapping(GENRE_MAPPING_RESOURCE);
+
     private final BoekRepository boekRepository;
 
     public BoekService(BoekRepository boekRepository) {
@@ -232,7 +235,10 @@ public class BoekService {
 
         if (subjects.isEmpty()) return null;
 
-        String genre = subjects.stream().limit(3).collect(Collectors.joining(", "));
+        String genre = subjects.stream()
+                .limit(3)
+                .map(this::translateSubject)
+                .collect(Collectors.joining(", "));
         return genre.length() > 100 ? genre.substring(0, 100) : genre;
     }
 
@@ -293,17 +299,25 @@ public class BoekService {
         return code.isEmpty() ? "Onbekend" : LANGUAGE_TRANSLATIONS.getOrDefault(code, "Onbekend");
     }
 
+    private String translateSubject(String subject) {
+        if (subject == null) return "";
+        String key = subject.trim().toLowerCase(Locale.ROOT);
+        return GENRE_TRANSLATIONS.getOrDefault(key, subject);
+    }
+
     private static Map<String, String> loadLanguageTranslations() {
-        try (InputStream in = BoekService.class.getClassLoader()
-                .getResourceAsStream(LANGUAGE_MAPPING_RESOURCE)) {
+        return loadJsonMapping(LANGUAGE_MAPPING_RESOURCE);
+    }
+
+    private static Map<String, String> loadJsonMapping(String resource) {
+        try (InputStream in = BoekService.class.getClassLoader().getResourceAsStream(resource)) {
             if (in == null)
                 return Collections.emptyMap();
-            Map<String, String> raw = new ObjectMapper().readValue(in, new TypeReference<>() {
-            });
+            Map<String, String> raw = new ObjectMapper().readValue(in, new TypeReference<>() {});
             Map<String, String> result = new HashMap<>();
             raw.forEach((k, v) -> {
                 if (k != null && !k.isBlank())
-                    result.put(k.trim().toLowerCase(Locale.ROOT), v != null ? v : "Onbekend");
+                    result.put(k.trim().toLowerCase(Locale.ROOT), v != null ? v : "");
             });
             return Collections.unmodifiableMap(result);
         } catch (Exception ignored) {
