@@ -22,7 +22,7 @@ export class ProfileComponent {
   settingsOpen = false;
 
   favoriteBooks = [{ title: 'Book One', author: 'Author A', cover: '', id: 1 }, { title: 'Book Two', author: 'Author B', cover: '', id: 2 }];
-  readingHistory = [{ title: 'Book Three', finishedDate: new Date(), cover: '', id: 3 }];
+  readingHistory = [{ title: 'Book Three', loanedDate: new Date(), cover: '', id: 3 }];
   borrowedBooks = [{ title: 'Book Four', deadline: new Date(), cover: '', id: 4 }];
   readingList = [{ title: 'Book Five', author: 'Author C', cover: '', id: 5 }];
 

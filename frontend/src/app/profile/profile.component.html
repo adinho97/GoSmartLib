@@ -87,14 +87,14 @@
     </section>
 
     <section class="profile-section">
-      <h3 class="section-title">Leeshistoriek</h3>
+      <h3 class="section-title">Ontleenhistoriek</h3>
       <div class="horizontal-scroll-wrapper">
         <div class="profile-book-card" *ngFor="let book of readingHistory" (click)="goToDetail(book.id)">
           <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover"></div>
           <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
           <div class="book-content">
             <h4>{{book.title}}</h4>
-            <div class="book-meta">Uitgelezen {{book.finishedDate | date}}</div>
+            <div class="book-meta">Ontleend op {{book.loanedDate | date}}</div>
           </div>
         </div>
       </div>
