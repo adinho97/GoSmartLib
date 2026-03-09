@@ -43,9 +43,6 @@
         <p *ngIf="book.beschrijving" class="book-description">
           <strong>Beschrijving:</strong> {{ book.beschrijving }}
         </p>
-        <p *ngIf="isAlreadyInLibrary" class="already-message">
-          Reeds in de bibliotheek
-        </p>
         <button
           *ngIf="hasCheckedLibraryStatus && !isAlreadyInLibrary"
           class="add-button"
