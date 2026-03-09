@@ -98,7 +98,7 @@
             <img *ngIf="(boek.cover || '').trim(); else coverPlaceholder" [src]="boek.cover" [alt]="boek.titel"
               class="book-cover" />
             <ng-template #coverPlaceholder>
-              <div class="book-cover-placeholder" aria-label="Geen cover">
+              <div class="book-cover-placeholder">
                 Geen cover beschikbaar
               </div>
             </ng-template>
@@ -115,10 +115,10 @@
               </p>
             </div>
             <button *ngIf="isBibbeheerder" type="button" class="delete-button" (click)="
-                $event.stopPropagation();
-                $event.preventDefault();
-                verwijderBoek($event, boek)
-              ">
+                $event.stopPropagation();
+                $event.preventDefault();
+                verwijderBoek($event, boek)
+              ">
               Verwijder
             </button>
           </div>
@@ -127,8 +127,7 @@
     </section>
   </div>
 
-  <nav class="pagination" *ngIf="!isLoading && !error && filteredBoeken.length > 0 && totalPages > 1"
-    aria-label="Paginering boekenlijst">
+  <nav class="pagination" *ngIf="!isLoading && !error && filteredBoeken.length > 0 && totalPages > 1">
     <button type="button" class="pagination-button" *ngFor="let page of pageNumbers"
       [class.active]="page === currentPage" (click)="gaNaarPagina(page)">
       {{ page }}
