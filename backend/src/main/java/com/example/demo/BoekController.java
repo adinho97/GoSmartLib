@@ -39,8 +39,9 @@ public class BoekController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Boek> getBook(@PathVariable Long id, @RequestParam(required = false) Long schoolId) {
+    public ResponseEntity<BoekDto> getBook(@PathVariable Long id, @RequestParam(required = false) Long schoolId) {
         return (schoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, schoolId))
+                .map(BoekMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
