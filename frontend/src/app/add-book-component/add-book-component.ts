@@ -1,6 +1,8 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
+import { School } from "../models/school";
 
 export enum Taal {
   Nederlands = "Nederlands",
@@ -18,8 +20,10 @@ export enum Taal {
   templateUrl: "./add-book-component.html",
   styleUrls: ["./add-book-component.css"],
 })
-export class AddBookComponent {
+export class AddBookComponent implements OnInit {
   readonly talen = Object.values(Taal);
+  scholen: School[] = [];
+  selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
   coverPreviewUrl: string | null = null;
   isSaving = false;
@@ -41,11 +45,41 @@ export class AddBookComponent {
     uitgeverij: "",
   };
 
-  constructor(private bookService: BookService) {}
+  constructor(
+    private bookService: BookService,
+    private schoolService: SchoolService,
+  ) {}
+
+  async ngOnInit() {
+    await this.loadScholen();
+  }
+
+  async loadScholen() {
+    try {
+      this.scholen = await this.schoolService.getScholen();
+      const storedSchoolId = this.schoolService.getSelectedSchoolId();
+      const hasStoredSchool =
+        storedSchoolId !== null &&
+        this.scholen.some((school) => school.id === storedSchoolId);
+
+      const fallbackSchoolId =
+        this.scholen.length > 0 ? this.scholen[0].id : null;
+      this.selectedSchoolId = hasStoredSchool
+        ? storedSchoolId
+        : fallbackSchoolId;
+
+      if (this.selectedSchoolId !== null) {
+        this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
+      }
+    } catch {
+      this.scholen = [];
+      this.selectedSchoolId = null;
+    }
+  }
 
   toggleDidactic(state: boolean) {
     this.isDidactic = state;
-    this.book.genre = state ? 'Didactiek' : '';
+    this.book.genre = state ? "Didactiek" : "";
   }
 
   onCoverSelected(event: Event) {
@@ -75,16 +109,25 @@ export class AddBookComponent {
     this.isSubmitted = true;
     if (bookForm.invalid) return;
 
+    if (this.selectedSchoolId === null) {
+      this.submitState = "error";
+      this.submitMessage = "Kies een school.";
+      return;
+    }
+
     this.isSaving = true;
     try {
-      const coverData = this.selectedCoverFile ? await this.toBase64(this.selectedCoverFile) : "";
-      
-      // Aanroep naar de nieuwe addBoek methode in BookService
-      await this.bookService.addBoek({ 
-        ...this.book, 
-        cover: coverData,
-        taal: this.book.taal as string // Casten naar string voor de service
-      });
+      const coverData = this.selectedCoverFile
+        ? await this.toBase64(this.selectedCoverFile)
+        : "";
+
+      await this.bookService.addBoek(
+        {
+          ...this.book,
+          cover: coverData,
+        },
+        this.selectedSchoolId,
+      );
 
       this.resetForm(bookForm);
       this.submitState = "success";
@@ -98,7 +141,17 @@ export class AddBookComponent {
   }
 
   private resetForm(bookForm: NgForm) {
-    this.book = { titel: "", auteur: "", cover: "", beschrijving: "", genre: "", uitgaveDatum: "", paginas: null, taal: "", uitgeverij: "" };
+    this.book = {
+      titel: "",
+      auteur: "",
+      cover: "",
+      beschrijving: "",
+      genre: "",
+      uitgaveDatum: "",
+      paginas: null,
+      taal: "",
+      uitgeverij: "",
+    };
     this.isDidactic = false;
     this.selectedCoverFile = null;
     if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);

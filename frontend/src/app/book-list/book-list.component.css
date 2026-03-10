@@ -6,6 +6,40 @@
   color: #2c2c2c;
 }
 
+.school-selector-bar {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(96, 22, 47, 0.16);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 24px rgba(96, 22, 47, 0.16);
+  backdrop-filter: blur(4px);
+}
+
+.school-selector-bar label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #60162f;
+  white-space: nowrap;
+}
+
+.school-selector-bar select {
+  min-width: 230px;
+  height: 34px;
+  border: 1px solid rgba(96, 22, 47, 0.24);
+  border-radius: 8px;
+  padding: 0 0.55rem;
+  background: #fff;
+  color: #2c2c2c;
+  font-size: 0.88rem;
+}
 .book-list-header {
   display: flex;
   justify-content: space-between;
@@ -297,6 +331,9 @@
   height: 320px;
   overflow: hidden;
   background: #f0e6ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .book-cover {
@@ -305,6 +342,33 @@
   object-fit: cover;
 }
 
+.book-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #6f4b58;
+  line-height: 1.4;
+  background:
+    radial-gradient(
+      circle at 25% 20%,
+      rgba(255, 255, 255, 0.8),
+      transparent 40%
+    ),
+    repeating-linear-gradient(
+      135deg,
+      rgba(135, 31, 66, 0.06) 0,
+      rgba(135, 31, 66, 0.06) 10px,
+      rgba(96, 22, 47, 0.03) 10px,
+      rgba(96, 22, 47, 0.03) 20px
+    ),
+    linear-gradient(135deg, #f5ebef, #ead9e0);
+}
 .book-content {
   padding: 1rem;
   display: flex;
@@ -363,6 +427,21 @@
 }
 
 @media (max-width: 760px) {
-  .book-list-layout { display: block; }
-  .filters-sidebar { position: static; margin-bottom: 2rem; }
+  .book-list-layout {
+    display: block;
+  }
+  .school-selector-bar {
+    position: static;
+    margin: 0 0 1rem;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .school-selector-bar select {
+    min-width: 0;
+    flex: 1;
+  }
+  .filters-sidebar {
+    position: static;
+    margin-bottom: 2rem;
+  }
 }

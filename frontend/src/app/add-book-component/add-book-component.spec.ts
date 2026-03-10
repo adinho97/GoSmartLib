@@ -2,9 +2,20 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule, NgForm } from "@angular/forms";
 import { AddBookComponent } from "./add-book-component";
 import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
 
 class MockBookService {
   addBoek = jasmine.createSpy("addBoek").and.returnValue(Promise.resolve());
+}
+
+class MockSchoolService {
+  getScholen = jasmine
+    .createSpy("getScholen")
+    .and.returnValue(Promise.resolve([{ id: 1, naam: "Testschool" }]));
+  getSelectedSchoolId = jasmine
+    .createSpy("getSelectedSchoolId")
+    .and.returnValue(1);
+  setSelectedSchoolId = jasmine.createSpy("setSelectedSchoolId");
 }
 
 describe("AddBookComponent", () => {
@@ -16,7 +27,10 @@ describe("AddBookComponent", () => {
     await TestBed.configureTestingModule({
       declarations: [AddBookComponent],
       imports: [FormsModule],
-      providers: [{ provide: BookService, useClass: MockBookService }],
+      providers: [
+        { provide: BookService, useClass: MockBookService },
+        { provide: SchoolService, useClass: MockSchoolService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddBookComponent);
@@ -59,6 +73,7 @@ describe("AddBookComponent", () => {
     await component.onSubmit(mockForm);
 
     expect(bookService.addBoek).toHaveBeenCalled();
+    expect(bookService.addBoek).toHaveBeenCalledWith(jasmine.any(Object), 1);
     expect(component.submitState).toBe("success");
     expect(component.isSaving).toBeFalse();
   });

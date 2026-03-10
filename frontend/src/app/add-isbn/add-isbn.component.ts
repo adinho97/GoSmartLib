@@ -1,5 +1,7 @@
 import { Component } from "@angular/core";
 import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
+import { School } from "../models/school";
 
 @Component({
   selector: "app-add-isbn",
@@ -7,6 +9,8 @@ import { BookService } from "../services/book.service";
   styleUrls: ["./add-isbn.component.css"],
 })
 export class AddIsbnComponent {
+  scholen: School[] = [];
+  selectedSchoolId: number | null = null;
   isbn = "";
   isLoading = false;
   isImporting = false;
@@ -16,7 +20,42 @@ export class AddIsbnComponent {
   successMessage = "";
   book: any = null;
 
-  constructor(private bookService: BookService) {}
+  constructor(
+    private bookService: BookService,
+    private schoolService: SchoolService,
+  ) {
+    void this.loadScholen();
+  }
+
+  async loadScholen() {
+    try {
+      this.scholen = await this.schoolService.getScholen();
+      const storedSchoolId = this.schoolService.getSelectedSchoolId();
+      const hasStoredSchool =
+        storedSchoolId !== null &&
+        this.scholen.some((school) => school.id === storedSchoolId);
+
+      const fallbackSchoolId =
+        this.scholen.length > 0 ? this.scholen[0].id : null;
+      this.selectedSchoolId = hasStoredSchool
+        ? storedSchoolId
+        : fallbackSchoolId;
+
+      if (this.selectedSchoolId !== null) {
+        this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
+      }
+    } catch {
+      this.scholen = [];
+      this.selectedSchoolId = null;
+    }
+  }
+
+  onSchoolChange(value: string) {
+    this.selectedSchoolId = value ? Number(value) : null;
+    if (this.selectedSchoolId !== null) {
+      this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
+    }
+  }
 
   async zoekBoek() {
     const trimmed = this.isbn.trim();
@@ -34,7 +73,10 @@ export class AddIsbnComponent {
 
     try {
       this.book = await this.bookService.fetchBoekByIsbn(trimmed);
-      this.isAlreadyInLibrary = await this.bookService.bestaatBoekInBibliotheek(trimmed);
+      this.isAlreadyInLibrary = await this.bookService.bestaatBoekInBibliotheek(
+        trimmed,
+        this.selectedSchoolId ?? undefined,
+      );
       this.hasCheckedLibraryStatus = true;
       if (this.isAlreadyInLibrary) {
         this.successMessage = "Reeds in de bibliotheek.";
@@ -67,7 +109,10 @@ export class AddIsbnComponent {
     this.successMessage = "";
 
     try {
-      const savedBook = await this.bookService.importBoekByIsbn(isbnToImport);
+      const savedBook = await this.bookService.importBoekByIsbn(
+        isbnToImport,
+        this.selectedSchoolId ?? undefined,
+      );
       this.book = savedBook;
       this.isAlreadyInLibrary = true;
       this.hasCheckedLibraryStatus = true;
@@ -76,7 +121,8 @@ export class AddIsbnComponent {
       if (err?.response?.status === 404) {
         this.errorMessage = "Boek niet gevonden om te importeren.";
       } else {
-        this.errorMessage = "Er ging iets mis bij het toevoegen aan de bibliotheek.";
+        this.errorMessage =
+          "Er ging iets mis bij het toevoegen aan de bibliotheek.";
       }
     } finally {
       this.isImporting = false;

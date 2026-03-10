@@ -1,6 +1,18 @@
 <div class="isbn-page">
   <h1>Zoek boek via ISBN</h1>
 
+  <div class="isbn-input-row" *ngIf="scholen.length > 0">
+    <select
+      [ngModel]="selectedSchoolId"
+      (ngModelChange)="onSchoolChange($event)"
+      aria-label="Kies school"
+    >
+      <option *ngFor="let school of scholen" [value]="school.id">
+        {{ school.naam }}
+      </option>
+    </select>
+  </div>
+
   <div class="isbn-input-row">
     <input
       type="text"

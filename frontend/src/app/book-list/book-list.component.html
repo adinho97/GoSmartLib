@@ -10,6 +10,19 @@
     </div>
   </header>
 
+  <div class="school-selector-bar" *ngIf="isLeerkracht && scholen.length > 0">
+    <label for="schoolFilter">Geselecteerde school</label>
+    <select
+      id="schoolFilter"
+      [ngModel]="selectedSchoolId"
+      (ngModelChange)="onSchoolChange($event)"
+    >
+      <option *ngFor="let school of scholen" [value]="school.id">
+        {{ school.naam }}
+      </option>
+    </select>
+  </div>
+
   <p *ngIf="isLoading" class="info-message">Boeken laden...</p>
   <p *ngIf="error" class="error-message">{{ error }}</p>
 

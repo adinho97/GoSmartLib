@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { BookService } from '../services/book.service';
+import { Component, OnInit } from "@angular/core";
+import { Router } from "@angular/router";
+import { BookService } from "../services/book.service";
 
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  selector: "app-dashboard",
+  templateUrl: "./dashboard.component.html",
+  styleUrls: ["./dashboard.component.css"],
 })
 export class DashboardComponent implements OnInit {
   featuredBooks: any[] = [];
@@ -13,11 +13,14 @@ export class DashboardComponent implements OnInit {
   loading = true;
 
   get canSeeDidactic(): boolean {
-    const role = localStorage.getItem('role');
-    return role === 'leerkracht' || role === 'bibbeheerder';
+    const role = localStorage.getItem("role");
+    return role === "leerkracht" || role === "bibbeheerder";
   }
 
-  constructor(private router: Router, private bookService: BookService) {}
+  constructor(
+    private router: Router,
+    private bookService: BookService,
+  ) {}
 
   async ngOnInit() {
     await this.fetchBooks();
@@ -26,17 +29,15 @@ export class DashboardComponent implements OnInit {
   async fetchBooks() {
     this.loading = true;
     try {
-      // Gebruik de axios-gebaseerde methode uit je nieuwe service
       const data = await this.bookService.getBoeken();
-      
+
       this.featuredBooks = data
-        .filter((b: any) => (b.genre || "").toLowerCase() !== 'didactiek')
+        .filter((b: any) => (b.genre || "").toLowerCase() !== "didactiek")
         .map((book: any) => this.mapBook(book));
 
       this.didacticBooks = data
-        .filter((b: any) => (b.genre || "").toLowerCase() === 'didactiek')
+        .filter((b: any) => (b.genre || "").toLowerCase() === "didactiek")
         .map((book: any) => this.mapBook(book));
-
     } catch (error) {
       console.error("Fout bij ophalen boeken:", error);
     } finally {
@@ -53,11 +54,11 @@ export class DashboardComponent implements OnInit {
       taal: book.taal ? book.taal.substring(0, 2).toUpperCase() : "??",
       paginas: book.paginas || "?",
       coverUrl: book.cover || null,
-      desc: book.beschrijving || "Geen beschrijving beschikbaar."
+      desc: book.beschrijving || "Geen beschrijving beschikbaar.",
     };
   }
 
   seeDetail(book: any) {
-    this.router.navigate(['/detail', book.id]);
+    this.router.navigate(["/detail", book.id]);
   }
-} 
+}

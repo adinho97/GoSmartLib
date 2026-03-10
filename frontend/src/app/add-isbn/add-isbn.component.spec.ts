@@ -3,12 +3,17 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { AddIsbnComponent } from "./add-isbn.component";
 import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
 
 class MockBookService {
   fetchBoekByIsbn = jasmine
     .createSpy("fetchBoekByIsbn")
     .and.returnValue(
-      Promise.resolve({ titel: "Dune", auteur: "Frank Herbert", isbn: "9780553808049" })
+      Promise.resolve({
+        titel: "Dune",
+        auteur: "Frank Herbert",
+        isbn: "9780553808049",
+      }),
     );
 
   bestaatBoekInBibliotheek = jasmine
@@ -18,8 +23,22 @@ class MockBookService {
   importBoekByIsbn = jasmine
     .createSpy("importBoekByIsbn")
     .and.returnValue(
-      Promise.resolve({ titel: "Dune", auteur: "Frank Herbert", isbn: "9780553808049" })
+      Promise.resolve({
+        titel: "Dune",
+        auteur: "Frank Herbert",
+        isbn: "9780553808049",
+      }),
     );
+}
+
+class MockSchoolService {
+  getScholen = jasmine
+    .createSpy("getScholen")
+    .and.returnValue(Promise.resolve([{ id: 1, naam: "Testschool" }]));
+  getSelectedSchoolId = jasmine
+    .createSpy("getSelectedSchoolId")
+    .and.returnValue(1);
+  setSelectedSchoolId = jasmine.createSpy("setSelectedSchoolId");
 }
 
 describe("AddIsbnComponent", () => {
@@ -31,7 +50,10 @@ describe("AddIsbnComponent", () => {
     await TestBed.configureTestingModule({
       declarations: [AddIsbnComponent],
       imports: [FormsModule, CommonModule],
-      providers: [{ provide: BookService, useClass: MockBookService }],
+      providers: [
+        { provide: BookService, useClass: MockBookService },
+        { provide: SchoolService, useClass: MockSchoolService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddIsbnComponent);
@@ -68,7 +90,10 @@ describe("AddIsbnComponent", () => {
     await component.zoekBoek();
 
     expect(bookService.fetchBoekByIsbn).toHaveBeenCalledWith("9780553808049");
-    expect(bookService.bestaatBoekInBibliotheek).toHaveBeenCalledWith("9780553808049");
+    expect(bookService.bestaatBoekInBibliotheek).toHaveBeenCalledWith(
+      "9780553808049",
+      1,
+    );
     expect(component.book).toBeTruthy();
     expect(component.book.titel).toBe("Dune");
     expect(component.hasCheckedLibraryStatus).toBeTrue();
@@ -87,22 +112,28 @@ describe("AddIsbnComponent", () => {
 
   it("zoekBoek should show 404 error message when book not found", async () => {
     bookService.fetchBoekByIsbn.and.returnValue(
-      Promise.reject({ response: { status: 404 } })
+      Promise.reject({ response: { status: 404 } }),
     );
     component.isbn = "0000000000000";
     await component.zoekBoek();
 
-    expect(component.errorMessage).toBe("Geen boek gevonden voor dit ISBN-nummer.");
+    expect(component.errorMessage).toBe(
+      "Geen boek gevonden voor dit ISBN-nummer.",
+    );
     expect(component.book).toBeNull();
     expect(component.isLoading).toBeFalse();
   });
 
   it("zoekBoek should show generic error message on unexpected failure", async () => {
-    bookService.fetchBoekByIsbn.and.returnValue(Promise.reject(new Error("Network error")));
+    bookService.fetchBoekByIsbn.and.returnValue(
+      Promise.reject(new Error("Network error")),
+    );
     component.isbn = "9780553808049";
     await component.zoekBoek();
 
-    expect(component.errorMessage).toBe("Er ging iets mis bij het ophalen van het boek.");
+    expect(component.errorMessage).toBe(
+      "Er ging iets mis bij het ophalen van het boek.",
+    );
     expect(component.isLoading).toBeFalse();
   });
 
@@ -123,13 +154,20 @@ describe("AddIsbnComponent", () => {
   // ---- voegToeAanBibliotheek ----------------------------------------------
 
   it("voegToeAanBibliotheek should call importBoekByIsbn and set success state", async () => {
-    component.book = { titel: "Dune", auteur: "Frank Herbert", isbn: "9780553808049" };
+    component.book = {
+      titel: "Dune",
+      auteur: "Frank Herbert",
+      isbn: "9780553808049",
+    };
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
 
     await component.voegToeAanBibliotheek();
 
-    expect(bookService.importBoekByIsbn).toHaveBeenCalledWith("9780553808049");
+    expect(bookService.importBoekByIsbn).toHaveBeenCalledWith(
+      "9780553808049",
+      1,
+    );
     expect(component.successMessage).toBe("Boek toegevoegd aan bibliotheek.");
     expect(component.isAlreadyInLibrary).toBeTrue();
     expect(component.hasCheckedLibraryStatus).toBeTrue();
@@ -146,27 +184,35 @@ describe("AddIsbnComponent", () => {
   });
 
   it("voegToeAanBibliotheek should show generic error when service fails", async () => {
-    component.book = { titel: "Dune", auteur: "Frank Herbert", isbn: "9780553808049" };
+    component.book = {
+      titel: "Dune",
+      auteur: "Frank Herbert",
+      isbn: "9780553808049",
+    };
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
     bookService.importBoekByIsbn.and.returnValue(
-      Promise.reject({ response: { status: 500 } })
+      Promise.reject({ response: { status: 500 } }),
     );
 
     await component.voegToeAanBibliotheek();
 
     expect(component.errorMessage).toBe(
-      "Er ging iets mis bij het toevoegen aan de bibliotheek."
+      "Er ging iets mis bij het toevoegen aan de bibliotheek.",
     );
     expect(component.isImporting).toBeFalse();
   });
 
   it("voegToeAanBibliotheek should show 404 error when not found during import", async () => {
-    component.book = { titel: "Dune", auteur: "Frank Herbert", isbn: "9780553808049" };
+    component.book = {
+      titel: "Dune",
+      auteur: "Frank Herbert",
+      isbn: "9780553808049",
+    };
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
     bookService.importBoekByIsbn.and.returnValue(
-      Promise.reject({ response: { status: 404 } })
+      Promise.reject({ response: { status: 404 } }),
     );
 
     await component.voegToeAanBibliotheek();

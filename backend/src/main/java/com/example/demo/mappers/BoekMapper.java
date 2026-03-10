@@ -22,6 +22,10 @@ public class BoekMapper {
         dto.setPaginas(boek.getPaginas());
         dto.setTaal(boek.getTaal());
         dto.setUitgeverij(boek.getUitgeverij());
+        if (boek.getSchool() != null) {
+            dto.setSchoolId(boek.getSchool().getId());
+            dto.setSchoolNaam(boek.getSchool().getNaam());
+        }
 
         return dto;
     }
