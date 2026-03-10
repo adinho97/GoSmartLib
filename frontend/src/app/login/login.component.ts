@@ -11,6 +11,9 @@ export class LoginComponent {
 
   setRole(role: string): void {
     localStorage.setItem("role", role);
+    if (!localStorage.getItem("selectedSchoolId")) {
+      localStorage.setItem("selectedSchoolId", "1");
+    }
     this.router.navigate(["/dashboard"]);
   }
 }
