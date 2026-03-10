@@ -9,4 +9,6 @@ export interface Book {
   paginas: number;
   taal: string;
   uitgeverij: string;
+  schoolId?: number;
+  schoolNaam?: string;
 }
