@@ -6,25 +6,30 @@
 
   <main class="container">
     <h2 class="section-title">Uitgelichte boeken</h2>
-    
+
     <div class="loader-container" *ngIf="loading">
       <div class="spinner"></div>
       <p>Boeken ophalen uit database...</p>
     </div>
 
-    <div class="horizontal-scroll-wrapper" *ngIf="!loading && featuredBooks.length > 0">
+    <div
+      class="horizontal-scroll-wrapper"
+      *ngIf="!loading && featuredBooks.length > 0"
+    >
       <div class="book-card" *ngFor="let book of featuredBooks">
         <div class="genre-tag">{{ book.genre }}</div>
 
         <div class="book-cover">
-          <img *ngIf="book.coverUrl" [src]="book.coverUrl" [alt]="book.titel">
-          <div *ngIf="!book.coverUrl" class="cover-placeholder"><span>Geen Cover</span></div>
+          <img *ngIf="book.coverUrl" [src]="book.coverUrl" [alt]="book.titel" />
+          <div *ngIf="!book.coverUrl" class="cover-placeholder">
+            <span>Geen Cover</span>
+          </div>
         </div>
 
         <div class="book-content">
           <h4>{{ book.titel }}</h4>
           <p class="author">door {{ book.auteur }}</p>
-          
+
           <div class="book-meta">
             <span>{{ book.taal }}</span>
             <span> • {{ book.paginas }} pag.</span>
@@ -38,7 +43,9 @@
 
     <div class="empty-state" *ngIf="!loading && featuredBooks.length === 0">
       <p>Je bibliotheek is momenteel nog leeg.</p>
-      <p style="font-size: 0.8rem;">Gebruik het menu om nieuwe boeken te registreren.</p>
+      <p style="font-size: 0.8rem">
+        Gebruik het menu om nieuwe boeken te registreren.
+      </p>
     </div>
   </main>
 </div>
