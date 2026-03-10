@@ -14,8 +14,8 @@
     </div>
   </header>
 
-  <div class="filters-sidebar" *ngIf="isLeerkracht && scholen.length > 0">
-    <label for="schoolFilter">School</label>
+  <div class="school-selector-bar" *ngIf="isLeerkracht && scholen.length > 0">
+    <label for="schoolFilter">Geselecteerde school</label>
     <select
       id="schoolFilter"
       [ngModel]="selectedSchoolId"
