@@ -3,6 +3,7 @@ import { RouterTestingModule } from "@angular/router/testing";
 
 import { BookListComponent } from "./book-list.component";
 import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
 
 type TestBoek = {
   id?: number;
@@ -39,19 +40,30 @@ describe("BookListComponent", () => {
   let component: BookListComponent;
   let fixture: ComponentFixture<BookListComponent>;
   let bookServiceSpy: jasmine.SpyObj<BookService>;
+  let schoolServiceSpy: jasmine.SpyObj<SchoolService>;
 
   beforeEach(() => {
     bookServiceSpy = jasmine.createSpyObj<BookService>("BookService", [
       "getBoeken",
       "deleteBoek",
     ]);
+    schoolServiceSpy = jasmine.createSpyObj<SchoolService>("SchoolService", [
+      "getScholen",
+      "getSelectedSchoolId",
+      "setSelectedSchoolId",
+    ]);
     bookServiceSpy.getBoeken.and.resolveTo([]);
     bookServiceSpy.deleteBoek.and.resolveTo();
+    schoolServiceSpy.getScholen.and.resolveTo([]);
+    schoolServiceSpy.getSelectedSchoolId.and.returnValue(null);
 
     TestBed.configureTestingModule({
       declarations: [BookListComponent],
       imports: [RouterTestingModule],
-      providers: [{ provide: BookService, useValue: bookServiceSpy }],
+      providers: [
+        { provide: BookService, useValue: bookServiceSpy },
+        { provide: SchoolService, useValue: schoolServiceSpy },
+      ],
     });
 
     fixture = TestBed.createComponent(BookListComponent);
