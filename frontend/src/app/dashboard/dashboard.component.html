@@ -9,7 +9,7 @@
 
     <div class="loader-container" *ngIf="loading">
       <div class="spinner"></div>
-      <p>Boeken ophalen uit database...</p>
+      <p>Boeken ophalen...</p>
     </div>
 
     <div
@@ -18,14 +18,12 @@
     >
       <div class="book-card" *ngFor="let book of featuredBooks">
         <div class="genre-tag">{{ book.genre }}</div>
-
         <div class="book-cover">
           <img *ngIf="book.coverUrl" [src]="book.coverUrl" [alt]="book.titel" />
           <div *ngIf="!book.coverUrl" class="cover-placeholder">
             <span>Geen Cover</span>
           </div>
         </div>
-
         <div class="book-content">
           <h4>{{ book.titel }}</h4>
           <p class="author">door {{ book.auteur }}</p>
@@ -41,11 +39,47 @@
       </div>
     </div>
 
-    <div class="empty-state" *ngIf="!loading && featuredBooks.length === 0">
+    <div
+      class="empty-state"
+      *ngIf="
+        !loading &&
+        featuredBooks.length === 0 &&
+        (!canSeeDidactic || didacticBooks.length === 0)
+      "
+    >
       <p>Je bibliotheek is momenteel nog leeg.</p>
       <p style="font-size: 0.8rem">
         Gebruik het menu om nieuwe boeken te registreren.
       </p>
+    </div>
+
+    <div *ngIf="canSeeDidactic && !loading && didacticBooks.length > 0">
+      <h2 class="section-title teacher-only-title">Didactische Collectie</h2>
+      <div class="horizontal-scroll-wrapper didactic-wrapper">
+        <div class="book-card teacher-card" *ngFor="let book of didacticBooks">
+          <div class="genre-tag teacher-tag">{{ book.genre }}</div>
+          <div class="book-cover">
+            <img
+              *ngIf="book.coverUrl"
+              [src]="book.coverUrl"
+              [alt]="book.titel"
+            />
+            <div *ngIf="!book.coverUrl" class="cover-placeholder">
+              <span>Geen Cover</span>
+            </div>
+          </div>
+          <div class="book-content">
+            <h4>{{ book.titel }}</h4>
+            <p class="author">{{ book.auteur }}</p>
+            <div class="book-meta">
+              <span>{{ book.taal }} • {{ book.paginas }} pag.</span>
+            </div>
+            <button class="details-btn teacher-btn" (click)="seeDetail(book)">
+              Bekijk Info
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </div>

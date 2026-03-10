@@ -1,5 +1,7 @@
 package com.example.demo.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.demo.BoekRepository;
 import com.example.demo.dto.BoekDto;
 import com.example.demo.entities.Boek;
@@ -11,15 +13,26 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BoekService {
+
+    private static final String LANGUAGE_MAPPING_RESOURCE = "language-mapping.json";
+    private static final Map<String, String> LANGUAGE_TRANSLATIONS = loadLanguageTranslations();
+
+    private static final String GENRE_MAPPING_RESOURCE = "genre-mapping.json";
+    private static final Map<String, String> GENRE_TRANSLATIONS = loadJsonMapping(GENRE_MAPPING_RESOURCE);
 
     private final BoekRepository boekRepository;
     private final SchoolService schoolService;
@@ -110,7 +123,7 @@ public class BoekService {
                 }
             }
 
-            book.setTaal("EN");
+            book.setTaal(resolveTaal(body));
 
             // Cover image
             Object covers = body.get("covers");
@@ -134,6 +147,9 @@ public class BoekService {
 
             // Author: fetch from OpenLibrary authors API
             book.setAuteur(fetchAuthorName(body, restTemplate));
+
+            // Genre: derived from subjects on edition or work
+            book.setGenre(resolveGenre(body, restTemplate));
 
             return book;
         } catch (HttpClientErrorException.NotFound e) {
@@ -206,6 +222,49 @@ public class BoekService {
         return "Onbekende auteur";
     }
 
+    private String resolveGenre(Map<String, Object> body, RestTemplate restTemplate) {
+        List<String> subjects = extractSubjects(body);
+
+        if (subjects.isEmpty()) {
+            // Fall back to subjects on the linked work
+            try {
+                Object works = body.get("works");
+                if (works instanceof List<?> workList && !workList.isEmpty()) {
+                    Object firstWork = workList.get(0);
+                    if (firstWork instanceof Map<?, ?> workMap) {
+                        Object key = workMap.get("key");
+                        if (key instanceof String workKey) {
+                            String workUrl = "https://openlibrary.org" + workKey + ".json";
+                            ResponseEntity<Map> workResp = restTemplate.getForEntity(workUrl, Map.class);
+                            if (workResp.getBody() != null)
+                                subjects = extractSubjects(workResp.getBody());
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (subjects.isEmpty()) return null;
+
+        String genre = subjects.stream()
+                .limit(3)
+                .map(this::translateSubject)
+                .collect(Collectors.joining(", "));
+        return genre.length() > 100 ? genre.substring(0, 100) : genre;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> extractSubjects(Map<?, ?> body) {
+        Object subjects = body.get("subjects");
+        if (subjects instanceof List<?> list) {
+            return list.stream()
+                    .filter(s -> s instanceof String)
+                    .map(s -> (String) s)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
     private LocalDate tryParsePublishDate(String value) {
         String[] patterns = { "yyyy-MM-dd", "yyyy", "MMMM d, yyyy", "MMM d, yyyy" };
         for (String pattern : patterns) {
@@ -216,5 +275,64 @@ public class BoekService {
             }
         }
         return null;
+    }
+
+    private String resolveTaal(Map<String, Object> body) {
+        Object languages = body.get("languages");
+        if (languages instanceof List<?> languageList && !languageList.isEmpty()) {
+            Object first = languageList.get(0);
+            if (first instanceof Map<?, ?> langMap) {
+                Object key = langMap.get("key");
+                if (key instanceof String langKey) {
+                    return mapLanguageCodeToDutch(langKey);
+                }
+            } else if (first instanceof String langCode) {
+                return mapLanguageCodeToDutch(langCode);
+            }
+        }
+
+        // Fallbacks sometimes present in third-party payloads
+        Object language = body.get("language");
+        if (language instanceof String lang) {
+            return mapLanguageCodeToDutch(lang);
+        }
+
+        return "Onbekend";
+    }
+
+    private String mapLanguageCodeToDutch(String rawCode) {
+        if (rawCode == null)
+            return "Onbekend";
+        String code = rawCode.trim().toLowerCase(Locale.ROOT);
+        int slash = code.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < code.length())
+            code = code.substring(slash + 1);
+        return code.isEmpty() ? "Onbekend" : LANGUAGE_TRANSLATIONS.getOrDefault(code, "Onbekend");
+    }
+
+    private String translateSubject(String subject) {
+        if (subject == null) return "";
+        String key = subject.trim().toLowerCase(Locale.ROOT);
+        return GENRE_TRANSLATIONS.getOrDefault(key, subject);
+    }
+
+    private static Map<String, String> loadLanguageTranslations() {
+        return loadJsonMapping(LANGUAGE_MAPPING_RESOURCE);
+    }
+
+    private static Map<String, String> loadJsonMapping(String resource) {
+        try (InputStream in = BoekService.class.getClassLoader().getResourceAsStream(resource)) {
+            if (in == null)
+                return Collections.emptyMap();
+            Map<String, String> raw = new ObjectMapper().readValue(in, new TypeReference<>() {});
+            Map<String, String> result = new HashMap<>();
+            raw.forEach((k, v) -> {
+                if (k != null && !k.isBlank())
+                    result.put(k.trim().toLowerCase(Locale.ROOT), v != null ? v : "");
+            });
+            return Collections.unmodifiableMap(result);
+        } catch (Exception ignored) {
+            return Collections.emptyMap();
+        }
     }
 }

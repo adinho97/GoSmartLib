@@ -47,15 +47,13 @@
         <p *ngIf="book.paginas">
           <strong>Pagina's:</strong> {{ book.paginas }}
         </p>
+        <p *ngIf="book.genre"><strong>Genre:</strong> {{ book.genre }}</p>
         <p *ngIf="book.taal"><strong>Taal:</strong> {{ book.taal }}</p>
         <p *ngIf="book.uitgaveDatum">
           <strong>Uitgavedatum:</strong> {{ book.uitgaveDatum }}
         </p>
         <p *ngIf="book.beschrijving" class="book-description">
           <strong>Beschrijving:</strong> {{ book.beschrijving }}
-        </p>
-        <p *ngIf="isAlreadyInLibrary" class="already-message">
-          Reeds in de bibliotheek
         </p>
         <button
           *ngIf="hasCheckedLibraryStatus && !isAlreadyInLibrary"

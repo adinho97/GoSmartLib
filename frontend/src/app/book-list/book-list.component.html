@@ -5,12 +5,8 @@
       <p>Ontdek en beheer alle beschikbare boeken op één plek.</p>
     </div>
     <div class="header-actions">
-      <a class="header-button secondary" [routerLink]="['/dashboard']"
-        >Terug naar dashboard</a
-      >
-      <a *ngIf="isBibbeheerder" class="header-button" [routerLink]="['/add']"
-        >Boek toevoegen</a
-      >
+      <a class="header-button secondary" [routerLink]="['/dashboard']">Terug naar dashboard</a>
+      <a *ngIf="isBibbeheerder" class="header-button" [routerLink]="['/add']">Boek toevoegen</a>
     </div>
   </header>
 
@@ -34,10 +30,7 @@
     Er zijn nog geen boeken beschikbaar.
   </div>
 
-  <div
-    class="book-list-layout"
-    *ngIf="!isLoading && !error && boeken.length > 0"
-  >
+  <div class="book-list-layout" *ngIf="!isLoading && !error && boeken.length > 0">
     <aside class="filters-sidebar" aria-label="Boekfilters">
       <h2>Filters</h2>
 
@@ -67,47 +60,21 @@
         <label for="minPages">Pagina's: {{ minPages }} - {{ maxPages }}</label>
         <div class="dual-range-slider" role="group" aria-label="Paginabereik">
           <div class="range-track"></div>
-          <div
-            class="range-selected"
-            [style.left]="selectedRangeLeft"
-            [style.right]="selectedRangeRight"
-          ></div>
+          <div class="range-selected" [style.left]="selectedRangeLeft" [style.right]="selectedRangeRight"></div>
 
-          <input
-            id="minPages"
-            class="range-input min"
-            type="range"
-            [min]="minAvailablePages"
-            [max]="maxAvailablePages"
-            [value]="minPages"
-            (input)="onMinPagesChange($any($event.target).value)"
-          />
+          <input id="minPages" class="range-input min" type="range" [min]="minAvailablePages" [max]="maxAvailablePages"
+            [value]="minPages" (input)="onMinPagesChange($any($event.target).value)" />
 
-          <input
-            id="maxPages"
-            class="range-input max"
-            type="range"
-            [min]="minAvailablePages"
-            [max]="maxAvailablePages"
-            [value]="maxPages"
-            (input)="onMaxPagesChange($any($event.target).value)"
-          />
+          <input id="maxPages" class="range-input max" type="range" [min]="minAvailablePages" [max]="maxAvailablePages"
+            [value]="maxPages" (input)="onMaxPagesChange($any($event.target).value)" />
         </div>
       </div>
 
-      <button
-        type="button"
-        class="apply-filters-button"
-        (click)="applyFilters()"
-      >
+      <button type="button" class="apply-filters-button" (click)="applyFilters()">
         Filters toepassen
       </button>
 
-      <button
-        type="button"
-        class="reset-filters-button"
-        (click)="clearFilters()"
-      >
+      <button type="button" class="reset-filters-button" (click)="clearFilters()">
         Filters wissen
       </button>
     </aside>
@@ -116,13 +83,8 @@
       <div class="search-bar-wrapper">
         <label for="bookSearch">Zoek op titel of auteur</label>
         <div class="search-controls">
-          <input
-            id="bookSearch"
-            type="text"
-            placeholder="Bijv. Harry Potter of J.K. Rowling"
-            [(ngModel)]="searchInput"
-            (keydown.enter)="applySearch()"
-          />
+          <input id="bookSearch" type="text" placeholder="Bijv. Harry Potter of J.K. Rowling" [(ngModel)]="searchInput"
+            (keydown.enter)="applySearch()" />
           <button type="button" class="search-button" (click)="applySearch()">
             Zoeken
           </button>
@@ -138,20 +100,18 @@
       </div>
 
       <div class="books-grid" *ngIf="filteredBoeken.length > 0">
-        <article
-          class="book-card"
-          *ngFor="let boek of pagedBoeken"
-          [routerLink]="['/detail', boek.id]"
-        >
+        <article class="book-card" *ngFor="let boek of pagedBoeken" [routerLink]="['/detail', boek.id]"
+          [class.didactic-card]="boek.genre?.toLowerCase() === 'didactiek'">
+
+          <div class="didactic-badge" *ngIf="boek.genre?.toLowerCase() === 'didactiek'">
+            Lerarencollectie
+          </div>
+
           <div class="book-cover-slot">
-            <img
-              *ngIf="(boek.cover || '').trim(); else coverPlaceholder"
-              [src]="boek.cover"
-              [alt]="boek.titel"
-              class="book-cover"
-            />
+            <img *ngIf="(boek.cover || '').trim(); else coverPlaceholder" [src]="boek.cover" [alt]="boek.titel"
+              class="book-cover" />
             <ng-template #coverPlaceholder>
-              <div class="book-cover-placeholder" aria-label="Geen cover">
+              <div class="book-cover-placeholder">
                 Geen cover beschikbaar
               </div>
             </ng-template>
@@ -167,16 +127,11 @@
                 <strong>Taal:</strong> {{ boek.taal || "Onbekend" }}
               </p>
             </div>
-            <button
-              *ngIf="isBibbeheerder"
-              type="button"
-              class="delete-button"
-              (click)="
+            <button *ngIf="isBibbeheerder" type="button" class="delete-button" (click)="
                 $event.stopPropagation();
                 $event.preventDefault();
                 verwijderBoek($event, boek)
-              "
-            >
+              ">
               Verwijder
             </button>
           </div>
@@ -185,18 +140,9 @@
     </section>
   </div>
 
-  <nav
-    class="pagination"
-    *ngIf="!isLoading && !error && filteredBoeken.length > 0 && totalPages > 1"
-    aria-label="Paginering boekenlijst"
-  >
-    <button
-      type="button"
-      class="pagination-button"
-      *ngFor="let page of pageNumbers"
-      [class.active]="page === currentPage"
-      (click)="gaNaarPagina(page)"
-    >
+  <nav class="pagination" *ngIf="!isLoading && !error && filteredBoeken.length > 0 && totalPages > 1">
+    <button type="button" class="pagination-button" *ngFor="let page of pageNumbers"
+      [class.active]="page === currentPage" (click)="gaNaarPagina(page)">
       {{ page }}
     </button>
   </nav>

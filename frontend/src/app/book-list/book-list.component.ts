@@ -23,32 +23,38 @@ type Boek = {
 })
 export class BookListComponent implements OnInit {
   readonly minPageFilterLimit = 0;
-  readonly maxPageFilterLimit = 2000;
+  readonly maxPageFilterLimit = 5000;
   boeken: Boek[] = [];
   isLoading = true;
   error = "";
-  readonly isBibbeheerder = localStorage.getItem("role") === "bibbeheerder";
-  readonly isLeerkracht = localStorage.getItem("role") === "leerkracht";
+  readonly userRole = localStorage.getItem("role");
+  readonly isBibbeheerder = this.userRole === "bibbeheerder";
+  readonly isLeerkracht = this.userRole === "leerkracht";
+  readonly isLeerkrachtOfBeheerder =
+    this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
   readonly pageSize = 32;
   scholen: School[] = [];
   selectedSchoolId: number | null = null;
   currentPage = 1;
   searchInput = "";
   searchQuery = "";
+
   selectedGenre = "";
   selectedTaal = "";
   releaseDateFrom = "";
   releaseDateTo = "";
+  minPages = this.minPageFilterLimit;
+  maxPages = this.maxPageFilterLimit;
+
   appliedGenre = "";
   appliedTaal = "";
   appliedReleaseDateFrom = "";
   appliedReleaseDateTo = "";
-  minAvailablePages = this.minPageFilterLimit;
-  maxAvailablePages = this.maxPageFilterLimit;
-  minPages = this.minPageFilterLimit;
-  maxPages = this.maxPageFilterLimit;
   appliedMinPages = this.minPageFilterLimit;
   appliedMaxPages = this.maxPageFilterLimit;
+
+  minAvailablePages = this.minPageFilterLimit;
+  maxAvailablePages = this.maxPageFilterLimit;
 
   constructor(
     private bookService: BookService,
@@ -86,7 +92,6 @@ export class BookListComponent implements OnInit {
   async loadBoeken() {
     this.isLoading = true;
     this.error = "";
-
     try {
       const boeken = await this.bookService.getBoeken(
         this.selectedSchoolId ?? undefined,
@@ -96,10 +101,9 @@ export class BookListComponent implements OnInit {
           sensitivity: "base",
         }),
       );
-      this.updatePageBounds();
       this.currentPage = 1;
-    } catch {
-      this.error = "Boeken laden mislukt. Probeer later opnieuw.";
+    } catch (err) {
+      this.error = "Boeken laden mislukt.";
     } finally {
       this.isLoading = false;
     }
@@ -108,36 +112,33 @@ export class BookListComponent implements OnInit {
   get availableGenres(): string[] {
     const genres = this.boeken
       .map((boek) => (boek.genre || "").trim())
-      .filter((genre) => genre.length > 0);
-
-    return Array.from(new Set(genres)).sort((a, b) =>
-      a.localeCompare(b, "nl", { sensitivity: "base" }),
-    );
+      .filter(
+        (genre) => genre.length > 0 && genre.toLowerCase() !== "didactiek",
+      );
+    return Array.from(new Set(genres)).sort((a, b) => a.localeCompare(b, "nl"));
   }
 
   get availableTalen(): string[] {
     const talen = this.boeken
       .map((boek) => (boek.taal || "").trim())
       .filter((taal) => taal.length > 0);
-
-    return Array.from(new Set(talen)).sort((a, b) =>
-      a.localeCompare(b, "nl", { sensitivity: "base" }),
-    );
+    return Array.from(new Set(talen)).sort((a, b) => a.localeCompare(b, "nl"));
   }
 
   get filteredBoeken(): Boek[] {
-    const normalizedQuery = this.searchQuery.trim().toLowerCase();
-
+    const query = this.searchQuery.trim().toLowerCase();
     return this.boeken.filter((boek) => {
+      const isDidactic = (boek.genre || "").toLowerCase() === "didactiek";
+      if (isDidactic && !this.isLeerkrachtOfBeheerder) return false;
+
       const titleOrAuthorMatches =
-        !normalizedQuery ||
-        (boek.titel || "").toLowerCase().includes(normalizedQuery) ||
-        (boek.auteur || "").toLowerCase().includes(normalizedQuery);
+        !query ||
+        (boek.titel || "").toLowerCase().includes(query) ||
+        (boek.auteur || "").toLowerCase().includes(query);
 
       const genreMatches =
         !this.appliedGenre ||
         (boek.genre || "").toLowerCase() === this.appliedGenre.toLowerCase();
-
       const taalMatches =
         !this.appliedTaal ||
         (boek.taal || "").toLowerCase() === this.appliedTaal.toLowerCase();
@@ -145,10 +146,9 @@ export class BookListComponent implements OnInit {
       const boekDatum = this.parseDate(boek.uitgaveDatum);
       const fromDate = this.parseDate(this.appliedReleaseDateFrom);
       const toDate = this.parseDate(this.appliedReleaseDateTo);
-
-      const dateFromMatches =
-        !fromDate || (!!boekDatum && boekDatum >= fromDate);
-      const dateToMatches = !toDate || (!!boekDatum && boekDatum <= toDate);
+      const dateMatches =
+        (!fromDate || (boekDatum && boekDatum >= fromDate)) &&
+        (!toDate || (boekDatum && boekDatum <= toDate));
 
       const paginas = boek.paginas ?? 0;
       const paginaMatches =
@@ -158,8 +158,7 @@ export class BookListComponent implements OnInit {
         titleOrAuthorMatches &&
         genreMatches &&
         taalMatches &&
-        dateFromMatches &&
-        dateToMatches &&
+        dateMatches &&
         paginaMatches
       );
     });
@@ -168,59 +167,19 @@ export class BookListComponent implements OnInit {
   get totalPages(): number {
     return Math.ceil(this.filteredBoeken.length / this.pageSize);
   }
-
   get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, index) => index + 1);
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
-
   get pagedBoeken(): Boek[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredBoeken.slice(start, start + this.pageSize);
-  }
-
-  get minPagesPercent(): number {
-    const range = this.maxAvailablePages - this.minAvailablePages;
-
-    if (range <= 0) {
-      return 0;
-    }
-
-    return ((this.minPages - this.minAvailablePages) / range) * 100;
-  }
-
-  get maxPagesPercent(): number {
-    const range = this.maxAvailablePages - this.minAvailablePages;
-
-    if (range <= 0) {
-      return 100;
-    }
-
-    return ((this.maxPages - this.minAvailablePages) / range) * 100;
-  }
-
-  get selectedRangeLeft(): string {
-    if (this.minPages <= this.minAvailablePages) {
-      return "0";
-    }
-
-    return `calc(8px + (${this.minPagesPercent} * (100% - 16px) / 100))`;
-  }
-
-  get selectedRangeRight(): string {
-    if (this.maxPages >= this.maxAvailablePages) {
-      return "0";
-    }
-
-    return `calc(8px + (${100 - this.maxPagesPercent} * (100% - 16px) / 100))`;
   }
 
   applySearch() {
     this.searchQuery = this.searchInput.trim();
     this.currentPage = 1;
   }
-
   applyFilters() {
-    this.ensurePageRangeValidity();
     this.appliedGenre = this.selectedGenre;
     this.appliedTaal = this.selectedTaal;
     this.appliedReleaseDateFrom = this.releaseDateFrom;
@@ -230,22 +189,6 @@ export class BookListComponent implements OnInit {
     this.currentPage = 1;
   }
 
-  onMinPagesChange(value: number | string) {
-    this.minPages = Number(value);
-
-    if (this.minPages > this.maxPages) {
-      this.maxPages = this.minPages;
-    }
-  }
-
-  onMaxPagesChange(value: number | string) {
-    this.maxPages = Number(value);
-
-    if (this.maxPages < this.minPages) {
-      this.minPages = this.maxPages;
-    }
-  }
-
   clearFilters() {
     this.searchInput = "";
     this.searchQuery = "";
@@ -253,50 +196,33 @@ export class BookListComponent implements OnInit {
     this.selectedTaal = "";
     this.releaseDateFrom = "";
     this.releaseDateTo = "";
-    this.appliedGenre = "";
-    this.appliedTaal = "";
-    this.appliedReleaseDateFrom = "";
-    this.appliedReleaseDateTo = "";
     this.minPages = this.minPageFilterLimit;
     this.maxPages = this.maxPageFilterLimit;
-    this.appliedMinPages = this.minPageFilterLimit;
-    this.appliedMaxPages = this.maxPageFilterLimit;
-    this.currentPage = 1;
+    this.applyFilters();
   }
 
-  gaNaarPagina(page: number) {
-    if (page < 1 || page > this.totalPages) {
-      return;
-    }
-
-    this.currentPage = page;
+  onMinPagesChange(v: any) {
+    this.minPages = Number(v);
+    if (this.minPages > this.maxPages) this.maxPages = this.minPages;
+  }
+  onMaxPagesChange(v: any) {
+    this.maxPages = Number(v);
+    if (this.maxPages < this.minPages) this.minPages = this.maxPages;
+  }
+  gaNaarPagina(p: number) {
+    this.currentPage = p;
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async verwijderBoek(event: MouseEvent, boek: Boek) {
     event.stopPropagation();
-    event.preventDefault();
-
-    if (!boek.id) {
-      return;
-    }
-
-    const isConfirmed = window.confirm(
-      `Weet je zeker dat je "${boek.titel}" wil verwijderen?`,
-    );
-
-    if (!isConfirmed) {
-      return;
-    }
-
+    if (!boek.id || !confirm(`Verwijderen?`)) return;
     try {
       await this.bookService.deleteBoek(
         boek.id,
         this.selectedSchoolId ?? undefined,
       );
       this.boeken = this.boeken.filter((b) => b.id !== boek.id);
-      this.updatePageBounds();
-
       if (this.currentPage > this.totalPages && this.totalPages > 0) {
         this.currentPage = this.totalPages;
       }
@@ -305,22 +231,12 @@ export class BookListComponent implements OnInit {
     }
   }
 
-  private updatePageBounds() {
-    this.minAvailablePages = this.minPageFilterLimit;
-    this.maxAvailablePages = this.maxPageFilterLimit;
-    this.ensurePageRangeValidity();
+  get selectedRangeLeft(): string {
+    return (this.minPages / this.maxPageFilterLimit) * 100 + "%";
   }
 
-  private ensurePageRangeValidity() {
-    this.minPages = Math.max(this.minPages, this.minPageFilterLimit);
-    this.minPages = Math.min(this.minPages, this.maxPageFilterLimit);
-
-    this.maxPages = Math.max(this.maxPages, this.minPageFilterLimit);
-    this.maxPages = Math.min(this.maxPages, this.maxPageFilterLimit);
-
-    if (this.minPages > this.maxPages) {
-      this.maxPages = this.minPages;
-    }
+  get selectedRangeRight(): string {
+    return 100 - (this.maxPages / this.maxPageFilterLimit) * 100 + "%";
   }
 
   private parseDate(value: string): Date | null {

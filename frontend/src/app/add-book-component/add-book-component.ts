@@ -31,6 +31,8 @@ export class AddBookComponent implements OnInit {
   submitMessage = "";
   submitState: "success" | "error" | "" = "";
 
+  isDidactic = false;
+
   book = {
     titel: "",
     auteur: "",
@@ -75,18 +77,20 @@ export class AddBookComponent implements OnInit {
     }
   }
 
+  toggleDidactic(state: boolean) {
+    this.isDidactic = state;
+    this.book.genre = state ? "Didactiek" : "";
+  }
+
   onCoverSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files && input.files.length > 0 ? input.files[0] : null;
+    const file = input.files?.[0] || null;
 
     if (this.coverPreviewUrl) {
       URL.revokeObjectURL(this.coverPreviewUrl);
-      this.coverPreviewUrl = null;
     }
 
     this.selectedCoverFile = file;
-    this.book.cover = file ? file.name : "";
-
     if (file) {
       this.coverPreviewUrl = URL.createObjectURL(file);
     }
@@ -103,14 +107,7 @@ export class AddBookComponent implements OnInit {
 
   async onSubmit(bookForm: NgForm) {
     this.isSubmitted = true;
-
-    if (bookForm.invalid) {
-      bookForm.control.markAllAsTouched();
-      this.submitState = "error";
-      this.submitMessage =
-        "Controleer het formulier: sommige velden zijn ongeldig.";
-      return;
-    }
+    if (bookForm.invalid) return;
 
     if (this.selectedSchoolId === null) {
       this.submitState = "error";
@@ -119,9 +116,6 @@ export class AddBookComponent implements OnInit {
     }
 
     this.isSaving = true;
-    this.submitMessage = "";
-    this.submitState = "";
-
     try {
       const coverData = this.selectedCoverFile
         ? await this.toBase64(this.selectedCoverFile)
@@ -135,32 +129,34 @@ export class AddBookComponent implements OnInit {
         this.selectedSchoolId,
       );
 
-      this.book = {
-        titel: "",
-        auteur: "",
-        cover: "",
-        beschrijving: "",
-        genre: "",
-        uitgaveDatum: "",
-        paginas: null,
-        taal: "",
-        uitgeverij: "",
-      };
-      this.selectedCoverFile = null;
-
-      if (this.coverPreviewUrl) {
-        URL.revokeObjectURL(this.coverPreviewUrl);
-      }
-      this.coverPreviewUrl = null;
-      bookForm.resetForm();
-      this.isSubmitted = false;
+      this.resetForm(bookForm);
       this.submitState = "success";
-      this.submitMessage = "Boek succesvol toegevoegd.";
-    } catch {
+      this.submitMessage = "Boek succesvol toegevoegd aan de bibliotheek.";
+    } catch (error) {
       this.submitState = "error";
-      this.submitMessage = "Opslaan mislukt. Probeer opnieuw.";
+      this.submitMessage = "Fout bij opslaan. Controleer de verbinding.";
     } finally {
       this.isSaving = false;
     }
+  }
+
+  private resetForm(bookForm: NgForm) {
+    this.book = {
+      titel: "",
+      auteur: "",
+      cover: "",
+      beschrijving: "",
+      genre: "",
+      uitgaveDatum: "",
+      paginas: null,
+      taal: "",
+      uitgeverij: "",
+    };
+    this.isDidactic = false;
+    this.selectedCoverFile = null;
+    if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
+    this.coverPreviewUrl = null;
+    bookForm.resetForm();
+    this.isSubmitted = false;
   }
 }
