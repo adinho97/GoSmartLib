@@ -24,9 +24,8 @@ public class Boek {
     @Size(max = 255)
     private String auteur;
 
-    @NotBlank
     @Size(max = 20)
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String isbn;
 
     @Lob

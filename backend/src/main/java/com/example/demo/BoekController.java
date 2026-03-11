@@ -7,6 +7,8 @@ import com.example.demo.mappers.BoekMapper;
 import com.example.demo.services.BoekService;
 import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +18,8 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/boeken")
-@CrossOrigin(origins = "*")
 public class BoekController {
+    private static final Logger logger = LoggerFactory.getLogger(BoekController.class);
     private final BoekRepository repo;
     private final BoekService boekService;
     private final SchoolService schoolService;
@@ -48,23 +50,39 @@ public class BoekController {
 
     @PostMapping
     public ResponseEntity<BoekDto> create(@Valid @RequestBody BoekDto boekDto) {
+        logger.info("Creating book: titel={}, auteur={}, schoolId={}", boekDto.getTitel(), boekDto.getAuteur(), boekDto.getSchoolId());
+        
         School school;
         try {
             school = schoolService.getByIdOrDefault(boekDto.getSchoolId());
+            logger.info("Found school: {}", school.getNaam());
         } catch (IllegalArgumentException | IllegalStateException ex) {
+            logger.error("School not found or invalid: {}", boekDto.getSchoolId(), ex);
             return ResponseEntity.badRequest().build();
         }
 
-        if (repo.findByIsbnAndSchool_Id(boekDto.getIsbn(), school.getId()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        // Only check ISBN uniqueness if ISBN is provided
+        if (boekDto.getIsbn() != null && !boekDto.getIsbn().trim().isEmpty()) {
+            if (repo.findByIsbnAndSchool_Id(boekDto.getIsbn(), school.getId()).isPresent()) {
+                logger.warn("Book with isbn {} already exists in school {}", boekDto.getIsbn(), school.getId());
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
         }
 
-        Boek entity = BoekMapper.toEntity(boekDto);
-        entity.setId(null); // id altijd door de database laten bepalen
-        entity.setSchool(school);
-
-        Boek saved = repo.save(entity);
-        return ResponseEntity.ok(BoekMapper.toDto(saved));
+        try {
+            Boek entity = BoekMapper.toEntity(boekDto);
+            entity.setId(null); // id altijd door de database laten bepalen
+            entity.setSchool(school);
+            
+            logger.info("Persisting book entity: titel={}", entity.getTitel());
+            Boek saved = repo.save(entity);
+            logger.info("Book saved successfully with id: {}", saved.getId());
+            
+            return ResponseEntity.ok(BoekMapper.toDto(saved));
+        } catch (Exception ex) {
+            logger.error("Error creating book", ex);
+            throw ex;
+        }
     }
 
     @GetMapping("/isbn/{isbn}")
