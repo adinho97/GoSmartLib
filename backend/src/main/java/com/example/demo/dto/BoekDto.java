@@ -18,7 +18,6 @@ public class BoekDto {
     @Size(max = 255)
     private String auteur;
 
-    @NotBlank
     @Size(max = 20)
     private String isbn;
 

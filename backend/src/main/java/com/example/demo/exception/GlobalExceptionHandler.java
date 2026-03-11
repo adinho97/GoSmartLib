@@ -1,6 +1,8 @@
 package com.example.demo.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,6 +13,8 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+        private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
         @ExceptionHandler(RateLimitExceededException.class)
         public ResponseEntity<ErrorResponse> handleRateLimitExceeded(
@@ -58,8 +62,10 @@ public class GlobalExceptionHandler {
         public ResponseEntity<ErrorResponse> handleGeneric(
                         Exception ex,
                         HttpServletRequest request) {
+                logger.error("Unhandled exception occurred at {}", request.getRequestURI(), ex);
+                String message = ex.getMessage() != null ? ex.getMessage() : "Er is een onverwachte fout opgetreden.";
                 ErrorResponse body = ErrorResponse.of(
-                                "Er is een onverwachte fout opgetreden.",
+                                message,
                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                                 request.getRequestURI(),

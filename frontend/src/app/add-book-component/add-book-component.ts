@@ -36,6 +36,7 @@ export class AddBookComponent implements OnInit {
   book = {
     titel: "",
     auteur: "",
+    isbn: "",
     cover: "",
     beschrijving: "",
     genre: "",
@@ -144,6 +145,7 @@ export class AddBookComponent implements OnInit {
     this.book = {
       titel: "",
       auteur: "",
+      isbn: "",
       cover: "",
       beschrijving: "",
       genre: "",
