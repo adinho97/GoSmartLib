@@ -16,9 +16,10 @@ export enum Taal {
 }
 
 @Component({
-  selector: "app-add-book",
-  templateUrl: "./add-book-component.html",
-  styleUrls: ["./add-book-component.css"],
+    selector: "app-add-book",
+    templateUrl: "./add-book-component.html",
+    styleUrls: ["./add-book-component.css"],
+    standalone: false
 })
 export class AddBookComponent implements OnInit {
   readonly talen = Object.values(Taal);

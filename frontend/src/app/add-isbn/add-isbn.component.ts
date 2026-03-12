@@ -4,9 +4,10 @@ import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
 
 @Component({
-  selector: "app-add-isbn",
-  templateUrl: "./add-isbn.component.html",
-  styleUrls: ["./add-isbn.component.css"],
+    selector: "app-add-isbn",
+    templateUrl: "./add-isbn.component.html",
+    styleUrls: ["./add-isbn.component.css"],
+    standalone: false
 })
 export class AddIsbnComponent {
   scholen: School[] = [];
