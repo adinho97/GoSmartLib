@@ -30,6 +30,7 @@
     "@angular/compiler-cli": "~20.3.17",
     "@types/jasmine": "^6.0.0",
     "@types/node": "^25.3.5",
+    "jasmine-core": "^6.1.0",
     "typescript": "~5.8.3"
   }
 }
