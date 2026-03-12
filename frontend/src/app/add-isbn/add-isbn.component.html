@@ -1,17 +1,21 @@
 <div class="isbn-page">
   <h1>Zoek boek via ISBN</h1>
 
-  <div class="isbn-input-row" *ngIf="scholen.length > 0">
-    <select
-      [ngModel]="selectedSchoolId"
-      (ngModelChange)="onSchoolChange($event)"
-      aria-label="Kies school"
-    >
-      <option *ngFor="let school of scholen" [value]="school.id">
-        {{ school.naam }}
-      </option>
-    </select>
-  </div>
+  @if (scholen.length > 0) {
+    <div class="isbn-input-row">
+      <select
+        [ngModel]="selectedSchoolId"
+        (ngModelChange)="onSchoolChange($event)"
+        aria-label="Kies school"
+        >
+        @for (school of scholen; track school) {
+          <option [value]="school.id">
+            {{ school.naam }}
+          </option>
+        }
+      </select>
+    </div>
+  }
 
   <div class="isbn-input-row">
     <input
@@ -20,50 +24,70 @@
       [(ngModel)]="isbn"
       (keyup.enter)="zoekBoek()"
       [disabled]="isLoading"
-    />
-    <button (click)="zoekBoek()" [disabled]="isLoading">
-      {{ isLoading ? "Zoeken..." : "Zoek" }}
-    </button>
-  </div>
-
-  <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
-  <p *ngIf="successMessage" class="success-message">{{ successMessage }}</p>
-
-  <div *ngIf="book" class="book-result">
-    <div class="book-card">
-      <img
-        *ngIf="book.cover"
-        [src]="book.cover"
-        alt="Cover van {{ book.titel }}"
-        class="book-cover"
       />
-      <div class="book-info">
-        <h2>{{ book.titel }}</h2>
-        <p><strong>Auteur:</strong> {{ book.auteur }}</p>
-        <p><strong>ISBN:</strong> {{ book.isbn }}</p>
-        <p *ngIf="book.uitgeverij">
-          <strong>Uitgeverij:</strong> {{ book.uitgeverij }}
-        </p>
-        <p *ngIf="book.paginas">
-          <strong>Pagina's:</strong> {{ book.paginas }}
-        </p>
-        <p *ngIf="book.genre"><strong>Genre:</strong> {{ book.genre }}</p>
-        <p *ngIf="book.taal"><strong>Taal:</strong> {{ book.taal }}</p>
-        <p *ngIf="book.uitgaveDatum">
-          <strong>Uitgavedatum:</strong> {{ book.uitgaveDatum }}
-        </p>
-        <p *ngIf="book.beschrijving" class="book-description">
-          <strong>Beschrijving:</strong> {{ book.beschrijving }}
-        </p>
-        <button
-          *ngIf="hasCheckedLibraryStatus && !isAlreadyInLibrary"
-          class="add-button"
-          (click)="voegToeAanBibliotheek()"
-          [disabled]="isLoading || isImporting"
-        >
-          {{ isImporting ? "Toevoegen..." : "Voeg toe aan bibliotheek" }}
-        </button>
-      </div>
+      <button (click)="zoekBoek()" [disabled]="isLoading">
+        {{ isLoading ? "Zoeken..." : "Zoek" }}
+      </button>
     </div>
+
+    @if (errorMessage) {
+      <p class="error-message">{{ errorMessage }}</p>
+    }
+    @if (successMessage) {
+      <p class="success-message">{{ successMessage }}</p>
+    }
+
+    @if (book) {
+      <div class="book-result">
+        <div class="book-card">
+          @if (book.cover) {
+            <img
+              [src]="book.cover"
+              alt="Cover van {{ book.titel }}"
+              class="book-cover"
+              />
+          }
+          <div class="book-info">
+            <h2>{{ book.titel }}</h2>
+            <p><strong>Auteur:</strong> {{ book.auteur }}</p>
+            <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+            @if (book.uitgeverij) {
+              <p>
+                <strong>Uitgeverij:</strong> {{ book.uitgeverij }}
+              </p>
+            }
+            @if (book.paginas) {
+              <p>
+                <strong>Pagina's:</strong> {{ book.paginas }}
+              </p>
+            }
+            @if (book.genre) {
+              <p><strong>Genre:</strong> {{ book.genre }}</p>
+            }
+            @if (book.taal) {
+              <p><strong>Taal:</strong> {{ book.taal }}</p>
+            }
+            @if (book.uitgaveDatum) {
+              <p>
+                <strong>Uitgavedatum:</strong> {{ book.uitgaveDatum }}
+              </p>
+            }
+            @if (book.beschrijving) {
+              <p class="book-description">
+                <strong>Beschrijving:</strong> {{ book.beschrijving }}
+              </p>
+            }
+            @if (hasCheckedLibraryStatus && !isAlreadyInLibrary) {
+              <button
+                class="add-button"
+                (click)="voegToeAanBibliotheek()"
+                [disabled]="isLoading || isImporting"
+                >
+                {{ isImporting ? "Toevoegen..." : "Voeg toe aan bibliotheek" }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
   </div>
-</div>

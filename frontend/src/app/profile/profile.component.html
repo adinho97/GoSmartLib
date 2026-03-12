@@ -47,56 +47,80 @@
     <section class="profile-section">
       <h3 class="section-title">Geleende Boeken</h3>
       <div class="horizontal-scroll-wrapper">
-        <div class="profile-book-card" *ngFor="let book of borrowedBooks" (click)="goToDetail(book.id)">
-          <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover"></div>
-          <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
-          <div class="book-content">
-            <h4>{{book.title}}</h4>
-            <div class="deadline">Terugbrengen voor {{book.deadline | date}}</div>
+        @for (book of borrowedBooks; track book) {
+          <div class="profile-book-card" (click)="goToDetail(book.id)">
+            @if (book.cover) {
+              <div class="book-cover"><img [src]="book.cover"></div>
+            }
+            @if (!book.cover) {
+              <div class="cover-placeholder">Geen Cover</div>
+            }
+            <div class="book-content">
+              <h4>{{book.title}}</h4>
+              <div class="deadline">Terugbrengen voor {{book.deadline | date}}</div>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </section>
 
     <section class="profile-section">
       <h3 class="section-title">Klasleeslijst</h3>
       <div class="horizontal-scroll-wrapper">
-        <div class="profile-book-card" *ngFor="let book of readingList" (click)="goToDetail(book.id)">
-          <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover"></div>
-          <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
-          <div class="book-content">
-            <h4>{{book.title}}</h4>
-            <div class="author">{{book.author}}</div>
+        @for (book of readingList; track book) {
+          <div class="profile-book-card" (click)="goToDetail(book.id)">
+            @if (book.cover) {
+              <div class="book-cover"><img [src]="book.cover"></div>
+            }
+            @if (!book.cover) {
+              <div class="cover-placeholder">Geen Cover</div>
+            }
+            <div class="book-content">
+              <h4>{{book.title}}</h4>
+              <div class="author">{{book.author}}</div>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </section>
 
     <section class="profile-section">
       <h3 class="section-title">Favoriete Boeken</h3>
       <div class="horizontal-scroll-wrapper">
-        <div class="profile-book-card" *ngFor="let book of favoriteBooks" (click)="goToDetail(book.id)">
-          <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover" alt="{{book.title}}"></div>
-          <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
-          <div class="book-content">
-            <h4>{{book.title}}</h4>
-            <div class="author">{{book.author}}</div>
+        @for (book of favoriteBooks; track book) {
+          <div class="profile-book-card" (click)="goToDetail(book.id)">
+            @if (book.cover) {
+              <div class="book-cover"><img [src]="book.cover" alt="{{book.title}}"></div>
+            }
+            @if (!book.cover) {
+              <div class="cover-placeholder">Geen Cover</div>
+            }
+            <div class="book-content">
+              <h4>{{book.title}}</h4>
+              <div class="author">{{book.author}}</div>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </section>
 
     <section class="profile-section">
       <h3 class="section-title">Ontleenhistoriek</h3>
       <div class="horizontal-scroll-wrapper">
-        <div class="profile-book-card" *ngFor="let book of readingHistory" (click)="goToDetail(book.id)">
-          <div class="book-cover" *ngIf="book.cover"><img [src]="book.cover"></div>
-          <div class="cover-placeholder" *ngIf="!book.cover">Geen Cover</div>
-          <div class="book-content">
-            <h4>{{book.title}}</h4>
-            <div class="book-meta">Ontleend op {{book.loanedDate | date}}</div>
+        @for (book of readingHistory; track book) {
+          <div class="profile-book-card" (click)="goToDetail(book.id)">
+            @if (book.cover) {
+              <div class="book-cover"><img [src]="book.cover"></div>
+            }
+            @if (!book.cover) {
+              <div class="cover-placeholder">Geen Cover</div>
+            }
+            <div class="book-content">
+              <h4>{{book.title}}</h4>
+              <div class="book-meta">Ontleend op {{book.loanedDate | date}}</div>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </section>
 

@@ -1,39 +1,31 @@
-<div *ngIf="book" class="detail-wrapper">
-
-  <div class="detail-card">
-
-    <button class="back-btn" (click)="goBack()">← Terug</button>
-
-    <h1 class="book-title">{{ book.titel }}</h1>
-
-    <div class="detail-content">
-
-      <div class="book-cover">
-        <img *ngIf="book.cover"
-             [src]="book.cover"
-             alt="{{ book.titel }}">
-      </div>
-
-      <div class="book-info">
-
-        <div class="info-grid">
-          <div><span>Auteur</span>{{ book.auteur }}</div>
-          <div><span>Genre</span>{{ book.genre }}</div>
-          <div><span>Taal</span>{{ book.taal }}</div>
-          <div><span>Pagina’s</span>{{ book.paginas }}</div>
-          <div><span>Uitgave</span>{{ book.uitgaveDatum | date }}</div>
-          <div><span>Uitgeverij</span>{{ book.uitgeverij }}</div>
+@if (book) {
+  <div class="detail-wrapper">
+    <div class="detail-card">
+      <button class="back-btn" (click)="goBack()">← Terug</button>
+      <h1 class="book-title">{{ book.titel }}</h1>
+      <div class="detail-content">
+        <div class="book-cover">
+          @if (book.cover) {
+            <img
+              [src]="book.cover"
+              alt="{{ book.titel }}">
+          }
         </div>
-
-        <div class="book-description">
-          <h3>Beschrijving</h3>
-          <p>{{ book.beschrijving }}</p>
+        <div class="book-info">
+          <div class="info-grid">
+            <div><span>Auteur</span>{{ book.auteur }}</div>
+            <div><span>Genre</span>{{ book.genre }}</div>
+            <div><span>Taal</span>{{ book.taal }}</div>
+            <div><span>Pagina’s</span>{{ book.paginas }}</div>
+            <div><span>Uitgave</span>{{ book.uitgaveDatum | date }}</div>
+            <div><span>Uitgeverij</span>{{ book.uitgeverij }}</div>
+          </div>
+          <div class="book-description">
+            <h3>Beschrijving</h3>
+            <p>{{ book.beschrijving }}</p>
+          </div>
         </div>
-
       </div>
-
     </div>
-
   </div>
-
-</div>
+}

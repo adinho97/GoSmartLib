@@ -7,79 +7,94 @@
   <main class="container">
     <h2 class="section-title">Uitgelichte boeken</h2>
 
-    <div class="loader-container" *ngIf="loading">
-      <div class="spinner"></div>
-      <p>Boeken ophalen...</p>
-    </div>
-
-    <div
-      class="horizontal-scroll-wrapper"
-      *ngIf="!loading && featuredBooks.length > 0"
-    >
-      <div class="book-card" *ngFor="let book of featuredBooks">
-        <div class="genre-tag">{{ book.genre }}</div>
-        <div class="book-cover">
-          <img *ngIf="book.coverUrl" [src]="book.coverUrl" [alt]="book.titel" />
-          <div *ngIf="!book.coverUrl" class="cover-placeholder">
-            <span>Geen Cover</span>
-          </div>
-        </div>
-        <div class="book-content">
-          <h4>{{ book.titel }}</h4>
-          <p class="author">door {{ book.auteur }}</p>
-
-          <div class="book-meta">
-            <span>{{ book.taal }}</span>
-            <span> • {{ book.paginas }} pag.</span>
-          </div>
-
-          <p class="desc">{{ book.beschrijving }}</p>
-          <button class="details-btn" (click)="seeDetail(book)">Details</button>
-        </div>
+    @if (loading) {
+      <div class="loader-container">
+        <div class="spinner"></div>
+        <p>Boeken ophalen...</p>
       </div>
-    </div>
+    }
 
-    <div
-      class="empty-state"
-      *ngIf="
-        !loading &&
-        featuredBooks.length === 0 &&
-        (!canSeeDidactic || didacticBooks.length === 0)
-      "
-    >
-      <p>Je bibliotheek is momenteel nog leeg.</p>
-      <p style="font-size: 0.8rem">
-        Gebruik het menu om nieuwe boeken te registreren.
-      </p>
-    </div>
-
-    <div *ngIf="canSeeDidactic && !loading && didacticBooks.length > 0">
-      <h2 class="section-title teacher-only-title">Didactische Collectie</h2>
-      <div class="horizontal-scroll-wrapper didactic-wrapper">
-        <div class="book-card teacher-card" *ngFor="let book of didacticBooks">
-          <div class="genre-tag teacher-tag">{{ book.genre }}</div>
-          <div class="book-cover">
-            <img
-              *ngIf="book.coverUrl"
-              [src]="book.coverUrl"
-              [alt]="book.titel"
-            />
-            <div *ngIf="!book.coverUrl" class="cover-placeholder">
-              <span>Geen Cover</span>
+    @if (!loading && featuredBooks.length > 0) {
+      <div
+        class="horizontal-scroll-wrapper"
+        >
+        @for (book of featuredBooks; track book) {
+          <div class="book-card">
+            <div class="genre-tag">{{ book.genre }}</div>
+            <div class="book-cover">
+              @if (book.coverUrl) {
+                <img [src]="book.coverUrl" [alt]="book.titel" />
+              }
+              @if (!book.coverUrl) {
+                <div class="cover-placeholder">
+                  <span>Geen Cover</span>
+                </div>
+              }
+            </div>
+            <div class="book-content">
+              <h4>{{ book.titel }}</h4>
+              <p class="author">door {{ book.auteur }}</p>
+              <div class="book-meta">
+                <span>{{ book.taal }}</span>
+                <span> • {{ book.paginas }} pag.</span>
+              </div>
+              <p class="desc">{{ book.beschrijving }}</p>
+              <button class="details-btn" (click)="seeDetail(book)">Details</button>
             </div>
           </div>
-          <div class="book-content">
-            <h4>{{ book.titel }}</h4>
-            <p class="author">{{ book.auteur }}</p>
-            <div class="book-meta">
-              <span>{{ book.taal }} • {{ book.paginas }} pag.</span>
+        }
+      </div>
+    }
+
+    @if (
+      !loading &&
+      featuredBooks.length === 0 &&
+      (!canSeeDidactic || didacticBooks.length === 0)
+      ) {
+      <div
+        class="empty-state"
+        >
+        <p>Je bibliotheek is momenteel nog leeg.</p>
+        <p style="font-size: 0.8rem">
+          Gebruik het menu om nieuwe boeken te registreren.
+        </p>
+      </div>
+    }
+
+    @if (canSeeDidactic && !loading && didacticBooks.length > 0) {
+      <div>
+        <h2 class="section-title teacher-only-title">Didactische Collectie</h2>
+        <div class="horizontal-scroll-wrapper didactic-wrapper">
+          @for (book of didacticBooks; track book) {
+            <div class="book-card teacher-card">
+              <div class="genre-tag teacher-tag">{{ book.genre }}</div>
+              <div class="book-cover">
+                @if (book.coverUrl) {
+                  <img
+                    [src]="book.coverUrl"
+                    [alt]="book.titel"
+                    />
+                }
+                @if (!book.coverUrl) {
+                  <div class="cover-placeholder">
+                    <span>Geen Cover</span>
+                  </div>
+                }
+              </div>
+              <div class="book-content">
+                <h4>{{ book.titel }}</h4>
+                <p class="author">{{ book.auteur }}</p>
+                <div class="book-meta">
+                  <span>{{ book.taal }} • {{ book.paginas }} pag.</span>
+                </div>
+                <button class="details-btn teacher-btn" (click)="seeDetail(book)">
+                  Bekijk Info
+                </button>
+              </div>
             </div>
-            <button class="details-btn teacher-btn" (click)="seeDetail(book)">
-              Bekijk Info
-            </button>
-          </div>
+          }
         </div>
       </div>
-    </div>
+    }
   </main>
 </div>

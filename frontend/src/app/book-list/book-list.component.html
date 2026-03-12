@@ -6,144 +6,164 @@
     </div>
     <div class="header-actions">
       <a class="header-button secondary" [routerLink]="['/dashboard']">Terug naar dashboard</a>
-      <a *ngIf="isBibbeheerder" class="header-button" [routerLink]="['/add']">Boek toevoegen</a>
+      @if (isBibbeheerder) {
+        <a class="header-button" [routerLink]="['/add']">Boek toevoegen</a>
+      }
     </div>
   </header>
 
-  <div class="school-selector-bar" *ngIf="isLeerkracht && scholen.length > 0">
-    <label for="schoolFilter">Geselecteerde school</label>
-    <select
-      id="schoolFilter"
-      [ngModel]="selectedSchoolId"
-      (ngModelChange)="onSchoolChange($event)"
-    >
-      <option *ngFor="let school of scholen" [value]="school.id">
-        {{ school.naam }}
-      </option>
-    </select>
-  </div>
-
-  <p *ngIf="isLoading" class="info-message">Boeken laden...</p>
-  <p *ngIf="error" class="error-message">{{ error }}</p>
-
-  <div *ngIf="!isLoading && !error && boeken.length === 0" class="info-message">
-    Er zijn nog geen boeken beschikbaar.
-  </div>
-
-  <div class="book-list-layout" *ngIf="!isLoading && !error && boeken.length > 0">
-    <aside class="filters-sidebar" aria-label="Boekfilters">
-      <h2>Filters</h2>
-
-      <label for="genreFilter">Genre</label>
-      <select id="genreFilter" [(ngModel)]="selectedGenre">
-        <option value="">Alle genres</option>
-        <option *ngFor="let genre of availableGenres" [value]="genre">
-          {{ genre }}
-        </option>
+  @if (isLeerkracht && scholen.length > 0) {
+    <div class="school-selector-bar">
+      <label for="schoolFilter">Geselecteerde school</label>
+      <select
+        id="schoolFilter"
+        [ngModel]="selectedSchoolId"
+        (ngModelChange)="onSchoolChange($event)"
+        >
+        @for (school of scholen; track school) {
+          <option [value]="school.id">
+            {{ school.naam }}
+          </option>
+        }
       </select>
+    </div>
+  }
 
-      <label for="taalFilter">Taal</label>
-      <select id="taalFilter" [(ngModel)]="selectedTaal">
-        <option value="">Alle talen</option>
-        <option *ngFor="let taal of availableTalen" [value]="taal">
-          {{ taal }}
-        </option>
-      </select>
+  @if (isLoading) {
+    <p class="info-message">Boeken laden...</p>
+  }
+  @if (error) {
+    <p class="error-message">{{ error }}</p>
+  }
 
-      <label for="releaseFrom">Uitgave vanaf</label>
-      <input id="releaseFrom" type="date" [(ngModel)]="releaseDateFrom" />
+  @if (!isLoading && !error && boeken.length === 0) {
+    <div class="info-message">
+      Er zijn nog geen boeken beschikbaar.
+    </div>
+  }
 
-      <label for="releaseTo">Uitgave tot</label>
-      <input id="releaseTo" type="date" [(ngModel)]="releaseDateTo" />
-
-      <div class="page-slider-group">
-        <label for="minPages">Pagina's: {{ minPages }} - {{ maxPages }}</label>
-        <div class="dual-range-slider" role="group" aria-label="Paginabereik">
-          <div class="range-track"></div>
-          <div class="range-selected" [style.left]="selectedRangeLeft" [style.right]="selectedRangeRight"></div>
-
-          <input id="minPages" class="range-input min" type="range" [min]="minAvailablePages" [max]="maxAvailablePages"
-            [value]="minPages" (input)="onMinPagesChange($any($event.target).value)" />
-
-          <input id="maxPages" class="range-input max" type="range" [min]="minAvailablePages" [max]="maxAvailablePages"
-            [value]="maxPages" (input)="onMaxPagesChange($any($event.target).value)" />
-        </div>
-      </div>
-
-      <button type="button" class="apply-filters-button" (click)="applyFilters()">
-        Filters toepassen
-      </button>
-
-      <button type="button" class="reset-filters-button" (click)="clearFilters()">
-        Filters wissen
-      </button>
-    </aside>
-
-    <section class="books-content">
-      <div class="search-bar-wrapper">
-        <label for="bookSearch">Zoek op titel of auteur</label>
-        <div class="search-controls">
-          <input id="bookSearch" type="text" placeholder="Bijv. Harry Potter of J.K. Rowling" [(ngModel)]="searchInput"
-            (keydown.enter)="applySearch()" />
-          <button type="button" class="search-button" (click)="applySearch()">
-            Zoeken
-          </button>
-        </div>
-      </div>
-
-      <p class="filter-result-count" *ngIf="filteredBoeken.length > 0">
-        {{ filteredBoeken.length }} boek(en) gevonden
-      </p>
-
-      <div class="info-message" *ngIf="filteredBoeken.length === 0">
-        Geen boeken gevonden voor deze filters.
-      </div>
-
-      <div class="books-grid" *ngIf="filteredBoeken.length > 0">
-        <article class="book-card" *ngFor="let boek of pagedBoeken" [routerLink]="['/detail', boek.id]"
-          [class.didactic-card]="boek.genre?.toLowerCase() === 'didactiek'">
-
-          <div class="didactic-badge" *ngIf="boek.genre?.toLowerCase() === 'didactiek'">
-            Lerarencollectie
-          </div>
-
-          <div class="book-cover-slot">
-            <img *ngIf="(boek.cover || '').trim(); else coverPlaceholder" [src]="boek.cover" [alt]="boek.titel"
-              class="book-cover" />
-            <ng-template #coverPlaceholder>
-              <div class="book-cover-placeholder">
-                Geen cover beschikbaar
+  @if (!isLoading && !error && boeken.length > 0) {
+    <div class="book-list-layout">
+      <aside class="filters-sidebar" aria-label="Boekfilters">
+        <h2>Filters</h2>
+        <label for="genreFilter">Genre</label>
+        <select id="genreFilter" [(ngModel)]="selectedGenre">
+          <option value="">Alle genres</option>
+          @for (genre of availableGenres; track genre) {
+            <option [value]="genre">
+              {{ genre }}
+            </option>
+          }
+        </select>
+        <label for="taalFilter">Taal</label>
+        <select id="taalFilter" [(ngModel)]="selectedTaal">
+          <option value="">Alle talen</option>
+          @for (taal of availableTalen; track taal) {
+            <option [value]="taal">
+              {{ taal }}
+            </option>
+          }
+        </select>
+        <label for="releaseFrom">Uitgave vanaf</label>
+        <input id="releaseFrom" type="date" [(ngModel)]="releaseDateFrom" />
+        <label for="releaseTo">Uitgave tot</label>
+        <input id="releaseTo" type="date" [(ngModel)]="releaseDateTo" />
+        <div class="page-slider-group">
+          <label for="minPages">Pagina's: {{ minPages }} - {{ maxPages }}</label>
+          <div class="dual-range-slider" role="group" aria-label="Paginabereik">
+            <div class="range-track"></div>
+            <div class="range-selected" [style.left]="selectedRangeLeft" [style.right]="selectedRangeRight"></div>
+            <input id="minPages" class="range-input min" type="range" [min]="minAvailablePages" [max]="maxAvailablePages"
+              [value]="minPages" (input)="onMinPagesChange($any($event.target).value)" />
+              <input id="maxPages" class="range-input max" type="range" [min]="minAvailablePages" [max]="maxAvailablePages"
+                [value]="maxPages" (input)="onMaxPagesChange($any($event.target).value)" />
               </div>
-            </ng-template>
-          </div>
-          <div class="book-content">
-            <h2>{{ boek.titel }}</h2>
-            <p class="book-author">{{ boek.auteur }}</p>
-            <div class="book-meta-group">
-              <p class="book-meta">
-                <strong>Genre:</strong> {{ boek.genre || "Onbekend" }}
-              </p>
-              <p class="book-meta">
-                <strong>Taal:</strong> {{ boek.taal || "Onbekend" }}
-              </p>
             </div>
-            <button *ngIf="isBibbeheerder" type="button" class="delete-button" (click)="
+            <button type="button" class="apply-filters-button" (click)="applyFilters()">
+              Filters toepassen
+            </button>
+            <button type="button" class="reset-filters-button" (click)="clearFilters()">
+              Filters wissen
+            </button>
+          </aside>
+          <section class="books-content">
+            <div class="search-bar-wrapper">
+              <label for="bookSearch">Zoek op titel of auteur</label>
+              <div class="search-controls">
+                <input id="bookSearch" type="text" placeholder="Bijv. Harry Potter of J.K. Rowling" [(ngModel)]="searchInput"
+                  (keydown.enter)="applySearch()" />
+                  <button type="button" class="search-button" (click)="applySearch()">
+                    Zoeken
+                  </button>
+                </div>
+              </div>
+              @if (filteredBoeken.length > 0) {
+                <p class="filter-result-count">
+                  {{ filteredBoeken.length }} boek(en) gevonden
+                </p>
+              }
+              @if (filteredBoeken.length === 0) {
+                <div class="info-message">
+                  Geen boeken gevonden voor deze filters.
+                </div>
+              }
+              @if (filteredBoeken.length > 0) {
+                <div class="books-grid">
+                  @for (boek of pagedBoeken; track boek) {
+                    <article class="book-card" [routerLink]="['/detail', boek.id]"
+                      [class.didactic-card]="boek.genre?.toLowerCase() === 'didactiek'">
+                      @if (boek.genre?.toLowerCase() === 'didactiek') {
+                        <div class="didactic-badge">
+                          Lerarencollectie
+                        </div>
+                      }
+                      <div class="book-cover-slot">
+                        @if ((boek.cover || '').trim()) {
+                          <img [src]="boek.cover" [alt]="boek.titel"
+                            class="book-cover" />
+                        } @else {
+                          <div class="book-cover-placeholder">
+                            Geen cover beschikbaar
+                          </div>
+                        }
+                      </div>
+                      <div class="book-content">
+                        <h2>{{ boek.titel }}</h2>
+                        <p class="book-author">{{ boek.auteur }}</p>
+                        <div class="book-meta-group">
+                          <p class="book-meta">
+                            <strong>Genre:</strong> {{ boek.genre || "Onbekend" }}
+                          </p>
+                          <p class="book-meta">
+                            <strong>Taal:</strong> {{ boek.taal || "Onbekend" }}
+                          </p>
+                        </div>
+                        @if (isBibbeheerder) {
+<button type="button" class="delete-button" (click)="
                 $event.stopPropagation();
                 $event.preventDefault();
                 verwijderBoek($event, boek)
               ">
-              Verwijder
-            </button>
+                            Verwijder
+                          </button>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
+            </section>
           </div>
-        </article>
-      </div>
-    </section>
-  </div>
+        }
 
-  <nav class="pagination" *ngIf="!isLoading && !error && filteredBoeken.length > 0 && totalPages > 1">
-    <button type="button" class="pagination-button" *ngFor="let page of pageNumbers"
-      [class.active]="page === currentPage" (click)="gaNaarPagina(page)">
-      {{ page }}
-    </button>
-  </nav>
-</div>
+        @if (!isLoading && !error && filteredBoeken.length > 0 && totalPages > 1) {
+          <nav class="pagination">
+            @for (page of pageNumbers; track page) {
+              <button type="button" class="pagination-button"
+                [class.active]="page === currentPage" (click)="gaNaarPagina(page)">
+                {{ page }}
+              </button>
+            }
+          </nav>
+        }
+      </div>
