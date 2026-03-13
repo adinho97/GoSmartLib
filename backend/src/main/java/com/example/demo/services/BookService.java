@@ -2,7 +2,7 @@ package com.example.demo.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.demo.BookRepository;
+import com.example.demo.repositories.BookRepository;
 import com.example.demo.dto.BookDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;

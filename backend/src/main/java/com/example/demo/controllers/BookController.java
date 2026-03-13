@@ -1,9 +1,10 @@
-package com.example.demo;
+package com.example.demo.controllers;
 
 import com.example.demo.dto.BookDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
 import com.example.demo.mappers.BookMapper;
+import com.example.demo.repositories.BookRepository;
 import com.example.demo.services.BookService;
 import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;

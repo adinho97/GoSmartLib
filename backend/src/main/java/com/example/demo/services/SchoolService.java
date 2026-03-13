@@ -1,6 +1,6 @@
 package com.example.demo.services;
 
-import com.example.demo.SchoolRepository;
+import com.example.demo.repositories.SchoolRepository;
 import com.example.demo.entities.School;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,7 @@
-package com.example.demo;
+package com.example.demo.controllers;
 
 import com.example.demo.entities.School;
+import com.example.demo.repositories.SchoolRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

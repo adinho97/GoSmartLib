@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.dto.BookDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
+import com.example.demo.repositories.BookRepository;
 import com.example.demo.services.BookService;
 import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.Test;
