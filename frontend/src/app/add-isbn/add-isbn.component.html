@@ -7,7 +7,7 @@
         [ngModel]="selectedSchoolId"
         (ngModelChange)="onSchoolChange($event)"
         aria-label="Kies school"
-        >
+      >
         @for (school of schools; track school) {
           <option [value]="school.id">
             {{ school.naam }}
@@ -24,70 +24,64 @@
       [(ngModel)]="isbn"
       (keyup.enter)="searchBook()"
       [disabled]="isLoading"
-      />
-      <button (click)="searchBook()" [disabled]="isLoading">
-        {{ isLoading ? "Zoeken..." : "Zoek" }}
-      </button>
-    </div>
+    />
+    <button (click)="searchBook()" [disabled]="isLoading">
+      {{ isLoading ? "Zoeken..." : "Zoek" }}
+    </button>
+  </div>
 
-    @if (errorMessage) {
-      <p class="error-message">{{ errorMessage }}</p>
-    }
-    @if (successMessage) {
-      <p class="success-message">{{ successMessage }}</p>
-    }
+  @if (errorMessage) {
+    <p class="error-message">{{ errorMessage }}</p>
+  }
+  @if (successMessage) {
+    <p class="success-message">{{ successMessage }}</p>
+  }
 
-    @if (book) {
-      <div class="book-result">
-        <div class="book-card">
-          @if (book.cover) {
-            <img
-              [src]="book.cover"
-              alt="Cover van {{ book.titel }}"
-              class="book-cover"
-              />
+  @if (book) {
+    <div class="book-result">
+      <div class="book-card">
+        @if (book.cover) {
+          <img
+            [src]="book.cover"
+            alt="Cover van {{ book.titel }}"
+            class="book-cover"
+          />
+        }
+        <div class="book-info">
+          <h2>{{ book.titel }}</h2>
+          <p><strong>Auteur:</strong> {{ book.auteur }}</p>
+          <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+          @if (book.uitgeverij) {
+            <p><strong>Uitgeverij:</strong> {{ book.uitgeverij }}</p>
           }
-          <div class="book-info">
-            <h2>{{ book.titel }}</h2>
-            <p><strong>Auteur:</strong> {{ book.auteur }}</p>
-            <p><strong>ISBN:</strong> {{ book.isbn }}</p>
-            @if (book.uitgeverij) {
-              <p>
-                <strong>Uitgeverij:</strong> {{ book.uitgeverij }}
-              </p>
-            }
-            @if (book.paginas) {
-              <p>
-                <strong>Pagina's:</strong> {{ book.paginas }}
-              </p>
-            }
-            @if (book.genre) {
-              <p><strong>Genre:</strong> {{ book.genre }}</p>
-            }
-            @if (book.taal) {
-              <p><strong>Taal:</strong> {{ book.taal }}</p>
-            }
-            @if (book.uitgaveDatum) {
-              <p>
-                <strong>Uitgavedatum:</strong> {{ book.uitgaveDatum }}
-              </p>
-            }
-            @if (book.beschrijving) {
-              <p class="book-description">
-                <strong>Beschrijving:</strong> {{ book.beschrijving }}
-              </p>
-            }
-            @if (hasCheckedLibraryStatus && !isAlreadyInLibrary) {
-              <button
-                class="add-button"
-                (click)="addToLibrary()"
-                [disabled]="isLoading || isImporting"
-                >
-                {{ isImporting ? "Toevoegen..." : "Voeg toe aan bibliotheek" }}
-              </button>
-            }
-          </div>
+          @if (book.paginas) {
+            <p><strong>Pagina's:</strong> {{ book.paginas }}</p>
+          }
+          @if (book.genre) {
+            <p><strong>Genre:</strong> {{ book.genre }}</p>
+          }
+          @if (book.taal) {
+            <p><strong>Taal:</strong> {{ book.taal }}</p>
+          }
+          @if (book.uitgaveDatum) {
+            <p><strong>Uitgavedatum:</strong> {{ book.uitgaveDatum }}</p>
+          }
+          @if (book.beschrijving) {
+            <p class="book-description">
+              <strong>Beschrijving:</strong> {{ book.beschrijving }}
+            </p>
+          }
+          @if (hasCheckedLibraryStatus && !isAlreadyInLibrary) {
+            <button
+              class="add-button"
+              (click)="addToLibrary()"
+              [disabled]="isLoading || isImporting"
+            >
+              {{ isImporting ? "Toevoegen..." : "Voeg toe aan bibliotheek" }}
+            </button>
+          }
         </div>
       </div>
-    }
-  </div>
+    </div>
+  }
+</div>

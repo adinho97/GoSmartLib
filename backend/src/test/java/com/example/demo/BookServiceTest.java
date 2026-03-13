@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BoekServiceTest {
+class BookServiceTest {
 
     @Mock
     private BoekRepository boekRepository;
@@ -44,7 +44,7 @@ class BoekServiceTest {
         return school;
     }
 
-    private Boek makeBoek() {
+    private Boek makeBook() {
         Boek b = new Boek();
         b.setId(1L);
         b.setTitel("Dune");
@@ -57,7 +57,7 @@ class BoekServiceTest {
 
     @Test
     void findByIsbnShouldReturnDtoWhenBookIsInDb() {
-        when(boekRepository.findByIsbn("9780553808049")).thenReturn(Optional.of(makeBoek()));
+        when(boekRepository.findByIsbn("9780553808049")).thenReturn(Optional.of(makeBook()));
 
         Optional<BoekDto> result = boekService.findByIsbn("9780553808049", null);
 
@@ -81,7 +81,7 @@ class BoekServiceTest {
     @Test
     void importByIsbnShouldReturnExistingBookWithoutCallingOpenLibrary() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
-        when(boekRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.of(makeBoek()));
+        when(boekRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.of(makeBook()));
 
         BoekDto result = boekService.importByIsbn("9780553808049", 1L);
 
@@ -95,7 +95,7 @@ class BoekServiceTest {
     void importByIsbnShouldFetchFromOpenLibrarySaveAndReturnNewBook() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
         when(boekRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.empty());
-        when(boekRepository.save(any(Boek.class))).thenReturn(makeBoek());
+        when(boekRepository.save(any(Boek.class))).thenReturn(makeBook());
 
         Map<String, Object> bookBody = new HashMap<>();
         bookBody.put("title", "Dune");
@@ -164,7 +164,7 @@ class BoekServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void fetchPreviewByIsbnShouldMapFrenchLanguageToFrans() {
+    void fetchPreviewByIsbnShouldMapFrenchLanguageToFrench() {
         Map<String, Object> bookBody = new HashMap<>();
         bookBody.put("title", "Le Petit Prince");
         bookBody.put("authors", List.of(Map.of("key", "/authors/OL1000000A")));
