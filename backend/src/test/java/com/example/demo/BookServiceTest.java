@@ -1,9 +1,9 @@
 package com.example.demo;
 
-import com.example.demo.dto.BoekDto;
-import com.example.demo.entities.Boek;
+import com.example.demo.dto.BookDto;
+import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
-import com.example.demo.services.BoekService;
+import com.example.demo.services.BookService;
 import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,10 +29,10 @@ import static org.mockito.Mockito.*;
 class BookServiceTest {
 
     @Mock
-    private BoekRepository boekRepository;
+    private BookRepository bookRepository;
 
     @InjectMocks
-    private BoekService boekService;
+    private BookService bookService;
 
     @Mock
     private SchoolService schoolService;
@@ -44,8 +44,8 @@ class BookServiceTest {
         return school;
     }
 
-    private Boek makeBook() {
-        Boek b = new Boek();
+    private Book makeBook() {
+        Book b = new Book();
         b.setId(1L);
         b.setTitel("Dune");
         b.setAuteur("Frank Herbert");
@@ -57,9 +57,9 @@ class BookServiceTest {
 
     @Test
     void findByIsbnShouldReturnDtoWhenBookIsInDb() {
-        when(boekRepository.findByIsbn("9780553808049")).thenReturn(Optional.of(makeBook()));
+        when(bookRepository.findByIsbn("9780553808049")).thenReturn(Optional.of(makeBook()));
 
-        Optional<BoekDto> result = boekService.findByIsbn("9780553808049", null);
+        Optional<BookDto> result = bookService.findByIsbn("9780553808049", null);
 
         assertTrue(result.isPresent());
         assertEquals("Dune", result.get().getTitel());
@@ -69,9 +69,9 @@ class BookServiceTest {
 
     @Test
     void findByIsbnShouldReturnEmptyWhenNotInDb() {
-        when(boekRepository.findByIsbn("0000000000000")).thenReturn(Optional.empty());
+        when(bookRepository.findByIsbn("0000000000000")).thenReturn(Optional.empty());
 
-        Optional<BoekDto> result = boekService.findByIsbn("0000000000000", null);
+        Optional<BookDto> result = bookService.findByIsbn("0000000000000", null);
 
         assertFalse(result.isPresent());
     }
@@ -81,21 +81,21 @@ class BookServiceTest {
     @Test
     void importByIsbnShouldReturnExistingBookWithoutCallingOpenLibrary() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
-        when(boekRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.of(makeBook()));
+        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.of(makeBook()));
 
-        BoekDto result = boekService.importByIsbn("9780553808049", 1L);
+        BookDto result = bookService.importByIsbn("9780553808049", 1L);
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
-        verify(boekRepository, never()).save(any());
+        verify(bookRepository, never()).save(any());
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void importByIsbnShouldFetchFromOpenLibrarySaveAndReturnNewBook() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
-        when(boekRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.empty());
-        when(boekRepository.save(any(Boek.class))).thenReturn(makeBook());
+        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.empty());
+        when(bookRepository.save(any(Book.class))).thenReturn(makeBook());
 
         Map<String, Object> bookBody = new HashMap<>();
         bookBody.put("title", "Dune");
@@ -110,26 +110,26 @@ class BookServiceTest {
             when(rt.getForEntity(contains("authors"), eq(Map.class)))
                     .thenReturn(ResponseEntity.ok(authorBody));
         })) {
-            BoekDto result = boekService.importByIsbn("9780553808049", 1L);
+            BookDto result = bookService.importByIsbn("9780553808049", 1L);
 
             assertNotNull(result);
             assertEquals("Dune", result.getTitel());
-            verify(boekRepository).save(any(Boek.class));
+            verify(bookRepository).save(any(Book.class));
         }
     }
 
     @Test
     void importByIsbnShouldReturnNullWhenIsbnNotFoundInOpenLibrary() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
-        when(boekRepository.findByIsbnAndSchool_Id("0000000000000", 1L)).thenReturn(Optional.empty());
+        when(bookRepository.findByIsbnAndSchool_Id("0000000000000", 1L)).thenReturn(Optional.empty());
 
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class,
                 (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Map.class)))
                         .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND)))) {
-            BoekDto result = boekService.importByIsbn("0000000000000", 1L);
+            BookDto result = bookService.importByIsbn("0000000000000", 1L);
 
             assertNull(result);
-            verify(boekRepository, never()).save(any());
+            verify(bookRepository, never()).save(any());
         }
     }
 
@@ -152,13 +152,13 @@ class BookServiceTest {
             when(rt.getForEntity(contains("authors"), eq(Map.class)))
                     .thenReturn(ResponseEntity.ok(authorBody));
         })) {
-            BoekDto result = boekService.fetchPreviewByIsbn("9780553808049");
+            BookDto result = bookService.fetchPreviewByIsbn("9780553808049");
 
             assertNotNull(result);
             assertEquals("Dune", result.getTitel());
             assertEquals("Frank Herbert", result.getAuteur());
             assertEquals("Engels", result.getTaal());
-            verify(boekRepository, never()).save(any());
+            verify(bookRepository, never()).save(any());
         }
     }
 
@@ -179,7 +179,7 @@ class BookServiceTest {
             when(rt.getForEntity(contains("authors"), eq(Map.class)))
                     .thenReturn(ResponseEntity.ok(authorBody));
         })) {
-            BoekDto result = boekService.fetchPreviewByIsbn("9780156012195");
+            BookDto result = bookService.fetchPreviewByIsbn("9780156012195");
 
             assertNotNull(result);
             assertEquals("Frans", result.getTaal());
@@ -191,7 +191,7 @@ class BookServiceTest {
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class,
                 (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Map.class)))
                         .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND)))) {
-            BoekDto result = boekService.fetchPreviewByIsbn("0000000000000");
+            BookDto result = bookService.fetchPreviewByIsbn("0000000000000");
 
             assertNull(result);
         }

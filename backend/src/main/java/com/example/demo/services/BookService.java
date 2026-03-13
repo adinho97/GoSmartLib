@@ -2,11 +2,11 @@ package com.example.demo.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.demo.BoekRepository;
-import com.example.demo.dto.BoekDto;
-import com.example.demo.entities.Boek;
+import com.example.demo.BookRepository;
+import com.example.demo.dto.BookDto;
+import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
-import com.example.demo.mappers.BoekMapper;
+import com.example.demo.mappers.BookMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -26,7 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class BoekService {
+public class BookService {
 
     private static final String LANGUAGE_MAPPING_RESOURCE = "language-mapping.json";
     private static final Map<String, String> LANGUAGE_TRANSLATIONS = loadLanguageTranslations();
@@ -34,52 +34,52 @@ public class BoekService {
     private static final String GENRE_MAPPING_RESOURCE = "genre-mapping.json";
     private static final Map<String, String> GENRE_TRANSLATIONS = loadJsonMapping(GENRE_MAPPING_RESOURCE);
 
-    private final BoekRepository boekRepository;
+    private final BookRepository bookRepository;
     private final SchoolService schoolService;
 
-    public BoekService(BoekRepository boekRepository, SchoolService schoolService) {
-        this.boekRepository = boekRepository;
+    public BookService(BookRepository bookRepository, SchoolService schoolService) {
+        this.bookRepository = bookRepository;
         this.schoolService = schoolService;
     }
 
-    public Optional<BoekDto> findByIsbn(String isbn, Long schoolId) {
+    public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
         if (schoolId == null) {
-            return boekRepository.findByIsbn(isbn)
-                    .map(BoekMapper::toDto);
+            return bookRepository.findByIsbn(isbn)
+                    .map(BookMapper::toDto);
         }
 
-        return boekRepository.findByIsbnAndSchool_Id(isbn, schoolId)
-                .map(BoekMapper::toDto);
+        return bookRepository.findByIsbnAndSchool_Id(isbn, schoolId)
+                .map(BookMapper::toDto);
     }
 
-    public BoekDto fetchPreviewByIsbn(String isbn) {
-        Boek fetched = fetchBookFromOpenLibrary(isbn);
+    public BookDto fetchPreviewByIsbn(String isbn) {
+        Book fetched = fetchBookFromOpenLibrary(isbn);
         if (fetched == null) {
             return null;
         }
-        return BoekMapper.toDto(fetched);
+        return BookMapper.toDto(fetched);
     }
 
     @Transactional
-    public BoekDto importByIsbn(String isbn, Long schoolId) {
+    public BookDto importByIsbn(String isbn, Long schoolId) {
         School school = schoolService.getByIdOrDefault(schoolId);
 
-        Optional<Boek> existing = boekRepository.findByIsbnAndSchool_Id(isbn, school.getId());
+        Optional<Book> existing = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId());
         if (existing.isPresent()) {
-            return BoekMapper.toDto(existing.get());
+            return BookMapper.toDto(existing.get());
         }
 
-        Boek fetched = fetchBookFromOpenLibrary(isbn);
+        Book fetched = fetchBookFromOpenLibrary(isbn);
         if (fetched == null) {
             return null;
         }
 
         fetched.setSchool(school);
-        Boek saved = boekRepository.save(fetched);
-        return BoekMapper.toDto(saved);
+        Book saved = bookRepository.save(fetched);
+        return BookMapper.toDto(saved);
     }
 
-    private Boek fetchBookFromOpenLibrary(String isbn) {
+    private Book fetchBookFromOpenLibrary(String isbn) {
         String url = "https://openlibrary.org/isbn/" + isbn + ".json";
         RestTemplate restTemplate = new RestTemplate();
 
@@ -91,7 +91,7 @@ public class BoekService {
 
             Map<String, Object> body = response.getBody();
 
-            Boek book = new Boek();
+            Book book = new Book();
             book.setIsbn(isbn);
 
             Object title = body.get("title");
@@ -123,7 +123,7 @@ public class BoekService {
                 }
             }
 
-            book.setTaal(resolveTaal(body));
+            book.setTaal(resolveLanguage(body));
 
             // Cover image
             Object covers = body.get("covers");
@@ -241,10 +241,12 @@ public class BoekService {
                         }
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
-        if (subjects.isEmpty()) return null;
+        if (subjects.isEmpty())
+            return null;
 
         String genre = subjects.stream()
                 .limit(3)
@@ -277,7 +279,7 @@ public class BoekService {
         return null;
     }
 
-    private String resolveTaal(Map<String, Object> body) {
+    private String resolveLanguage(Map<String, Object> body) {
         Object languages = body.get("languages");
         if (languages instanceof List<?> languageList && !languageList.isEmpty()) {
             Object first = languageList.get(0);
@@ -311,7 +313,8 @@ public class BoekService {
     }
 
     private String translateSubject(String subject) {
-        if (subject == null) return "";
+        if (subject == null)
+            return "";
         String key = subject.trim().toLowerCase(Locale.ROOT);
         return GENRE_TRANSLATIONS.getOrDefault(key, subject);
     }
@@ -321,10 +324,11 @@ public class BoekService {
     }
 
     private static Map<String, String> loadJsonMapping(String resource) {
-        try (InputStream in = BoekService.class.getClassLoader().getResourceAsStream(resource)) {
+        try (InputStream in = BookService.class.getClassLoader().getResourceAsStream(resource)) {
             if (in == null)
                 return Collections.emptyMap();
-            Map<String, String> raw = new ObjectMapper().readValue(in, new TypeReference<>() {});
+            Map<String, String> raw = new ObjectMapper().readValue(in, new TypeReference<>() {
+            });
             Map<String, String> result = new HashMap<>();
             raw.forEach((k, v) -> {
                 if (k != null && !k.isBlank())

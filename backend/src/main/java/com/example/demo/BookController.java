@@ -1,10 +1,10 @@
 package com.example.demo;
 
-import com.example.demo.dto.BoekDto;
-import com.example.demo.entities.Boek;
+import com.example.demo.dto.BookDto;
+import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
-import com.example.demo.mappers.BoekMapper;
-import com.example.demo.services.BoekService;
+import com.example.demo.mappers.BookMapper;
+import com.example.demo.services.BookService;
 import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -18,67 +18,68 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/boeken")
-public class BoekController {
-    private static final Logger logger = LoggerFactory.getLogger(BoekController.class);
-    private final BoekRepository repo;
-    private final BoekService boekService;
+public class BookController {
+    private static final Logger logger = LoggerFactory.getLogger(BookController.class);
+    private final BookRepository repo;
+    private final BookService bookService;
     private final SchoolService schoolService;
 
-    public BoekController(BoekRepository repo, BoekService boekService, SchoolService schoolService) {
+    public BookController(BookRepository repo, BookService bookService, SchoolService schoolService) {
         this.repo = repo;
-        this.boekService = boekService;
+        this.bookService = bookService;
         this.schoolService = schoolService;
     }
 
     @GetMapping
-    public List<BoekDto> getAll(@RequestParam(required = false) Long schoolId) {
-        List<Boek> boeken = schoolId == null ? repo.findAll() : repo.findAllBySchool_Id(schoolId);
+    public List<BookDto> getAll(@RequestParam(required = false) Long schoolId) {
+        List<Book> books = schoolId == null ? repo.findAll() : repo.findAllBySchool_Id(schoolId);
 
-        return boeken
+        return books
                 .stream()
-                .map(BoekMapper::toDto)
+                .map(BookMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BoekDto> getBook(@PathVariable Long id, @RequestParam(required = false) Long schoolId) {
+    public ResponseEntity<BookDto> getBook(@PathVariable Long id, @RequestParam(required = false) Long schoolId) {
         return (schoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, schoolId))
-                .map(BoekMapper::toDto)
+                .map(BookMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<BoekDto> create(@Valid @RequestBody BoekDto boekDto) {
-        logger.info("Creating book: titel={}, auteur={}, schoolId={}", boekDto.getTitel(), boekDto.getAuteur(), boekDto.getSchoolId());
-        
+    public ResponseEntity<BookDto> create(@Valid @RequestBody BookDto bookDto) {
+        logger.info("Creating book: titel={}, auteur={}, schoolId={}", bookDto.getTitel(), bookDto.getAuteur(),
+                bookDto.getSchoolId());
+
         School school;
         try {
-            school = schoolService.getByIdOrDefault(boekDto.getSchoolId());
+            school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
             logger.info("Found school: {}", school.getNaam());
         } catch (IllegalArgumentException | IllegalStateException ex) {
-            logger.error("School not found or invalid: {}", boekDto.getSchoolId(), ex);
+            logger.error("School not found or invalid: {}", bookDto.getSchoolId(), ex);
             return ResponseEntity.badRequest().build();
         }
 
         // Only check ISBN uniqueness if ISBN is provided
-        if (boekDto.getIsbn() != null && !boekDto.getIsbn().trim().isEmpty()) {
-            if (repo.findByIsbnAndSchool_Id(boekDto.getIsbn(), school.getId()).isPresent()) {
-                logger.warn("Book with isbn {} already exists in school {}", boekDto.getIsbn(), school.getId());
+        if (bookDto.getIsbn() != null && !bookDto.getIsbn().trim().isEmpty()) {
+            if (repo.findByIsbnAndSchool_Id(bookDto.getIsbn(), school.getId()).isPresent()) {
+                logger.warn("Book with isbn {} already exists in school {}", bookDto.getIsbn(), school.getId());
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }
 
         try {
-            Boek entity = BoekMapper.toEntity(boekDto);
-            entity.setId(null); // id altijd door de database laten bepalen
+            Book entity = BookMapper.toEntity(bookDto);
+            entity.setId(null); // Keep id managed by the database
             entity.setSchool(school);
-            
+
             logger.info("Persisting book entity: titel={}", entity.getTitel());
-            Boek saved = repo.save(entity);
+            Book saved = repo.save(entity);
             logger.info("Book saved successfully with id: {}", saved.getId());
-            
-            return ResponseEntity.ok(BoekMapper.toDto(saved));
+
+            return ResponseEntity.ok(BookMapper.toDto(saved));
         } catch (Exception ex) {
             logger.error("Error creating book", ex);
             throw ex;
@@ -86,15 +87,15 @@ public class BoekController {
     }
 
     @GetMapping("/isbn/{isbn}")
-    public ResponseEntity<BoekDto> getByIsbn(@PathVariable String isbn, @RequestParam(required = false) Long schoolId) {
-        return boekService.findByIsbn(isbn, schoolId)
+    public ResponseEntity<BookDto> getByIsbn(@PathVariable String isbn, @RequestParam(required = false) Long schoolId) {
+        return bookService.findByIsbn(isbn, schoolId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/preview/{isbn}")
-    public ResponseEntity<BoekDto> previewByIsbn(@PathVariable String isbn) {
-        BoekDto dto = boekService.fetchPreviewByIsbn(isbn);
+    public ResponseEntity<BookDto> previewByIsbn(@PathVariable String isbn) {
+        BookDto dto = bookService.fetchPreviewByIsbn(isbn);
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
@@ -102,10 +103,11 @@ public class BoekController {
     }
 
     @PostMapping("/isbn/{isbn}")
-    public ResponseEntity<BoekDto> importByIsbn(@PathVariable String isbn, @RequestParam(required = false) Long schoolId) {
-        BoekDto dto;
+    public ResponseEntity<BookDto> importByIsbn(@PathVariable String isbn,
+            @RequestParam(required = false) Long schoolId) {
+        BookDto dto;
         try {
-            dto = boekService.importByIsbn(isbn, schoolId);
+            dto = bookService.importByIsbn(isbn, schoolId);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().build();
         }

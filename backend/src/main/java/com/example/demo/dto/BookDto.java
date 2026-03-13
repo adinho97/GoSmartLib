@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
-public class BoekDto {
+public class BookDto {
     private Long id;
 
     @NotBlank
