@@ -4,7 +4,7 @@ import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
 
-export enum Taal {
+export enum Language {
   Nederlands = "Nederlands",
   Engels = "Engels",
   Frans = "Frans",
@@ -22,8 +22,8 @@ export enum Taal {
     standalone: false
 })
 export class AddBookComponent implements OnInit {
-  readonly talen = Object.values(Taal);
-  scholen: School[] = [];
+  readonly languages = Object.values(Language);
+  schools: School[] = [];
   selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
   coverPreviewUrl: string | null = null;
@@ -43,7 +43,7 @@ export class AddBookComponent implements OnInit {
     genre: "",
     uitgaveDatum: "",
     paginas: null as number | null,
-    taal: "" as Taal | "",
+    taal: "" as Language | "",
     uitgeverij: "",
   };
 
@@ -58,14 +58,14 @@ export class AddBookComponent implements OnInit {
 
   async loadSchools() {
     try {
-      this.scholen = await this.schoolService.getSchools();
+      this.schools = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();
       const hasStoredSchool =
         storedSchoolId !== null &&
-        this.scholen.some((school) => school.id === storedSchoolId);
+        this.schools.some((school) => school.id === storedSchoolId);
 
       const fallbackSchoolId =
-        this.scholen.length > 0 ? this.scholen[0].id : null;
+        this.schools.length > 0 ? this.schools[0].id : null;
       this.selectedSchoolId = hasStoredSchool
         ? storedSchoolId
         : fallbackSchoolId;
@@ -74,7 +74,7 @@ export class AddBookComponent implements OnInit {
         this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
       }
     } catch {
-      this.scholen = [];
+      this.schools = [];
       this.selectedSchoolId = null;
     }
   }

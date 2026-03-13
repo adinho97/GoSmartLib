@@ -1,14 +1,14 @@
 <div class="isbn-page">
   <h1>Zoek boek via ISBN</h1>
 
-  @if (scholen.length > 0) {
+  @if (schools.length > 0) {
     <div class="isbn-input-row">
       <select
         [ngModel]="selectedSchoolId"
         (ngModelChange)="onSchoolChange($event)"
         aria-label="Kies school"
         >
-        @for (school of scholen; track school) {
+        @for (school of schools; track school) {
           <option [value]="school.id">
             {{ school.naam }}
           </option>
@@ -22,10 +22,10 @@
       type="text"
       placeholder="Voer ISBN in (bv. 9780553808049)"
       [(ngModel)]="isbn"
-      (keyup.enter)="zoekBoek()"
+      (keyup.enter)="searchBook()"
       [disabled]="isLoading"
       />
-      <button (click)="zoekBoek()" [disabled]="isLoading">
+      <button (click)="searchBook()" [disabled]="isLoading">
         {{ isLoading ? "Zoeken..." : "Zoek" }}
       </button>
     </div>
@@ -80,7 +80,7 @@
             @if (hasCheckedLibraryStatus && !isAlreadyInLibrary) {
               <button
                 class="add-button"
-                (click)="voegToeAanBibliotheek()"
+                (click)="addToLibrary()"
                 [disabled]="isLoading || isImporting"
                 >
                 {{ isImporting ? "Toevoegen..." : "Voeg toe aan bibliotheek" }}

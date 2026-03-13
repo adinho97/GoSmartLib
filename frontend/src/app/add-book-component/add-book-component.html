@@ -12,7 +12,7 @@
         [class.field-invalid]="school.invalid && (school.touched || isSubmitted)"
         >
         <option [ngValue]="null">Kies een school</option>
-        @for (school of scholen; track school) {
+        @for (school of schools; track school) {
           <option [ngValue]="school.id">
             {{ school.naam }}
           </option>
@@ -156,8 +156,8 @@
                       <label for="taal">Taal</label>
                       <select id="taal" name="taal" [(ngModel)]="book.taal">
                         <option value="">Kies een taal</option>
-                        @for (taal of talen; track taal) {
-                          <option [value]="taal">{{ taal }}</option>
+                        @for (language of languages; track language) {
+                          <option [value]="language">{{ language }}</option>
                         }
                       </select>
                     </div>

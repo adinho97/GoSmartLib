@@ -74,20 +74,20 @@ describe("AddIsbnComponent", () => {
     expect(component.isAlreadyInLibrary).toBeFalse();
   });
 
-  // ---- zoekBoek -----------------------------------------------------------
+  // ---- searchBook -----------------------------------------------------------
 
-  it("zoekBoek should show error and not call service when isbn is blank", async () => {
+  it("searchBook should show error and not call service when isbn is blank", async () => {
     component.isbn = "   ";
-    await component.zoekBoek();
+    await component.searchBook();
 
     expect(component.errorMessage).toBe("Voer een ISBN-nummer in.");
     expect(bookService.fetchBookByIsbn).not.toHaveBeenCalled();
     expect(component.book).toBeNull();
   });
 
-  it("zoekBoek should fetch book and check library status", async () => {
+  it("searchBook should fetch book and check library status", async () => {
     component.isbn = "9780553808049";
-    await component.zoekBoek();
+    await component.searchBook();
 
     expect(bookService.fetchBookByIsbn).toHaveBeenCalledWith("9780553808049");
     expect(bookService.isBookInLibrary).toHaveBeenCalledWith(
@@ -100,22 +100,22 @@ describe("AddIsbnComponent", () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it("zoekBoek should set isAlreadyInLibrary and successMessage when book is in library", async () => {
+  it("searchBook should set isAlreadyInLibrary and successMessage when book is in library", async () => {
     bookService.isBookInLibrary.and.returnValue(Promise.resolve(true));
     component.isbn = "9780553808049";
-    await component.zoekBoek();
+    await component.searchBook();
 
     expect(component.isAlreadyInLibrary).toBeTrue();
     expect(component.successMessage).toBe("Reeds in de bibliotheek.");
     expect(component.hasCheckedLibraryStatus).toBeTrue();
   });
 
-  it("zoekBoek should show 404 error message when book not found", async () => {
+  it("searchBook should show 404 error message when book not found", async () => {
     bookService.fetchBookByIsbn.and.returnValue(
       Promise.reject({ response: { status: 404 } }),
     );
     component.isbn = "0000000000000";
-    await component.zoekBoek();
+    await component.searchBook();
 
     expect(component.errorMessage).toBe(
       "Geen boek gevonden voor dit ISBN-nummer.",
@@ -124,12 +124,12 @@ describe("AddIsbnComponent", () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it("zoekBoek should show generic error message on unexpected failure", async () => {
+  it("searchBook should show generic error message on unexpected failure", async () => {
     bookService.fetchBookByIsbn.and.returnValue(
       Promise.reject(new Error("Network error")),
     );
     component.isbn = "9780553808049";
-    await component.zoekBoek();
+    await component.searchBook();
 
     expect(component.errorMessage).toBe(
       "Er ging iets mis bij het ophalen van het boek.",
@@ -137,7 +137,7 @@ describe("AddIsbnComponent", () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it("zoekBoek should reset previous state on new search", async () => {
+  it("searchBook should reset previous state on new search", async () => {
     component.book = { titel: "Old Book" };
     component.successMessage = "Oude melding";
     component.errorMessage = "Oude fout";
@@ -145,15 +145,15 @@ describe("AddIsbnComponent", () => {
     component.hasCheckedLibraryStatus = true;
 
     component.isbn = "9780553808049";
-    await component.zoekBoek();
+    await component.searchBook();
 
     expect(component.successMessage).toBe("");
     expect(component.errorMessage).toBe("");
   });
 
-  // ---- voegToeAanBibliotheek ----------------------------------------------
+  // ---- addToLibrary ----------------------------------------------
 
-  it("voegToeAanBibliotheek should call importBookByIsbn and set success state", async () => {
+  it("addToLibrary should call importBookByIsbn and set success state", async () => {
     component.book = {
       titel: "Dune",
       auteur: "Frank Herbert",
@@ -162,7 +162,7 @@ describe("AddIsbnComponent", () => {
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
 
-    await component.voegToeAanBibliotheek();
+    await component.addToLibrary();
 
     expect(bookService.importBookByIsbn).toHaveBeenCalledWith(
       "9780553808049",
@@ -174,16 +174,16 @@ describe("AddIsbnComponent", () => {
     expect(component.isImporting).toBeFalse();
   });
 
-  it("voegToeAanBibliotheek should not call service when book already in library", async () => {
+  it("addToLibrary should not call service when book already in library", async () => {
     component.isAlreadyInLibrary = true;
 
-    await component.voegToeAanBibliotheek();
+    await component.addToLibrary();
 
     expect(bookService.importBookByIsbn).not.toHaveBeenCalled();
     expect(component.successMessage).toBe("Reeds in de bibliotheek.");
   });
 
-  it("voegToeAanBibliotheek should show generic error when service fails", async () => {
+  it("addToLibrary should show generic error when service fails", async () => {
     component.book = {
       titel: "Dune",
       auteur: "Frank Herbert",
@@ -195,7 +195,7 @@ describe("AddIsbnComponent", () => {
       Promise.reject({ response: { status: 500 } }),
     );
 
-    await component.voegToeAanBibliotheek();
+    await component.addToLibrary();
 
     expect(component.errorMessage).toBe(
       "Er ging iets mis bij het toevoegen aan de bibliotheek.",
@@ -203,7 +203,7 @@ describe("AddIsbnComponent", () => {
     expect(component.isImporting).toBeFalse();
   });
 
-  it("voegToeAanBibliotheek should show 404 error when not found during import", async () => {
+  it("addToLibrary should show 404 error when not found during import", async () => {
     component.book = {
       titel: "Dune",
       auteur: "Frank Herbert",
@@ -215,7 +215,7 @@ describe("AddIsbnComponent", () => {
       Promise.reject({ response: { status: 404 } }),
     );
 
-    await component.voegToeAanBibliotheek();
+    await component.addToLibrary();
 
     expect(component.errorMessage).toBe("Boek niet gevonden om te importeren.");
     expect(component.isImporting).toBeFalse();

@@ -6,13 +6,13 @@
     </div>
     <div class="header-actions">
       <a class="header-button secondary" [routerLink]="['/dashboard']">Terug naar dashboard</a>
-      @if (isBibbeheerder) {
+      @if (isLibrarian) {
         <a class="header-button" [routerLink]="['/add']">Boek toevoegen</a>
       }
     </div>
   </header>
 
-  @if (isLeerkracht && scholen.length > 0) {
+  @if (isTeacher && schools.length > 0) {
     <div class="school-selector-bar">
       <label for="schoolFilter">Geselecteerde school</label>
       <select
@@ -20,7 +20,7 @@
         [ngModel]="selectedSchoolId"
         (ngModelChange)="onSchoolChange($event)"
         >
-        @for (school of scholen; track school) {
+        @for (school of schools; track school) {
           <option [value]="school.id">
             {{ school.naam }}
           </option>
@@ -36,13 +36,13 @@
     <p class="error-message">{{ error }}</p>
   }
 
-  @if (!isLoading && !error && boeken.length === 0) {
+  @if (!isLoading && !error && books.length === 0) {
     <div class="info-message">
       Er zijn nog geen boeken beschikbaar.
     </div>
   }
 
-  @if (!isLoading && !error && boeken.length > 0) {
+  @if (!isLoading && !error && books.length > 0) {
     <div class="book-list-layout">
       <aside class="filters-sidebar" aria-label="Boekfilters">
         <h2>Filters</h2>
@@ -56,11 +56,11 @@
           }
         </select>
         <label for="taalFilter">Taal</label>
-        <select id="taalFilter" [(ngModel)]="selectedTaal">
+        <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
-          @for (taal of availableTalen; track taal) {
-            <option [value]="taal">
-              {{ taal }}
+          @for (language of availableLanguages; track language) {
+            <option [value]="language">
+              {{ language }}
             </option>
           }
         </select>
@@ -97,29 +97,29 @@
                   </button>
                 </div>
               </div>
-              @if (filteredBoeken.length > 0) {
+              @if (filteredBooks.length > 0) {
                 <p class="filter-result-count">
-                  {{ filteredBoeken.length }} boek(en) gevonden
+                  {{ filteredBooks.length }} boek(en) gevonden
                 </p>
               }
-              @if (filteredBoeken.length === 0) {
+              @if (filteredBooks.length === 0) {
                 <div class="info-message">
                   Geen boeken gevonden voor deze filters.
                 </div>
               }
-              @if (filteredBoeken.length > 0) {
+              @if (filteredBooks.length > 0) {
                 <div class="books-grid">
-                  @for (boek of pagedBoeken; track boek) {
-                    <article class="book-card" [routerLink]="['/detail', boek.id]"
-                      [class.didactic-card]="boek.genre?.toLowerCase() === 'didactiek'">
-                      @if (boek.genre?.toLowerCase() === 'didactiek') {
+                  @for (book of pagedBooks; track book) {
+                    <article class="book-card" [routerLink]="['/detail', book.id]"
+                      [class.didactic-card]="book.genre.toLowerCase() === 'didactiek'">
+                      @if (book.genre.toLowerCase() === 'didactiek') {
                         <div class="didactic-badge">
                           Lerarencollectie
                         </div>
                       }
                       <div class="book-cover-slot">
-                        @if ((boek.cover || '').trim()) {
-                          <img [src]="boek.cover" [alt]="boek.titel"
+                        @if ((book.cover || '').trim()) {
+                          <img [src]="book.cover" [alt]="book.titel"
                             class="book-cover" />
                         } @else {
                           <div class="book-cover-placeholder">
@@ -128,21 +128,21 @@
                         }
                       </div>
                       <div class="book-content">
-                        <h2>{{ boek.titel }}</h2>
-                        <p class="book-author">{{ boek.auteur }}</p>
+                        <h2>{{ book.titel }}</h2>
+                        <p class="book-author">{{ book.auteur }}</p>
                         <div class="book-meta-group">
                           <p class="book-meta">
-                            <strong>Genre:</strong> {{ boek.genre || "Onbekend" }}
+                            <strong>Genre:</strong> {{ book.genre || "Onbekend" }}
                           </p>
                           <p class="book-meta">
-                            <strong>Taal:</strong> {{ boek.taal || "Onbekend" }}
+                            <strong>Taal:</strong> {{ book.taal || "Onbekend" }}
                           </p>
                         </div>
-                        @if (isBibbeheerder) {
+                        @if (isLibrarian) {
 <button type="button" class="delete-button" (click)="
                 $event.stopPropagation();
                 $event.preventDefault();
-                verwijderBoek($event, boek)
+                deleteBook($event, book)
               ">
                             Verwijder
                           </button>
@@ -156,11 +156,11 @@
           </div>
         }
 
-        @if (!isLoading && !error && filteredBoeken.length > 0 && totalPages > 1) {
+        @if (!isLoading && !error && filteredBooks.length > 0 && totalPages > 1) {
           <nav class="pagination">
             @for (page of pageNumbers; track page) {
               <button type="button" class="pagination-button"
-                [class.active]="page === currentPage" (click)="gaNaarPagina(page)">
+                [class.active]="page === currentPage" (click)="goToPage(page)">
                 {{ page }}
               </button>
             }

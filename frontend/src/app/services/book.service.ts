@@ -45,7 +45,7 @@ export class BookService {
   }
 
   async addBook(
-    boek: {
+    book: {
       titel: string;
       auteur: string;
       cover: string;
@@ -60,8 +60,8 @@ export class BookService {
     schoolId?: number,
   ) {
     const payload = {
-      ...boek,
-      schoolId: this.resolveSchoolId(schoolId) ?? boek.schoolId,
+      ...book,
+      schoolId: this.resolveSchoolId(schoolId) ?? book.schoolId,
     };
     const res = await axios.post(this.apiUrl, payload);
     return res.data;

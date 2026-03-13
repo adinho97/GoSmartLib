@@ -10,7 +10,7 @@ import { School } from "../models/school";
     standalone: false
 })
 export class AddIsbnComponent {
-  scholen: School[] = [];
+  schools: School[] = [];
   selectedSchoolId: number | null = null;
   isbn = "";
   isLoading = false;
@@ -30,14 +30,14 @@ export class AddIsbnComponent {
 
   async loadSchools() {
     try {
-      this.scholen = await this.schoolService.getSchools();
+      this.schools = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();
       const hasStoredSchool =
         storedSchoolId !== null &&
-        this.scholen.some((school) => school.id === storedSchoolId);
+        this.schools.some((school) => school.id === storedSchoolId);
 
       const fallbackSchoolId =
-        this.scholen.length > 0 ? this.scholen[0].id : null;
+        this.schools.length > 0 ? this.schools[0].id : null;
       this.selectedSchoolId = hasStoredSchool
         ? storedSchoolId
         : fallbackSchoolId;
@@ -46,7 +46,7 @@ export class AddIsbnComponent {
         this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
       }
     } catch {
-      this.scholen = [];
+      this.schools = [];
       this.selectedSchoolId = null;
     }
   }
@@ -58,7 +58,7 @@ export class AddIsbnComponent {
     }
   }
 
-  async zoekBoek() {
+  async searchBook() {
     const trimmed = this.isbn.trim();
     if (!trimmed) {
       this.errorMessage = "Voer een ISBN-nummer in.";
@@ -93,7 +93,7 @@ export class AddIsbnComponent {
     }
   }
 
-  async voegToeAanBibliotheek() {
+  async addToLibrary() {
     if (this.isAlreadyInLibrary) {
       this.successMessage = "Reeds in de bibliotheek.";
       return;
