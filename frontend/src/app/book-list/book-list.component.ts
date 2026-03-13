@@ -63,11 +63,11 @@ export class BookListComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.loadScholen();
+    await this.loadSchools();
     await this.loadBoeken();
   }
 
-  async loadScholen() {
+  async loadSchools() {
     try {
       this.scholen = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();

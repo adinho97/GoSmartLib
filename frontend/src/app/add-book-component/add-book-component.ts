@@ -53,10 +53,10 @@ export class AddBookComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.loadScholen();
+    await this.loadSchools();
   }
 
-  async loadScholen() {
+  async loadSchools() {
     try {
       this.scholen = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();

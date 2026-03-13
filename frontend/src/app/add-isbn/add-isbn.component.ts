@@ -25,10 +25,10 @@ export class AddIsbnComponent {
     private bookService: BookService,
     private schoolService: SchoolService,
   ) {
-    void this.loadScholen();
+    void this.loadSchools();
   }
 
-  async loadScholen() {
+  async loadSchools() {
     try {
       this.scholen = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();
