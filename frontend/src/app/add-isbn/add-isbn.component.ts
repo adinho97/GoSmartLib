@@ -30,7 +30,7 @@ export class AddIsbnComponent {
 
   async loadScholen() {
     try {
-      this.scholen = await this.schoolService.getScholen();
+      this.scholen = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();
       const hasStoredSchool =
         storedSchoolId !== null &&
@@ -73,8 +73,8 @@ export class AddIsbnComponent {
     this.book = null;
 
     try {
-      this.book = await this.bookService.fetchBoekByIsbn(trimmed);
-      this.isAlreadyInLibrary = await this.bookService.bestaatBoekInBibliotheek(
+      this.book = await this.bookService.fetchBookByIsbn(trimmed);
+      this.isAlreadyInLibrary = await this.bookService.isBookInLibrary(
         trimmed,
         this.selectedSchoolId ?? undefined,
       );
@@ -110,7 +110,7 @@ export class AddIsbnComponent {
     this.successMessage = "";
 
     try {
-      const savedBook = await this.bookService.importBoekByIsbn(
+      const savedBook = await this.bookService.importBookByIsbn(
         isbnToImport,
         this.selectedSchoolId ?? undefined,
       );

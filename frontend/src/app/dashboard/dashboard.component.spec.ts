@@ -13,9 +13,9 @@ describe("DashboardComponent", () => {
 
   beforeEach(() => {
     bookServiceSpy = jasmine.createSpyObj<BookService>("BookService", [
-      "getBoeken",
+      "getBooks",
     ]);
-    bookServiceSpy.getBoeken.and.resolveTo([]);
+    bookServiceSpy.getBooks.and.resolveTo([]);
     routerSpy = jasmine.createSpyObj<Router>("Router", ["navigate"]);
 
     TestBed.configureTestingModule({

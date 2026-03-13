@@ -5,12 +5,12 @@ import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 
 class MockBookService {
-  addBoek = jasmine.createSpy("addBoek").and.returnValue(Promise.resolve());
+  addBook = jasmine.createSpy("addBook").and.returnValue(Promise.resolve());
 }
 
 class MockSchoolService {
-  getScholen = jasmine
-    .createSpy("getScholen")
+  getSchools = jasmine
+    .createSpy("getSchools")
     .and.returnValue(Promise.resolve([{ id: 1, naam: "Testschool" }]));
   getSelectedSchoolId = jasmine
     .createSpy("getSelectedSchoolId")
@@ -72,14 +72,14 @@ describe("AddBookComponent", () => {
 
     await component.onSubmit(mockForm);
 
-    expect(bookService.addBoek).toHaveBeenCalled();
-    expect(bookService.addBoek).toHaveBeenCalledWith(jasmine.any(Object), 1);
+    expect(bookService.addBook).toHaveBeenCalled();
+    expect(bookService.addBook).toHaveBeenCalledWith(jasmine.any(Object), 1);
     expect(component.submitState).toBe("success");
     expect(component.isSaving).toBeFalse();
   });
 
   it("should handle service error", async () => {
-    bookService.addBoek.and.returnValue(Promise.reject());
+    bookService.addBook.and.returnValue(Promise.reject());
 
     const mockForm = {
       invalid: false,

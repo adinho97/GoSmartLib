@@ -30,7 +30,7 @@ export class DashboardComponent implements OnInit {
   async fetchBooks() {
     this.loading = true;
     try {
-      const data = await this.bookService.getBoeken();
+      const data = await this.bookService.getBooks();
 
       this.featuredBooks = data
         .filter((b: any) => (b.genre || "").toLowerCase() !== "didactiek")

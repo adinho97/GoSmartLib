@@ -58,7 +58,7 @@ export class AddBookComponent implements OnInit {
 
   async loadScholen() {
     try {
-      this.scholen = await this.schoolService.getScholen();
+      this.scholen = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();
       const hasStoredSchool =
         storedSchoolId !== null &&
@@ -123,7 +123,7 @@ export class AddBookComponent implements OnInit {
         ? await this.toBase64(this.selectedCoverFile)
         : "";
 
-      await this.bookService.addBoek(
+      await this.bookService.addBook(
         {
           ...this.book,
           cover: coverData,

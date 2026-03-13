@@ -6,8 +6,8 @@ import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 
 class MockBookService {
-  fetchBoekByIsbn = jasmine
-    .createSpy("fetchBoekByIsbn")
+  fetchBookByIsbn = jasmine
+    .createSpy("fetchBookByIsbn")
     .and.returnValue(
       Promise.resolve({
         titel: "Dune",
@@ -16,12 +16,12 @@ class MockBookService {
       }),
     );
 
-  bestaatBoekInBibliotheek = jasmine
-    .createSpy("bestaatBoekInBibliotheek")
+  isBookInLibrary = jasmine
+    .createSpy("isBookInLibrary")
     .and.returnValue(Promise.resolve(false));
 
-  importBoekByIsbn = jasmine
-    .createSpy("importBoekByIsbn")
+  importBookByIsbn = jasmine
+    .createSpy("importBookByIsbn")
     .and.returnValue(
       Promise.resolve({
         titel: "Dune",
@@ -32,8 +32,8 @@ class MockBookService {
 }
 
 class MockSchoolService {
-  getScholen = jasmine
-    .createSpy("getScholen")
+  getSchools = jasmine
+    .createSpy("getSchools")
     .and.returnValue(Promise.resolve([{ id: 1, naam: "Testschool" }]));
   getSelectedSchoolId = jasmine
     .createSpy("getSelectedSchoolId")
@@ -81,7 +81,7 @@ describe("AddIsbnComponent", () => {
     await component.zoekBoek();
 
     expect(component.errorMessage).toBe("Voer een ISBN-nummer in.");
-    expect(bookService.fetchBoekByIsbn).not.toHaveBeenCalled();
+    expect(bookService.fetchBookByIsbn).not.toHaveBeenCalled();
     expect(component.book).toBeNull();
   });
 
@@ -89,8 +89,8 @@ describe("AddIsbnComponent", () => {
     component.isbn = "9780553808049";
     await component.zoekBoek();
 
-    expect(bookService.fetchBoekByIsbn).toHaveBeenCalledWith("9780553808049");
-    expect(bookService.bestaatBoekInBibliotheek).toHaveBeenCalledWith(
+    expect(bookService.fetchBookByIsbn).toHaveBeenCalledWith("9780553808049");
+    expect(bookService.isBookInLibrary).toHaveBeenCalledWith(
       "9780553808049",
       1,
     );
@@ -101,7 +101,7 @@ describe("AddIsbnComponent", () => {
   });
 
   it("zoekBoek should set isAlreadyInLibrary and successMessage when book is in library", async () => {
-    bookService.bestaatBoekInBibliotheek.and.returnValue(Promise.resolve(true));
+    bookService.isBookInLibrary.and.returnValue(Promise.resolve(true));
     component.isbn = "9780553808049";
     await component.zoekBoek();
 
@@ -111,7 +111,7 @@ describe("AddIsbnComponent", () => {
   });
 
   it("zoekBoek should show 404 error message when book not found", async () => {
-    bookService.fetchBoekByIsbn.and.returnValue(
+    bookService.fetchBookByIsbn.and.returnValue(
       Promise.reject({ response: { status: 404 } }),
     );
     component.isbn = "0000000000000";
@@ -125,7 +125,7 @@ describe("AddIsbnComponent", () => {
   });
 
   it("zoekBoek should show generic error message on unexpected failure", async () => {
-    bookService.fetchBoekByIsbn.and.returnValue(
+    bookService.fetchBookByIsbn.and.returnValue(
       Promise.reject(new Error("Network error")),
     );
     component.isbn = "9780553808049";
@@ -153,7 +153,7 @@ describe("AddIsbnComponent", () => {
 
   // ---- voegToeAanBibliotheek ----------------------------------------------
 
-  it("voegToeAanBibliotheek should call importBoekByIsbn and set success state", async () => {
+  it("voegToeAanBibliotheek should call importBookByIsbn and set success state", async () => {
     component.book = {
       titel: "Dune",
       auteur: "Frank Herbert",
@@ -164,7 +164,7 @@ describe("AddIsbnComponent", () => {
 
     await component.voegToeAanBibliotheek();
 
-    expect(bookService.importBoekByIsbn).toHaveBeenCalledWith(
+    expect(bookService.importBookByIsbn).toHaveBeenCalledWith(
       "9780553808049",
       1,
     );
@@ -179,7 +179,7 @@ describe("AddIsbnComponent", () => {
 
     await component.voegToeAanBibliotheek();
 
-    expect(bookService.importBoekByIsbn).not.toHaveBeenCalled();
+    expect(bookService.importBookByIsbn).not.toHaveBeenCalled();
     expect(component.successMessage).toBe("Reeds in de bibliotheek.");
   });
 
@@ -191,7 +191,7 @@ describe("AddIsbnComponent", () => {
     };
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
-    bookService.importBoekByIsbn.and.returnValue(
+    bookService.importBookByIsbn.and.returnValue(
       Promise.reject({ response: { status: 500 } }),
     );
 
@@ -211,7 +211,7 @@ describe("AddIsbnComponent", () => {
     };
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
-    bookService.importBoekByIsbn.and.returnValue(
+    bookService.importBookByIsbn.and.returnValue(
       Promise.reject({ response: { status: 404 } }),
     );
 

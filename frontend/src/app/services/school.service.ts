@@ -9,7 +9,7 @@ export class SchoolService {
   private readonly apiUrl = "/api/scholen";
   private readonly selectedSchoolIdKey = "selectedSchoolId";
 
-  async getScholen(): Promise<School[]> {
+  async getSchools(): Promise<School[]> {
     const res = await axios.get<School[]>(this.apiUrl);
     return res.data;
   }

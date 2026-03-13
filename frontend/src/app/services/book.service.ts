@@ -44,7 +44,7 @@ export class BookService {
     return this.http.get<Book>(this.withSchoolId(`${this.apiUrl}/${id}`));
   }
 
-  async addBoek(
+  async addBook(
     boek: {
       titel: string;
       auteur: string;
@@ -67,28 +67,28 @@ export class BookService {
     return res.data;
   }
 
-  async getBoeken(schoolId?: number) {
+  async getBooks(schoolId?: number) {
     const res = await axios.get(this.withSchoolId(this.apiUrl, schoolId));
     return res.data;
   }
 
-  async deleteBoek(id: number, schoolId?: number) {
+  async deleteBook(id: number, schoolId?: number) {
     await axios.delete(this.withSchoolId(`${this.apiUrl}/${id}`, schoolId));
   }
 
-  async fetchBoekByIsbn(isbn: string) {
+  async fetchBookByIsbn(isbn: string) {
     const res = await axios.get(`${this.apiUrl}/preview/${isbn}`);
     return res.data;
   }
 
-  async importBoekByIsbn(isbn: string, schoolId?: number) {
+  async importBookByIsbn(isbn: string, schoolId?: number) {
     const res = await axios.post(
       this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
     );
     return res.data;
   }
 
-  async bestaatBoekInBibliotheek(
+  async isBookInLibrary(
     isbn: string,
     schoolId?: number,
   ): Promise<boolean> {

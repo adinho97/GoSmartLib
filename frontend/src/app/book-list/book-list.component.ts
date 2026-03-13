@@ -69,7 +69,7 @@ export class BookListComponent implements OnInit {
 
   async loadScholen() {
     try {
-      this.scholen = await this.schoolService.getScholen();
+      this.scholen = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();
       const hasStoredSchool =
         storedSchoolId !== null &&
@@ -94,7 +94,7 @@ export class BookListComponent implements OnInit {
     this.isLoading = true;
     this.error = "";
     try {
-      const boeken = await this.bookService.getBoeken(
+      const boeken = await this.bookService.getBooks(
         this.selectedSchoolId ?? undefined,
       );
       this.boeken = boeken.sort((a: Boek, b: Boek) =>
@@ -219,7 +219,7 @@ export class BookListComponent implements OnInit {
     event.stopPropagation();
     if (!boek.id || !confirm(`Verwijderen?`)) return;
     try {
-      await this.bookService.deleteBoek(
+      await this.bookService.deleteBook(
         boek.id,
         this.selectedSchoolId ?? undefined,
       );

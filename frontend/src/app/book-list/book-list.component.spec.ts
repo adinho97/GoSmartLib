@@ -44,17 +44,17 @@ describe("BookListComponent", () => {
 
   beforeEach(() => {
     bookServiceSpy = jasmine.createSpyObj<BookService>("BookService", [
-      "getBoeken",
-      "deleteBoek",
+      "getBooks",
+      "deleteBook",
     ]);
     schoolServiceSpy = jasmine.createSpyObj<SchoolService>("SchoolService", [
-      "getScholen",
+      "getSchools",
       "getSelectedSchoolId",
       "setSelectedSchoolId",
     ]);
-    bookServiceSpy.getBoeken.and.resolveTo([]);
-    bookServiceSpy.deleteBoek.and.resolveTo();
-    schoolServiceSpy.getScholen.and.resolveTo([]);
+    bookServiceSpy.getBooks.and.resolveTo([]);
+    bookServiceSpy.deleteBook.and.resolveTo();
+    schoolServiceSpy.getSchools.and.resolveTo([]);
     schoolServiceSpy.getSelectedSchoolId.and.returnValue(null);
 
     TestBed.configureTestingModule({
@@ -76,7 +76,7 @@ describe("BookListComponent", () => {
   });
 
   it("loads and sorts books alphabetically on init", async () => {
-    bookServiceSpy.getBoeken.and.resolveTo([
+    bookServiceSpy.getBooks.and.resolveTo([
       createBoek(2, "Zebra"),
       createBoek(1, "Aap"),
     ]);
@@ -84,14 +84,14 @@ describe("BookListComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(bookServiceSpy.getBoeken).toHaveBeenCalled();
+    expect(bookServiceSpy.getBooks).toHaveBeenCalled();
     expect(component.boeken.map((b) => b.titel)).toEqual(["Aap", "Zebra"]);
     expect(component.isLoading).toBeFalse();
     expect(component.currentPage).toBe(1);
   });
 
   it("sets error when loading books fails", async () => {
-    bookServiceSpy.getBoeken.and.rejectWith(new Error("failed"));
+    bookServiceSpy.getBooks.and.rejectWith(new Error("failed"));
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -240,7 +240,7 @@ describe("BookListComponent", () => {
 
     expect(stopPropagation).toHaveBeenCalled();
     expect(preventDefault).toHaveBeenCalled();
-    expect(bookServiceSpy.deleteBoek).not.toHaveBeenCalled();
+    expect(bookServiceSpy.deleteBook).not.toHaveBeenCalled();
     expect(component.boeken.length).toBe(1);
   });
 
@@ -254,7 +254,7 @@ describe("BookListComponent", () => {
 
     await component.verwijderBoek(event, component.boeken[0]);
 
-    expect(bookServiceSpy.deleteBoek).toHaveBeenCalledWith(1);
+    expect(bookServiceSpy.deleteBook).toHaveBeenCalledWith(1);
     expect(component.boeken.map((b) => b.id)).toEqual([2]);
   });
 
@@ -265,7 +265,7 @@ describe("BookListComponent", () => {
     } as unknown as MouseEvent;
     component.boeken = [createBoek(1, "Aap")];
     spyOn(window, "confirm").and.returnValue(true);
-    bookServiceSpy.deleteBoek.and.rejectWith(new Error("failed"));
+    bookServiceSpy.deleteBook.and.rejectWith(new Error("failed"));
 
     await component.verwijderBoek(event, component.boeken[0]);
 
