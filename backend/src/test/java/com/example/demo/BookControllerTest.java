@@ -62,6 +62,7 @@ class BookControllerTest {
         }
 
         @Test
+        @SuppressWarnings("null")
         void createShouldPersistAndReturnBookWhenPayloadIsValid() throws Exception {
                 School school = new School();
                 school.setId(1L);
@@ -110,6 +111,7 @@ class BookControllerTest {
         }
 
         @Test
+        @SuppressWarnings("null")
         void createShouldReturnConflictWhenIsbnAlreadyExists() throws Exception {
                 School school = new School();
                 school.setId(1L);
@@ -138,6 +140,7 @@ class BookControllerTest {
         }
 
         @Test
+        @SuppressWarnings("null")
         void createShouldReturnBadRequestWhenRequiredFieldIsMissing() throws Exception {
                 String invalidJson = """
                                 {
