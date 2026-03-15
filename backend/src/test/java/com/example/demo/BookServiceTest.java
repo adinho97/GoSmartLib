@@ -106,9 +106,9 @@ class BookServiceTest {
         authorBody.put("name", "Frank Herbert");
 
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (rt, ctx) -> {
-            when(rt.getForEntity(contains("isbn"), eq(Map.class)))
+                when(rt.getForEntity(contains("isbn"), eq(Object.class)))
                     .thenReturn(ResponseEntity.ok(bookBody));
-            when(rt.getForEntity(contains("authors"), eq(Map.class)))
+                when(rt.getForEntity(contains("authors"), eq(Object.class)))
                     .thenReturn(ResponseEntity.ok(authorBody));
         })) {
             BookDto result = bookService.importByIsbn("9780553808049", 1L);
@@ -126,7 +126,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("0000000000000", 1L)).thenReturn(Optional.empty());
 
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class,
-                (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Map.class)))
+                (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Object.class)))
                         .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND)))) {
             BookDto result = bookService.importByIsbn("0000000000000", 1L);
 
@@ -149,9 +149,9 @@ class BookServiceTest {
         authorBody.put("name", "Frank Herbert");
 
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (rt, ctx) -> {
-            when(rt.getForEntity(contains("isbn"), eq(Map.class)))
+                when(rt.getForEntity(contains("isbn"), eq(Object.class)))
                     .thenReturn(ResponseEntity.ok(bookBody));
-            when(rt.getForEntity(contains("authors"), eq(Map.class)))
+                when(rt.getForEntity(contains("authors"), eq(Object.class)))
                     .thenReturn(ResponseEntity.ok(authorBody));
         })) {
             BookDto result = bookService.fetchPreviewByIsbn("9780553808049");
@@ -176,9 +176,9 @@ class BookServiceTest {
         authorBody.put("name", "Antoine de Saint-Exupery");
 
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (rt, ctx) -> {
-            when(rt.getForEntity(contains("isbn"), eq(Map.class)))
+                when(rt.getForEntity(contains("isbn"), eq(Object.class)))
                     .thenReturn(ResponseEntity.ok(bookBody));
-            when(rt.getForEntity(contains("authors"), eq(Map.class)))
+                when(rt.getForEntity(contains("authors"), eq(Object.class)))
                     .thenReturn(ResponseEntity.ok(authorBody));
         })) {
             BookDto result = bookService.fetchPreviewByIsbn("9780156012195");
@@ -192,7 +192,7 @@ class BookServiceTest {
     @SuppressWarnings("null")
     void fetchPreviewByIsbnShouldReturnNullWhenNotFoundInOpenLibrary() {
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class,
-                (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Map.class)))
+                (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Object.class)))
                         .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND)))) {
             BookDto result = bookService.fetchPreviewByIsbn("0000000000000");
 

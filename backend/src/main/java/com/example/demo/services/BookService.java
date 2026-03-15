@@ -84,12 +84,10 @@ public class BookService {
         RestTemplate restTemplate = new RestTemplate();
 
         try {
-            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+            Map<String, Object> body = fetchJsonMap(url, restTemplate);
+            if (body == null) {
                 return null;
             }
-
-            Map<String, Object> body = response.getBody();
 
             Book book = new Book();
             book.setIsbn(isbn);
@@ -161,7 +159,6 @@ public class BookService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private String fetchAuthorName(Map<String, Object> editionBody, RestTemplate restTemplate) {
         try {
             // Edition-level authors
@@ -172,11 +169,12 @@ public class BookService {
                     Object key = authorMap.get("key");
                     if (key instanceof String authorKey) {
                         String authorUrl = "https://openlibrary.org" + authorKey + ".json";
-                        ResponseEntity<Map> authorResp = restTemplate.getForEntity(authorUrl, Map.class);
-                        if (authorResp.getBody() != null) {
-                            Object name = authorResp.getBody().get("name");
-                            if (name instanceof String)
+                        Map<String, Object> authorBody = fetchJsonMap(authorUrl, restTemplate);
+                        if (authorBody != null) {
+                            Object name = authorBody.get("name");
+                            if (name instanceof String) {
                                 return (String) name;
+                            }
                         }
                     }
                 }
@@ -190,9 +188,9 @@ public class BookService {
                     Object key = workMap.get("key");
                     if (key instanceof String workKey) {
                         String workUrl = "https://openlibrary.org" + workKey + ".json";
-                        ResponseEntity<Map> workResp = restTemplate.getForEntity(workUrl, Map.class);
-                        if (workResp.getBody() != null) {
-                            Object workAuthors = workResp.getBody().get("authors");
+                        Map<String, Object> workBody = fetchJsonMap(workUrl, restTemplate);
+                        if (workBody != null) {
+                            Object workAuthors = workBody.get("authors");
                             if (workAuthors instanceof List<?> waList && !waList.isEmpty()) {
                                 Object wa = waList.get(0);
                                 if (wa instanceof Map<?, ?> waMap) {
@@ -201,12 +199,12 @@ public class BookService {
                                         Object aKey = authorRefMap.get("key");
                                         if (aKey instanceof String authorKey) {
                                             String authorUrl = "https://openlibrary.org" + authorKey + ".json";
-                                            ResponseEntity<Map> authorResp = restTemplate.getForEntity(authorUrl,
-                                                    Map.class);
-                                            if (authorResp.getBody() != null) {
-                                                Object name = authorResp.getBody().get("name");
-                                                if (name instanceof String)
+                                            Map<String, Object> authorBody = fetchJsonMap(authorUrl, restTemplate);
+                                            if (authorBody != null) {
+                                                Object name = authorBody.get("name");
+                                                if (name instanceof String) {
                                                     return (String) name;
+                                                }
                                             }
                                         }
                                     }
@@ -235,9 +233,10 @@ public class BookService {
                         Object key = workMap.get("key");
                         if (key instanceof String workKey) {
                             String workUrl = "https://openlibrary.org" + workKey + ".json";
-                            ResponseEntity<Map> workResp = restTemplate.getForEntity(workUrl, Map.class);
-                            if (workResp.getBody() != null)
-                                subjects = extractSubjects(workResp.getBody());
+                            Map<String, Object> workBody = fetchJsonMap(workUrl, restTemplate);
+                            if (workBody != null) {
+                                subjects = extractSubjects(workBody);
+                            }
                         }
                     }
                 }
@@ -255,7 +254,6 @@ public class BookService {
         return genre.length() > 100 ? genre.substring(0, 100) : genre;
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> extractSubjects(Map<?, ?> body) {
         Object subjects = body.get("subjects");
         if (subjects instanceof List<?> list) {
@@ -265,6 +263,26 @@ public class BookService {
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();
+    }
+
+    private Map<String, Object> fetchJsonMap(String url, RestTemplate restTemplate) {
+        ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            return null;
+        }
+
+        Object responseBody = response.getBody();
+        if (!(responseBody instanceof Map<?, ?> rawMap)) {
+            return null;
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
+            if (entry.getKey() instanceof String key) {
+                result.put(key, entry.getValue());
+            }
+        }
+        return result;
     }
 
     private LocalDate tryParsePublishDate(String value) {
