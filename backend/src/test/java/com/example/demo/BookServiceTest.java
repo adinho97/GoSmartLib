@@ -92,7 +92,7 @@ class BookServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("null")
     void importByIsbnShouldFetchFromOpenLibrarySaveAndReturnNewBook() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
         when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.empty());
@@ -120,6 +120,7 @@ class BookServiceTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void importByIsbnShouldReturnNullWhenIsbnNotFoundInOpenLibrary() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
         when(bookRepository.findByIsbnAndSchool_Id("0000000000000", 1L)).thenReturn(Optional.empty());
@@ -137,7 +138,7 @@ class BookServiceTest {
     // ---- fetchPreviewByIsbn -------------------------------------------------
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("null")
     void fetchPreviewByIsbnShouldReturnDtoWithoutPersisting() {
         Map<String, Object> bookBody = new HashMap<>();
         bookBody.put("title", "Dune");
@@ -164,7 +165,7 @@ class BookServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("null")
     void fetchPreviewByIsbnShouldMapFrenchLanguageToFrench() {
         Map<String, Object> bookBody = new HashMap<>();
         bookBody.put("title", "Le Petit Prince");
@@ -188,6 +189,7 @@ class BookServiceTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void fetchPreviewByIsbnShouldReturnNullWhenNotFoundInOpenLibrary() {
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class,
                 (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Map.class)))
