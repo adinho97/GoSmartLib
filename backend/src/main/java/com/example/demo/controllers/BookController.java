@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,7 +43,8 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookDto> getBook(@PathVariable Long id, @RequestParam(required = false) Long schoolId) {
+    public ResponseEntity<BookDto> getBook(@PathVariable @NonNull Long id,
+            @RequestParam(required = false) Long schoolId) {
         return (schoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, schoolId))
                 .map(BookMapper::toDto)
                 .map(ResponseEntity::ok)
@@ -88,14 +90,15 @@ public class BookController {
     }
 
     @GetMapping("/isbn/{isbn}")
-    public ResponseEntity<BookDto> getByIsbn(@PathVariable String isbn, @RequestParam(required = false) Long schoolId) {
+    public ResponseEntity<BookDto> getByIsbn(@PathVariable @NonNull String isbn,
+            @RequestParam(required = false) Long schoolId) {
         return bookService.findByIsbn(isbn, schoolId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/preview/{isbn}")
-    public ResponseEntity<BookDto> previewByIsbn(@PathVariable String isbn) {
+    public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
         BookDto dto = bookService.fetchPreviewByIsbn(isbn);
         if (dto == null) {
             return ResponseEntity.notFound().build();
@@ -104,7 +107,7 @@ public class BookController {
     }
 
     @PostMapping("/isbn/{isbn}")
-    public ResponseEntity<BookDto> importByIsbn(@PathVariable String isbn,
+    public ResponseEntity<BookDto> importByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId) {
         BookDto dto;
         try {
@@ -120,7 +123,8 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id, @RequestParam(required = false) Long schoolId) {
+    public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
+            @RequestParam(required = false) Long schoolId) {
         boolean exists = schoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, schoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
