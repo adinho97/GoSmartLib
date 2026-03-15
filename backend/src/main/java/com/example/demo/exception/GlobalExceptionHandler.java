@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
                                 ex.getStatus().getReasonPhrase(),
                                 request.getRequestURI(),
                                 ex.getCode());
-                return ResponseEntity.status(ex.getStatus()).body(body);
+                return ResponseEntity.status(ex.getStatus().value()).body(body);
         }
 
         @ExceptionHandler(ApiException.class)
@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
                                 ex.getStatus().getReasonPhrase(),
                                 request.getRequestURI(),
                                 ex.getCode());
-                return ResponseEntity.status(ex.getStatus()).body(body);
+                return ResponseEntity.status(ex.getStatus().value()).body(body);
         }
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
