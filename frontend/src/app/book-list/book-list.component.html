@@ -146,9 +146,11 @@
               <article
                 class="book-card"
                 [routerLink]="['/detail', book.id]"
-                [class.didactic-card]="book.genre.toLowerCase() === 'didactiek'"
+                [class.didactic-card]="
+                  (book.genre || '').toLowerCase() === 'didactiek'
+                "
               >
-                @if (book.genre.toLowerCase() === "didactiek") {
+                @if ((book.genre || "").toLowerCase() === "didactiek") {
                   <div class="didactic-badge">Lerarencollectie</div>
                 }
                 <div class="book-cover-slot">
