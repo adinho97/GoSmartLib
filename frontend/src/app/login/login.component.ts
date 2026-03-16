@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
 
 @Component({
   selector: "app-login",
@@ -9,11 +10,12 @@ import { Router, ActivatedRoute } from "@angular/router";
 })
 export class LoginComponent implements OnInit {
   private readonly clientId = "2ebf496d131b";
-  private readonly redirectUri = window.location.origin + "/auth/callback";
+  private readonly redirectUri = "https://gosmartlibs07.tech/auth/callback";
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
+    private http: HttpClient,
   ) {}
 
   ngOnInit(): void {
@@ -31,10 +33,15 @@ export class LoginComponent implements OnInit {
   }
 
   private handleSmartschoolCode(code: string): void {
-    // TODO: send code to backend for token
-    console.log("received code");
-    this.setRole("student");
-    // temp
+    this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
+      next: (userInfo) => {
+        console.log("Logged in user:", userInfo);
+        this.setRole(userInfo.role);
+      },
+      error: (err) => {
+        console.error("Smartschool login failed", err);
+      },
+    });
   }
 
   setRole(role: string): void {
