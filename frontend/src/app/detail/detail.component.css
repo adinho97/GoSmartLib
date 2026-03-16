@@ -215,6 +215,22 @@
   line-height: 1.5;
 }
 
+.delete-review-btn {
+  margin-top: 10px;
+  border: 1px solid #d13a4f;
+  background: #fff;
+  color: #d13a4f;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.delete-review-btn:hover {
+  background: #d13a4f;
+  color: #fff;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .detail-content {

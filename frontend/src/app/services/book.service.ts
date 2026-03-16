@@ -37,6 +37,15 @@ export class BookService {
     return `${path}${separator}schoolId=${schoolId}`;
   }
 
+  private getRoleHeaders() {
+    const role = localStorage.getItem("role") || "";
+    return {
+      headers: {
+        "X-User-Role": role,
+      },
+    };
+  }
+
   getAllBooks(): Observable<Book[]> {
     return this.http.get<Book[]>(this.apiUrl);
   }
@@ -74,7 +83,10 @@ export class BookService {
   }
 
   async deleteBook(id: number, schoolId?: number) {
-    await axios.delete(this.withSchoolId(`${this.apiUrl}/${id}`, schoolId));
+    await axios.delete(
+      this.withSchoolId(`${this.apiUrl}/${id}`, schoolId),
+      this.getRoleHeaders(),
+    );
   }
 
   async getBookReviews(bookId: number): Promise<Review[]> {
@@ -91,6 +103,13 @@ export class BookService {
       payload,
     );
     return res.data;
+  }
+
+  async deleteBookReview(bookId: number, reviewId: number): Promise<void> {
+    await axios.delete(
+      `${this.apiUrl}/${bookId}/reviews/${reviewId}`,
+      this.getRoleHeaders(),
+    );
   }
 
   async fetchBookByIsbn(isbn: string) {

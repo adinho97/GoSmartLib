@@ -87,6 +87,15 @@
                       }}</span>
                     </div>
                     <p>{{ review.comment }}</p>
+                    @if (isLibrarian) {
+                      <button
+                        type="button"
+                        class="delete-review-btn"
+                        (click)="deleteReview(review.id)"
+                      >
+                        Verwijder review
+                      </button>
+                    }
                   </article>
                 }
               </div>

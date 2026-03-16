@@ -4,6 +4,7 @@ import { BookService } from "../services/book.service";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import { Location } from "@angular/common";
+import axios from "axios";
 
 @Component({
   selector: "app-detail",
@@ -13,6 +14,8 @@ import { Location } from "@angular/common";
 })
 export class DetailComponent implements OnInit {
   book!: Book;
+  readonly userRole = localStorage.getItem("role");
+  readonly isLibrarian = this.userRole === "bibbeheerder";
   currentBookId: number | null = null;
   reviewRatings = [1, 2, 3, 4, 5];
   reviews: Review[] = [];
@@ -75,8 +78,38 @@ export class DetailComponent implements OnInit {
       this.newReviewRating = 0;
       this.newReviewComment = "";
       this.reviewError = "";
-    } catch {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        if (typeof apiMessage === "string" && apiMessage.trim()) {
+          this.reviewError = apiMessage;
+          return;
+        }
+      }
+
       this.reviewError = "Review opslaan mislukt. Probeer opnieuw.";
+    }
+  }
+
+  async deleteReview(reviewId: number): Promise<void> {
+    if (!this.isLibrarian) {
+      return;
+    }
+
+    if (this.currentBookId === null) {
+      this.reviewError = "Boek kon niet worden gevonden.";
+      return;
+    }
+
+    if (!confirm("Review verwijderen?")) {
+      return;
+    }
+
+    try {
+      await this.bookService.deleteBookReview(this.currentBookId, reviewId);
+      this.reviews = this.reviews.filter((review) => review.id !== reviewId);
+    } catch {
+      this.reviewError = "Review verwijderen mislukt. Probeer opnieuw.";
     }
   }
 
