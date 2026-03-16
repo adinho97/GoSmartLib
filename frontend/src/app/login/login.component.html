@@ -10,7 +10,7 @@
             <button type="button" (click)="setRole('bibbeheerder')">Login als bibbeheerder</button>
         </div>
         <!-- Remove above when development is over -->
-        <button (click)="smartschoolLogin()" [disabled]="isLoading">
+        <button (click)="smartschoolLogin()" [disabled]="isLoading" class ="smartschool-button">
             {{ isLoading ? 'Een ogenblik...' : 'Login met Smartschool' }}
         </button>
     </div>
