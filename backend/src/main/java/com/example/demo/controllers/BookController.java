@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.BookDto;
+import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
 import com.example.demo.mappers.BookMapper;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -120,6 +122,18 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/isbn/bulk")
+    public ResponseEntity<ImportResultDto> importBulkByIsbn(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false) Long schoolId) {
+        try {
+            ImportResultDto result = bookService.importBulkByIsbn(file, schoolId);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{id}")

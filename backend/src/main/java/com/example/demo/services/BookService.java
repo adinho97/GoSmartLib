@@ -4,11 +4,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.dto.BookDto;
+import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
 import com.example.demo.mappers.BookMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +79,21 @@ public class BookService {
         fetched.setSchool(school);
         Book saved = bookRepository.save(fetched);
         return BookMapper.toDto(saved);
+    }
+
+    public ImportResultDto importBulkByIsbn(MultipartFile file, Long schoolId) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is required");
+        }
+
+        // Validate school early to keep behavior consistent with single ISBN import.
+        schoolService.getByIdOrDefault(schoolId);
+
+        ImportResultDto result = new ImportResultDto();
+        result.setTotalRows(0);
+        result.setUniqueIsbnsProcessed(0);
+        result.setDuplicateRowsSkipped(0);
+        return result;
     }
 
     private Book fetchBookFromOpenLibrary(String isbn) {
