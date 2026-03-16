@@ -26,7 +26,7 @@ type BookItem = {
 })
 export class BookListComponent implements OnInit {
   readonly minPageFilterLimit = 0;
-  readonly maxPageFilterLimit = 5000;
+  readonly maxPageFilterLimit = 1000;
   books: BookItem[] = [];
   isLoading = true;
   error = "";

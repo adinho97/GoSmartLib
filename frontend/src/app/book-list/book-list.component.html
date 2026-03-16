@@ -74,28 +74,22 @@
           <option value="4.5">4.5+</option>
         </select>
         <div class="page-slider-group">
-          <label for="minPages"
-            >Pagina's: {{ minPages }} - {{ maxPages }}</label
-          >
-          <div class="dual-range-slider" role="group" aria-label="Paginabereik">
-            <div class="range-track"></div>
-            <div
-              class="range-selected"
-              [style.left]="selectedRangeLeft"
-              [style.right]="selectedRangeRight"
-            ></div>
+          <label>Pagina's: {{ minPages }} - {{ maxPages }}</label>
+          <div class="single-page-slider">
+            <label for="minPages">Minimum pagina's: {{ minPages }}</label>
             <input
               id="minPages"
-              class="range-input min"
               type="range"
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
               [value]="minPages"
               (input)="onMinPagesChange($any($event.target).value)"
             />
+          </div>
+          <div class="single-page-slider">
+            <label for="maxPages">Maximum pagina's: {{ maxPages }}</label>
             <input
               id="maxPages"
-              class="range-input max"
               type="range"
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
