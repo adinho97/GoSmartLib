@@ -26,7 +26,7 @@
           <section class="review-section" aria-label="Boek reviews">
             <div class="review-header">
               <h3>Reviews</h3>
-              @if (reviews.length > 0) {
+              @if (reviews.length >= 10) {
                 <p class="average-rating">
                   Gemiddelde score: {{ averageRating | number: "1.0-1" }}/5
                 </p>
@@ -83,7 +83,7 @@
                     <div class="review-item-top">
                       <span class="review-rating">{{ review.rating }}/5</span>
                       <span class="review-date">{{
-                        review.createdAt | date: "dd/MM/yyyy HH:mm"
+                        getReviewDate(review.createdAt)
                       }}</span>
                     </div>
                     <p>{{ review.comment }}</p>

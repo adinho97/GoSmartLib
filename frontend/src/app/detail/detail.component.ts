@@ -19,6 +19,27 @@ export class DetailComponent implements OnInit {
   currentBookId: number | null = null;
   reviewRatings = [1, 2, 3, 4, 5];
   reviews: Review[] = [];
+  getReviewDate(date: string | Date): string {
+    // Always treat input as UTC, then display in Europe/Amsterdam
+    let d: Date;
+    if (typeof date === "string") {
+      // If date string lacks timezone, treat as UTC
+      d = date.match(/Z|[+-]\d{2}:?\d{2}$/)
+        ? new Date(date)
+        : new Date(date + "Z");
+    } else {
+      d = date;
+    }
+    return new Intl.DateTimeFormat("nl-NL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "Europe/Amsterdam",
+    }).format(d);
+  }
   newReviewRating = 0;
   newReviewComment = "";
   reviewError = "";
