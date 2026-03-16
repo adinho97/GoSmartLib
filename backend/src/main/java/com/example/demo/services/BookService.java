@@ -8,6 +8,12 @@ import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
 import com.example.demo.mappers.BookMapper;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -94,15 +100,28 @@ public class BookService {
         }
 
         String filename = file.getOriginalFilename();
-        if (filename == null || !filename.toLowerCase(Locale.ROOT).endsWith(".csv")) {
-            throw new IllegalArgumentException("Only CSV files are supported in this step");
+        if (filename == null) {
+            throw new IllegalArgumentException("File name is required");
+        }
+
+        String lowerName = filename.toLowerCase(Locale.ROOT);
+        boolean isCsv = lowerName.endsWith(".csv");
+        boolean isXls = lowerName.endsWith(".xls");
+        boolean isXlsx = lowerName.endsWith(".xlsx");
+        if (!isCsv && !isXls && !isXlsx) {
+            throw new IllegalArgumentException("Unsupported file type. Use CSV, XLS or XLSX.");
         }
 
         // Resolve school once; bulk uses the same school-scoped behavior as single ISBN
         // import.
         School school = schoolService.getByIdOrDefault(schoolId);
 
-        ParsedBulkIsbn parsed = parseCsvIsbns(file);
+        ParsedBulkIsbn parsed;
+        if (isCsv) {
+            parsed = parseCsvIsbns(file);
+        } else {
+            parsed = parseExcelIsbns(file);
+        }
 
         ImportResultDto result = new ImportResultDto();
         result.setTotalRows(parsed.totalRows());
@@ -190,6 +209,51 @@ public class BookService {
             }
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to read CSV file", e);
+        }
+
+        return new ParsedBulkIsbn(new ArrayList<>(uniqueIsbns), invalidRows, totalRows, duplicateRowsSkipped);
+    }
+
+    private ParsedBulkIsbn parseExcelIsbns(MultipartFile file) {
+        Set<String> uniqueIsbns = new LinkedHashSet<>();
+        List<ImportResultDto.RowResult> invalidRows = new ArrayList<>();
+        int totalRows = 0;
+        int duplicateRowsSkipped = 0;
+        DataFormatter formatter = new DataFormatter();
+
+        try (InputStream in = file.getInputStream(); Workbook workbook = WorkbookFactory.create(in)) {
+            if (workbook.getNumberOfSheets() == 0) {
+                throw new IllegalArgumentException("Excel file contains no sheets");
+            }
+
+            Sheet sheet = workbook.getSheetAt(0);
+            for (int rowIndex = sheet.getFirstRowNum(); rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                Row row = sheet.getRow(rowIndex);
+                if (row == null) {
+                    continue;
+                }
+
+                Cell cell = row.getCell(0);
+                String rawFirstColumn = cell == null ? "" : formatter.formatCellValue(cell).trim();
+                if (rawFirstColumn.isEmpty()) {
+                    continue;
+                }
+
+                int lineNumber = rowIndex + 1;
+                if (lineNumber == 1 && rawFirstColumn.equalsIgnoreCase("isbn")) {
+                    continue;
+                }
+
+                totalRows++;
+                boolean added = uniqueIsbns.add(rawFirstColumn);
+                if (!added) {
+                    duplicateRowsSkipped++;
+                }
+            }
+        } catch (IllegalArgumentException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Failed to read Excel file", ex);
         }
 
         return new ParsedBulkIsbn(new ArrayList<>(uniqueIsbns), invalidRows, totalRows, duplicateRowsSkipped);
