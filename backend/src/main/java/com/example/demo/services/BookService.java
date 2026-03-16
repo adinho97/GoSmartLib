@@ -15,12 +15,19 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -86,14 +93,96 @@ public class BookService {
             throw new IllegalArgumentException("File is required");
         }
 
+        String filename = file.getOriginalFilename();
+        if (filename == null || !filename.toLowerCase(Locale.ROOT).endsWith(".csv")) {
+            throw new IllegalArgumentException("Only CSV files are supported in this step");
+        }
+
         // Validate school early to keep behavior consistent with single ISBN import.
         schoolService.getByIdOrDefault(schoolId);
 
+        ParsedBulkIsbn parsed = parseCsvIsbns(file);
+
         ImportResultDto result = new ImportResultDto();
-        result.setTotalRows(0);
-        result.setUniqueIsbnsProcessed(0);
-        result.setDuplicateRowsSkipped(0);
+        result.setTotalRows(parsed.totalRows());
+        result.setUniqueIsbnsProcessed(parsed.uniqueIsbns().size());
+        result.setDuplicateRowsSkipped(parsed.duplicateRowsSkipped());
+        result.setResults(parsed.invalidRows());
         return result;
+    }
+
+    private ParsedBulkIsbn parseCsvIsbns(MultipartFile file) {
+        Set<String> uniqueIsbns = new LinkedHashSet<>();
+        List<ImportResultDto.RowResult> invalidRows = new ArrayList<>();
+        int totalRows = 0;
+        int duplicateRowsSkipped = 0;
+
+        try (InputStream in = file.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+
+            String line;
+            int lineNumber = 0;
+            while ((line = reader.readLine()) != null) {
+                lineNumber++;
+                String trimmedLine = line.trim();
+                if (trimmedLine.isEmpty()) {
+                    continue;
+                }
+
+                String rawFirstColumn = splitFirstColumn(trimmedLine).trim();
+                if (lineNumber == 1 && rawFirstColumn.equalsIgnoreCase("isbn")) {
+                    continue;
+                }
+
+                totalRows++;
+                if (rawFirstColumn.isEmpty()) {
+                    invalidRows.add(new ImportResultDto.RowResult(
+                            "",
+                            ImportResultDto.Status.INVALID_ISBN,
+                            "Lege ISBN-waarde op rij " + lineNumber,
+                            null));
+                    continue;
+                }
+
+                boolean added = uniqueIsbns.add(rawFirstColumn);
+                if (!added) {
+                    duplicateRowsSkipped++;
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to read CSV file", e);
+        }
+
+        return new ParsedBulkIsbn(new ArrayList<>(uniqueIsbns), invalidRows, totalRows, duplicateRowsSkipped);
+    }
+
+    private String splitFirstColumn(String line) {
+        int comma = line.indexOf(',');
+        int semicolon = line.indexOf(';');
+        int tab = line.indexOf('\t');
+
+        int splitAt = Integer.MAX_VALUE;
+        if (comma >= 0) {
+            splitAt = Math.min(splitAt, comma);
+        }
+        if (semicolon >= 0) {
+            splitAt = Math.min(splitAt, semicolon);
+        }
+        if (tab >= 0) {
+            splitAt = Math.min(splitAt, tab);
+        }
+
+        if (splitAt == Integer.MAX_VALUE) {
+            return line;
+        }
+        return line.substring(0, splitAt);
+    }
+
+    private record ParsedBulkIsbn(
+            List<String> uniqueIsbns,
+            List<ImportResultDto.RowResult> invalidRows,
+            int totalRows,
+            int duplicateRowsSkipped) {
     }
 
     private Book fetchBookFromOpenLibrary(String isbn) {
