@@ -27,6 +27,18 @@ public class BookMapper {
             dto.setSchoolNaam(book.getSchool().getNaam());
         }
 
+        if (book.getReviews() != null) {
+            int reviewCount = book.getReviews().size();
+            dto.setReviewCount(reviewCount);
+
+            if (reviewCount > 0) {
+                double total = book.getReviews().stream()
+                        .mapToDouble(review -> review.getRating() != null ? review.getRating() : 0)
+                        .sum();
+                dto.setAverageRating(total / reviewCount);
+            }
+        }
+
         return dto;
     }
 
