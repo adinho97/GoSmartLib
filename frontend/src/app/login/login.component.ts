@@ -50,8 +50,9 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         console.error("Smartschool login failed", err);
-        const errorMessage = err.error?.message || err.message || "Onbekende fout bij inloggen.";
-        alert(`Login mislukt: ${errorMessage}`);
+        const errorMessage =
+          err.error?.message || err.message || "Onbekende fout bij inloggen.";
+        console.error("Login error:", errorMessage);
         this.isLoading = false;
         // Navigate back to the clean login page to remove the 'code' from the URL
         this.router.navigate(["/login"]);
