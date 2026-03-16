@@ -64,10 +64,15 @@
             </option>
           }
         </select>
-        <label for="releaseFrom">Uitgave vanaf</label>
-        <input id="releaseFrom" type="date" [(ngModel)]="releaseDateFrom" />
-        <label for="releaseTo">Uitgave tot</label>
-        <input id="releaseTo" type="date" [(ngModel)]="releaseDateTo" />
+        <label for="averageFilter">Gemiddelde score (min.)</label>
+        <select id="averageFilter" [(ngModel)]="selectedMinAverageRating">
+          <option value="">Alle scores</option>
+          <option value="1">1.0+</option>
+          <option value="2">2.0+</option>
+          <option value="3">3.0+</option>
+          <option value="4">4.0+</option>
+          <option value="4.5">4.5+</option>
+        </select>
         <div class="page-slider-group">
           <label for="minPages"
             >Pagina's: {{ minPages }} - {{ maxPages }}</label
@@ -152,6 +157,23 @@
               >
                 @if ((book.genre || "").toLowerCase() === "didactiek") {
                   <div class="didactic-badge">Lerarencollectie</div>
+                }
+                @if ((book.reviewCount || 0) >= 10) {
+                  <div class="score-badge">
+                    <span
+                      class="score-stars"
+                      aria-label="Gemiddelde score {{
+                        book.averageRating || 0 | number: '1.1-1'
+                      }} op 5"
+                    >
+                      <span class="score-stars-track">★★★★★</span>
+                      <span
+                        class="score-stars-fill"
+                        [style.width.%]="getAverageRatingFillPercentage(book)"
+                        >★★★★★</span
+                      >
+                    </span>
+                  </div>
                 }
                 <div class="book-cover-slot">
                   @if ((book.cover || "").trim()) {

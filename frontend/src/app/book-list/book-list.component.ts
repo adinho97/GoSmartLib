@@ -14,13 +14,15 @@ type BookItem = {
   paginas: number | null;
   taal: string;
   uitgeverij: string;
+  reviewCount?: number;
+  averageRating?: number;
 };
 
 @Component({
-    selector: "app-book-list",
-    templateUrl: "./book-list.component.html",
-    styleUrls: ["./book-list.component.css"],
-    standalone: false
+  selector: "app-book-list",
+  templateUrl: "./book-list.component.html",
+  styleUrls: ["./book-list.component.css"],
+  standalone: false,
 })
 export class BookListComponent implements OnInit {
   readonly minPageFilterLimit = 0;
@@ -33,7 +35,7 @@ export class BookListComponent implements OnInit {
   readonly isTeacher = this.userRole === "leerkracht";
   readonly isTeacherOrLibrarian =
     this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
-  readonly pageSize = 32;
+  readonly pageSize = 16;
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   currentPage = 1;
@@ -42,15 +44,13 @@ export class BookListComponent implements OnInit {
 
   selectedGenre = "";
   selectedLanguage = "";
-  releaseDateFrom = "";
-  releaseDateTo = "";
+  selectedMinAverageRating = "";
   minPages = this.minPageFilterLimit;
   maxPages = this.maxPageFilterLimit;
 
   appliedGenre = "";
   appliedLanguage = "";
-  appliedReleaseDateFrom = "";
-  appliedReleaseDateTo = "";
+  appliedMinAverageRating = "";
   appliedMinPages = this.minPageFilterLimit;
   appliedMaxPages = this.maxPageFilterLimit;
 
@@ -123,7 +123,9 @@ export class BookListComponent implements OnInit {
     const languages = this.books
       .map((book) => (book.taal || "").trim())
       .filter((language) => language.length > 0);
-    return Array.from(new Set(languages)).sort((a, b) => a.localeCompare(b, "nl"));
+    return Array.from(new Set(languages)).sort((a, b) =>
+      a.localeCompare(b, "nl"),
+    );
   }
 
   get filteredBooks(): BookItem[] {
@@ -144,12 +146,11 @@ export class BookListComponent implements OnInit {
         !this.appliedLanguage ||
         (book.taal || "").toLowerCase() === this.appliedLanguage.toLowerCase();
 
-      const bookDate = this.parseDate(book.uitgaveDatum);
-      const fromDate = this.parseDate(this.appliedReleaseDateFrom);
-      const toDate = this.parseDate(this.appliedReleaseDateTo);
-      const dateMatches =
-        (!fromDate || (bookDate && bookDate >= fromDate)) &&
-        (!toDate || (bookDate && bookDate <= toDate));
+      const minAverage = Number(this.appliedMinAverageRating);
+      const averageMatches =
+        !this.appliedMinAverageRating ||
+        ((book.reviewCount || 0) >= 10 &&
+          (book.averageRating || 0) >= minAverage);
 
       const pageCount = book.paginas ?? 0;
       const pageMatches =
@@ -159,7 +160,7 @@ export class BookListComponent implements OnInit {
         titleOrAuthorMatches &&
         genreMatches &&
         languageMatches &&
-        dateMatches &&
+        averageMatches &&
         pageMatches
       );
     });
@@ -183,8 +184,7 @@ export class BookListComponent implements OnInit {
   applyFilters() {
     this.appliedGenre = this.selectedGenre;
     this.appliedLanguage = this.selectedLanguage;
-    this.appliedReleaseDateFrom = this.releaseDateFrom;
-    this.appliedReleaseDateTo = this.releaseDateTo;
+    this.appliedMinAverageRating = this.selectedMinAverageRating;
     this.appliedMinPages = this.minPages;
     this.appliedMaxPages = this.maxPages;
     this.currentPage = 1;
@@ -195,8 +195,7 @@ export class BookListComponent implements OnInit {
     this.searchQuery = "";
     this.selectedGenre = "";
     this.selectedLanguage = "";
-    this.releaseDateFrom = "";
-    this.releaseDateTo = "";
+    this.selectedMinAverageRating = "";
     this.minPages = this.minPageFilterLimit;
     this.maxPages = this.maxPageFilterLimit;
     this.applyFilters();
@@ -240,19 +239,10 @@ export class BookListComponent implements OnInit {
     return 100 - (this.maxPages / this.maxPageFilterLimit) * 100 + "%";
   }
 
-  private parseDate(value: string): Date | null {
-    if (!value) {
-      return null;
-    }
-
-    const parsedDate = new Date(value);
-
-    if (Number.isNaN(parsedDate.getTime())) {
-      return null;
-    }
-
-    parsedDate.setHours(0, 0, 0, 0);
-    return parsedDate;
+  getAverageRatingFillPercentage(book: BookItem): number {
+    const average = book.averageRating || 0;
+    const percentage = (average / 5) * 100;
+    return Math.min(100, Math.max(0, percentage));
   }
 
   async onSchoolChange(value: string) {
