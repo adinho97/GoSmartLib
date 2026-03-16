@@ -11,6 +11,7 @@ import { HttpClient } from "@angular/common/http";
 export class LoginComponent implements OnInit {
   private readonly clientId = "2ebf496d131b";
   private readonly redirectUri = "https://gosmartlibs07.tech/auth/callback";
+  public isLoading = false;
 
   constructor(
     private router: Router,
@@ -28,18 +29,32 @@ export class LoginComponent implements OnInit {
   }
 
   smartschoolLogin(): void {
-    const authUrl = `https://oauth.smartschool.be/OAuth/Authorize?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=userinfo`;
+    if (this.isLoading) {
+      return;
+    }
+    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=userinfo`;
     window.location.href = authUrl;
   }
 
   private handleSmartschoolCode(code: string): void {
+    if (this.isLoading) {
+      return;
+    }
+    this.isLoading = true;
+
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: (userInfo) => {
         console.log("Logged in user:", userInfo);
         this.setRole(userInfo.role);
+        this.isLoading = false;
       },
       error: (err) => {
         console.error("Smartschool login failed", err);
+        const errorMessage = err.error?.message || err.message || "Onbekende fout bij inloggen.";
+        alert(`Login mislukt: ${errorMessage}`);
+        this.isLoading = false;
+        // Navigate back to the clean login page to remove the 'code' from the URL
+        this.router.navigate(["/login"]);
       },
     });
   }

@@ -1,7 +1,9 @@
 package com.example.demo.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SmartschoolUserInfo {
     private String sub; // user id
     private String name;
