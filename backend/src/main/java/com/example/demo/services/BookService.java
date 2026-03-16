@@ -98,8 +98,9 @@ public class BookService {
             throw new IllegalArgumentException("Only CSV files are supported in this step");
         }
 
-        // Validate school early to keep behavior consistent with single ISBN import.
-        schoolService.getByIdOrDefault(schoolId);
+        // Resolve school once; bulk uses the same school-scoped behavior as single ISBN
+        // import.
+        School school = schoolService.getByIdOrDefault(schoolId);
 
         ParsedBulkIsbn parsed = parseCsvIsbns(file);
 
@@ -107,7 +108,45 @@ public class BookService {
         result.setTotalRows(parsed.totalRows());
         result.setUniqueIsbnsProcessed(parsed.uniqueIsbns().size());
         result.setDuplicateRowsSkipped(parsed.duplicateRowsSkipped());
-        result.setResults(parsed.invalidRows());
+
+        List<ImportResultDto.RowResult> rows = new ArrayList<>(parsed.invalidRows());
+        for (String isbn : parsed.uniqueIsbns()) {
+            try {
+                Optional<Book> existing = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId());
+                if (existing.isPresent()) {
+                    rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.ALREADY_EXISTS,
+                            "Boek bestaat al in de bibliotheek.",
+                            existing.get().getId()));
+                    continue;
+                }
+
+                BookDto imported = importByIsbn(isbn, school.getId());
+                if (imported == null) {
+                    rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.NOT_FOUND,
+                            "Geen boek gevonden voor dit ISBN.",
+                            null));
+                    continue;
+                }
+
+                rows.add(new ImportResultDto.RowResult(
+                        isbn,
+                        ImportResultDto.Status.ADDED,
+                        "Boek toegevoegd.",
+                        imported.getId()));
+            } catch (Exception ex) {
+                rows.add(new ImportResultDto.RowResult(
+                        isbn,
+                        ImportResultDto.Status.ERROR,
+                        "Fout bij verwerken van ISBN.",
+                        null));
+            }
+        }
+
+        result.setResults(rows);
         return result;
     }
 
