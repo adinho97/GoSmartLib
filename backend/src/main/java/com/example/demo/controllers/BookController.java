@@ -10,6 +10,7 @@ import com.example.demo.mappers.BookMapper;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.services.BookService;
+import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -26,17 +27,20 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/boeken")
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
+    private static final String LIBRARIAN_ROLE = "bibbeheerder";
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
     private final BookService bookService;
     private final SchoolService schoolService;
+    private final ReviewModerationService reviewModerationService;
 
     public BookController(BookRepository repo, ReviewRepository reviewRepository, BookService bookService,
-            SchoolService schoolService) {
+            SchoolService schoolService, ReviewModerationService reviewModerationService) {
         this.repo = repo;
         this.reviewRepository = reviewRepository;
         this.bookService = bookService;
         this.schoolService = schoolService;
+        this.reviewModerationService = reviewModerationService;
     }
 
     @GetMapping
@@ -131,7 +135,12 @@ public class BookController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestParam(required = false) Long schoolId) {
+        if (!isLibrarian(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         boolean exists = schoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, schoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
@@ -166,10 +175,33 @@ public class BookController {
         Review review = new Review();
         review.setBook(book);
         review.setRating(request.getRating());
-        review.setComment(request.getComment().trim());
+        String trimmedComment = request.getComment().trim();
+        reviewModerationService.validateReviewComment(trimmedComment);
+        review.setComment(trimmedComment);
 
         Review saved = reviewRepository.save(review);
         return ResponseEntity.status(HttpStatus.CREATED).body(toReviewDto(saved));
+    }
+
+    @DeleteMapping("/{bookId}/reviews/{reviewId}")
+    public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @PathVariable @NonNull Long reviewId) {
+        if (!isLibrarian(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        if (!repo.existsById(bookId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+        if (review == null || review.getBook() == null || !bookId.equals(review.getBook().getId())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        reviewRepository.delete(review);
+        return ResponseEntity.noContent().build();
     }
 
     private ReviewDto toReviewDto(Review review) {
@@ -179,5 +211,9 @@ public class BookController {
         dto.setComment(review.getComment());
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
+    }
+
+    private boolean isLibrarian(String userRole) {
+        return LIBRARIAN_ROLE.equalsIgnoreCase(userRole);
     }
 }
