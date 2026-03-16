@@ -1,10 +1,14 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.BookDto;
+import com.example.demo.dto.CreateReviewRequest;
+import com.example.demo.dto.ReviewDto;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
 import com.example.demo.mappers.BookMapper;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.services.BookService;
 import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;
@@ -23,11 +27,14 @@ import java.util.stream.Collectors;
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private final BookRepository repo;
+    private final ReviewRepository reviewRepository;
     private final BookService bookService;
     private final SchoolService schoolService;
 
-    public BookController(BookRepository repo, BookService bookService, SchoolService schoolService) {
+    public BookController(BookRepository repo, ReviewRepository reviewRepository, BookService bookService,
+            SchoolService schoolService) {
         this.repo = repo;
+        this.reviewRepository = reviewRepository;
         this.bookService = bookService;
         this.schoolService = schoolService;
     }
@@ -132,5 +139,45 @@ public class BookController {
 
         repo.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id) {
+        if (!repo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<ReviewDto> reviews = reviewRepository.findByBook_IdOrderByCreatedAtDesc(id)
+                .stream()
+                .map(this::toReviewDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(reviews);
+    }
+
+    @PostMapping("/{id}/reviews")
+    public ResponseEntity<ReviewDto> createReview(@PathVariable @NonNull Long id,
+            @Valid @RequestBody CreateReviewRequest request) {
+        Book book = repo.findById(id).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Review review = new Review();
+        review.setBook(book);
+        review.setRating(request.getRating());
+        review.setComment(request.getComment().trim());
+
+        Review saved = reviewRepository.save(review);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toReviewDto(saved));
+    }
+
+    private ReviewDto toReviewDto(Review review) {
+        ReviewDto dto = new ReviewDto();
+        dto.setId(review.getId());
+        dto.setRating(review.getRating());
+        dto.setComment(review.getComment());
+        dto.setCreatedAt(review.getCreatedAt());
+        return dto;
     }
 }
