@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 @Service
 public class BookService {
 
+    private static final int BULK_IMPORT_MAX_ROWS = 200;
+
     private static final String LANGUAGE_MAPPING_RESOURCE = "language-mapping.json";
     private static final Map<String, String> LANGUAGE_TRANSLATIONS = loadLanguageTranslations();
 
@@ -127,6 +129,11 @@ public class BookService {
         result.setTotalRows(parsed.totalRows());
         result.setUniqueIsbnsProcessed(parsed.uniqueIsbns().size());
         result.setDuplicateRowsSkipped(parsed.duplicateRowsSkipped());
+
+        if (parsed.totalRows() > BULK_IMPORT_MAX_ROWS) {
+            throw new IllegalArgumentException(
+                    "Te veel rijen in upload: maximaal " + BULK_IMPORT_MAX_ROWS + " ISBN's per bestand.");
+        }
 
         List<ImportResultDto.RowResult> rows = new ArrayList<>(parsed.invalidRows());
         for (String isbn : parsed.uniqueIsbns()) {
