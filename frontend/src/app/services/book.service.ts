@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { Book } from "../models/book";
+import { Review } from "../models/review";
 import axios from "axios";
 
 @Injectable({
@@ -76,6 +77,22 @@ export class BookService {
     await axios.delete(this.withSchoolId(`${this.apiUrl}/${id}`, schoolId));
   }
 
+  async getBookReviews(bookId: number): Promise<Review[]> {
+    const res = await axios.get<Review[]>(`${this.apiUrl}/${bookId}/reviews`);
+    return res.data;
+  }
+
+  async addBookReview(
+    bookId: number,
+    payload: { rating: number; comment: string },
+  ): Promise<Review> {
+    const res = await axios.post<Review>(
+      `${this.apiUrl}/${bookId}/reviews`,
+      payload,
+    );
+    return res.data;
+  }
+
   async fetchBookByIsbn(isbn: string) {
     const res = await axios.get(`${this.apiUrl}/preview/${isbn}`);
     return res.data;
@@ -88,10 +105,7 @@ export class BookService {
     return res.data;
   }
 
-  async isBookInLibrary(
-    isbn: string,
-    schoolId?: number,
-  ): Promise<boolean> {
+  async isBookInLibrary(isbn: string, schoolId?: number): Promise<boolean> {
     try {
       await axios.get(
         this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
