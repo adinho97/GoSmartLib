@@ -4,6 +4,27 @@ import { Observable } from "rxjs";
 import { Book } from "../models/book";
 import axios from "axios";
 
+export type BulkImportStatus =
+  | "ADDED"
+  | "ALREADY_EXISTS"
+  | "NOT_FOUND"
+  | "INVALID_ISBN"
+  | "ERROR";
+
+export interface BulkImportRowResult {
+  isbn: string;
+  status: BulkImportStatus;
+  message: string;
+  bookId: number | null;
+}
+
+export interface BulkImportResult {
+  totalRows: number;
+  uniqueIsbnsProcessed: number;
+  duplicateRowsSkipped: number;
+  results: BulkImportRowResult[];
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -84,6 +105,20 @@ export class BookService {
   async importBookByIsbn(isbn: string, schoolId?: number) {
     const res = await axios.post(
       this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
+    );
+    return res.data;
+  }
+
+  async importBooksByUpload(
+    file: File,
+    schoolId?: number,
+  ): Promise<BulkImportResult> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await axios.post<BulkImportResult>(
+      this.withSchoolId(`${this.apiUrl}/isbn/bulk`, schoolId),
+      formData,
     );
     return res.data;
   }
