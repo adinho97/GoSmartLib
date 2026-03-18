@@ -33,6 +33,20 @@
   justify-content: center;
 }
 
+.smartschool-button {
+  padding: 8px 16px;
+  margin: 5px;
+  background-color: #ff520e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.smartschool-button:hover {
+  background-color: #cd440e;
+}
+
 .background-image {
   position: fixed;
   background-size: cover;
@@ -63,6 +77,11 @@
   }
 
   .button-group button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .smartschool-button {
     font-size: 14px;
     padding: 8px 16px;
   }

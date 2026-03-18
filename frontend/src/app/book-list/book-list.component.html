@@ -45,6 +45,7 @@
             <option [value]="genre">{{ genre }}</option>
           }
         </select>
+        
         <label for="taalFilter">Taal</label>
         <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
@@ -52,19 +53,43 @@
             <option [value]="language">{{ language }}</option>
           }
         </select>
-        <label for="releaseFrom">Uitgave vanaf</label>
-        <input id="releaseFrom" type="date" [(ngModel)]="releaseDateFrom" />
-        <label for="releaseTo">Uitgave tot</label>
-        <input id="releaseTo" type="date" [(ngModel)]="releaseDateTo" />
+        
+        <label for="averageFilter">Gemiddelde score (min.)</label>
+        <select id="averageFilter" [(ngModel)]="selectedMinAverageRating">
+          <option value="">Alle scores</option>
+          <option value="1">1.0+</option>
+          <option value="2">2.0+</option>
+          <option value="3">3.0+</option>
+          <option value="4">4.0+</option>
+          <option value="4.5">4.5+</option>
+        </select>
+        
         <div class="page-slider-group">
-          <label for="minPages">Pagina's: {{ minPages }} - {{ maxPages }}</label>
-          <div class="dual-range-slider" role="group" aria-label="Paginabereik">
-            <div class="range-track"></div>
-            <div class="range-selected" [style.left]="selectedRangeLeft" [style.right]="selectedRangeRight"></div>
-            <input id="minPages" class="range-input min" type="range" [min]="minAvailablePages" [max]="maxAvailablePages" [value]="minPages" (input)="onMinPagesChange($any($event.target).value)" />
-            <input id="maxPages" class="range-input max" type="range" [min]="minAvailablePages" [max]="maxAvailablePages" [value]="maxPages" (input)="onMaxPagesChange($any($event.target).value)" />
+          <label>Pagina's: {{ minPages }} - {{ maxPages }}</label>
+          <div class="single-page-slider">
+            <label for="minPages">Minimum pagina's: {{ minPages }}</label>
+            <input
+              id="minPages"
+              type="range"
+              [min]="minAvailablePages"
+              [max]="maxAvailablePages"
+              [value]="minPages"
+              (input)="onMinPagesChange($any($event.target).value)"
+            />
+          </div>
+          <div class="single-page-slider">
+            <label for="maxPages">Maximum pagina's: {{ maxPages }}</label>
+            <input
+              id="maxPages"
+              type="range"
+              [min]="minAvailablePages"
+              [max]="maxAvailablePages"
+              [value]="maxPages"
+              (input)="onMaxPagesChange($any($event.target).value)"
+            />
           </div>
         </div>
+        
         <button type="button" class="apply-filters-button" (click)="applyFilters()">Filters toepassen</button>
         <button type="button" class="reset-filters-button" (click)="clearFilters()">Filters wissen</button>
       </aside>
@@ -78,39 +103,64 @@
           </div>
         </div>
 
-        <div class="books-grid">
-          @for (book of pagedBooks; track book.id) {
-            <article class="book-card" [routerLink]="['/detail', book.id]" [class.didactic-card]="book.genre.toLowerCase() === 'didactiek'">
-              @if (book.genre.toLowerCase() === "didactiek") {
-                <div class="didactic-badge">Lerarencollectie</div>
-              }
-              <div class="book-cover-slot">
-                @if ((book.cover || "").trim()) {
-                  <img [src]="book.cover" [alt]="book.titel" class="book-cover" />
-                } @else {
-                  <div class="book-cover-placeholder">Geen cover beschikbaar</div>
-                }
-              </div>
-              <div class="book-content">
-                <h2>{{ book.titel }}</h2>
-                <p class="book-author">{{ book.auteur }}</p>
-                <div class="book-meta-group">
-                  <p class="book-meta"><strong>Genre:</strong> {{ book.genre || "Onbekend" }}</p>
-                  <p class="book-meta"><strong>Taal:</strong> {{ book.taal || "Onbekend" }}</p>
-                </div>
+        @if (filteredBooks.length > 0) {
+          <p class="filter-result-count">
+            {{ filteredBooks.length }} boek(en) gevonden
+          </p>
+          
+          <div class="books-grid">
+            @for (book of pagedBooks; track book.id) {
+              <article class="book-card" [routerLink]="['/detail', book.id]" [class.didactic-card]="(book.genre || '').toLowerCase() === 'didactiek'">
                 
-                @if (isLibrarian) {
-                  <a class="edit-button" [routerLink]="['/edit', book.id]" (click)="$event.stopPropagation()">
-                    Aanpassen
-                  </a>
-                  <button type="button" class="delete-button" (click)="$event.stopPropagation(); $event.preventDefault(); deleteBook($event, book)">
-                    Verwijder
-                  </button>
+                @if ((book.genre || "").toLowerCase() === "didactiek") {
+                  <div class="didactic-badge">Lerarencollectie</div>
                 }
-              </div>
-            </article>
-          }
-        </div>
+
+                @if ((book.reviewCount || 0) >= 10) {
+                  <div class="score-badge">
+                    <span class="score-stars" aria-label="Gemiddelde score {{ book.averageRating || 0 | number: '1.1-1' }} op 5">
+                      <span class="score-stars-track">★★★★★</span>
+                      <span class="score-stars-fill" [style.width.%]="getAverageRatingFillPercentage(book)">★★★★★</span>
+                    </span>
+                  </div>
+                }
+
+                <div class="book-cover-slot">
+                  @if ((book.cover || "").trim()) {
+                    <img [src]="book.cover" [alt]="book.titel" class="book-cover" />
+                  } @else {
+                    <div class="book-cover-placeholder">Geen cover beschikbaar</div>
+                  }
+                </div>
+
+                <div class="book-content">
+                  <h2>{{ book.titel }}</h2>
+                  <p class="book-author">{{ book.auteur }}</p>
+                  
+                  <div class="book-meta-group">
+                    <p class="book-meta"><strong>Genre:</strong> {{ book.genre || "Onbekend" }}</p>
+                    <p class="book-meta"><strong>Taal:</strong> {{ book.taal || "Onbekend" }}</p>
+                  </div>
+                  
+                  @if (isLibrarian) {
+                    <div class="admin-actions">
+                      <a class="edit-button" [routerLink]="['/edit', book.id]" (click)="$event.stopPropagation()">
+                        Aanpassen
+                      </a>
+                      <button type="button" class="delete-button" (click)="$event.stopPropagation(); $event.preventDefault(); deleteBook($event, book)">
+                        Verwijder
+                      </button>
+                    </div>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="info-message">
+            Geen boeken gevonden voor deze filters.
+          </div>
+        }
       </section>
     </div>
   }

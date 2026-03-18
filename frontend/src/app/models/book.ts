@@ -11,4 +11,6 @@ export interface Book {
   uitgeverij: string;
   schoolId?: number;
   schoolNaam?: string;
+  reviewCount?: number;
+  averageRating?: number;
 }

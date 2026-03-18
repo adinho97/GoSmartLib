@@ -12,39 +12,38 @@ import { EditBookComponent } from "./edit-book/edit-book.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
+  { path: "auth/callback", component: LoginComponent },
   {
     path: "dashboard",
     component: DashboardComponent,
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
-  { path: "", redirectTo: "/dashboard", pathMatch: "full" },
-
-  { 
-    path: "detail/:id", 
-    component: DetailComponent, 
+  { path: "", component: LoginComponent },
+  {
+    path: "detail/:id",
+    component: DetailComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] }
+    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
-  { 
-    path: "add", 
-    component: AddBookComponent, 
+  {
+    path: "add",
+    component: AddBookComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["bibbeheerder"] }
+    data: { roles: ["bibbeheerder"] },
   },
-  { 
-    path: "isbn", 
-    component: AddIsbnComponent, 
+  {
+    path: "isbn",
+    component: AddIsbnComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["bibbeheerder"] }
+    data: { roles: ["bibbeheerder"] },
   },
   {
     path: "edit/:id",
     component: EditBookComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
-  }
-,
+  },
   {
     path: "books",
     component: BookListComponent,
@@ -56,7 +55,7 @@ export const appRoutes: Routes = [
     component: ProfileComponent,
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
-  }
+  },
 ];
 
 @NgModule({

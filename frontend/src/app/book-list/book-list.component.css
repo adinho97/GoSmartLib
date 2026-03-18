@@ -6,12 +6,10 @@
   border-radius: 18px;
   border: 1px solid rgba(96, 22, 47, 0.1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  /* Alles naar Arial */
   font-family: Arial, Helvetica, sans-serif;
 }
 
 h2 {
-  /* Georgia verwijderd, nu ook Arial */
   font-family: Arial, Helvetica, sans-serif;
   color: #60162f;
   margin-bottom: 1.5rem;
@@ -40,7 +38,6 @@ h2 {
   border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.2s;
-  /* Zorg dat input velden ook Arial gebruiken */
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -49,6 +46,7 @@ h2 {
   border-color: #871f42;
 }
 
+/* GECMBINEERDE BUTTON GROEP LOGICA */
 .button-group {
   display: flex;
   gap: 1rem;
@@ -56,8 +54,45 @@ h2 {
   justify-content: center;
 }
 
-.save-button {
-  background: #871f42; /* Donkerrood zoals gevraagd */
+/* FILTERS (NIEUWE FEATURE) */
+.single-page-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.single-page-slider label {
+  font-size: 0.8rem;
+  color: #6d4a56;
+}
+
+.single-page-slider input[type="range"] {
+  width: 100%;
+  appearance: none;
+  background: transparent;
+  margin: 0;
+}
+
+.single-page-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #e6d6dc;
+}
+
+.single-page-slider input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #60162f;
+  background: #fff;
+  margin-top: -6px;
+  cursor: pointer;
+}
+
+/* KNOPPEN STYLES */
+.save-button, .apply-filters-button {
+  background: #871f42;
   color: white;
   border: none;
   padding: 0.7rem 1.5rem;
@@ -66,6 +101,11 @@ h2 {
   cursor: pointer;
   transition: background 0.2s;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.apply-filters-button {
+  margin-top: 0.6rem;
+  height: 36px;
 }
 
 .save-button:hover {
@@ -88,6 +128,68 @@ h2 {
   background: #fdf2f5;
 }
 
+/* BOEK KAARTEN (LIJST WEERGAVE) */
+.book-card {
+  background: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(96, 22, 47, 0.08);
+  box-shadow: 0 6px 18px rgba(96, 22, 47, 0.08);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  position: relative;
+}
+
+.book-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 14px 30px rgba(96, 22, 47, 0.18);
+}
+
+.didactic-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #e67e22;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  z-index: 5;
+}
+
+.score-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(135deg, #5f1d38, #8c2b52 55%, #b43f69);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  z-index: 6;
+}
+
+.book-cover-slot {
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+  background: #f0e6ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ERROR MELDINGEN */
 .error {
   color: #871f42;
   text-align: center;
