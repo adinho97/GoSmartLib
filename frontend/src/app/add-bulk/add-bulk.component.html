@@ -1,1 +1,119 @@
-<p>add-bulk works!</p>
+<div class="bulk-page">
+  <h1>Boeken in bulk toevoegen via ISBN-bestand</h1>
+
+  @if (schools.length > 0) {
+    <div class="input-row">
+      <label for="schoolSelect">School</label>
+      <select
+        id="schoolSelect"
+        [ngModel]="selectedSchoolId"
+        (ngModelChange)="onSchoolChange($event)"
+        aria-label="Kies school"
+      >
+        @for (school of schools; track school) {
+          <option [value]="school.id">{{ school.naam }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  <div class="input-row">
+    <label for="bulkFile">Bestand</label>
+    <input
+      id="bulkFile"
+      type="file"
+      accept=".csv,.xls,.xlsx"
+      (change)="onFileSelected($event)"
+      [disabled]="isUploading"
+    />
+    <button (click)="uploadFile()" [disabled]="isUploading || !selectedFile">
+      {{ isUploading ? "Verwerken..." : "Upload en verwerk" }}
+    </button>
+  </div>
+
+  <p class="hint">
+    Ondersteund: CSV, XLS, XLSX. Duplicaten in hetzelfde bestand worden
+    automatisch overgeslagen.
+  </p>
+
+  @if (errorMessage) {
+    <p class="error-message">{{ errorMessage }}</p>
+  }
+
+  @if (successMessage) {
+    <p class="success-message">{{ successMessage }}</p>
+  }
+
+  @if (result) {
+    <div class="summary-grid">
+      <div class="summary-item">
+        <span class="label">Rijen</span>
+        <span class="value">{{ result.totalRows }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Uniek verwerkt</span>
+        <span class="value">{{ result.uniqueIsbnsProcessed }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Duplicaten overgeslagen</span>
+        <span class="value">{{ result.duplicateRowsSkipped }}</span>
+      </div>
+      <div class="summary-item success">
+        <span class="label">Toegevoegd</span>
+        <span class="value">{{ getStatusCount("ADDED") }}</span>
+      </div>
+      <div class="summary-item info">
+        <span class="label">Bestond al</span>
+        <span class="value">{{ getStatusCount("ALREADY_EXISTS") }}</span>
+      </div>
+      <div class="summary-item warning">
+        <span class="label">Niet gevonden</span>
+        <span class="value">{{ getStatusCount("NOT_FOUND") }}</span>
+      </div>
+      <div class="summary-item danger">
+        <span class="label">Ongeldig ISBN</span>
+        <span class="value">{{ getStatusCount("INVALID_ISBN") }}</span>
+      </div>
+      <div class="summary-item danger">
+        <span class="label">Errors</span>
+        <span class="value">{{ getStatusCount("ERROR") }}</span>
+      </div>
+    </div>
+
+    @if (unresolvedRows.length > 0) {
+      <div class="actions-row">
+        <button class="secondary" (click)="downloadUnresolvedCsv()">
+          Download niet-opgeloste ISBN's (CSV)
+        </button>
+      </div>
+    }
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ISBN</th>
+            <th>Status</th>
+            <th>Bericht</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of result.results; track row) {
+            <tr>
+              <td>{{ row.isbn || "-" }}</td>
+              <td>
+                <span
+                  class="status"
+                  [class]="'status ' + row.status.toLowerCase()"
+                >
+                  {{ row.status }}
+                </span>
+              </td>
+              <td>{{ row.message }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
