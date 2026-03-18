@@ -1,25 +1,22 @@
 .book-list-page {
-  padding: 2.5rem;
-  background: linear-gradient(180deg, #f8f5f6 0%, #f3ecef 100%);
+  padding: 2rem;
+  background: linear-gradient(180deg, #fbf8f9 0%, #f5eef1 100%);
   min-height: 100vh;
   font-family: "Inter", sans-serif;
   color: #2c2c2c;
 }
 
 .school-selector-bar {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1000;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  width: fit-content;
   padding: 0.55rem 0.7rem;
   border-radius: 10px;
   border: 1px solid rgba(96, 22, 47, 0.16);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 24px rgba(96, 22, 47, 0.16);
-  backdrop-filter: blur(4px);
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(96, 22, 47, 0.12);
 }
 
 .school-selector-bar label {
@@ -45,21 +42,19 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.4rem;
   padding: 1.3rem 1.5rem;
   border-radius: 16px;
-  background: linear-gradient(135deg, #fff7fa 0%, #f6edf1 100%);
+  background: linear-gradient(135deg, #fff9fb 0%, #f8f0f4 100%);
   border: 1px solid rgba(96, 22, 47, 0.1);
 }
 
 .book-list-page h1 {
-  font-family: "Georgia", "Times New Roman", serif;
-  font-size: 2.75rem;
+  font-size: 2.2rem;
   margin: 0;
   color: #60162f;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.2px;
   line-height: 1.1;
-  text-shadow: 0 2px 8px rgba(96, 22, 47, 0.12);
 }
 
 .header-text p {
@@ -128,13 +123,13 @@
   background: #fff;
   border: 1px solid rgba(96, 22, 47, 0.12);
   border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(96, 22, 47, 0.08);
+  box-shadow: 0 4px 14px rgba(96, 22, 47, 0.08);
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   position: sticky;
-  top: 1rem;
+  top: 72px;
 }
 
 .filters-sidebar h2 {
@@ -286,7 +281,7 @@
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid rgba(96, 22, 47, 0.08);
-  box-shadow: 0 6px 18px rgba(96, 22, 47, 0.08);
+  box-shadow: 0 5px 14px rgba(96, 22, 47, 0.08);
   transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
@@ -295,8 +290,8 @@
 }
 
 .book-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 14px 30px rgba(96, 22, 47, 0.18);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(96, 22, 47, 0.14);
 }
 
 .book-card.didactic-card {
@@ -457,9 +452,18 @@
 }
 
 @media (max-width: 760px) {
+  .book-list-page {
+    padding: 1rem;
+  }
+
+  .book-list-header {
+    padding: 1rem;
+  }
+
   .book-list-layout {
     display: block;
   }
+
   .school-selector-bar {
     position: static;
     margin: 0 0 1rem;
