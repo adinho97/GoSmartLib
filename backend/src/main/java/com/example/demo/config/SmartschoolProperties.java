@@ -9,7 +9,7 @@ public class SmartschoolProperties {
     private String clientId;
     private String clientSecret;
     private String redirectUri;
-    private String apiBaseUrl = "https://oauth.smartschool.be";
+    private String apiBaseUrl;
 
     public String getClientId() {
         return clientId;
