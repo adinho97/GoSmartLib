@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
@@ -88,13 +89,48 @@ export class BookListComponent implements OnInit {
   maxAvailablePages = this.maxPageFilterLimit;
 
   constructor(
+    private route: ActivatedRoute,
     private bookService: BookService,
     private schoolService: SchoolService,
   ) {}
 
   async ngOnInit() {
+    this.initializeFiltersFromQueryParams();
+    this.route.queryParamMap.subscribe((params) => {
+      this.applyQueryGenreFilter(params.get("genre"));
+    });
     await this.loadSchools();
     await this.loadBooks();
+    this.applyFilters();
+  }
+
+  private initializeFiltersFromQueryParams() {
+    const genre = this.route.snapshot.queryParamMap.get("genre");
+    this.applyQueryGenreFilter(genre);
+  }
+
+  private applyQueryGenreFilter(genre: string | null) {
+    if (!genre) {
+      // Clicking "Boekenlijst" removes the didactic quick-filter.
+      this.selectedGenre = "";
+      this.selectedNonFictionSubgenre = "";
+      this.applyFilters();
+      return;
+    }
+
+    if (genre.toLowerCase() === "didactiek") {
+      this.selectedGenre = "Didactiek";
+      this.selectedNonFictionSubgenre = "";
+      this.applyFilters();
+      return;
+    }
+
+    const matchedGenre = this.genres.find(
+      (g) => g.toLowerCase() === genre.toLowerCase(),
+    );
+    this.selectedGenre = matchedGenre || "";
+    this.selectedNonFictionSubgenre = "";
+    this.applyFilters();
   }
 
   async loadSchools() {

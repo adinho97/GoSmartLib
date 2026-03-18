@@ -4,32 +4,23 @@
       <h1>Boekenlijst</h1>
       <p>Ontdek en beheer alle beschikbare boeken op één plek.</p>
     </div>
-    <div class="header-actions">
-      <a class="header-button secondary" [routerLink]="['/dashboard']"
-        >Terug naar dashboard</a
-      >
-      @if (isLibrarian) {
-        <a class="header-button" [routerLink]="['/add']">Boek toevoegen</a>
-      }
-    </div>
+    @if (isTeacher && schools.length > 0) {
+      <div class="school-selector-bar">
+        <label for="schoolFilter">School</label>
+        <select
+          id="schoolFilter"
+          [ngModel]="selectedSchoolId"
+          (ngModelChange)="onSchoolChange($event)"
+        >
+          @for (school of schools; track school) {
+            <option [value]="school.id">
+              {{ school.naam }}
+            </option>
+          }
+        </select>
+      </div>
+    }
   </header>
-
-  @if (isTeacher && schools.length > 0) {
-    <div class="school-selector-bar">
-      <label for="schoolFilter">Geselecteerde school</label>
-      <select
-        id="schoolFilter"
-        [ngModel]="selectedSchoolId"
-        (ngModelChange)="onSchoolChange($event)"
-      >
-        @for (school of schools; track school) {
-          <option [value]="school.id">
-            {{ school.naam }}
-          </option>
-        }
-      </select>
-    </div>
-  }
 
   @if (isLoading) {
     <p class="info-message">Boeken laden...</p>
@@ -53,6 +44,9 @@
           (ngModelChange)="onGenreChange()"
         >
           <option value="">Alle genres</option>
+          @if (selectedGenre === "Didactiek") {
+            <option value="Didactiek">Didactiek</option>
+          }
           @for (genre of availableGenres; track genre) {
             <option [value]="genre">
               {{ genre }}
