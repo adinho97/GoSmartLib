@@ -178,6 +178,9 @@ public class BookService {
             return new ImportOutcome(ImportStatus.NOT_FOUND, null);
         }
 
+        fetched.setIsbn(normalizeAndValidateIsbn(fetched.getIsbn())
+                .orElse(fetched.getIsbn()));
+
         fetched.setSchool(school);
         Book saved = bookRepository.save(fetched);
         return new ImportOutcome(ImportStatus.ADDED, BookMapper.toDto(saved));
