@@ -1,8 +1,10 @@
 package com.example.demo.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -20,7 +22,10 @@ public class AuthService {
     private final SmartschoolProperties smartschoolProperties;
 
     public AuthService(WebClient.Builder webClientBuilder, SmartschoolProperties smartschoolProperties) {
-        this.webClient = webClientBuilder.build();
+        this.webClient = webClientBuilder
+                .codecs(configurer -> configurer.defaultCodecs().jackson2JsonDecoder(
+                        new Jackson2JsonDecoder(new ObjectMapper(), MediaType.TEXT_HTML, MediaType.APPLICATION_JSON)))
+                .build();
         this.smartschoolProperties = smartschoolProperties;
     }
 
@@ -48,8 +53,10 @@ public class AuthService {
                     } else {
                         return response.bodyToMono(String.class)
                                 .flatMap(body -> {
-                                    logger.error("Error from Smartschool token endpoint: {} {}", response.statusCode(), body);
-                                    return Mono.error(new RuntimeException("Error from Smartschool token endpoint: " + body));
+                                    logger.error("Error from Smartschool token endpoint: {} {}", response.statusCode(),
+                                            body);
+                                    return Mono.error(
+                                            new RuntimeException("Error from Smartschool token endpoint: " + body));
                                 });
                     }
                 })
@@ -63,12 +70,15 @@ public class AuthService {
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(SmartschoolUserInfo.class)
-                                .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for user: {}", userInfo.getName()));
+                                .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for user: {}",
+                                        userInfo.getName()));
                     } else {
                         return response.bodyToMono(String.class)
                                 .flatMap(body -> {
-                                    logger.error("Error from Smartschool userinfo endpoint: {} {}", response.statusCode(), body);
-                                    return Mono.error(new RuntimeException("Error from Smartschool userinfo endpoint: " + body));
+                                    logger.error("Error from Smartschool userinfo endpoint: {} {}",
+                                            response.statusCode(), body);
+                                    return Mono.error(
+                                            new RuntimeException("Error from Smartschool userinfo endpoint: " + body));
                                 });
                     }
                 })
