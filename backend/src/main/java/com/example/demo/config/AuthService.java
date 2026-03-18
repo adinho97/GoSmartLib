@@ -1,5 +1,7 @@
 package com.example.demo.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -12,11 +14,13 @@ import java.nio.charset.StandardCharsets;
 @Service
 public class AuthService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
     private final WebClient webClient;
     private final SmartschoolProperties smartschoolProperties;
 
     public AuthService(WebClient.Builder webClientBuilder, SmartschoolProperties smartschoolProperties) {
-        this.webClient = webClientBuilder.baseUrl("https://oauth.smartschool.be").build();
+        this.webClient = webClientBuilder.build();
         this.smartschoolProperties = smartschoolProperties;
     }
 
@@ -32,20 +36,42 @@ public class AuthService {
         formData.add("redirect_uri", smartschoolProperties.getRedirectUri());
 
         return this.webClient.post()
-                .uri("/OAuth/Token")
+                .uri(smartschoolProperties.getApiBaseUrl() + "/OAuth/Token")
                 .headers(headers -> headers.setBasicAuth(smartschoolProperties.getClientId(),
                         smartschoolProperties.getClientSecret(), StandardCharsets.UTF_8))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .bodyValue(formData)
-                .retrieve()
-                .bodyToMono(SmartschoolTokenResponse.class);
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        return response.bodyToMono(SmartschoolTokenResponse.class)
+                                .doOnSuccess(token -> logger.info("Successfully retrieved access token"));
+                    } else {
+                        return response.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    logger.error("Error from Smartschool token endpoint: {} {}", response.statusCode(), body);
+                                    return Mono.error(new RuntimeException("Error from Smartschool token endpoint: " + body));
+                                });
+                    }
+                })
+                .doOnError(error -> logger.error("Failed to retrieve access token", error));
     }
 
     private Mono<SmartschoolUserInfo> getUserInfo(SmartschoolTokenResponse tokenResponse) {
         return this.webClient.get()
-                .uri("/Api/V1/userinfo")
+                .uri(smartschoolProperties.getApiBaseUrl() + "/Api/V1/userinfo")
                 .headers(headers -> headers.setBearerAuth(tokenResponse.getAccessToken()))
-                .retrieve()
-                .bodyToMono(SmartschoolUserInfo.class);
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        return response.bodyToMono(SmartschoolUserInfo.class)
+                                .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for user: {}", userInfo.getName()));
+                    } else {
+                        return response.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    logger.error("Error from Smartschool userinfo endpoint: {} {}", response.statusCode(), body);
+                                    return Mono.error(new RuntimeException("Error from Smartschool userinfo endpoint: " + body));
+                                });
+                    }
+                })
+                .doOnError(error -> logger.error("Failed to retrieve user info", error));
     }
 }
