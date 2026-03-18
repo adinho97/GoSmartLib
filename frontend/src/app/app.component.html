@@ -1,23 +1,50 @@
 @if (showNavbar) {
   <header class="top-nav">
     <nav class="top-nav-inner" aria-label="Hoofdnavigatie">
-      <a class="brand" [routerLink]="['/dashboard']">GoSmartLib</a>
+      <div class="nav-left">
+        <a class="brand" [routerLink]="['/dashboard']">GoSmartLib</a>
+      </div>
       <div class="nav-links">
-        <a routerLink="/profile" routerLinkActive="active">Profiel</a>
-        <a routerLink="/books" [class.active]="isBooksListActive"
-          >Boekenlijst</a
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
         >
+          Dashboard
+        </a>
+        <a routerLink="/profile" routerLinkActive="active"> Profiel </a>
+        <a routerLink="/books" [class.active]="isBooksListActive">
+          Boekenlijst
+        </a>
         @if (isLibrarian) {
           <div class="nav-dropdown" tabindex="0">
-            <button type="button" class="nav-dropdown-trigger">Add book</button>
+            <button
+              type="button"
+              class="nav-dropdown-trigger"
+              [class.active-dropdown]="isAddBookActive"
+            >
+              Boek toevoegen
+              <svg
+                class="dropdown-arrow"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+              >
+                <path fill="currentColor" d="M7 10l5 5 5-5z" />
+              </svg>
+            </button>
             <div class="nav-dropdown-menu">
-              <a routerLink="/isbn" routerLinkActive="active">ISBN</a>
-              <a routerLink="/add" routerLinkActive="active">Manueel</a>
+              <a routerLink="/isbn" routerLinkActive="active"> Via ISBN </a>
+              <a routerLink="/add" routerLinkActive="active">
+                Manueel invoeren
+              </a>
             </div>
           </div>
         }
         @if (isTeacher) {
           <a
+            class="teacher-badge-link"
             routerLink="/books"
             [queryParams]="{ genre: 'Didactiek' }"
             [class.active]="isDidacticCollectionActive"
