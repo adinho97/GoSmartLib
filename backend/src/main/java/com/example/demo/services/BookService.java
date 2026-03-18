@@ -80,20 +80,8 @@ public class BookService {
     @Transactional
     public BookDto importByIsbn(String isbn, Long schoolId) {
         School school = schoolService.getByIdOrDefault(schoolId);
-
-        Optional<Book> existing = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId());
-        if (existing.isPresent()) {
-            return BookMapper.toDto(existing.get());
-        }
-
-        Book fetched = fetchBookFromOpenLibrary(isbn);
-        if (fetched == null) {
-            return null;
-        }
-
-        fetched.setSchool(school);
-        Book saved = bookRepository.save(fetched);
-        return BookMapper.toDto(saved);
+        ImportOutcome outcome = importByIsbnInternal(isbn, school);
+        return outcome.bookDto();
     }
 
     public ImportResultDto importBulkByIsbn(MultipartFile file, Long schoolId) {
@@ -138,18 +126,17 @@ public class BookService {
         List<ImportResultDto.RowResult> rows = new ArrayList<>(parsed.invalidRows());
         for (String isbn : parsed.uniqueIsbns()) {
             try {
-                Optional<Book> existing = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId());
-                if (existing.isPresent()) {
+                ImportOutcome outcome = importByIsbnInternal(isbn, school);
+                if (outcome.status() == ImportStatus.ALREADY_EXISTS) {
                     rows.add(new ImportResultDto.RowResult(
                             isbn,
                             ImportResultDto.Status.ALREADY_EXISTS,
                             "Boek bestaat al in de bibliotheek.",
-                            existing.get().getId()));
+                            outcome.bookDto() != null ? outcome.bookDto().getId() : null));
                     continue;
                 }
 
-                BookDto imported = importByIsbn(isbn, school.getId());
-                if (imported == null) {
+                if (outcome.status() == ImportStatus.NOT_FOUND) {
                     rows.add(new ImportResultDto.RowResult(
                             isbn,
                             ImportResultDto.Status.NOT_FOUND,
@@ -162,7 +149,7 @@ public class BookService {
                         isbn,
                         ImportResultDto.Status.ADDED,
                         "Boek toegevoegd.",
-                        imported.getId()));
+                        outcome.bookDto() != null ? outcome.bookDto().getId() : null));
             } catch (Exception ex) {
                 rows.add(new ImportResultDto.RowResult(
                         isbn,
@@ -174,6 +161,22 @@ public class BookService {
 
         result.setResults(rows);
         return result;
+    }
+
+    private ImportOutcome importByIsbnInternal(String isbn, School school) {
+        Optional<Book> existing = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId());
+        if (existing.isPresent()) {
+            return new ImportOutcome(ImportStatus.ALREADY_EXISTS, BookMapper.toDto(existing.get()));
+        }
+
+        Book fetched = fetchBookFromOpenLibrary(isbn);
+        if (fetched == null) {
+            return new ImportOutcome(ImportStatus.NOT_FOUND, null);
+        }
+
+        fetched.setSchool(school);
+        Book saved = bookRepository.save(fetched);
+        return new ImportOutcome(ImportStatus.ADDED, BookMapper.toDto(saved));
     }
 
     private ParsedBulkIsbn parseCsvIsbns(MultipartFile file) {
@@ -366,6 +369,15 @@ public class BookService {
             List<ImportResultDto.RowResult> invalidRows,
             int totalRows,
             int duplicateRowsSkipped) {
+    }
+
+    private enum ImportStatus {
+        ADDED,
+        ALREADY_EXISTS,
+        NOT_FOUND
+    }
+
+    private record ImportOutcome(ImportStatus status, BookDto bookDto) {
     }
 
     private Book fetchBookFromOpenLibrary(String isbn) {
