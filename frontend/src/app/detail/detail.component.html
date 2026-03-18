@@ -2,13 +2,21 @@
   <div class="detail-wrapper">
     <div class="detail-card">
       <button class="back-btn" (click)="goBack()">← Terug</button>
+      
+      @if (isLibrarian) {
+        <a class="edit-btn-detail" [routerLink]="['/edit', book.id]">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+          </svg>
+          Aanpassen
+        </a>
+      }
+
       <h1 class="book-title">{{ book.titel }}</h1>
       <div class="detail-content">
         <div class="book-cover">
           @if (book.cover) {
-            <img
-              [src]="book.cover"
-              alt="{{ book.titel }}">
+            <img [src]="book.cover" alt="{{ book.titel }}" />
           }
         </div>
         <div class="book-info">
@@ -24,6 +32,85 @@
             <h3>Beschrijving</h3>
             <p>{{ book.beschrijving }}</p>
           </div>
+
+          <section class="review-section" aria-label="Boek reviews">
+            <div class="review-header">
+              <h3>Reviews</h3>
+              @if (reviews.length >= 10) {
+                <p class="average-rating">
+                  Gemiddelde score: {{ averageRating | number: "1.0-1" }}/5
+                </p>
+              }
+            </div>
+
+            <form class="review-form" (ngSubmit)="submitReview()">
+              <label>Jouw score</label>
+              <div
+                class="rating-stars"
+                role="radiogroup"
+                aria-label="Kies een score"
+              >
+                @for (rating of reviewRatings; track rating) {
+                  <button
+                    type="button"
+                    class="star-btn"
+                    [class.active]="rating <= newReviewRating"
+                    [attr.aria-label]="rating + ' ster'"
+                    (click)="setReviewRating(rating)"
+                  >
+                    ★
+                  </button>
+                }
+              </div>
+
+              <label for="reviewComment">Comment</label>
+              <textarea
+                id="reviewComment"
+                name="reviewComment"
+                rows="4"
+                maxlength="500"
+                [(ngModel)]="newReviewComment"
+                placeholder="Wat vond je van dit boek?"
+              ></textarea>
+
+              @if (reviewError) {
+                <p class="review-error">{{ reviewError }}</p>
+              }
+
+              <button type="submit" class="submit-review-btn">
+                Review plaatsen
+              </button>
+            </form>
+
+            @if (reviews.length === 0) {
+              <p class="no-reviews">Er zijn nog geen reviews.</p>
+            }
+
+            @if (reviews.length > 0) {
+              <div class="review-list">
+                @for (review of reviews; track review.createdAt) {
+                  <article class="review-item">
+                    <div class="review-item-top">
+                      <span class="review-rating">{{ review.rating }}/5</span>
+                      <span class="review-date">{{
+                        getReviewDate(review.createdAt)
+                      }}</span>
+                    </div>
+                    <p>{{ review.comment }}</p>
+                    @if (isLibrarian) {
+                      <button
+                        type="button"
+                        class="delete-review-btn"
+                        (click)="deleteReview(review.id)"
+                      >
+                        Verwijder review
+                      </button>
+                    }
+                  </article>
+                }
+              </div>
+            }
+          </section>
         </div>
       </div>
     </div>

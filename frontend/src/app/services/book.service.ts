@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { Book } from "../models/book";
+import { Review } from "../models/review";
 import axios from "axios";
 
 @Injectable({
@@ -34,6 +35,15 @@ export class BookService {
 
     const separator = path.includes("?") ? "&" : "?";
     return `${path}${separator}schoolId=${schoolId}`;
+  }
+
+  private getRoleHeaders() {
+    const role = localStorage.getItem("role") || "";
+    return {
+      headers: {
+        "X-User-Role": role,
+      },
+    };
   }
 
   getAllBooks(): Observable<Book[]> {
@@ -73,7 +83,33 @@ export class BookService {
   }
 
   async deleteBook(id: number, schoolId?: number) {
-    await axios.delete(this.withSchoolId(`${this.apiUrl}/${id}`, schoolId));
+    await axios.delete(
+      this.withSchoolId(`${this.apiUrl}/${id}`, schoolId),
+      this.getRoleHeaders(),
+    );
+  }
+
+  async getBookReviews(bookId: number): Promise<Review[]> {
+    const res = await axios.get<Review[]>(`${this.apiUrl}/${bookId}/reviews`);
+    return res.data;
+  }
+
+  async addBookReview(
+    bookId: number,
+    payload: { rating: number; comment: string },
+  ): Promise<Review> {
+    const res = await axios.post<Review>(
+      `${this.apiUrl}/${bookId}/reviews`,
+      payload,
+    );
+    return res.data;
+  }
+
+  async deleteBookReview(bookId: number, reviewId: number): Promise<void> {
+    await axios.delete(
+      `${this.apiUrl}/${bookId}/reviews/${reviewId}`,
+      this.getRoleHeaders(),
+    );
   }
 
   async fetchBookByIsbn(isbn: string) {
@@ -88,10 +124,7 @@ export class BookService {
     return res.data;
   }
 
-  async isBookInLibrary(
-    isbn: string,
-    schoolId?: number,
-  ): Promise<boolean> {
+  async isBookInLibrary(isbn: string, schoolId?: number): Promise<boolean> {
     try {
       await axios.get(
         this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
@@ -104,4 +137,8 @@ export class BookService {
       throw err;
     }
   }
+  async updateBook(id: number, book: Book): Promise<Book> {
+  const res = await axios.put(`${this.apiUrl}/${id}`, book);
+  return res.data;
+}
 }
