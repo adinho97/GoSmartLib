@@ -1,171 +1,60 @@
-.book-list-page {
-  padding: 2.5rem;
-  background: linear-gradient(180deg, #f8f5f6 0%, #f3ecef 100%);
-  min-height: 100vh;
-  font-family: "Inter", sans-serif;
-  color: #2c2c2c;
-}
-
-.school-selector-bar {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.7rem;
-  border-radius: 10px;
-  border: 1px solid rgba(96, 22, 47, 0.16);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 24px rgba(96, 22, 47, 0.16);
-  backdrop-filter: blur(4px);
-}
-
-.school-selector-bar label {
-  margin: 0;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #60162f;
-  white-space: nowrap;
-}
-
-.school-selector-bar select {
-  min-width: 230px;
-  height: 34px;
-  border: 1px solid rgba(96, 22, 47, 0.24);
-  border-radius: 8px;
-  padding: 0 0.55rem;
+.edit-container {
+  max-width: 600px;
+  margin: 3rem auto;
+  padding: 2rem;
   background: #fff;
-  color: #2c2c2c;
-  font-size: 0.88rem;
-}
-.book-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1.3rem 1.5rem;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #fff7fa 0%, #f6edf1 100%);
+  border-radius: 18px;
   border: 1px solid rgba(96, 22, 47, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.book-list-page h1 {
-  font-family: "Georgia", "Times New Roman", serif;
-  font-size: 2.75rem;
-  margin: 0;
+h2 {
+  font-family: Arial, Helvetica, sans-serif;
   color: #60162f;
-  letter-spacing: 0.8px;
-  line-height: 1.1;
-  text-shadow: 0 2px 8px rgba(96, 22, 47, 0.12);
-}
-
-.header-text p {
-  margin: 0.4rem 0 0;
-  color: #6f4b58;
-  font-size: 0.95rem;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.7rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.header-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  padding: 0.55rem 0.9rem;
-  border-radius: 10px;
-  border: 1px solid #871f42;
-  background-color: #871f42;
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-}
-
-.header-button:hover {
-  background-color: #60162f;
-  border-color: #60162f;
-  transform: translateY(-1px);
-}
-
-.header-button.secondary {
-  background-color: transparent;
-  color: #871f42;
-}
-
-.header-button.secondary:hover {
-  color: #fff;
-}
-
-.info-message,
-.error-message {
+  margin-bottom: 1.5rem;
   text-align: center;
-  margin: 2rem 0;
-  font-size: 1.1rem;
+  font-weight: bold;
 }
 
-.error-message {
-  color: #871f42;
-  font-weight: 500;
-}
-
-.book-list-layout {
-  display: flex;
-  gap: 1.4rem;
-  align-items: flex-start;
-}
-
-.filters-sidebar {
-  flex: 0 0 280px;
-  background: #fff;
-  border: 1px solid rgba(96, 22, 47, 0.12);
-  border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(96, 22, 47, 0.08);
-  padding: 1rem;
+.form-group {
+  margin-bottom: 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  position: sticky;
-  top: 1rem;
+  gap: 0.4rem;
 }
 
-.filters-sidebar h2 {
-  margin: 0 0 0.25rem;
-  color: #60162f;
-  font-size: 1.2rem;
-}
-
-.filters-sidebar label {
+.form-group label {
   font-size: 0.85rem;
+  font-weight: 700;
   color: #5a3a45;
-  font-weight: 600;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.filters-sidebar select,
-.filters-sidebar input[type="date"] {
-  height: 36px;
-  border: 1px solid rgba(96, 22, 47, 0.22);
+.form-group input, 
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid rgba(96, 22, 47, 0.2);
   border-radius: 8px;
-  padding: 0 0.55rem;
-  font-size: 0.9rem;
-  background: #fff;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.page-slider-group {
+.form-group input:focus {
+  outline: none;
+  border-color: #871f42;
+}
+
+/* GECMBINEERDE BUTTON GROEP LOGICA */
+.button-group {
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  margin-top: 0.35rem;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: center;
 }
 
+/* FILTERS (NIEUWE FEATURE) */
 .single-page-slider {
   display: flex;
   flex-direction: column;
@@ -190,12 +79,6 @@
   background: #e6d6dc;
 }
 
-.single-page-slider input[type="range"]::-moz-range-track {
-  height: 6px;
-  border-radius: 999px;
-  background: #e6d6dc;
-}
-
 .single-page-slider input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 18px;
@@ -207,80 +90,45 @@
   cursor: pointer;
 }
 
-.single-page-slider input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid #60162f;
-  background: #fff;
+/* KNOPPEN STYLES */
+.save-button, .apply-filters-button {
+  background: #871f42;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .apply-filters-button {
   margin-top: 0.6rem;
   height: 36px;
-  border-radius: 8px;
-  border: 1px solid #871f42;
-  background: #871f42;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
 }
 
-.reset-filters-button {
-  margin-top: 0.4rem;
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid #871f42;
+.save-button:hover {
+  background: #60162f;
+}
+
+.cancel-button {
   background: transparent;
   color: #871f42;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.books-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.search-bar-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 0.9rem;
-}
-
-.search-controls {
-  display: flex;
-  gap: 0.55rem;
-}
-
-.search-bar-wrapper input {
-  flex: 1;
-  height: 38px;
-  border: 1px solid rgba(96, 22, 47, 0.22);
-  border-radius: 8px;
-  padding: 0 0.65rem;
-  background: #fff;
-}
-
-.search-button {
-  height: 38px;
-  padding: 0 0.95rem;
-  border-radius: 8px;
   border: 1px solid #871f42;
-  background: #871f42;
-  color: #fff;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.books-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 2.2rem;
+.cancel-button:hover {
+  background: #fdf2f5;
 }
 
+/* BOEK KAARTEN (LIJST WEERGAVE) */
 .book-card {
   background: #ffffff;
   border-radius: 18px;
@@ -297,11 +145,6 @@
 .book-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 14px 30px rgba(96, 22, 47, 0.18);
-}
-
-.book-card.didactic-card {
-  border: 2px solid #e67e22 !important;
-  background-color: #fff9f4;
 }
 
 .didactic-badge {
@@ -327,33 +170,7 @@
   border-radius: 999px;
   font-size: 0.95rem;
   font-weight: 900;
-  letter-spacing: 0.35px;
-  box-shadow:
-    0 10px 24px rgba(95, 29, 56, 0.48),
-    0 0 0 3px rgba(180, 63, 105, 0.28);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
   z-index: 6;
-}
-
-.score-stars {
-  position: relative;
-  display: inline-block;
-  font-size: 0.95rem;
-  line-height: 1;
-  letter-spacing: 1px;
-}
-
-.score-stars-track {
-  color: rgba(255, 255, 255, 0.35);
-}
-
-.score-stars-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  color: #ffd66b;
 }
 
 .book-cover-slot {
@@ -372,106 +189,11 @@
   object-fit: cover;
 }
 
-.book-cover-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ERROR MELDINGEN */
+.error {
+  color: #871f42;
   text-align: center;
-  padding: 1rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #6f4b58;
-  line-height: 1.4;
-  background:
-    radial-gradient(
-      circle at 25% 20%,
-      rgba(255, 255, 255, 0.8),
-      transparent 40%
-    ),
-    repeating-linear-gradient(
-      135deg,
-      rgba(135, 31, 66, 0.06) 0,
-      rgba(135, 31, 66, 0.06) 10px,
-      rgba(96, 22, 47, 0.03) 10px,
-      rgba(96, 22, 47, 0.03) 20px
-    ),
-    linear-gradient(135deg, #f5ebef, #ead9e0);
-}
-.book-content {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.book-content h2 {
-  font-family: "Georgia", serif;
-  font-size: 1.25rem;
-  margin: 0;
-  color: #60162f;
-}
-
-.book-author {
-  color: #871f42;
-  font-style: italic;
-  margin: 0;
-}
-
-.book-meta-group {
-  margin-top: 0.5rem;
-}
-
-.delete-button {
   margin-top: 1rem;
-  padding: 0.5rem;
-  border-radius: 8px;
-  border: none;
-  background: #871f42;
-  color: #fff;
-  cursor: pointer;
-}
-
-.pagination {
-  margin-top: 2.5rem;
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.pagination-button {
-  min-width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  border: 1px solid #871f42;
-  background: #fff;
-  color: #871f42;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.pagination-button.active {
-  background: #871f42;
-  color: #fff;
-}
-
-@media (max-width: 760px) {
-  .book-list-layout {
-    display: block;
-  }
-  .school-selector-bar {
-    position: static;
-    margin: 0 0 1rem;
-    width: 100%;
-    justify-content: space-between;
-  }
-  .school-selector-bar select {
-    min-width: 0;
-    flex: 1;
-  }
-  .filters-sidebar {
-    position: static;
-    margin-bottom: 2rem;
-  }
+  font-weight: 500;
+  font-family: Arial, Helvetica, sans-serif;
 }

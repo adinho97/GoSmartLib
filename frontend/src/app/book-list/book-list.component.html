@@ -5,9 +5,7 @@
       <p>Ontdek en beheer alle beschikbare boeken op één plek.</p>
     </div>
     <div class="header-actions">
-      <a class="header-button secondary" [routerLink]="['/dashboard']"
-        >Terug naar dashboard</a
-      >
+      <a class="header-button secondary" [routerLink]="['/dashboard']">Terug naar dashboard</a>
       @if (isLibrarian) {
         <a class="header-button" [routerLink]="['/add']">Boek toevoegen</a>
       }
@@ -17,15 +15,9 @@
   @if (isTeacher && schools.length > 0) {
     <div class="school-selector-bar">
       <label for="schoolFilter">Geselecteerde school</label>
-      <select
-        id="schoolFilter"
-        [ngModel]="selectedSchoolId"
-        (ngModelChange)="onSchoolChange($event)"
-      >
+      <select id="schoolFilter" [ngModel]="selectedSchoolId" (ngModelChange)="onSchoolChange($event)">
         @for (school of schools; track school) {
-          <option [value]="school.id">
-            {{ school.naam }}
-          </option>
+          <option [value]="school.id">{{ school.naam }}</option>
         }
       </select>
     </div>
@@ -50,20 +42,18 @@
         <select id="genreFilter" [(ngModel)]="selectedGenre">
           <option value="">Alle genres</option>
           @for (genre of availableGenres; track genre) {
-            <option [value]="genre">
-              {{ genre }}
-            </option>
+            <option [value]="genre">{{ genre }}</option>
           }
         </select>
+        
         <label for="taalFilter">Taal</label>
         <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
           @for (language of availableLanguages; track language) {
-            <option [value]="language">
-              {{ language }}
-            </option>
+            <option [value]="language">{{ language }}</option>
           }
         </select>
+        
         <label for="averageFilter">Gemiddelde score (min.)</label>
         <select id="averageFilter" [(ngModel)]="selectedMinAverageRating">
           <option value="">Alle scores</option>
@@ -73,6 +63,7 @@
           <option value="4">4.0+</option>
           <option value="4.5">4.5+</option>
         </select>
+        
         <div class="page-slider-group">
           <label>Pagina's: {{ minPages }} - {{ maxPages }}</label>
           <div class="single-page-slider">
@@ -98,117 +89,76 @@
             />
           </div>
         </div>
-        <button
-          type="button"
-          class="apply-filters-button"
-          (click)="applyFilters()"
-        >
-          Filters toepassen
-        </button>
-        <button
-          type="button"
-          class="reset-filters-button"
-          (click)="clearFilters()"
-        >
-          Filters wissen
-        </button>
+        
+        <button type="button" class="apply-filters-button" (click)="applyFilters()">Filters toepassen</button>
+        <button type="button" class="reset-filters-button" (click)="clearFilters()">Filters wissen</button>
       </aside>
+
       <section class="books-content">
         <div class="search-bar-wrapper">
           <label for="bookSearch">Zoek op titel of auteur</label>
           <div class="search-controls">
-            <input
-              id="bookSearch"
-              type="text"
-              placeholder="Bijv. Harry Potter of J.K. Rowling"
-              [(ngModel)]="searchInput"
-              (keydown.enter)="applySearch()"
-            />
-            <button type="button" class="search-button" (click)="applySearch()">
-              Zoeken
-            </button>
+            <input id="bookSearch" type="text" placeholder="Bijv. Harry Potter of J.K. Rowling" [(ngModel)]="searchInput" (keydown.enter)="applySearch()" />
+            <button type="button" class="search-button" (click)="applySearch()">Zoeken</button>
           </div>
         </div>
+
         @if (filteredBooks.length > 0) {
           <p class="filter-result-count">
             {{ filteredBooks.length }} boek(en) gevonden
           </p>
-        }
-        @if (filteredBooks.length === 0) {
-          <div class="info-message">
-            Geen boeken gevonden voor deze filters.
-          </div>
-        }
-        @if (filteredBooks.length > 0) {
+          
           <div class="books-grid">
-            @for (book of pagedBooks; track book) {
-              <article
-                class="book-card"
-                [routerLink]="['/detail', book.id]"
-                [class.didactic-card]="
-                  (book.genre || '').toLowerCase() === 'didactiek'
-                "
-              >
+            @for (book of pagedBooks; track book.id) {
+              <article class="book-card" [routerLink]="['/detail', book.id]" [class.didactic-card]="(book.genre || '').toLowerCase() === 'didactiek'">
+                
                 @if ((book.genre || "").toLowerCase() === "didactiek") {
                   <div class="didactic-badge">Lerarencollectie</div>
                 }
+
                 @if ((book.reviewCount || 0) >= 10) {
                   <div class="score-badge">
-                    <span
-                      class="score-stars"
-                      aria-label="Gemiddelde score {{
-                        book.averageRating || 0 | number: '1.1-1'
-                      }} op 5"
-                    >
+                    <span class="score-stars" aria-label="Gemiddelde score {{ book.averageRating || 0 | number: '1.1-1' }} op 5">
                       <span class="score-stars-track">★★★★★</span>
-                      <span
-                        class="score-stars-fill"
-                        [style.width.%]="getAverageRatingFillPercentage(book)"
-                        >★★★★★</span
-                      >
+                      <span class="score-stars-fill" [style.width.%]="getAverageRatingFillPercentage(book)">★★★★★</span>
                     </span>
                   </div>
                 }
+
                 <div class="book-cover-slot">
                   @if ((book.cover || "").trim()) {
-                    <img
-                      [src]="book.cover"
-                      [alt]="book.titel"
-                      class="book-cover"
-                    />
+                    <img [src]="book.cover" [alt]="book.titel" class="book-cover" />
                   } @else {
-                    <div class="book-cover-placeholder">
-                      Geen cover beschikbaar
-                    </div>
+                    <div class="book-cover-placeholder">Geen cover beschikbaar</div>
                   }
                 </div>
+
                 <div class="book-content">
                   <h2>{{ book.titel }}</h2>
                   <p class="book-author">{{ book.auteur }}</p>
+                  
                   <div class="book-meta-group">
-                    <p class="book-meta">
-                      <strong>Genre:</strong> {{ book.genre || "Onbekend" }}
-                    </p>
-                    <p class="book-meta">
-                      <strong>Taal:</strong> {{ book.taal || "Onbekend" }}
-                    </p>
+                    <p class="book-meta"><strong>Genre:</strong> {{ book.genre || "Onbekend" }}</p>
+                    <p class="book-meta"><strong>Taal:</strong> {{ book.taal || "Onbekend" }}</p>
                   </div>
+                  
                   @if (isLibrarian) {
-                    <button
-                      type="button"
-                      class="delete-button"
-                      (click)="
-                        $event.stopPropagation();
-                        $event.preventDefault();
-                        deleteBook($event, book)
-                      "
-                    >
-                      Verwijder
-                    </button>
+                    <div class="admin-actions">
+                      <a class="edit-button" [routerLink]="['/edit', book.id]" (click)="$event.stopPropagation()">
+                        Aanpassen
+                      </a>
+                      <button type="button" class="delete-button" (click)="$event.stopPropagation(); $event.preventDefault(); deleteBook($event, book)">
+                        Verwijder
+                      </button>
+                    </div>
                   }
                 </div>
               </article>
             }
+          </div>
+        } @else {
+          <div class="info-message">
+            Geen boeken gevonden voor deze filters.
           </div>
         }
       </section>
@@ -218,14 +168,7 @@
   @if (!isLoading && !error && filteredBooks.length > 0 && totalPages > 1) {
     <nav class="pagination">
       @for (page of pageNumbers; track page) {
-        <button
-          type="button"
-          class="pagination-button"
-          [class.active]="page === currentPage"
-          (click)="goToPage(page)"
-        >
-          {{ page }}
-        </button>
+        <button type="button" class="pagination-button" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
       }
     </nav>
   }

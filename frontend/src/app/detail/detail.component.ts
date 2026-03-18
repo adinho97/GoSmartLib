@@ -14,16 +14,53 @@ import axios from "axios";
 })
 export class DetailComponent implements OnInit {
   book!: Book;
+  
+  // Rol-gebaseerde logica
   readonly userRole = localStorage.getItem("role");
   readonly isLibrarian = this.userRole === "bibbeheerder";
+  
+  // Review-gerelateerde variabelen
   currentBookId: number | null = null;
   reviewRatings = [1, 2, 3, 4, 5];
   reviews: Review[] = [];
+  newReviewRating = 0;
+  newReviewComment = "";
+  reviewError = "";
+
+  constructor(
+    private location: Location,
+    private route: ActivatedRoute,
+    private bookService: BookService,
+  ) {}
+
+  ngOnInit(): void {
+    const id = Number(this.route.snapshot.paramMap.get("id"));
+    this.currentBookId = Number.isFinite(id) ? id : null;
+
+    if (this.currentBookId !== null) {
+      // Laad het boek
+      this.bookService.getBookById(this.currentBookId).subscribe((data) => {
+        this.book = data;
+      });
+      
+      // Laad de reviews
+      this.loadReviews(this.currentBookId);
+    }
+    
+    // Debugging logs (optioneel)
+    console.log("Huidige rol:", this.userRole);
+    console.log("Is beheerder:", this.isLibrarian);
+  }
+
+  goBack(): void {
+    this.location.back();
+  }
+
+  // --- REVIEW METHODES ---
+
   getReviewDate(date: string | Date): string {
-    // Always treat input as UTC, then display in Europe/Amsterdam
     let d: Date;
     if (typeof date === "string") {
-      // If date string lacks timezone, treat as UTC
       d = date.match(/Z|[+-]\d{2}:?\d{2}$/)
         ? new Date(date)
         : new Date(date + "Z");
@@ -39,31 +76,6 @@ export class DetailComponent implements OnInit {
       hour12: false,
       timeZone: "Europe/Amsterdam",
     }).format(d);
-  }
-  newReviewRating = 0;
-  newReviewComment = "";
-  reviewError = "";
-
-  constructor(
-    private location: Location,
-    private route: ActivatedRoute,
-    private bookService: BookService,
-  ) {}
-
-  ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get("id"));
-    this.currentBookId = Number.isFinite(id) ? id : null;
-    if (this.currentBookId !== null) {
-      this.loadReviews(this.currentBookId);
-    }
-
-    this.bookService.getBookById(id).subscribe((data) => {
-      this.book = data;
-    });
-  }
-
-  goBack() {
-    this.location.back();
   }
 
   setReviewRating(rating: number): void {
@@ -107,24 +119,19 @@ export class DetailComponent implements OnInit {
           return;
         }
       }
-
       this.reviewError = "Review opslaan mislukt. Probeer opnieuw.";
     }
   }
 
   async deleteReview(reviewId: number): Promise<void> {
-    if (!this.isLibrarian) {
-      return;
-    }
+    if (!this.isLibrarian) return;
 
     if (this.currentBookId === null) {
       this.reviewError = "Boek kon niet worden gevonden.";
       return;
     }
 
-    if (!confirm("Review verwijderen?")) {
-      return;
-    }
+    if (!confirm("Review verwijderen?")) return;
 
     try {
       await this.bookService.deleteBookReview(this.currentBookId, reviewId);
@@ -135,10 +142,7 @@ export class DetailComponent implements OnInit {
   }
 
   get averageRating(): number {
-    if (this.reviews.length === 0) {
-      return 0;
-    }
-
+    if (this.reviews.length === 0) return 0;
     const total = this.reviews.reduce((sum, review) => sum + review.rating, 0);
     return total / this.reviews.length;
   }

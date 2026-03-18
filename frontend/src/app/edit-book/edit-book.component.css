@@ -1,0 +1,102 @@
+.edit-container {
+  max-width: 600px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(96, 22, 47, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  font-family: "Inter", sans-serif;
+}
+
+h2 {
+  font-family: "Georgia", serif;
+  color: #60162f;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5a3a45;
+}
+
+.form-group input, 
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid rgba(96, 22, 47, 0.2);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #871f42;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: center;
+}
+
+.save-button {
+  background: #e67e22; /* Oranje, net als de aanpasknop in de lijst */
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-button:hover {
+  background: #d35400;
+}
+
+.cancel-button {
+  background: transparent;
+  color: #871f42;
+  border: 1px solid #871f42;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button:hover {
+  background: #fdf2f5;
+}
+
+.error {
+  color: #871f42;
+  text-align: center;
+  margin-top: 1rem;
+  font-weight: 500;
+}
+/* In edit-book.component.css */
+.save-button {
+  background: #871f42;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.save-button:hover {
+  background: #60162f;
+}
