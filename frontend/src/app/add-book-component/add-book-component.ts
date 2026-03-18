@@ -16,13 +16,32 @@ export enum Language {
 }
 
 @Component({
-    selector: "app-add-book",
-    templateUrl: "./add-book-component.html",
-    styleUrls: ["./add-book-component.css"],
-    standalone: false
+  selector: "app-add-book",
+  templateUrl: "./add-book-component.html",
+  styleUrls: ["./add-book-component.css"],
+  standalone: false,
 })
 export class AddBookComponent implements OnInit {
   readonly languages = Object.values(Language);
+  readonly genres = [
+    "Fictie algemeen",
+    "Literaire roman",
+    "Spanning / thriller",
+    "Detective / misdaad",
+    "Fantasy",
+    "Sciencefiction",
+    "Dystopie",
+    "Historische roman",
+    "Romantiek",
+    "Coming-of-age",
+    "Avontuur",
+    "Oorlog & conflict",
+    "Horror",
+    "Humor",
+    "Graphic novel / strip",
+    "Poëzie",
+    "Non-fictie algemeen",
+  ];
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;

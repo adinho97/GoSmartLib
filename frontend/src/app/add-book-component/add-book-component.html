@@ -82,47 +82,36 @@
       ></textarea>
     </div>
 
-    <div class="form-row type-selector-row">
-      <label>Categorie van het boek</label>
-      <div class="button-group">
-        <button
-          type="button"
-          class="group-btn btn-normal"
-          [class.active]="!isDidactic"
-          (click)="toggleDidactic(false)"
-        >
-          Normaal Boek
-        </button>
-        <button
-          type="button"
-          class="group-btn btn-didactic"
-          [class.active]="isDidactic"
-          (click)="toggleDidactic(true)"
-        >
-          Didactisch Boek
-        </button>
-      </div>
+    <div class="form-row">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          name="isDidactic"
+          [(ngModel)]="isDidactic"
+          (change)="toggleDidactic(isDidactic)"
+        />
+        Didactisch Boek
+      </label>
     </div>
 
-    @if (!isDidactic) {
     <div class="form-row">
       <label for="genre">Genre</label>
-      <input
-        id="genre"
-        name="genre"
-        [(ngModel)]="book.genre"
-        placeholder="Bijv. Roman, Thriller..."
-      />
-    </div>
-    } @if (isDidactic) {
-    <div class="form-row didactic-locked">
-      <label>Genre</label>
-      <input class="readonly-input" [value]="book.genre" readonly />
+      @if (!isDidactic) {
+      <select id="genre" name="genre" [(ngModel)]="book.genre">
+        <option value="">Kies een genre</option>
+        @for (g of genres; track g) {
+        <option [value]="g">{{ g }}</option>
+        }
+      </select>
+      } @if (isDidactic) {
+      <select id="genre" name="genre" disabled>
+        <option [value]="book.genre">{{ book.genre }}</option>
+      </select>
       <small class="helper-text"
         >Dit genre staat vast voor de lerarencollectie.</small
       >
+      }
     </div>
-    }
 
     <div class="form-row">
       <label for="uitgaveDatum">Uitgave Datum</label>

@@ -27,6 +27,25 @@ type BookItem = {
 export class BookListComponent implements OnInit {
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
+  readonly genres = [
+    "Fictie algemeen",
+    "Literaire roman",
+    "Spanning / thriller",
+    "Detective / misdaad",
+    "Fantasy",
+    "Sciencefiction",
+    "Dystopie",
+    "Historische roman",
+    "Romantiek",
+    "Coming-of-age",
+    "Avontuur",
+    "Oorlog & conflict",
+    "Horror",
+    "Humor",
+    "Graphic novel / strip",
+    "Poëzie",
+    "Non-fictie algemeen",
+  ];
   books: BookItem[] = [];
   isLoading = true;
   error = "";
@@ -111,12 +130,13 @@ export class BookListComponent implements OnInit {
   }
 
   get availableGenres(): string[] {
-    const genres = this.books
+    const bookGenres = this.books
       .map((book) => (book.genre || "").trim())
       .filter(
         (genre) => genre.length > 0 && genre.toLowerCase() !== "didactiek",
       );
-    return Array.from(new Set(genres)).sort((a, b) => a.localeCompare(b, "nl"));
+    const allGenres = new Set([...this.genres, ...bookGenres]);
+    return Array.from(allGenres).sort((a, b) => a.localeCompare(b, "nl"));
   }
 
   get availableLanguages(): string[] {

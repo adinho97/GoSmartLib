@@ -1,6 +1,6 @@
 body {
   background: linear-gradient(135deg, #f6f3ff 0%, #fdf0f5 50%, #eef9ff 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .add-book-page {
@@ -12,7 +12,11 @@ body {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
-h1 { text-align: center; color: #871f42; margin-bottom: 30px; }
+h1 {
+  text-align: center;
+  color: #871f42;
+  margin-bottom: 30px;
+}
 
 .form-row {
   display: flex;
@@ -22,19 +26,33 @@ h1 { text-align: center; color: #871f42; margin-bottom: 30px; }
   border-radius: 12px;
 }
 
-.form-row:nth-child(odd) { background: #fff8fb; }
-.form-row:nth-child(even) { background: #f8fbff; }
+.form-row:nth-child(odd) {
+  background: #fff8fb;
+}
+.form-row:nth-child(even) {
+  background: #f8fbff;
+}
 
-label { font-weight: 600; color: #5c2b3c; margin-bottom: 8px; }
+label {
+  font-weight: 600;
+  color: #5c2b3c;
+  margin-bottom: 8px;
+}
 
-input, select, textarea {
+input,
+select,
+textarea {
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #ddd;
 }
 
 /* Cover Upload - Verbeterde ruimte */
-.cover-file-input { position: absolute; opacity: 0; width: 1px; }
+.cover-file-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+}
 
 .cover-upload-row {
   display: flex;
@@ -61,45 +79,22 @@ input, select, textarea {
   font-style: italic;
 }
 
-/* Button Group Toggle - Altijd beide zichtbaar */
-.button-group {
+/* Checkbox styling */
+.checkbox-label {
   display: flex;
-  background: #eee;
-  padding: 5px;
-  border-radius: 12px;
-  gap: 5px;
-}
-
-.group-btn {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  background: transparent;
-  color: #777;
-  border-radius: 8px;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #5c2b3c;
   cursor: pointer;
-  font-weight: 700;
-  transition: all 0.3s ease;
+  margin-bottom: 0;
 }
 
-/* Actieve status voor Normaal Boek (Rood) */
-.btn-normal.active {
-  background: #871f42;
-  color: white;
-  box-shadow: 0 4px 10px rgba(135, 31, 66, 0.2);
-}
-
-/* Actieve status voor Didactisch Boek (Oranje) */
-.btn-didactic.active {
-  background: #e67e22;
-  color: white;
-  box-shadow: 0 4px 10px rgba(230, 126, 34, 0.2);
-}
-
-/* Hover effect voor niet-actieve knoppen */
-.group-btn:hover:not(.active) {
-  background: #e0e0e0;
-  color: #333;
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #871f42;
 }
 
 /* Didactiek focus styling */
@@ -108,9 +103,20 @@ input, select, textarea {
   border: 2px solid #e67e22;
 }
 
-.readonly-input { background: #fdf7f2; color: #d35400; font-weight: bold; border: 1px solid #e67e22; cursor: not-allowed; }
+select:disabled {
+  background: #fdf7f2;
+  color: #d35400;
+  font-weight: bold;
+  border: 1px solid #e67e22;
+  cursor: not-allowed;
+}
 
-.helper-text { color: #e67e22; font-size: 13px; margin-top: 5px; font-weight: 600; }
+.helper-text {
+  color: #e67e22;
+  font-size: 13px;
+  margin-top: 5px;
+  font-weight: 600;
+}
 
 .submit-btn {
   width: 100%;
@@ -125,5 +131,13 @@ input, select, textarea {
   margin-top: 10px;
 }
 
-.success-message { color: #2e7d32; text-align: center; font-weight: bold; }
-.error-message { color: #c62828; text-align: center; font-weight: bold; }
+.success-message {
+  color: #2e7d32;
+  text-align: center;
+  font-weight: bold;
+}
+.error-message {
+  color: #c62828;
+  text-align: center;
+  font-weight: bold;
+}
