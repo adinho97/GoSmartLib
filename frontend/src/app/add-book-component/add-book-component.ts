@@ -191,8 +191,8 @@ export class AddBookComponent implements OnInit {
       );
 
       this.resetForm(bookForm);
-      this.submitState = "success";
-      this.submitMessage = "Boek succesvol toegevoegd aan de bibliotheek.";
+      window.location.reload();
+      return;
     } catch (error) {
       this.submitState = "error";
       this.submitMessage = "Fout bij opslaan. Controleer de verbinding.";
