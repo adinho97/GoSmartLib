@@ -46,6 +46,15 @@ export class BookListComponent implements OnInit {
     "Poëzie",
     "Non-fictie algemeen",
   ];
+  readonly nonFictionSubgenres = [
+    "Biografie / autobiografie",
+    "Wetenschap & technologie",
+    "Filosofie",
+    "Maatschappij & politiek",
+    "Psychologie",
+    "Geschiedenis",
+    "Kunst & cultuur",
+  ];
   books: BookItem[] = [];
   isLoading = true;
   error = "";
@@ -64,12 +73,14 @@ export class BookListComponent implements OnInit {
   selectedGenre = "";
   selectedLanguage = "";
   selectedMinAverageRating = "";
+  selectedNonFictionSubgenre = "";
   minPages = this.minPageFilterLimit;
   maxPages = this.maxPageFilterLimit;
 
   appliedGenre = "";
   appliedLanguage = "";
   appliedMinAverageRating = "";
+  appliedNonFictionSubgenre = "";
   appliedMinPages = this.minPageFilterLimit;
   appliedMaxPages = this.maxPageFilterLimit;
 
@@ -130,13 +141,7 @@ export class BookListComponent implements OnInit {
   }
 
   get availableGenres(): string[] {
-    const bookGenres = this.books
-      .map((book) => (book.genre || "").trim())
-      .filter(
-        (genre) => genre.length > 0 && genre.toLowerCase() !== "didactiek",
-      );
-    const allGenres = new Set([...this.genres, ...bookGenres]);
-    return Array.from(allGenres).sort((a, b) => a.localeCompare(b, "nl"));
+    return this.genres;
   }
 
   get availableLanguages(): string[] {
@@ -161,7 +166,25 @@ export class BookListComponent implements OnInit {
 
       const genreMatches =
         !this.appliedGenre ||
-        (book.genre || "").toLowerCase() === this.appliedGenre.toLowerCase();
+        ((): boolean => {
+          const bookGenre = (book.genre || "").toLowerCase();
+          const appliedGenre = this.appliedGenre.toLowerCase();
+
+          // For non-fiction, check genre prefix and apply subgenre filter if set
+          if (appliedGenre === "non-fictie algemeen") {
+            if (!bookGenre.includes("non-fictie algemeen")) return false;
+            // If a subgenre is selected, check if book contains it
+            if (this.appliedNonFictionSubgenre) {
+              return bookGenre.includes(
+                this.appliedNonFictionSubgenre.toLowerCase(),
+              );
+            }
+            return true;
+          }
+
+          // Exact match for other genres
+          return bookGenre === appliedGenre;
+        })();
       const languageMatches =
         !this.appliedLanguage ||
         (book.taal || "").toLowerCase() === this.appliedLanguage.toLowerCase();
@@ -205,9 +228,17 @@ export class BookListComponent implements OnInit {
     this.appliedGenre = this.selectedGenre;
     this.appliedLanguage = this.selectedLanguage;
     this.appliedMinAverageRating = this.selectedMinAverageRating;
+    this.appliedNonFictionSubgenre = this.selectedNonFictionSubgenre;
     this.appliedMinPages = this.minPages;
     this.appliedMaxPages = this.maxPages;
     this.currentPage = 1;
+  }
+
+  onGenreChange() {
+    // Clear subgenre filter when genre changes
+    if (this.selectedGenre !== "Non-fictie algemeen") {
+      this.selectedNonFictionSubgenre = "";
+    }
   }
 
   clearFilters() {
@@ -216,6 +247,7 @@ export class BookListComponent implements OnInit {
     this.selectedGenre = "";
     this.selectedLanguage = "";
     this.selectedMinAverageRating = "";
+    this.selectedNonFictionSubgenre = "";
     this.minPages = this.minPageFilterLimit;
     this.maxPages = this.maxPageFilterLimit;
     this.applyFilters();

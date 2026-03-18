@@ -90,14 +90,19 @@
           [(ngModel)]="isDidactic"
           (change)="toggleDidactic(isDidactic)"
         />
-        Didactisch Boek
+        Didactisch boek
       </label>
     </div>
 
     <div class="form-row">
       <label for="genre">Genre</label>
       @if (!isDidactic) {
-      <select id="genre" name="genre" [(ngModel)]="book.genre">
+      <select
+        id="genre"
+        name="genre"
+        [(ngModel)]="book.genre"
+        (change)="onGenreChange()"
+      >
         <option value="">Kies een genre</option>
         @for (g of genres; track g) {
         <option [value]="g">{{ g }}</option>
@@ -113,8 +118,26 @@
       }
     </div>
 
+    @if (!isDidactic && book.genre === "Non-fictie algemeen") {
     <div class="form-row">
-      <label for="uitgaveDatum">Uitgave Datum</label>
+      <label>Subgenres</label>
+      <div class="subgenres-checkboxes">
+        @for (sg of nonFictionSubgenres; track sg) {
+        <label class="checkbox-item">
+          <input
+            type="checkbox"
+            [checked]="isSubgenreSelected(sg)"
+            (change)="toggleSubgenre(sg)"
+          />
+          {{ sg }}
+        </label>
+        }
+      </div>
+    </div>
+    }
+
+    <div class="form-row">
+      <label for="uitgaveDatum">Uitgave datum</label>
       <input
         id="uitgaveDatum"
         name="uitgaveDatum"

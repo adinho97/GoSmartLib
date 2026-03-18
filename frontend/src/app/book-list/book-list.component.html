@@ -47,7 +47,11 @@
       <aside class="filters-sidebar" aria-label="Boekfilters">
         <h2>Filters</h2>
         <label for="genreFilter">Genre</label>
-        <select id="genreFilter" [(ngModel)]="selectedGenre">
+        <select
+          id="genreFilter"
+          [(ngModel)]="selectedGenre"
+          (ngModelChange)="onGenreChange()"
+        >
           <option value="">Alle genres</option>
           @for (genre of availableGenres; track genre) {
             <option [value]="genre">
@@ -55,6 +59,17 @@
             </option>
           }
         </select>
+        @if (selectedGenre === "Non-fictie algemeen") {
+          <label for="subgenreFilter">Subgenre</label>
+          <select id="subgenreFilter" [(ngModel)]="selectedNonFictionSubgenre">
+            <option value="">Alle subgenres</option>
+            @for (subgenre of nonFictionSubgenres; track subgenre) {
+              <option [value]="subgenre">
+                {{ subgenre }}
+              </option>
+            }
+          </select>
+        }
         <label for="taalFilter">Taal</label>
         <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
