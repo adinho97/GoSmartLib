@@ -203,27 +203,13 @@ public class BookService {
                 }
 
                 totalRows++;
-                if (rawFirstColumn.isEmpty()) {
-                    invalidRows.add(new ImportResultDto.RowResult(
-                            "",
-                            ImportResultDto.Status.INVALID_ISBN,
-                            "Lege ISBN-waarde op rij " + lineNumber,
-                            null));
-                    continue;
-                }
-
-                Optional<String> normalizedIsbn = normalizeAndValidateIsbn(rawFirstColumn);
-                if (normalizedIsbn.isEmpty()) {
-                    invalidRows.add(new ImportResultDto.RowResult(
-                            rawFirstColumn,
-                            ImportResultDto.Status.INVALID_ISBN,
-                            "Ongeldig ISBN-formaat",
-                            null));
-                    continue;
-                }
-
-                boolean added = uniqueIsbns.add(normalizedIsbn.get());
-                if (!added) {
+                RowProcessResult rowResult = processParsedIsbnValue(
+                        rawFirstColumn,
+                        lineNumber,
+                        uniqueIsbns,
+                        invalidRows,
+                        true);
+                if (rowResult == RowProcessResult.DUPLICATE) {
                     duplicateRowsSkipped++;
                 }
             }
@@ -265,18 +251,13 @@ public class BookService {
                 }
 
                 totalRows++;
-                Optional<String> normalizedIsbn = normalizeAndValidateIsbn(rawFirstColumn);
-                if (normalizedIsbn.isEmpty()) {
-                    invalidRows.add(new ImportResultDto.RowResult(
-                            rawFirstColumn,
-                            ImportResultDto.Status.INVALID_ISBN,
-                            "Ongeldig ISBN-formaat",
-                            null));
-                    continue;
-                }
-
-                boolean added = uniqueIsbns.add(normalizedIsbn.get());
-                if (!added) {
+                RowProcessResult rowResult = processParsedIsbnValue(
+                        rawFirstColumn,
+                        lineNumber,
+                        uniqueIsbns,
+                        invalidRows,
+                        false);
+                if (rowResult == RowProcessResult.DUPLICATE) {
                     duplicateRowsSkipped++;
                 }
             }
@@ -309,6 +290,37 @@ public class BookService {
             return line;
         }
         return line.substring(0, splitAt);
+    }
+
+    private RowProcessResult processParsedIsbnValue(
+            String rawFirstColumn,
+            int lineNumber,
+            Set<String> uniqueIsbns,
+            List<ImportResultDto.RowResult> invalidRows,
+            boolean treatEmptyAsInvalid) {
+        if (rawFirstColumn.isEmpty()) {
+            if (treatEmptyAsInvalid) {
+                invalidRows.add(new ImportResultDto.RowResult(
+                        "",
+                        ImportResultDto.Status.INVALID_ISBN,
+                        "Lege ISBN-waarde op rij " + lineNumber,
+                        null));
+            }
+            return RowProcessResult.INVALID;
+        }
+
+        Optional<String> normalizedIsbn = normalizeAndValidateIsbn(rawFirstColumn);
+        if (normalizedIsbn.isEmpty()) {
+            invalidRows.add(new ImportResultDto.RowResult(
+                    rawFirstColumn,
+                    ImportResultDto.Status.INVALID_ISBN,
+                    "Ongeldig ISBN-formaat",
+                    null));
+            return RowProcessResult.INVALID;
+        }
+
+        boolean added = uniqueIsbns.add(normalizedIsbn.get());
+        return added ? RowProcessResult.ADDED : RowProcessResult.DUPLICATE;
     }
 
     private Optional<String> normalizeAndValidateIsbn(String rawValue) {
@@ -369,6 +381,12 @@ public class BookService {
             List<ImportResultDto.RowResult> invalidRows,
             int totalRows,
             int duplicateRowsSkipped) {
+    }
+
+    private enum RowProcessResult {
+        ADDED,
+        DUPLICATE,
+        INVALID
     }
 
     private enum ImportStatus {
