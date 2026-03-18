@@ -60,17 +60,20 @@ public class BookService {
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
+        String normalizedIsbn = requireValidNormalizedIsbn(isbn);
+
         if (schoolId == null) {
-            return bookRepository.findByIsbn(isbn)
+            return bookRepository.findByIsbn(normalizedIsbn)
                     .map(BookMapper::toDto);
         }
 
-        return bookRepository.findByIsbnAndSchool_Id(isbn, schoolId)
+        return bookRepository.findByIsbnAndSchool_Id(normalizedIsbn, schoolId)
                 .map(BookMapper::toDto);
     }
 
     public BookDto fetchPreviewByIsbn(String isbn) {
-        Book fetched = fetchBookFromOpenLibrary(isbn);
+        String normalizedIsbn = requireValidNormalizedIsbn(isbn);
+        Book fetched = fetchBookFromOpenLibrary(normalizedIsbn);
         if (fetched == null) {
             return null;
         }
@@ -79,8 +82,9 @@ public class BookService {
 
     @Transactional
     public BookDto importByIsbn(String isbn, Long schoolId) {
+        String normalizedIsbn = requireValidNormalizedIsbn(isbn);
         School school = schoolService.getByIdOrDefault(schoolId);
-        ImportOutcome outcome = importByIsbnInternal(isbn, school);
+        ImportOutcome outcome = importByIsbnInternal(normalizedIsbn, school);
         return outcome.bookDto();
     }
 
@@ -352,6 +356,11 @@ public class BookService {
         }
 
         return Optional.empty();
+    }
+
+    private String requireValidNormalizedIsbn(String rawValue) {
+        return normalizeAndValidateIsbn(rawValue)
+                .orElseThrow(() -> new IllegalArgumentException("Ongeldig ISBN-formaat"));
     }
 
     private boolean isValidIsbn10(String isbn10) {

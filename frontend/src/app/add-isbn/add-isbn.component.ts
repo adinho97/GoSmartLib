@@ -83,7 +83,9 @@ export class AddIsbnComponent {
         this.successMessage = "Reeds in de bibliotheek.";
       }
     } catch (err: any) {
-      if (err?.response?.status === 404) {
+      if (err?.response?.status === 400) {
+        this.errorMessage = "Ongeldig ISBN-nummer.";
+      } else if (err?.response?.status === 404) {
         this.errorMessage = "Geen boek gevonden voor dit ISBN-nummer.";
       } else {
         this.errorMessage = "Er ging iets mis bij het ophalen van het boek.";
@@ -119,7 +121,9 @@ export class AddIsbnComponent {
       this.hasCheckedLibraryStatus = true;
       this.successMessage = "Boek toegevoegd aan bibliotheek.";
     } catch (err: any) {
-      if (err?.response?.status === 404) {
+      if (err?.response?.status === 400) {
+        this.errorMessage = "Ongeldig ISBN-nummer.";
+      } else if (err?.response?.status === 404) {
         this.errorMessage = "Boek niet gevonden om te importeren.";
       } else {
         this.errorMessage =

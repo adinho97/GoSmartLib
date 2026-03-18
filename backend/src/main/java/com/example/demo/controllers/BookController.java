@@ -94,14 +94,24 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> getByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId) {
-        return bookService.findByIsbn(isbn, schoolId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            return bookService.findByIsbn(isbn, schoolId)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/preview/{isbn}")
     public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
-        BookDto dto = bookService.fetchPreviewByIsbn(isbn);
+        BookDto dto;
+        try {
+            dto = bookService.fetchPreviewByIsbn(isbn);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
