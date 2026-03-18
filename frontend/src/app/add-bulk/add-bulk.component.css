@@ -1,164 +1,262 @@
+/* ── Base ─────────────────────────────────────────── */
 .bulk-page {
   max-width: 1100px;
   margin: 0 auto;
+  padding: 2.5rem 2rem;
+  font-family: Arial, sans-serif;
+}
+
+/* ── Page header ──────────────────────────────────── */
+.bulk-page h1 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.25rem;
+}
+
+/* ── Card wrapper ─────────────────────────────────── */
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   padding: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
-h1 {
-  margin: 0 0 1rem;
+.card-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 1rem;
 }
 
+/* ── Input row ────────────────────────────────────── */
 .input-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.input-row:last-child {
+  margin-bottom: 0;
+}
+
+.divider {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 1rem 0;
 }
 
 label {
   font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
   min-width: 72px;
 }
 
 select,
 input[type="file"] {
-  border: 1px solid #d0d7de;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 0.45rem 0.6rem;
+  padding: 0.5rem 0.75rem;
   background: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 0.875rem;
+  color: #1a1a1a;
+  transition: border-color 0.15s;
 }
 
+select:focus,
+input[type="file"]:focus {
+  outline: none;
+  border-color: #871f42;
+  box-shadow: 0 0 0 3px rgba(135, 31, 66, 0.12);
+}
+
+/* ── Buttons ──────────────────────────────────────── */
 button {
   border: none;
   border-radius: 8px;
-  padding: 0.55rem 0.9rem;
+  padding: 0.55rem 1.1rem;
   background: #871f42;
   color: #fff;
   cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition:
+    background 0.15s,
+    transform 0.1s;
+}
+
+button:hover:not([disabled]) {
+  background: #6e1934;
+}
+
+button:active:not([disabled]) {
+  transform: scale(0.98);
 }
 
 button[disabled] {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 button.secondary {
-  background: #871f42;
+  background: transparent;
+  color: #871f42;
+  border: 1.5px solid #871f42;
 }
 
+button.secondary:hover {
+  background: #fff0f4;
+}
+
+/* ── Hints & messages ─────────────────────────────── */
 .hint {
-  margin: 0.1rem 0 1rem;
-  color: #5b6573;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
 }
 
 .error-message {
   color: #b42318;
+  font-size: 0.875rem;
   margin: 0.5rem 0;
 }
 
 .success-message {
   color: #067647;
+  font-size: 0.875rem;
   margin: 0.5rem 0;
 }
 
+/* ── Summary grid ─────────────────────────────────── */
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 0.75rem;
-  margin: 1rem 0;
+  margin: 1.25rem 0;
 }
 
 .summary-item {
-  border: 1px solid #d0d7de;
   border-radius: 10px;
-  background: #f8fafc;
-  padding: 0.75rem;
+  padding: 1rem 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .summary-item .label {
-  color: #475467;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
 }
 
 .summary-item .value {
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
 }
 
 .summary-item.success {
-  border-color: #86efac;
   background: #f0fdf4;
+  color: #166534;
 }
-
 .summary-item.info {
-  border-color: #93c5fd;
   background: #eff6ff;
+  color: #1d4ed8;
 }
-
 .summary-item.warning {
-  border-color: #fcd34d;
   background: #fffbeb;
+  color: #92400e;
 }
-
 .summary-item.danger {
-  border-color: #fca5a5;
   background: #fef2f2;
+  color: #991b1b;
 }
 
+/* neutral (totalRows, uniqueIsbnsProcessed, duplicateRowsSkipped) */
+.summary-item:not(.success):not(.info):not(.warning):not(.danger) {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* ── Actions row ──────────────────────────────────── */
 .actions-row {
-  margin: 0.5rem 0 1rem;
+  margin: 0.75rem 0 1rem;
 }
 
+/* ── Table ────────────────────────────────────────── */
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid #d0d7de;
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 640px;
+  min-width: 560px;
+  font-size: 0.875rem;
 }
 
-th,
-td {
-  text-align: left;
-  padding: 0.65rem 0.75rem;
-  border-bottom: 1px solid #e4e7ec;
-}
-
-thead th {
+th {
   background: #f9fafb;
+  padding: 0.65rem 1rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9ca3af;
+  border-bottom: 1px solid #e5e7eb;
 }
 
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover td {
+  background: #fafafa;
+}
+
+/* ── Status badges ────────────────────────────────── */
 .status {
   display: inline-block;
-  padding: 0.15rem 0.45rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .status.added {
   background: #dcfce7;
   color: #166534;
 }
-
 .status.already_exists {
   background: #dbeafe;
   color: #1d4ed8;
 }
-
 .status.not_found {
   background: #fef3c7;
   color: #92400e;
 }
-
 .status.invalid_isbn,
 .status.error {
   background: #fee2e2;
