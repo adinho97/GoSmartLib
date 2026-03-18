@@ -6,17 +6,14 @@
   border-radius: 18px;
   border: 1px solid rgba(96, 22, 47, 0.1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  /* Alles naar Arial */
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 h2 {
-  /* Georgia verwijderd, nu ook Arial */
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Georgia", serif;
   color: #60162f;
   margin-bottom: 1.5rem;
   text-align: center;
-  font-weight: bold;
 }
 
 .form-group {
@@ -30,7 +27,6 @@ h2 {
   font-size: 0.85rem;
   font-weight: 700;
   color: #5a3a45;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .form-group input, 
@@ -40,8 +36,6 @@ h2 {
   border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.2s;
-  /* Zorg dat input velden ook Arial gebruiken */
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .form-group input:focus {
@@ -57,7 +51,7 @@ h2 {
 }
 
 .save-button {
-  background: #871f42; /* Donkerrood zoals gevraagd */
+  background: #e67e22; /* Oranje, net als de aanpasknop in de lijst */
   color: white;
   border: none;
   padding: 0.7rem 1.5rem;
@@ -65,11 +59,10 @@ h2 {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .save-button:hover {
-  background: #60162f;
+  background: #d35400;
 }
 
 .cancel-button {
@@ -81,7 +74,6 @@ h2 {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .cancel-button:hover {
@@ -93,5 +85,18 @@ h2 {
   text-align: center;
   margin-top: 1rem;
   font-weight: 500;
-  font-family: Arial, Helvetica, sans-serif;
+}
+/* In edit-book.component.css */
+.save-button {
+  background: #871f42;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.save-button:hover {
+  background: #60162f;
 }

@@ -104,4 +104,8 @@ export class BookService {
       throw err;
     }
   }
+  async updateBook(id: number, book: Book): Promise<Book> {
+  const res = await axios.put(`${this.apiUrl}/${id}`, book);
+  return res.data;
+}
 }

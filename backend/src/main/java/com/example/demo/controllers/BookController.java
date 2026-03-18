@@ -133,4 +133,20 @@ public class BookController {
         repo.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
+        if (!repo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
+
+        Book entity = BookMapper.toEntity(bookDto);
+        entity.setId(id); 
+        entity.setSchool(school);
+
+        Book saved = repo.save(entity);
+        return ResponseEntity.ok(BookMapper.toDto(saved));
+    }
 }

@@ -112,3 +112,37 @@
     margin-bottom: 20px;
   }
 }
+.edit-btn-detail {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  background: #d32f2f; /* Rood */
+  color: white;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.2);
+}
+
+.edit-btn-detail:hover {
+  background: #b71c1c; /* Donkerder rood bij hover */
+}
+
+.edit-btn-detail svg {
+  display: inline-block;
+}
+
+/* Pas de responsive instellingen aan voor de nieuwe knop */
+@media (max-width: 900px) {
+  .edit-btn-detail {
+    position: static;
+    margin: 10px auto 20px auto;
+    width: fit-content;
+  }
+}
