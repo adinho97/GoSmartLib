@@ -52,29 +52,34 @@ public class AuthService {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .bodyValue(formData)
                 .exchangeToMono(response -> {
-                    if (response.statusCode().is2xxSuccessful()) {
-                        if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML))
-                                .orElse(false)) {
-                            return response.bodyToMono(String.class)
-                                    .flatMap(body -> {
-                                        logger.error(
-                                                "Smartschool returned HTML instead of JSON at token endpoint. Body: {}",
-                                                body);
-                                        return Mono.error(new RuntimeException(
-                                                "Smartschool returned HTML at token endpoint: " + body));
-                                    });
-                        }
-                        return response.bodyToMono(SmartschoolTokenResponse.class)
-                                .doOnSuccess(token -> logger.info("Successfully retrieved access token"));
-                    } else {
+                    // Handle non-successful responses first
+                    if (!response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(String.class)
+                                .defaultIfEmpty("[no body]")
                                 .flatMap(body -> {
-                                    logger.error("Error from Smartschool token endpoint: {} {}", response.statusCode(),
-                                            body);
-                                    return Mono.error(
-                                            new RuntimeException("Error from Smartschool token endpoint: " + body));
+                                    logger.error(
+                                            "Non-2xx response from Smartschool token endpoint. Status: {}, Headers: {}, Body: {}",
+                                            response.statusCode(), response.headers().asHttpHeaders(), body);
+                                    return Mono.error(new RuntimeException(
+                                            "Error from Smartschool token endpoint. Status: " + response.statusCode()));
                                 });
                     }
+
+                    // Handle successful responses that are unexpectedly HTML
+                    if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML))
+                            .orElse(false)) {
+                        return response.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    logger.error(
+                                            "Smartschool returned HTML on a 2xx response. Status: {}, Headers: {}, Body: {}",
+                                            response.statusCode(), response.headers().asHttpHeaders(), body);
+                                    return Mono.error(new RuntimeException(
+                                            "Smartschool returned HTML at token endpoint: " + body));
+                                });
+                    }
+                    // Happy path: successful JSON response
+                    return response.bodyToMono(SmartschoolTokenResponse.class)
+                            .doOnSuccess(token -> logger.info("Successfully retrieved access token"));
                 })
                 .doOnError(error -> logger.error("Failed to retrieve access token", error));
     }
@@ -85,29 +90,34 @@ public class AuthService {
                 .headers(headers -> headers.setBearerAuth(tokenResponse.getAccessToken()))
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
+                        // Handle successful responses that are unexpectedly HTML
                         if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML))
                                 .orElse(false)) {
                             return response.bodyToMono(String.class)
                                     .flatMap(body -> {
-                                        logger.error("Smartschool userinfo returned HTML instead of JSON. Body: {}",
-                                                body);
+                                        logger.error(
+                                                "Smartschool userinfo returned HTML on a 2xx response. Status: {}, Headers: {}, Body: {}",
+                                                response.statusCode(), response.headers().asHttpHeaders(), body);
                                         return Mono.error(
                                                 new RuntimeException("Smartschool userinfo returned HTML: " + body));
                                     });
                         }
-                        return response.bodyToMono(SmartschoolUserInfo.class)
-                                .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for user: {}",
-                                        userInfo.getName()));
-                    } else {
-                        return response.bodyToMono(String.class)
-                                .flatMap(body -> {
-                                    logger.error("Error from Smartschool userinfo endpoint: {} {}",
-                                            response.statusCode(), body);
-                                    return Mono.error(
-                                            new RuntimeException("Error from Smartschool userinfo endpoint: " + body));
-                                });
+                        // Happy path
+                        return response.bodyToMono(SmartschoolUserInfo.class);
                     }
+                    // Handle non-successful responses
+                    return response.bodyToMono(String.class)
+                            .defaultIfEmpty("[no body]")
+                            .flatMap(body -> {
+                                logger.error(
+                                        "Non-2xx response from Smartschool userinfo endpoint. Status: {}, Headers: {}, Body: {}",
+                                        response.statusCode(), response.headers().asHttpHeaders(), body);
+                                return Mono.error(new RuntimeException(
+                                        "Error from Smartschool userinfo endpoint. Status: " + response.statusCode()));
+                            });
                 })
-                .doOnError(error -> logger.error("Failed to retrieve user info", error));
+                .doOnSuccess(
+                        userInfo -> logger.info("Successfully retrieved user info for user: {}", userInfo.getName()))
+                .doOnError(error -> logger.error("Failed to retrieve user info", error.getMessage()));
     }
 }
