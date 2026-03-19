@@ -20,6 +20,8 @@ export class ProfileComponent {
     showDeadline: true
   };
 
+  userName = localStorage.getItem('userName') || 'Gebruiker';
+
   settingsOpen = false;
 
   favoriteBooks = [{ title: 'Book One', author: 'Author A', cover: '', id: 1 }, { title: 'Book Two', author: 'Author B', cover: '', id: 2 }];

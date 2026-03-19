@@ -1,11 +1,9 @@
 <div class="profile-wrapper">
-
   <div class="profile-header">
-
     <!-- Back Button -->
     <button class="back-btn" (click)="goBack()">← Terug</button>
 
-    <h1>John Doe</h1> <!-- Naam van gebruiker -->
+    <h1>{{ userName }}</h1>
     <div class="profile-role">{{ role }}</div>
 
     <div class="settings-dropdown" (click)="$event.stopPropagation()">
@@ -13,34 +11,44 @@
 
       <div class="dropdown-menu" [class.show]="settingsOpen">
         <label class="setting-option">
-          <input type="checkbox" [(ngModel)]="dashboardSettings.showFavorites">
+          <input
+            type="checkbox"
+            [(ngModel)]="dashboardSettings.showFavorites"
+          />
           Favoriete boeken tonen op dashboard
         </label>
 
         <label class="setting-option">
-          <input type="checkbox" [(ngModel)]="dashboardSettings.showReadingHistory">
+          <input
+            type="checkbox"
+            [(ngModel)]="dashboardSettings.showReadingHistory"
+          />
           Leeshistoriek tonen op dashboard
         </label>
 
         <label class="setting-option">
-          <input type="checkbox" [(ngModel)]="dashboardSettings.showBorrowed">
+          <input type="checkbox" [(ngModel)]="dashboardSettings.showBorrowed" />
           Geleende boeken tonen op dashboard
         </label>
 
         <label class="setting-option">
-          <input type="checkbox" [(ngModel)]="dashboardSettings.showHighlighted">
+          <input
+            type="checkbox"
+            [(ngModel)]="dashboardSettings.showHighlighted"
+          />
           Uitgelichte boeken tonen op dashboard
         </label>
 
         <label class="setting-option">
-          <input type="checkbox" [(ngModel)]="dashboardSettings.showDeadline">
+          <input type="checkbox" [(ngModel)]="dashboardSettings.showDeadline" />
           Deadline tonen op dashboard
         </label>
 
-        <button class="save-btn" (click)="saveDashboardSettings()">Opslaan</button>
+        <button class="save-btn" (click)="saveDashboardSettings()">
+          Opslaan
+        </button>
       </div>
     </div>
-
   </div>
 
   <div class="profile-container">
@@ -50,14 +58,16 @@
         @for (book of borrowedBooks; track book) {
           <div class="profile-book-card" (click)="goToDetail(book.id)">
             @if (book.cover) {
-              <div class="book-cover"><img [src]="book.cover"></div>
+              <div class="book-cover"><img [src]="book.cover" /></div>
             }
             @if (!book.cover) {
               <div class="cover-placeholder">Geen Cover</div>
             }
             <div class="book-content">
-              <h4>{{book.title}}</h4>
-              <div class="deadline">Terugbrengen voor {{book.deadline | date}}</div>
+              <h4>{{ book.title }}</h4>
+              <div class="deadline">
+                Terugbrengen voor {{ book.deadline | date }}
+              </div>
             </div>
           </div>
         }
@@ -70,14 +80,14 @@
         @for (book of readingList; track book) {
           <div class="profile-book-card" (click)="goToDetail(book.id)">
             @if (book.cover) {
-              <div class="book-cover"><img [src]="book.cover"></div>
+              <div class="book-cover"><img [src]="book.cover" /></div>
             }
             @if (!book.cover) {
               <div class="cover-placeholder">Geen Cover</div>
             }
             <div class="book-content">
-              <h4>{{book.title}}</h4>
-              <div class="author">{{book.author}}</div>
+              <h4>{{ book.title }}</h4>
+              <div class="author">{{ book.author }}</div>
             </div>
           </div>
         }
@@ -90,14 +100,16 @@
         @for (book of favoriteBooks; track book) {
           <div class="profile-book-card" (click)="goToDetail(book.id)">
             @if (book.cover) {
-              <div class="book-cover"><img [src]="book.cover" alt="{{book.title}}"></div>
+              <div class="book-cover">
+                <img [src]="book.cover" alt="{{ book.title }}" />
+              </div>
             }
             @if (!book.cover) {
               <div class="cover-placeholder">Geen Cover</div>
             }
             <div class="book-content">
-              <h4>{{book.title}}</h4>
-              <div class="author">{{book.author}}</div>
+              <h4>{{ book.title }}</h4>
+              <div class="author">{{ book.author }}</div>
             </div>
           </div>
         }
@@ -110,19 +122,20 @@
         @for (book of readingHistory; track book) {
           <div class="profile-book-card" (click)="goToDetail(book.id)">
             @if (book.cover) {
-              <div class="book-cover"><img [src]="book.cover"></div>
+              <div class="book-cover"><img [src]="book.cover" /></div>
             }
             @if (!book.cover) {
               <div class="cover-placeholder">Geen Cover</div>
             }
             <div class="book-content">
-              <h4>{{book.title}}</h4>
-              <div class="book-meta">Ontleend op {{book.loanedDate | date}}</div>
+              <h4>{{ book.title }}</h4>
+              <div class="book-meta">
+                Ontleend op {{ book.loanedDate | date }}
+              </div>
             </div>
           </div>
         }
       </div>
     </section>
-
   </div>
 </div>

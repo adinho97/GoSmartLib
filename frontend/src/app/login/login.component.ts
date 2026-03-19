@@ -45,6 +45,7 @@ export class LoginComponent implements OnInit {
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: (userInfo) => {
         console.log("Logged in user:", userInfo);
+        localStorage.setItem("userName", `${userInfo.given_name} ${userInfo.family_name}`);
         this.setRole(userInfo.role);
         this.isLoading = false;
       },
