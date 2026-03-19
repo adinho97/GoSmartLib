@@ -30,6 +30,13 @@ public class AuthService {
     }
 
     private Mono<SmartschoolTokenResponse> getAccessToken(String code) {
+        // Fail-fast if the client secret is not configured
+        String clientSecret = smartschoolProperties.getClientSecret();
+        if (clientSecret == null || clientSecret.isBlank() || "${SMARTSCHOOL_CLIENT_SECRET}".equals(clientSecret)) {
+            logger.error("SMARTSCHOOL_CLIENT_SECRET environment variable is not set or empty.");
+            return Mono.error(new IllegalStateException("Smartschool client secret is not configured on the server."));
+        }
+
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "authorization_code");
         formData.add("code", code);
