@@ -52,12 +52,27 @@ export class DashboardComponent implements OnInit {
       .startsWith("didactiek");
   }
 
+  private formatGenreForDisplay(genre: unknown): string {
+    const genreText = String(genre || "").trim();
+    if (!genreText) return "Algemeen";
+
+    const [baseGenre, subgenrePart] = genreText.split(" - ", 2);
+    if (!subgenrePart) return genreText;
+
+    const firstSubgenre = subgenrePart
+      .split(",")
+      .map((value) => value.trim())
+      .find((value) => value.length > 0);
+
+    return firstSubgenre ? `${baseGenre} - ${firstSubgenre}` : baseGenre;
+  }
+
   private mapBook(book: any) {
     return {
       id: book.id,
       titel: book.titel,
       auteur: book.auteur,
-      genre: book.genre || "Algemeen",
+      genre: this.formatGenreForDisplay(book.genre),
       taal: book.taal
         ? String(book.taal).toLowerCase() === "nederlands"
           ? "NL"
