@@ -79,7 +79,6 @@ export class EditBookComponent implements OnInit {
   selectedSubgenres: Set<string> = new Set();
   selectedDidacticSubgenre = "";
 
-  // Geen ISBN meer hier, want het staat niet in je interface
   book: Book = {
     id: 0,
     titel: "",
@@ -117,7 +116,7 @@ export class EditBookComponent implements OnInit {
         this.initializeGenreStateFromBook();
         this.isLoading = false;
       },
-      error: (err) => {
+      error: () => {
         this.errorMessage = "Kon het boek niet laden.";
         this.isLoading = false;
       },
@@ -208,7 +207,7 @@ export class EditBookComponent implements OnInit {
         genre: genreToSave,
       });
       this.router.navigate(["/books"]);
-    } catch (err) {
+    } catch {
       this.errorMessage = "Fout bij het opslaan van wijzigingen.";
     }
   }
