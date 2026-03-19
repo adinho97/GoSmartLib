@@ -29,6 +29,7 @@ export class BookListComponent implements OnInit {
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
   readonly genres = [
+    "Didactiek",
     "Fictie algemeen",
     "Literaire roman",
     "Spanning / thriller",
@@ -56,6 +57,27 @@ export class BookListComponent implements OnInit {
     "Geschiedenis",
     "Kunst & cultuur",
   ];
+  readonly didacticSubgenres = [
+    "Wiskunde",
+    "Taal",
+    "Geschiedenis",
+    "Kleuteronderwijs",
+    "Lager onderwijs",
+    "Secundair onderwijs",
+    "Volwasseneneducatie",
+    "Geheugen",
+    "Begrip",
+    "Denkprocessen",
+    "Samenwerking",
+    "Interactie",
+    "Dialoog",
+    "Online leren",
+    "E-learning platforms",
+    "Educatieve apps",
+    "Creativiteit",
+    "Zelfexpressie",
+    "Ervaringsgericht leren",
+  ];
   books: BookItem[] = [];
   isLoading = true;
   error = "";
@@ -75,6 +97,7 @@ export class BookListComponent implements OnInit {
   selectedLanguage = "";
   selectedMinAverageRating = "";
   selectedNonFictionSubgenre = "";
+  selectedDidacticSubgenre = "";
   minPages = this.minPageFilterLimit;
   maxPages = this.maxPageFilterLimit;
 
@@ -82,6 +105,7 @@ export class BookListComponent implements OnInit {
   appliedLanguage = "";
   appliedMinAverageRating = "";
   appliedNonFictionSubgenre = "";
+  appliedDidacticSubgenre = "";
   appliedMinPages = this.minPageFilterLimit;
   appliedMaxPages = this.maxPageFilterLimit;
 
@@ -114,6 +138,7 @@ export class BookListComponent implements OnInit {
       // Clicking "Boekenlijst" removes the didactic quick-filter.
       this.selectedGenre = "";
       this.selectedNonFictionSubgenre = "";
+      this.selectedDidacticSubgenre = "";
       this.applyFilters();
       return;
     }
@@ -121,6 +146,7 @@ export class BookListComponent implements OnInit {
     if (genre.toLowerCase() === "didactiek") {
       this.selectedGenre = "Didactiek";
       this.selectedNonFictionSubgenre = "";
+      this.selectedDidacticSubgenre = "";
       this.applyFilters();
       return;
     }
@@ -130,6 +156,7 @@ export class BookListComponent implements OnInit {
     );
     this.selectedGenre = matchedGenre || "";
     this.selectedNonFictionSubgenre = "";
+    this.selectedDidacticSubgenre = "";
     this.applyFilters();
   }
 
@@ -206,6 +233,16 @@ export class BookListComponent implements OnInit {
           const bookGenre = (book.genre || "").toLowerCase();
           const appliedGenre = this.appliedGenre.toLowerCase();
 
+          if (appliedGenre === "didactiek") {
+            if (!bookGenre.startsWith("didactiek")) return false;
+            if (this.appliedDidacticSubgenre) {
+              return bookGenre.includes(
+                this.appliedDidacticSubgenre.toLowerCase(),
+              );
+            }
+            return true;
+          }
+
           // For non-fiction, check genre prefix and apply subgenre filter if set
           if (appliedGenre === "non-fictie algemeen") {
             if (!bookGenre.includes("non-fictie algemeen")) return false;
@@ -265,6 +302,7 @@ export class BookListComponent implements OnInit {
     this.appliedLanguage = this.selectedLanguage;
     this.appliedMinAverageRating = this.selectedMinAverageRating;
     this.appliedNonFictionSubgenre = this.selectedNonFictionSubgenre;
+    this.appliedDidacticSubgenre = this.selectedDidacticSubgenre;
     this.appliedMinPages = this.minPages;
     this.appliedMaxPages = this.maxPages;
     this.currentPage = 1;
@@ -275,6 +313,9 @@ export class BookListComponent implements OnInit {
     if (this.selectedGenre !== "Non-fictie algemeen") {
       this.selectedNonFictionSubgenre = "";
     }
+    if (this.selectedGenre !== "Didactiek") {
+      this.selectedDidacticSubgenre = "";
+    }
   }
 
   clearFilters() {
@@ -284,6 +325,7 @@ export class BookListComponent implements OnInit {
     this.selectedLanguage = "";
     this.selectedMinAverageRating = "";
     this.selectedNonFictionSubgenre = "";
+    this.selectedDidacticSubgenre = "";
     this.minPages = this.minPageFilterLimit;
     this.maxPages = this.maxPageFilterLimit;
     this.applyFilters();

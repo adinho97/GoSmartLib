@@ -64,6 +64,20 @@
             }
           </select>
         }
+        @if (selectedGenre === "Didactiek") {
+          <label for="didacticSubgenreFilter">Subgenre</label>
+          <select
+            id="didacticSubgenreFilter"
+            [(ngModel)]="selectedDidacticSubgenre"
+          >
+            <option value="">Alle subgenres</option>
+            @for (subgenre of didacticSubgenres; track subgenre) {
+              <option [value]="subgenre">
+                {{ subgenre }}
+              </option>
+            }
+          </select>
+        }
         <label for="taalFilter">Taal</label>
         <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
@@ -155,10 +169,10 @@
                 class="book-card"
                 [routerLink]="['/detail', book.id]"
                 [class.didactic-card]="
-                  (book.genre || '').toLowerCase() === 'didactiek'
+                  (book.genre || '').toLowerCase().startsWith('didactiek')
                 "
               >
-                @if ((book.genre || "").toLowerCase() === "didactiek") {
+                @if ((book.genre || "").toLowerCase().startsWith("didactiek")) {
                   <div class="didactic-badge">Lerarencollectie</div>
                 }
                 @if ((book.reviewCount || 0) >= 10) {
