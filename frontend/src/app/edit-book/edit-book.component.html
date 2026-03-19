@@ -78,7 +78,15 @@
 
       <div class="form-group">
         <label for="taal">Taal</label>
-        <input id="taal" type="text" [(ngModel)]="book.taal" name="taal" />
+        <select id="taal" [(ngModel)]="book.taal" name="taal">
+          <option value="">Kies een taal</option>
+          @if (book.taal && !hasKnownLanguage) {
+            <option [value]="book.taal">{{ book.taal }}</option>
+          }
+          @for (language of languages; track language) {
+            <option [value]="language">{{ language }}</option>
+          }
+        </select>
       </div>
 
       <div class="form-group">

@@ -4,6 +4,17 @@ import { BookService } from "../services/book.service";
 import { Book } from "../models/book";
 import { FormsModule } from "@angular/forms";
 
+export enum Language {
+  Nederlands = "Nederlands",
+  Engels = "Engels",
+  Frans = "Frans",
+  Duits = "Duits",
+  Spaans = "Spaans",
+  Italiaans = "Italiaans",
+  Portugees = "Portugees",
+  Latijn = "Latijn",
+}
+
 @Component({
   selector: "app-edit-book",
   standalone: true,
@@ -13,6 +24,7 @@ import { FormsModule } from "@angular/forms";
 })
 export class EditBookComponent implements OnInit {
   bookId!: number;
+  readonly languages = Object.values(Language);
   readonly genres = [
     "Didactiek",
     "Fictie algemeen",
@@ -165,6 +177,16 @@ export class EditBookComponent implements OnInit {
 
   isSubgenreSelected(subgenre: string): boolean {
     return this.selectedSubgenres.has(subgenre);
+  }
+
+  get hasKnownLanguage(): boolean {
+    const currentLanguage = String(this.book.taal || "")
+      .trim()
+      .toLowerCase();
+    if (!currentLanguage) return true;
+    return this.languages.some(
+      (language) => language.toLowerCase() === currentLanguage,
+    );
   }
 
   async onSubmit() {
