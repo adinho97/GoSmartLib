@@ -47,7 +47,7 @@
           @if (selectedGenre === "Didactiek") {
             <option value="Didactiek">Didactiek</option>
           }
-          @for (genre of availableGenres; track genre) {
+          @for (genre of genres; track genre) {
             <option [value]="genre">
               {{ genre }}
             </option>
@@ -81,7 +81,7 @@
         <label for="taalFilter">Taal</label>
         <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
-          @for (language of availableLanguages; track language) {
+          @for (language of languages; track language) {
             <option [value]="language">
               {{ language }}
             </option>
