@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -214,6 +216,55 @@ class BookControllerTest {
 
                 mockMvc.perform(post("/api/boeken/isbn/0000000000000"))
                                 .andExpect(status().isNotFound());
+        }
+
+        // ---- POST /api/boeken/isbn/bulk ---------------------------------------
+
+        @Test
+        void importBulkByIsbnShouldReturnResultWhenUploadIsValid() throws Exception {
+                MockMultipartFile file = new MockMultipartFile(
+                                "file",
+                                "bulk.csv",
+                                "text/csv",
+                                "isbn\n9780553808049".getBytes());
+
+                var result = new com.example.demo.dto.ImportResultDto();
+                result.setTotalRows(1);
+                result.setUniqueIsbnsProcessed(1);
+                result.setDuplicateRowsSkipped(0);
+                result.setResults(List.of(new com.example.demo.dto.ImportResultDto.RowResult(
+                                "9780553808049",
+                                com.example.demo.dto.ImportResultDto.Status.ADDED,
+                                "Boek toegevoegd.",
+                                1L)));
+
+                when(bookService.importBulkByIsbn(any(), any())).thenReturn(result);
+
+                mockMvc.perform(multipart("/api/boeken/isbn/bulk")
+                                .file(file)
+                                .param("schoolId", "1"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.totalRows").value(1))
+                                .andExpect(jsonPath("$.uniqueIsbnsProcessed").value(1))
+                                .andExpect(jsonPath("$.results[0].status").value("ADDED"));
+        }
+
+        @Test
+        void importBulkByIsbnShouldReturnBadRequestWhenServiceRejectsFile() throws Exception {
+                MockMultipartFile file = new MockMultipartFile(
+                                "file",
+                                "bulk.txt",
+                                "text/plain",
+                                "abc".getBytes());
+
+                when(bookService.importBulkByIsbn(any(), any()))
+                                .thenThrow(new IllegalArgumentException(
+                                                "Unsupported file type. Use CSV, XLS or XLSX."));
+
+                mockMvc.perform(multipart("/api/boeken/isbn/bulk")
+                                .file(file)
+                                .param("schoolId", "1"))
+                                .andExpect(status().isBadRequest());
         }
 
         // ---- helpers ------------------------------------------------------------

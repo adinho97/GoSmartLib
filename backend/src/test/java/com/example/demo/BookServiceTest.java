@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.dto.BookDto;
+import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.BookRepository;
@@ -17,7 +18,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.lang.NonNull;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -180,5 +184,77 @@ class BookServiceTest {
 
         assertNull(result);
         verify(openLibraryService).fetchBookFromOpenLibrary("0000000000000");
+    }
+
+    // ---- importBulkByIsbn ---------------------------------------------------
+
+    @Test
+    void importBulkByIsbnShouldAggregateInvalidAndCoreOutcomes() {
+        MultipartFile file = mock(MultipartFile.class);
+        School school = makeSchool();
+
+        List<ImportResultDto.RowResult> invalidRows = List.of(
+                new ImportResultDto.RowResult("bad-isbn", ImportResultDto.Status.INVALID_ISBN,
+                        "Ongeldig ISBN-formaat", null));
+
+        BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
+                List.of("9780553808049", "9780156012195", "0000000000000"),
+                invalidRows,
+                4,
+                0);
+
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
+        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(importCoreService.importByNormalizedIsbn("9780553808049", school))
+                .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.ADDED, makeBookDto()));
+        when(importCoreService.importByNormalizedIsbn("9780156012195", school))
+                .thenReturn(new ImportCoreService.ImportOutcome(
+                        ImportCoreService.ImportStatus.ALREADY_EXISTS,
+                        makeBookDto()));
+        when(importCoreService.importByNormalizedIsbn("0000000000000", school))
+                .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.NOT_FOUND, null));
+
+        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+
+        assertEquals(4, result.getTotalRows());
+        assertEquals(3, result.getUniqueIsbnsProcessed());
+        assertEquals(0, result.getDuplicateRowsSkipped());
+        assertEquals(4, result.getResults().size());
+
+        List<ImportResultDto.Status> statuses = new ArrayList<>();
+        for (ImportResultDto.RowResult row : result.getResults()) {
+            statuses.add(row.status());
+        }
+        assertEquals(
+                List.of(
+                        ImportResultDto.Status.INVALID_ISBN,
+                        ImportResultDto.Status.ADDED,
+                        ImportResultDto.Status.ALREADY_EXISTS,
+                        ImportResultDto.Status.NOT_FOUND),
+                statuses);
+    }
+
+    @Test
+    void importBulkByIsbnShouldMarkErrorWhenCoreThrows() {
+        MultipartFile file = mock(MultipartFile.class);
+        School school = makeSchool();
+
+        BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
+                List.of("9780553808049"),
+                List.of(),
+                1,
+                0);
+
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
+        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(importCoreService.importByNormalizedIsbn("9780553808049", school))
+                .thenThrow(new RuntimeException("boom"));
+
+        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+
+        assertEquals(1, result.getResults().size());
+        ImportResultDto.RowResult row = result.getResults().get(0);
+        assertEquals(ImportResultDto.Status.ERROR, row.status());
+        assertEquals("Fout bij verwerken van ISBN.", row.message());
     }
 }
