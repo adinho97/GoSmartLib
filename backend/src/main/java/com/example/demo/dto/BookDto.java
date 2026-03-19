@@ -46,6 +46,10 @@ public class BookDto {
 
     private String schoolNaam;
 
+    private Integer reviewCount;
+
+    private Double averageRating;
+
     public Long getId() {
         return id;
     }
@@ -148,6 +152,22 @@ public class BookDto {
 
     public void setSchoolNaam(String schoolNaam) {
         this.schoolNaam = schoolNaam;
+    }
+
+    public Integer getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(Integer reviewCount) {
+        this.reviewCount = reviewCount;
+    }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
     }
 }
 

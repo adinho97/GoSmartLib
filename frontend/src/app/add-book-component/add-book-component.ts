@@ -16,13 +16,42 @@ export enum Language {
 }
 
 @Component({
-    selector: "app-add-book",
-    templateUrl: "./add-book-component.html",
-    styleUrls: ["./add-book-component.css"],
-    standalone: false
+  selector: "app-add-book",
+  templateUrl: "./add-book-component.html",
+  styleUrls: ["./add-book-component.css"],
+  standalone: false,
 })
 export class AddBookComponent implements OnInit {
   readonly languages = Object.values(Language);
+  readonly genres = [
+    "Fictie algemeen",
+    "Literaire roman",
+    "Spanning / thriller",
+    "Detective / misdaad",
+    "Fantasy",
+    "Sciencefiction",
+    "Dystopie",
+    "Historische roman",
+    "Romantiek",
+    "Coming-of-age",
+    "Avontuur",
+    "Oorlog & conflict",
+    "Horror",
+    "Humor",
+    "Graphic novel / strip",
+    "Poëzie",
+    "Non-fictie algemeen",
+  ];
+  readonly nonFictionSubgenres = [
+    "Biografie / autobiografie",
+    "Wetenschap & technologie",
+    "Filosofie",
+    "Maatschappij & politiek",
+    "Psychologie",
+    "Geschiedenis",
+    "Kunst & cultuur",
+  ];
+  selectedSubgenres: Set<string> = new Set();
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
@@ -82,6 +111,25 @@ export class AddBookComponent implements OnInit {
   toggleDidactic(state: boolean) {
     this.isDidactic = state;
     this.book.genre = state ? "Didactiek" : "";
+    this.selectedSubgenres.clear();
+  }
+
+  onGenreChange() {
+    if (this.book.genre !== "Non-fictie algemeen") {
+      this.selectedSubgenres.clear();
+    }
+  }
+
+  toggleSubgenre(subgenre: string) {
+    if (this.selectedSubgenres.has(subgenre)) {
+      this.selectedSubgenres.delete(subgenre);
+    } else {
+      this.selectedSubgenres.add(subgenre);
+    }
+  }
+
+  isSubgenreSelected(subgenre: string): boolean {
+    return this.selectedSubgenres.has(subgenre);
   }
 
   onCoverSelected(event: Event) {
@@ -123,17 +171,28 @@ export class AddBookComponent implements OnInit {
         ? await this.toBase64(this.selectedCoverFile)
         : "";
 
+      // Format genre with subgenres if non-fiction
+      let genreToSave = this.book.genre;
+      if (
+        this.book.genre === "Non-fictie algemeen" &&
+        this.selectedSubgenres.size > 0
+      ) {
+        const subgenresArray = Array.from(this.selectedSubgenres).sort();
+        genreToSave = `Non-fictie algemeen - ${subgenresArray.join(", ")}`;
+      }
+
       await this.bookService.addBook(
         {
           ...this.book,
           cover: coverData,
+          genre: genreToSave,
         },
         this.selectedSchoolId,
       );
 
       this.resetForm(bookForm);
-      this.submitState = "success";
-      this.submitMessage = "Boek succesvol toegevoegd aan de bibliotheek.";
+      window.location.reload();
+      return;
     } catch (error) {
       this.submitState = "error";
       this.submitMessage = "Fout bij opslaan. Controleer de verbinding.";
@@ -156,6 +215,7 @@ export class AddBookComponent implements OnInit {
       uitgeverij: "",
     };
     this.isDidactic = false;
+    this.selectedSubgenres.clear();
     this.selectedCoverFile = null;
     if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
     this.coverPreviewUrl = null;

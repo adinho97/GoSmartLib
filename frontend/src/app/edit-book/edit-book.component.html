@@ -1,0 +1,43 @@
+<div class="edit-container">
+  <h2>Boek aanpassen</h2>
+
+  @if (isLoading) {
+    <p style="text-align: center;">Gegevens ophalen...</p>
+  } @else {
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="titel">Titel</label>
+        <input id="titel" type="text" [(ngModel)]="book.titel" name="titel" required>
+      </div>
+
+      <div class="form-group">
+        <label for="auteur">Auteur</label>
+        <input id="auteur" type="text" [(ngModel)]="book.auteur" name="auteur" required>
+      </div>
+
+      <div class="form-group">
+        <label for="genre">Genre</label>
+        <input id="genre" type="text" [(ngModel)]="book.genre" name="genre">
+      </div>
+
+      <div class="form-group">
+        <label for="taal">Taal</label>
+        <input id="taal" type="text" [(ngModel)]="book.taal" name="taal">
+      </div>
+
+      <div class="form-group">
+        <label for="beschrijving">Beschrijving</label>
+        <textarea id="beschrijving" rows="5" [(ngModel)]="book.beschrijving" name="beschrijving"></textarea>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="save-button">Opslaan</button>
+        <button type="button" class="cancel-button" (click)="cancel()">Annuleren</button>
+      </div>
+    </form>
+  }
+
+  @if (errorMessage) {
+    <p class="error">{{ errorMessage }}</p>
+  }
+</div>

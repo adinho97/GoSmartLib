@@ -4,32 +4,23 @@
       <h1>Boekenlijst</h1>
       <p>Ontdek en beheer alle beschikbare boeken op één plek.</p>
     </div>
-    <div class="header-actions">
-      <a class="header-button secondary" [routerLink]="['/dashboard']"
-        >Terug naar dashboard</a
-      >
-      @if (isLibrarian) {
-        <a class="header-button" [routerLink]="['/add']">Boek toevoegen</a>
-      }
-    </div>
+    @if (isTeacher && schools.length > 0) {
+      <div class="school-selector-bar">
+        <label for="schoolFilter">School</label>
+        <select
+          id="schoolFilter"
+          [ngModel]="selectedSchoolId"
+          (ngModelChange)="onSchoolChange($event)"
+        >
+          @for (school of schools; track school) {
+            <option [value]="school.id">
+              {{ school.naam }}
+            </option>
+          }
+        </select>
+      </div>
+    }
   </header>
-
-  @if (isTeacher && schools.length > 0) {
-    <div class="school-selector-bar">
-      <label for="schoolFilter">Geselecteerde school</label>
-      <select
-        id="schoolFilter"
-        [ngModel]="selectedSchoolId"
-        (ngModelChange)="onSchoolChange($event)"
-      >
-        @for (school of schools; track school) {
-          <option [value]="school.id">
-            {{ school.naam }}
-          </option>
-        }
-      </select>
-    </div>
-  }
 
   @if (isLoading) {
     <p class="info-message">Boeken laden...</p>
@@ -47,14 +38,32 @@
       <aside class="filters-sidebar" aria-label="Boekfilters">
         <h2>Filters</h2>
         <label for="genreFilter">Genre</label>
-        <select id="genreFilter" [(ngModel)]="selectedGenre">
+        <select
+          id="genreFilter"
+          [(ngModel)]="selectedGenre"
+          (ngModelChange)="onGenreChange()"
+        >
           <option value="">Alle genres</option>
+          @if (selectedGenre === "Didactiek") {
+            <option value="Didactiek">Didactiek</option>
+          }
           @for (genre of availableGenres; track genre) {
             <option [value]="genre">
               {{ genre }}
             </option>
           }
         </select>
+        @if (selectedGenre === "Non-fictie algemeen") {
+          <label for="subgenreFilter">Subgenre</label>
+          <select id="subgenreFilter" [(ngModel)]="selectedNonFictionSubgenre">
+            <option value="">Alle subgenres</option>
+            @for (subgenre of nonFictionSubgenres; track subgenre) {
+              <option [value]="subgenre">
+                {{ subgenre }}
+              </option>
+            }
+          </select>
+        }
         <label for="taalFilter">Taal</label>
         <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
@@ -64,33 +73,32 @@
             </option>
           }
         </select>
-        <label for="releaseFrom">Uitgave vanaf</label>
-        <input id="releaseFrom" type="date" [(ngModel)]="releaseDateFrom" />
-        <label for="releaseTo">Uitgave tot</label>
-        <input id="releaseTo" type="date" [(ngModel)]="releaseDateTo" />
+        <label for="averageFilter">Gemiddelde score (min.)</label>
+        <select id="averageFilter" [(ngModel)]="selectedMinAverageRating">
+          <option value="">Alle scores</option>
+          <option value="1">1.0+</option>
+          <option value="2">2.0+</option>
+          <option value="3">3.0+</option>
+          <option value="4">4.0+</option>
+          <option value="4.5">4.5+</option>
+        </select>
         <div class="page-slider-group">
-          <label for="minPages"
-            >Pagina's: {{ minPages }} - {{ maxPages }}</label
-          >
-          <div class="dual-range-slider" role="group" aria-label="Paginabereik">
-            <div class="range-track"></div>
-            <div
-              class="range-selected"
-              [style.left]="selectedRangeLeft"
-              [style.right]="selectedRangeRight"
-            ></div>
+          <label>Pagina's: {{ minPages }} - {{ maxPages }}</label>
+          <div class="single-page-slider">
+            <label for="minPages">Minimum pagina's: {{ minPages }}</label>
             <input
               id="minPages"
-              class="range-input min"
               type="range"
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
               [value]="minPages"
               (input)="onMinPagesChange($any($event.target).value)"
             />
+          </div>
+          <div class="single-page-slider">
+            <label for="maxPages">Maximum pagina's: {{ maxPages }}</label>
             <input
               id="maxPages"
-              class="range-input max"
               type="range"
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
@@ -146,10 +154,29 @@
               <article
                 class="book-card"
                 [routerLink]="['/detail', book.id]"
-                [class.didactic-card]="book.genre.toLowerCase() === 'didactiek'"
+                [class.didactic-card]="
+                  (book.genre || '').toLowerCase() === 'didactiek'
+                "
               >
-                @if (book.genre.toLowerCase() === "didactiek") {
+                @if ((book.genre || "").toLowerCase() === "didactiek") {
                   <div class="didactic-badge">Lerarencollectie</div>
+                }
+                @if ((book.reviewCount || 0) >= 10) {
+                  <div class="score-badge">
+                    <span
+                      class="score-stars"
+                      aria-label="Gemiddelde score {{
+                        book.averageRating || 0 | number: '1.1-1'
+                      }} op 5"
+                    >
+                      <span class="score-stars-track">★★★★★</span>
+                      <span
+                        class="score-stars-fill"
+                        [style.width.%]="getAverageRatingFillPercentage(book)"
+                        >★★★★★</span
+                      >
+                    </span>
+                  </div>
                 }
                 <div class="book-cover-slot">
                   @if ((book.cover || "").trim()) {

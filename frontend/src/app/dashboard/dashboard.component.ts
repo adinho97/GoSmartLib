@@ -3,10 +3,10 @@ import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 
 @Component({
-    selector: "app-dashboard",
-    templateUrl: "./dashboard.component.html",
-    styleUrls: ["./dashboard.component.css"],
-    standalone: false
+  selector: "app-dashboard",
+  templateUrl: "./dashboard.component.html",
+  styleUrls: ["./dashboard.component.css"],
+  standalone: false,
 })
 export class DashboardComponent implements OnInit {
   featuredBooks: any[] = [];
@@ -52,7 +52,11 @@ export class DashboardComponent implements OnInit {
       titel: book.titel,
       auteur: book.auteur,
       genre: book.genre || "Algemeen",
-      taal: book.taal ? book.taal.substring(0, 2).toUpperCase() : "??",
+      taal: book.taal
+        ? String(book.taal).toLowerCase() === "nederlands"
+          ? "NL"
+          : String(book.taal).substring(0, 2).toUpperCase()
+        : "??",
       paginas: book.paginas || "?",
       coverUrl: book.cover || null,
       desc: book.beschrijving || "Geen beschrijving beschikbaar.",

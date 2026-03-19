@@ -2,11 +2,16 @@ package com.example.demo.controllers;
 
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
+import com.example.demo.dto.CreateReviewRequest;
+import com.example.demo.dto.ReviewDto;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
 import com.example.demo.mappers.BookMapper;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.services.BookService;
+import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -24,14 +29,20 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/boeken")
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
+    private static final String LIBRARIAN_ROLE = "bibbeheerder";
     private final BookRepository repo;
+    private final ReviewRepository reviewRepository;
     private final BookService bookService;
     private final SchoolService schoolService;
+    private final ReviewModerationService reviewModerationService;
 
-    public BookController(BookRepository repo, BookService bookService, SchoolService schoolService) {
+    public BookController(BookRepository repo, ReviewRepository reviewRepository, BookService bookService,
+            SchoolService schoolService, ReviewModerationService reviewModerationService) {
         this.repo = repo;
+        this.reviewRepository = reviewRepository;
         this.bookService = bookService;
         this.schoolService = schoolService;
+        this.reviewModerationService = reviewModerationService;
     }
 
     @GetMapping
@@ -67,7 +78,6 @@ public class BookController {
             return ResponseEntity.badRequest().build();
         }
 
-        // Only check ISBN uniqueness if ISBN is provided
         if (bookDto.getIsbn() != null && !bookDto.getIsbn().trim().isEmpty()) {
             if (repo.findByIsbnAndSchool_Id(bookDto.getIsbn(), school.getId()).isPresent()) {
                 logger.warn("Book with isbn {} already exists in school {}", bookDto.getIsbn(), school.getId());
@@ -77,7 +87,7 @@ public class BookController {
 
         try {
             Book entity = BookMapper.toEntity(bookDto);
-            entity.setId(null); // Keep id managed by the database
+            entity.setId(null); 
             entity.setSchool(school);
 
             logger.info("Persisting book entity: titel={}", entity.getTitel());
@@ -148,7 +158,12 @@ public class BookController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestParam(required = false) Long schoolId) {
+        if (!isLibrarian(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         boolean exists = schoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, schoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
@@ -156,5 +171,88 @@ public class BookController {
 
         repo.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
+        if (!repo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
+
+        Book entity = BookMapper.toEntity(bookDto);
+        entity.setId(id); 
+        entity.setSchool(school);
+
+        Book saved = repo.save(entity);
+        return ResponseEntity.ok(BookMapper.toDto(saved));
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id) {
+        if (!repo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<ReviewDto> reviews = reviewRepository.findByBook_IdOrderByCreatedAtDesc(id)
+                .stream()
+                .map(this::toReviewDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(reviews);
+    }
+
+    @PostMapping("/{id}/reviews")
+    public ResponseEntity<ReviewDto> createReview(@PathVariable @NonNull Long id,
+            @Valid @RequestBody CreateReviewRequest request) {
+        Book book = repo.findById(id).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Review review = new Review();
+        review.setBook(book);
+        review.setRating(request.getRating());
+        String trimmedComment = request.getComment().trim();
+        reviewModerationService.validateReviewComment(trimmedComment);
+        review.setComment(trimmedComment);
+
+        Review saved = reviewRepository.save(review);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toReviewDto(saved));
+    }
+
+    @DeleteMapping("/{bookId}/reviews/{reviewId}")
+    public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @PathVariable @NonNull Long reviewId) {
+        if (!isLibrarian(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        if (!repo.existsById(bookId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+        if (review == null || review.getBook() == null || !bookId.equals(review.getBook().getId())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        reviewRepository.delete(review);
+        return ResponseEntity.noContent().build();
+    }
+
+    private ReviewDto toReviewDto(Review review) {
+        ReviewDto dto = new ReviewDto();
+        dto.setId(review.getId());
+        dto.setRating(review.getRating());
+        dto.setComment(review.getComment());
+        dto.setCreatedAt(review.getCreatedAt());
+        return dto;
+    }
+
+    private boolean isLibrarian(String userRole) {
+        return LIBRARIAN_ROLE.equalsIgnoreCase(userRole);
     }
 }

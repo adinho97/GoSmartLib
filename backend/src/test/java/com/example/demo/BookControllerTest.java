@@ -3,11 +3,15 @@ package com.example.demo;
 import com.example.demo.dto.BookDto;
 import com.example.demo.controllers.BookController;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.repositories.ReviewRepository;
+import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.BookService;
 import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -17,11 +21,16 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -45,6 +54,12 @@ class BookControllerTest {
 
         @MockBean
         private SchoolService schoolService;
+
+        @MockBean
+        private ReviewRepository reviewRepository;
+
+        @MockBean
+        private ReviewModerationService reviewModerationService;
 
         @Test
         void getAllShouldReturnBooks() throws Exception {
@@ -279,19 +294,191 @@ class BookControllerTest {
         }
 
         @Test
-        void deleteShouldReturnNoContentWhenBookExists() throws Exception {
+        void deleteShouldReturnForbiddenWhenRoleHeaderMissing() throws Exception {
                 when(bookRepository.existsById(1L)).thenReturn(true);
                 doNothing().when(bookRepository).deleteById(1L);
 
                 mockMvc.perform(delete("/api/boeken/1"))
+                                .andExpect(status().isForbidden());
+
+                verify(bookRepository, never()).deleteById(1L);
+        }
+
+        @Test
+        void deleteShouldReturnForbiddenBeforeCheckingExistenceWhenRoleHeaderMissing() throws Exception {
+                when(bookRepository.existsById(999L)).thenReturn(false);
+
+                mockMvc.perform(delete("/api/boeken/999"))
+                                .andExpect(status().isForbidden());
+
+                verify(bookRepository, never()).existsById(999L);
+        }
+
+        @Test
+        void deleteShouldReturnNoContentForLibrarianWhenBookExists() throws Exception {
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                doNothing().when(bookRepository).deleteById(1L);
+
+                mockMvc.perform(delete("/api/boeken/1")
+                                .header("X-User-Role", "bibbeheerder"))
                                 .andExpect(status().isNoContent());
         }
 
         @Test
-        void deleteShouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
-                when(bookRepository.existsById(999L)).thenReturn(false);
+        void getReviewsShouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
+                when(bookRepository.existsById(1L)).thenReturn(false);
 
-                mockMvc.perform(delete("/api/boeken/999"))
+                mockMvc.perform(get("/api/boeken/1/reviews"))
                                 .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void getReviewsShouldReturnMappedReviewsForBook() throws Exception {
+                Review first = new Review();
+                first.setId(3L);
+                first.setRating(5);
+                first.setComment("Topboek");
+                first.setCreatedAt(LocalDateTime.of(2026, 3, 18, 12, 30));
+
+                Review second = new Review();
+                second.setId(2L);
+                second.setRating(4);
+                second.setComment("Goed");
+                second.setCreatedAt(LocalDateTime.of(2026, 3, 17, 11, 15));
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(1L)).thenReturn(List.of(first, second));
+
+                mockMvc.perform(get("/api/boeken/1/reviews"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(3))
+                                .andExpect(jsonPath("$[0].rating").value(5))
+                                .andExpect(jsonPath("$[0].comment").value("Topboek"))
+                                .andExpect(jsonPath("$[1].id").value(2));
+        }
+
+        @Test
+        void createReviewShouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
+                when(bookRepository.findById(404L)).thenReturn(Optional.empty());
+
+                String json = """
+                                {
+                                  "rating": 5,
+                                  "comment": "Sterk boek"
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/404/reviews")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void createReviewShouldPersistTrimmedCommentAndReturnCreated() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review saved = new Review();
+                saved.setId(9L);
+                saved.setBook(book);
+                saved.setRating(5);
+                saved.setComment("Heel goed boek");
+                saved.setCreatedAt(LocalDateTime.of(2026, 3, 18, 14, 0));
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(reviewRepository.save(any(Review.class))).thenReturn(saved);
+
+                String json = """
+                                {
+                                  "rating": 5,
+                                  "comment": "  Heel goed boek  "
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.id").value(9))
+                                .andExpect(jsonPath("$.rating").value(5))
+                                .andExpect(jsonPath("$.comment").value("Heel goed boek"));
+
+                ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
+                verify(reviewRepository).save(captor.capture());
+                verify(reviewModerationService).validateReviewComment("Heel goed boek");
+
+                Review persisted = captor.getValue();
+                assertSame(book, persisted.getBook());
+                assertEquals(5, persisted.getRating());
+                assertEquals("Heel goed boek", persisted.getComment());
+        }
+
+        @Test
+        void createReviewShouldReturnBadRequestForInvalidPayload() throws Exception {
+                String invalidJson = """
+                                {
+                                  "rating": 0,
+                                  "comment": ""
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(invalidJson))
+                                .andExpect(status().isBadRequest());
+
+                verify(bookRepository, never()).findById(1L);
+        }
+
+        @Test
+        void deleteReviewShouldReturnForbiddenForNonLibrarian() throws Exception {
+                mockMvc.perform(delete("/api/boeken/1/reviews/2"))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void deleteReviewShouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
+                when(bookRepository.existsById(1L)).thenReturn(false);
+
+                mockMvc.perform(delete("/api/boeken/1/reviews/2")
+                                .header("X-User-Role", "bibbeheerder"))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void deleteReviewShouldReturnNotFoundWhenReviewDoesNotBelongToBook() throws Exception {
+                Book otherBook = new Book();
+                otherBook.setId(99L);
+
+                Review review = new Review();
+                review.setId(2L);
+                review.setBook(otherBook);
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findById(2L)).thenReturn(Optional.of(review));
+
+                mockMvc.perform(delete("/api/boeken/1/reviews/2")
+                                .header("X-User-Role", "bibbeheerder"))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void deleteReviewShouldReturnNoContentWhenReviewBelongsToBook() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review review = new Review();
+                review.setId(2L);
+                review.setBook(book);
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findById(2L)).thenReturn(Optional.of(review));
+
+                mockMvc.perform(delete("/api/boeken/1/reviews/2")
+                                .header("X-User-Role", "bibbeheerder"))
+                                .andExpect(status().isNoContent());
+
+                verify(reviewRepository).delete(review);
         }
 }
