@@ -41,14 +41,15 @@ public class AuthService {
         formData.add("grant_type", "authorization_code");
         formData.add("code", code);
         formData.add("redirect_uri", smartschoolProperties.getRedirectUri());
+        formData.add("client_id", smartschoolProperties.getClientId());
+        formData.add("client_secret", clientSecret);
 
-        String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/token";
+        String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/oauth/token";
         logger.info("Requesting access token from: {}", tokenUrl);
 
         return this.webClient.post()
                 .uri(tokenUrl)
-                .headers(headers -> headers.setBasicAuth(smartschoolProperties.getClientId(),
-                        smartschoolProperties.getClientSecret(), StandardCharsets.UTF_8))
+                .header("User-Agent", "GoSmartLib-Backend")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .bodyValue(formData)
                 .exchangeToMono(response -> {
