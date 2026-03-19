@@ -35,7 +35,7 @@ public class AuthService {
         formData.add("code", code);
         formData.add("redirect_uri", smartschoolProperties.getRedirectUri());
 
-        String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/Token";
+        String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/token";
         logger.info("Requesting access token from: {}", tokenUrl);
 
         return this.webClient.post()
@@ -46,11 +46,15 @@ public class AuthService {
                 .bodyValue(formData)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
-                        if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML)).orElse(false)) {
+                        if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML))
+                                .orElse(false)) {
                             return response.bodyToMono(String.class)
                                     .flatMap(body -> {
-                                        logger.error("Smartschool returned HTML instead of JSON at token endpoint. Body: {}", body);
-                                        return Mono.error(new RuntimeException("Smartschool returned HTML at token endpoint: " + body));
+                                        logger.error(
+                                                "Smartschool returned HTML instead of JSON at token endpoint. Body: {}",
+                                                body);
+                                        return Mono.error(new RuntimeException(
+                                                "Smartschool returned HTML at token endpoint: " + body));
                                     });
                         }
                         return response.bodyToMono(SmartschoolTokenResponse.class)
@@ -74,11 +78,14 @@ public class AuthService {
                 .headers(headers -> headers.setBearerAuth(tokenResponse.getAccessToken()))
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
-                        if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML)).orElse(false)) {
+                        if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML))
+                                .orElse(false)) {
                             return response.bodyToMono(String.class)
                                     .flatMap(body -> {
-                                        logger.error("Smartschool userinfo returned HTML instead of JSON. Body: {}", body);
-                                        return Mono.error(new RuntimeException("Smartschool userinfo returned HTML: " + body));
+                                        logger.error("Smartschool userinfo returned HTML instead of JSON. Body: {}",
+                                                body);
+                                        return Mono.error(
+                                                new RuntimeException("Smartschool userinfo returned HTML: " + body));
                                     });
                         }
                         return response.bodyToMono(SmartschoolUserInfo.class)
