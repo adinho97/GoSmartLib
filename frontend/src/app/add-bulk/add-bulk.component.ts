@@ -15,9 +15,19 @@ import { School } from "../models/school";
   standalone: false,
 })
 export class AddBulkComponent {
+  readonly statusFilters: Array<"" | BulkImportStatus> = [
+    "",
+    "ADDED",
+    "ALREADY_EXISTS",
+    "NOT_FOUND",
+    "INVALID_ISBN",
+    "ERROR",
+  ];
+
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   selectedFile: File | null = null;
+  selectedStatusFilter: "" | BulkImportStatus = "";
 
   isUploading = false;
   errorMessage = "";
@@ -65,6 +75,7 @@ export class AddBulkComponent {
     const input = event.target as HTMLInputElement;
     const file = input.files && input.files.length > 0 ? input.files[0] : null;
     this.selectedFile = file;
+    this.selectedStatusFilter = "";
     this.errorMessage = "";
     this.successMessage = "";
     this.result = null;
@@ -80,6 +91,7 @@ export class AddBulkComponent {
     this.errorMessage = "";
     this.successMessage = "";
     this.result = null;
+    this.selectedStatusFilter = "";
 
     try {
       this.result = await this.bookService.importBooksByUpload(
@@ -114,6 +126,20 @@ export class AddBulkComponent {
         row.status === "NOT_FOUND" ||
         row.status === "INVALID_ISBN" ||
         row.status === "ERROR",
+    );
+  }
+
+  get filteredRows(): BulkImportRowResult[] {
+    if (!this.result) {
+      return [];
+    }
+
+    if (!this.selectedStatusFilter) {
+      return this.result.results;
+    }
+
+    return this.result.results.filter(
+      (row) => row.status === this.selectedStatusFilter,
     );
   }
 

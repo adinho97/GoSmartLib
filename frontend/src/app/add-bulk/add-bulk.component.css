@@ -4,6 +4,10 @@
   margin: 0 auto;
   padding: 2.5rem 2rem;
   font-family: Arial, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* ── Page header ──────────────────────────────────── */
@@ -140,7 +144,7 @@ button.secondary:hover {
 /* ── Summary grid ─────────────────────────────────── */
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   gap: 0.75rem;
   margin: 1.25rem 0;
 }
@@ -195,6 +199,27 @@ button.secondary:hover {
   margin: 0.75rem 0 1rem;
 }
 
+.table-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0 0.75rem;
+  flex-wrap: wrap;
+}
+
+.table-controls label {
+  min-width: auto;
+}
+
+.table-controls select {
+  min-width: 180px;
+}
+
+.table-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
 /* ── Table ────────────────────────────────────────── */
 .table-wrap {
   overflow-x: auto;
@@ -233,6 +258,12 @@ tbody tr:last-child td {
 
 tbody tr:hover td {
   background: #fafafa;
+}
+
+.empty-state {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
 }
 
 /* ── Status badges ────────────────────────────────── */

@@ -88,6 +88,22 @@
       </div>
     }
 
+    <div class="table-controls">
+      <label for="statusFilter">Filter op status</label>
+      <select
+        id="statusFilter"
+        [ngModel]="selectedStatusFilter"
+        (ngModelChange)="selectedStatusFilter = $event"
+      >
+        @for (status of statusFilters; track status) {
+          <option [value]="status">{{ status || "Alle statussen" }}</option>
+        }
+      </select>
+      <span class="table-meta">
+        {{ filteredRows.length }} van {{ result.results.length }} rijen zichtbaar
+      </span>
+    </div>
+
     <div class="table-wrap">
       <table>
         <thead>
@@ -98,7 +114,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of result.results; track row) {
+          @for (row of filteredRows; track row) {
             <tr>
               <td>{{ row.isbn || "-" }}</td>
               <td>
@@ -110,6 +126,13 @@
                 </span>
               </td>
               <td>{{ row.message }}</td>
+            </tr>
+          }
+          @if (filteredRows.length === 0) {
+            <tr>
+              <td colspan="3" class="empty-state">
+                Geen rijen voor de geselecteerde status.
+              </td>
             </tr>
           }
         </tbody>
