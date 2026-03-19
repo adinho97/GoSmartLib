@@ -33,17 +33,23 @@ export class DashboardComponent implements OnInit {
       const data = await this.bookService.getBooks();
 
       this.featuredBooks = data
-        .filter((b: any) => (b.genre || "").toLowerCase() !== "didactiek")
+        .filter((b: any) => !this.isDidacticGenre(b.genre))
         .map((book: any) => this.mapBook(book));
 
       this.didacticBooks = data
-        .filter((b: any) => (b.genre || "").toLowerCase() === "didactiek")
+        .filter((b: any) => this.isDidacticGenre(b.genre))
         .map((book: any) => this.mapBook(book));
     } catch (error) {
       console.error("Fout bij ophalen boeken:", error);
     } finally {
       this.loading = false;
     }
+  }
+
+  private isDidacticGenre(genre: unknown): boolean {
+    return String(genre || "")
+      .toLowerCase()
+      .startsWith("didactiek");
   }
 
   private mapBook(book: any) {
