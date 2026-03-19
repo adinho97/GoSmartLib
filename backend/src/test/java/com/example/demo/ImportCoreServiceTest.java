@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.lang.NonNull;
 
 import java.util.Optional;
 
@@ -37,14 +38,14 @@ class ImportCoreServiceTest {
     @InjectMocks
     private ImportCoreService importCoreService;
 
-    private School makeSchool() {
+    private @NonNull School makeSchool() {
         School school = new School();
         school.setId(1L);
         school.setNaam("GO! Atheneum Antwerpen");
         return school;
     }
 
-    private Book makeBook() {
+    private @NonNull Book makeBook() {
         Book b = new Book();
         b.setId(1L);
         b.setTitel("Dune");

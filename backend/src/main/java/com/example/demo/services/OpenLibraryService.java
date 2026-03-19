@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -233,7 +234,8 @@ public class OpenLibraryService {
      * Fetches a JSON response from a given URL and converts it to a Map.
      */
     private Map<String, Object> fetchJsonMap(String url, RestTemplate restTemplate) {
-        ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
+        String requestUrl = Objects.requireNonNull(url, "url");
+        ResponseEntity<Object> response = restTemplate.getForEntity(requestUrl, Object.class);
         if (!response.getStatusCode().is2xxSuccessful()) {
             return null;
         }
