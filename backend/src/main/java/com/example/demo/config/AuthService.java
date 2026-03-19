@@ -44,7 +44,7 @@ public class AuthService {
         formData.add("client_id", smartschoolProperties.getClientId());
         formData.add("client_secret", clientSecret);
 
-        String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/oauth/token";
+        String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/Token";
         logger.info("Requesting access token from: {}", tokenUrl);
 
         return this.webClient.post()
