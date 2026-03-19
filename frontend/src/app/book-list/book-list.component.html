@@ -217,17 +217,26 @@
                     </p>
                   </div>
                   @if (isLibrarian) {
-                    <button
-                      type="button"
-                      class="delete-button"
-                      (click)="
-                        $event.stopPropagation();
-                        $event.preventDefault();
-                        deleteBook($event, book)
-                      "
-                    >
-                      Verwijder
-                    </button>
+                    <div class="admin-actions">
+                      <button
+                        type="button"
+                        class="delete-button"
+                        (click)="
+                          $event.stopPropagation();
+                          $event.preventDefault();
+                          deleteBook($event, book)
+                        "
+                      >
+                        Verwijder
+                      </button>
+                      <a
+                        class="edit-button"
+                        [routerLink]="['/edit', book.id]"
+                        (click)="$event.stopPropagation()"
+                      >
+                        Aanpassen
+                      </a>
+                    </div>
                   }
                 </div>
               </article>
