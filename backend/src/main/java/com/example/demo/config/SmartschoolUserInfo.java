@@ -1,17 +1,22 @@
 package com.example.demo.config;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SmartschoolUserInfo {
+    @JsonAlias({ "userID", "userid", "userId", "id" })
     private String sub; // user id
     private String name;
     @JsonProperty("given_name")
+    @JsonAlias({ "firstname", "voornaam", "firstName" })
     private String givenName;
     @JsonProperty("family_name")
+    @JsonAlias({ "surname", "naam", "achternaam", "lastName" })
     private String familyName;
     private String role;
+    @JsonAlias({ "Basisrol", "basisrol", "type", "function" })
     private String basisrol; // Smartschool uses this
 
     public String getSub() {
@@ -58,6 +63,12 @@ public class SmartschoolUserInfo {
                 default:
                     return "leerling"; // default to least privileged
             }
+        }
+        // Fallback: If basisrol is missing but we have a user (name or sub), default to
+        // 'leerling'
+        // so the frontend receives a valid role and redirects to dashboard.
+        if (this.name != null || this.sub != null) {
+            return "leerling";
         }
         return role;
     }

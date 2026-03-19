@@ -1,5 +1,6 @@
 package com.example.demo.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -18,10 +19,13 @@ public class AuthService {
 
     private final WebClient webClient;
     private final SmartschoolProperties smartschoolProperties;
+    private final ObjectMapper objectMapper;
 
-    public AuthService(WebClient.Builder webClientBuilder, SmartschoolProperties smartschoolProperties) {
+    public AuthService(WebClient.Builder webClientBuilder, SmartschoolProperties smartschoolProperties,
+            ObjectMapper objectMapper) {
         this.webClient = webClientBuilder.build();
         this.smartschoolProperties = smartschoolProperties;
+        this.objectMapper = objectMapper;
     }
 
     public Mono<SmartschoolUserInfo> processSmartschoolCallback(String code) {
@@ -104,7 +108,18 @@ public class AuthService {
                                     });
                         }
                         // Happy path
-                        return response.bodyToMono(SmartschoolUserInfo.class);
+                        return response.bodyToMono(String.class)
+                                .flatMap(jsonBody -> {
+                                    logger.info("Raw UserInfo response: {}", jsonBody);
+                                    try {
+                                        SmartschoolUserInfo userInfo = objectMapper.readValue(jsonBody,
+                                                SmartschoolUserInfo.class);
+                                        return Mono.just(userInfo);
+                                    } catch (Exception e) {
+                                        logger.error("Failed to parse UserInfo JSON", e);
+                                        return Mono.error(new RuntimeException("JSON parsing error for UserInfo"));
+                                    }
+                                });
                     }
                     // Handle non-successful responses
                     return response.bodyToMono(String.class)
