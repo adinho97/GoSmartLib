@@ -26,6 +26,7 @@ type BookItem = {
   standalone: false,
 })
 export class BookListComponent implements OnInit {
+  readonly ratingStars = [0, 1, 2, 3, 4];
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
   readonly genres = [
@@ -364,6 +365,12 @@ export class BookListComponent implements OnInit {
     const average = book.averageRating || 0;
     const percentage = (average / 5) * 100;
     return Math.min(100, Math.max(0, percentage));
+  }
+
+  getStarFillPercentage(book: BookItem, starIndex: number): number {
+    const average = Math.min(5, Math.max(0, book.averageRating || 0));
+    const fillForStar = average - starIndex;
+    return Math.min(100, Math.max(0, fillForStar * 100));
   }
 
   async onSchoolChange(value: string) {

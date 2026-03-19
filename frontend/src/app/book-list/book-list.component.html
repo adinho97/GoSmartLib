@@ -176,20 +176,34 @@
                   <div class="didactic-badge">Lerarencollectie</div>
                 }
                 @if ((book.reviewCount || 0) >= 10) {
-                  <div class="score-badge">
-                    <span
-                      class="score-stars"
-                      aria-label="Gemiddelde score {{
-                        book.averageRating || 0 | number: '1.1-1'
-                      }} op 5"
-                    >
-                      <span class="score-stars-track">★★★★★</span>
-                      <span
-                        class="score-stars-fill"
-                        [style.width.%]="getAverageRatingFillPercentage(book)"
-                        >★★★★★</span
+                  <div
+                    class="rating-chip"
+                    aria-label="Gemiddelde score {{
+                      book.averageRating || 0 | number: '1.1-1'
+                    }} op 5"
+                  >
+                    <div class="rating-chip-score">
+                      {{ book.averageRating || 0 | number: "1.1-1" }}
+                    </div>
+                    <div class="rating-chip-meta">
+                      <span class="rating-chip-stars" aria-hidden="true">
+                        @for (star of ratingStars; track star) {
+                          <span class="rating-chip-star">
+                            <span class="rating-chip-star-track">★</span>
+                            <span
+                              class="rating-chip-star-fill"
+                              [style.width.%]="
+                                getStarFillPercentage(book, star)
+                              "
+                              >★</span
+                            >
+                          </span>
+                        }
+                      </span>
+                      <span class="rating-chip-count"
+                        >{{ book.reviewCount || 0 }} beoordelingen</span
                       >
-                    </span>
+                    </div>
                   </div>
                 }
                 <div class="book-cover-slot">
