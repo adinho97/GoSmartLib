@@ -33,6 +33,39 @@ export class EditBookComponent implements OnInit {
     "Poëzie",
     "Non-fictie algemeen",
   ];
+  readonly nonFictionSubgenres = [
+    "Biografie / autobiografie",
+    "Wetenschap & technologie",
+    "Filosofie",
+    "Maatschappij & politiek",
+    "Psychologie",
+    "Geschiedenis",
+    "Kunst & cultuur",
+  ];
+  readonly didacticSubgenres = [
+    "Wiskunde",
+    "Taal",
+    "Geschiedenis",
+    "Kleuteronderwijs",
+    "Lager onderwijs",
+    "Secundair onderwijs",
+    "Volwasseneneducatie",
+    "Geheugen",
+    "Begrip",
+    "Denkprocessen",
+    "Samenwerking",
+    "Interactie",
+    "Dialoog",
+    "Online leren",
+    "E-learning platforms",
+    "Educatieve apps",
+    "Creativiteit",
+    "Zelfexpressie",
+    "Ervaringsgericht leren",
+  ];
+  selectedGenre = "";
+  selectedSubgenres: Set<string> = new Set();
+  selectedDidacticSubgenre = "";
 
   // Geen ISBN meer hier, want het staat niet in je interface
   book: Book = {
@@ -69,6 +102,7 @@ export class EditBookComponent implements OnInit {
     this.bookService.getBookById(this.bookId).subscribe({
       next: (data) => {
         this.book = data;
+        this.initializeGenreStateFromBook();
         this.isLoading = false;
       },
       error: (err) => {
@@ -78,9 +112,79 @@ export class EditBookComponent implements OnInit {
     });
   }
 
+  private initializeGenreStateFromBook() {
+    const rawGenre = String(this.book.genre || "").trim();
+    const lowerGenre = rawGenre.toLowerCase();
+    this.selectedSubgenres.clear();
+    this.selectedDidacticSubgenre = "";
+
+    if (lowerGenre.startsWith("non-fictie algemeen")) {
+      this.selectedGenre = "Non-fictie algemeen";
+      if (rawGenre.length > "Non-fictie algemeen - ".length) {
+        const subgenrePart = rawGenre.substring(
+          "Non-fictie algemeen - ".length,
+        );
+        subgenrePart
+          .split(",")
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0)
+          .forEach((value) => this.selectedSubgenres.add(value));
+      }
+      return;
+    }
+
+    if (lowerGenre.startsWith("didactiek")) {
+      this.selectedGenre = "Didactiek";
+      if (rawGenre.length > "Didactiek - ".length) {
+        this.selectedDidacticSubgenre = rawGenre
+          .substring("Didactiek - ".length)
+          .trim();
+      }
+      return;
+    }
+
+    this.selectedGenre = this.genres.includes(rawGenre) ? rawGenre : "";
+  }
+
+  onGenreChange() {
+    if (this.selectedGenre !== "Non-fictie algemeen") {
+      this.selectedSubgenres.clear();
+    }
+    if (this.selectedGenre !== "Didactiek") {
+      this.selectedDidacticSubgenre = "";
+    }
+  }
+
+  toggleSubgenre(subgenre: string) {
+    if (this.selectedSubgenres.has(subgenre)) {
+      this.selectedSubgenres.delete(subgenre);
+      return;
+    }
+    this.selectedSubgenres.add(subgenre);
+  }
+
+  isSubgenreSelected(subgenre: string): boolean {
+    return this.selectedSubgenres.has(subgenre);
+  }
+
   async onSubmit() {
     try {
-      await this.bookService.updateBook(this.bookId, this.book);
+      let genreToSave = this.selectedGenre;
+      if (
+        this.selectedGenre === "Non-fictie algemeen" &&
+        this.selectedSubgenres.size > 0
+      ) {
+        const subgenresArray = Array.from(this.selectedSubgenres).sort();
+        genreToSave = `Non-fictie algemeen - ${subgenresArray.join(", ")}`;
+      }
+      if (this.selectedGenre === "Didactiek" && this.selectedDidacticSubgenre) {
+        genreToSave = `Didactiek - ${this.selectedDidacticSubgenre}`;
+      }
+
+      await this.bookService.updateBook(this.bookId, {
+        ...this.book,
+        genre: genreToSave,
+      });
       this.router.navigate(["/books"]);
     } catch (err) {
       this.errorMessage = "Fout bij het opslaan van wijzigingen.";

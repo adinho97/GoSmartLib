@@ -29,13 +29,52 @@
 
       <div class="form-group">
         <label for="genre">Genre</label>
-        <select id="genre" [(ngModel)]="book.genre" name="genre">
+        <select
+          id="genre"
+          [(ngModel)]="selectedGenre"
+          name="genre"
+          (change)="onGenreChange()"
+        >
           <option value="">Kies een genre</option>
           @for (g of genres; track g) {
             <option [value]="g">{{ g }}</option>
           }
         </select>
       </div>
+
+      @if (selectedGenre === "Didactiek") {
+        <div class="form-group">
+          <label for="didacticSubgenre">Subgenre (didactiek)</label>
+          <select
+            id="didacticSubgenre"
+            name="didacticSubgenre"
+            [(ngModel)]="selectedDidacticSubgenre"
+          >
+            <option value="">Kies een subgenre</option>
+            @for (sg of didacticSubgenres; track sg) {
+              <option [value]="sg">{{ sg }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      @if (selectedGenre === "Non-fictie algemeen") {
+        <div class="form-group">
+          <label>Subgenres</label>
+          <div class="subgenres-checkboxes">
+            @for (sg of nonFictionSubgenres; track sg) {
+              <label class="checkbox-item">
+                <input
+                  type="checkbox"
+                  [checked]="isSubgenreSelected(sg)"
+                  (change)="toggleSubgenre(sg)"
+                />
+                {{ sg }}
+              </label>
+            }
+          </div>
+        </div>
+      }
 
       <div class="form-group">
         <label for="taal">Taal</label>

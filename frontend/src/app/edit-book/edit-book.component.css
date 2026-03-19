@@ -29,18 +29,38 @@ h2 {
   color: #5a3a45;
 }
 
-.form-group input, 
-.form-group textarea {
+.form-group input,
+.form-group textarea,
+.form-group select {
   padding: 0.75rem;
   border: 1px solid rgba(96, 22, 47, 0.2);
   border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.2s;
+  font-family: inherit;
+  background: #fff;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
   border-color: #871f42;
+}
+
+.subgenres-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.3rem 0;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #2c2c2c;
 }
 
 .button-group {
