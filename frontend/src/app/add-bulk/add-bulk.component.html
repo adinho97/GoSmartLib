@@ -93,14 +93,15 @@
       <select
         id="statusFilter"
         [ngModel]="selectedStatusFilter"
-        (ngModelChange)="selectedStatusFilter = $event"
+        (ngModelChange)="onStatusFilterChange($event)"
       >
         @for (status of statusFilters; track status) {
           <option [value]="status">{{ status || "Alle statussen" }}</option>
         }
       </select>
       <span class="table-meta">
-        {{ filteredRows.length }} van {{ result.results.length }} rijen zichtbaar
+        {{ filteredRows.length }} van {{ result.results.length }} rijen
+        zichtbaar
       </span>
     </div>
 
@@ -114,7 +115,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of filteredRows; track row) {
+          @for (row of pagedRows; track row) {
             <tr>
               <td>{{ row.isbn || "-" }}</td>
               <td>
@@ -128,7 +129,7 @@
               <td>{{ row.message }}</td>
             </tr>
           }
-          @if (filteredRows.length === 0) {
+          @if (pagedRows.length === 0) {
             <tr>
               <td colspan="3" class="empty-state">
                 Geen rijen voor de geselecteerde status.
@@ -138,5 +139,29 @@
         </tbody>
       </table>
     </div>
+
+    @if (filteredRows.length > pageSize) {
+      <div class="pagination-row">
+        <button
+          type="button"
+          class="secondary"
+          [disabled]="!canGoPrevious"
+          (click)="goToPreviousPage()"
+        >
+          Vorige
+        </button>
+        <span class="pagination-meta">
+          Pagina {{ currentPageSafe }} van {{ totalPages }}
+        </span>
+        <button
+          type="button"
+          class="secondary"
+          [disabled]="!canGoNext"
+          (click)="goToNextPage()"
+        >
+          Volgende
+        </button>
+      </div>
+    }
   }
 </div>

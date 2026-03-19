@@ -15,6 +15,7 @@ import { School } from "../models/school";
   standalone: false,
 })
 export class AddBulkComponent {
+  readonly pageSize = 5;
   readonly statusFilters: Array<"" | BulkImportStatus> = [
     "",
     "ADDED",
@@ -28,6 +29,7 @@ export class AddBulkComponent {
   selectedSchoolId: number | null = null;
   selectedFile: File | null = null;
   selectedStatusFilter: "" | BulkImportStatus = "";
+  currentPage = 1;
 
   isUploading = false;
   errorMessage = "";
@@ -76,6 +78,7 @@ export class AddBulkComponent {
     const file = input.files && input.files.length > 0 ? input.files[0] : null;
     this.selectedFile = file;
     this.selectedStatusFilter = "";
+    this.currentPage = 1;
     this.errorMessage = "";
     this.successMessage = "";
     this.result = null;
@@ -92,6 +95,7 @@ export class AddBulkComponent {
     this.successMessage = "";
     this.result = null;
     this.selectedStatusFilter = "";
+    this.currentPage = 1;
 
     try {
       this.result = await this.bookService.importBooksByUpload(
@@ -141,6 +145,46 @@ export class AddBulkComponent {
     return this.result.results.filter(
       (row) => row.status === this.selectedStatusFilter,
     );
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredRows.length / this.pageSize));
+  }
+
+  get currentPageSafe(): number {
+    return Math.min(this.currentPage, this.totalPages);
+  }
+
+  get pagedRows(): BulkImportRowResult[] {
+    const start = (this.currentPageSafe - 1) * this.pageSize;
+    return this.filteredRows.slice(start, start + this.pageSize);
+  }
+
+  get canGoPrevious(): boolean {
+    return this.currentPageSafe > 1;
+  }
+
+  get canGoNext(): boolean {
+    return this.currentPageSafe < this.totalPages;
+  }
+
+  onStatusFilterChange(value: "" | BulkImportStatus) {
+    this.selectedStatusFilter = value;
+    this.currentPage = 1;
+  }
+
+  goToPreviousPage() {
+    if (!this.canGoPrevious) {
+      return;
+    }
+    this.currentPage = this.currentPageSafe - 1;
+  }
+
+  goToNextPage() {
+    if (!this.canGoNext) {
+      return;
+    }
+    this.currentPage = this.currentPageSafe + 1;
   }
 
   downloadUnresolvedCsv() {
