@@ -6,6 +6,7 @@ import com.example.demo.entities.School;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.services.BulkImportService;
 import com.example.demo.services.BookService;
+import com.example.demo.services.ImportCoreService;
 import com.example.demo.services.IsbnService;
 import com.example.demo.services.OpenLibraryService;
 import com.example.demo.services.SchoolService;
@@ -38,6 +39,9 @@ class BookServiceTest {
     @Mock
     private BulkImportService bulkImportService;
 
+    @Mock
+    private ImportCoreService importCoreService;
+
     @InjectMocks
     private BookService bookService;
 
@@ -58,6 +62,15 @@ class BookServiceTest {
         b.setAuteur("Frank Herbert");
         b.setIsbn("9780553808049");
         return b;
+    }
+
+    private BookDto makeBookDto() {
+        BookDto dto = new BookDto();
+        dto.setId(1L);
+        dto.setTitel("Dune");
+        dto.setAuteur("Frank Herbert");
+        dto.setIsbn("9780553808049");
+        return dto;
     }
 
     // ---- findByIsbn ---------------------------------------------------------
@@ -88,41 +101,43 @@ class BookServiceTest {
     @Test
     void importByIsbnShouldReturnExistingBookWithoutCallingOpenLibrary() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
-        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.of(makeBook()));
+        when(importCoreService.importByNormalizedIsbn(eq("9780553808049"), any(School.class)))
+                .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.ALREADY_EXISTS,
+                        makeBookDto()));
 
         BookDto result = bookService.importByIsbn("9780553808049", 1L);
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
         verify(bookRepository, never()).save(any());
+        verify(importCoreService).importByNormalizedIsbn(eq("9780553808049"), any(School.class));
     }
 
     @Test
     void importByIsbnShouldFetchFromOpenLibrarySaveAndReturnNewBook() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
-        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.empty());
-        when(openLibraryService.fetchBookFromOpenLibrary("9780553808049")).thenReturn(makeBook());
-        when(bookRepository.save(any(Book.class))).thenReturn(makeBook());
+        when(importCoreService.importByNormalizedIsbn(eq("9780553808049"), any(School.class)))
+                .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.ADDED,
+                        makeBookDto()));
 
         BookDto result = bookService.importByIsbn("9780553808049", 1L);
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
-        verify(bookRepository).save(any(Book.class));
-        verify(openLibraryService).fetchBookFromOpenLibrary("9780553808049");
+        verify(importCoreService).importByNormalizedIsbn(eq("9780553808049"), any(School.class));
     }
 
     @Test
     void importByIsbnShouldReturnNullWhenIsbnNotFoundInOpenLibrary() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
-        when(bookRepository.findByIsbnAndSchool_Id("0000000000000", 1L)).thenReturn(Optional.empty());
-        when(openLibraryService.fetchBookFromOpenLibrary("0000000000000")).thenReturn(null);
+        when(importCoreService.importByNormalizedIsbn(eq("0000000000000"), any(School.class)))
+                .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.NOT_FOUND, null));
 
         BookDto result = bookService.importByIsbn("0000000000000", 1L);
 
         assertNull(result);
         verify(bookRepository, never()).save(any());
-        verify(openLibraryService).fetchBookFromOpenLibrary("0000000000000");
+        verify(importCoreService).importByNormalizedIsbn(eq("0000000000000"), any(School.class));
     }
 
     // ---- fetchPreviewByIsbn -------------------------------------------------
