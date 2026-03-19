@@ -1,1 +1,62 @@
-<router-outlet></router-outlet>
+@if (showNavbar) {
+  <header class="top-nav">
+    <nav class="top-nav-inner" aria-label="Hoofdnavigatie">
+      <div class="nav-left">
+        <a class="brand" [routerLink]="['/dashboard']">GO!SmartLib</a>
+      </div>
+      <div class="nav-links">
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          Dashboard
+        </a>
+        <a routerLink="/profile" routerLinkActive="active"> Profiel </a>
+        <a routerLink="/books" [class.active]="isBooksListActive">
+          Boekenlijst
+        </a>
+        @if (isLibrarian) {
+          <div class="nav-dropdown" tabindex="0">
+            <button
+              type="button"
+              class="nav-dropdown-trigger"
+              [class.active-dropdown]="isAddBookActive"
+            >
+              Boek toevoegen
+              <svg
+                class="dropdown-arrow"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+              >
+                <path fill="currentColor" d="M7 10l5 5 5-5z" />
+              </svg>
+            </button>
+            <div class="nav-dropdown-menu">
+              <a routerLink="/isbn" routerLinkActive="active"> Via ISBN </a>
+              <a routerLink="/add" routerLinkActive="active">
+                Manueel invoeren
+              </a>
+            </div>
+          </div>
+        }
+        @if (isTeacher) {
+          <a
+            class="teacher-badge-link"
+            routerLink="/books"
+            [queryParams]="{ genre: 'Didactiek' }"
+            [class.active]="isDidacticCollectionActive"
+          >
+            Didactische collectie
+          </a>
+        }
+      </div>
+    </nav>
+  </header>
+}
+
+<main class="app-shell" [class.with-nav]="showNavbar">
+  <router-outlet></router-outlet>
+</main>
