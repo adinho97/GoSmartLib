@@ -118,7 +118,21 @@
       }
     </div>
 
-    @if (!isDidactic && book.genre === "Non-fictie algemeen") {
+    @if (isDidactic) {
+    <div class="form-row">
+      <label for="didacticSubgenre">Subgenre (didactiek)</label>
+      <select
+        id="didacticSubgenre"
+        name="didacticSubgenre"
+        [(ngModel)]="selectedDidacticSubgenre"
+      >
+        <option value="">Kies een subgenre</option>
+        @for (sg of didacticSubgenres; track sg) {
+        <option [value]="sg">{{ sg }}</option>
+        }
+      </select>
+    </div>
+    } @if (!isDidactic && book.genre === "Non-fictie algemeen") {
     <div class="form-row">
       <label>Subgenres</label>
       <div class="subgenres-checkboxes">
