@@ -179,6 +179,8 @@ export class AddBookComponent implements OnInit {
   }
 
   async onSubmit(bookForm: NgForm) {
+    this.submitState = "";
+    this.submitMessage = "";
     this.isSubmitted = true;
     if (bookForm.invalid) return;
 
@@ -217,7 +219,8 @@ export class AddBookComponent implements OnInit {
       );
 
       this.resetForm(bookForm);
-      window.location.reload();
+      this.submitState = "success";
+      this.submitMessage = "Boek succesvol toegevoegd.";
       return;
     } catch (error) {
       this.submitState = "error";
