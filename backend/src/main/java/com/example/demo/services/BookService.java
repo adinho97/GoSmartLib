@@ -22,14 +22,17 @@ public class BookService {
     private final OpenLibraryService openLibraryService;
     private final IsbnService isbnService;
     private final BulkImportService bulkImportService;
+    private final ImportCoreService importCoreService;
 
     public BookService(BookRepository bookRepository, SchoolService schoolService,
-            OpenLibraryService openLibraryService, IsbnService isbnService, BulkImportService bulkImportService) {
+            OpenLibraryService openLibraryService, IsbnService isbnService,
+            BulkImportService bulkImportService, ImportCoreService importCoreService) {
         this.bookRepository = bookRepository;
         this.schoolService = schoolService;
         this.openLibraryService = openLibraryService;
         this.isbnService = isbnService;
         this.bulkImportService = bulkImportService;
+        this.importCoreService = importCoreService;
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
@@ -57,7 +60,7 @@ public class BookService {
     public BookDto importByIsbn(String isbn, Long schoolId) {
         String normalizedIsbn = isbnService.requireValidNormalizedIsbn(isbn);
         School school = schoolService.getByIdOrDefault(schoolId);
-        ImportOutcome outcome = importByIsbnInternal(normalizedIsbn, school);
+        ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(normalizedIsbn, school);
         return outcome.bookDto();
     }
 
@@ -75,8 +78,8 @@ public class BookService {
         List<ImportResultDto.RowResult> rows = new ArrayList<>(parsed.invalidRows());
         for (String isbn : parsed.uniqueIsbns()) {
             try {
-                ImportOutcome outcome = importByIsbnInternal(isbn, school);
-                if (outcome.status() == ImportStatus.ALREADY_EXISTS) {
+                ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(isbn, school);
+                if (outcome.status() == ImportCoreService.ImportStatus.ALREADY_EXISTS) {
                     rows.add(new ImportResultDto.RowResult(
                             isbn,
                             ImportResultDto.Status.ALREADY_EXISTS,
@@ -85,7 +88,7 @@ public class BookService {
                     continue;
                 }
 
-                if (outcome.status() == ImportStatus.NOT_FOUND) {
+                if (outcome.status() == ImportCoreService.ImportStatus.NOT_FOUND) {
                     rows.add(new ImportResultDto.RowResult(
                             isbn,
                             ImportResultDto.Status.NOT_FOUND,
@@ -110,33 +113,5 @@ public class BookService {
 
         result.setResults(rows);
         return result;
-    }
-
-    private ImportOutcome importByIsbnInternal(String isbn, School school) {
-        Optional<Book> existing = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId());
-        if (existing.isPresent()) {
-            return new ImportOutcome(ImportStatus.ALREADY_EXISTS, BookMapper.toDto(existing.get()));
-        }
-
-        Book fetched = openLibraryService.fetchBookFromOpenLibrary(isbn);
-        if (fetched == null) {
-            return new ImportOutcome(ImportStatus.NOT_FOUND, null);
-        }
-
-        fetched.setIsbn(isbnService.normalizeAndValidateIsbn(fetched.getIsbn())
-                .orElse(fetched.getIsbn()));
-
-        fetched.setSchool(school);
-        Book saved = bookRepository.save(fetched);
-        return new ImportOutcome(ImportStatus.ADDED, BookMapper.toDto(saved));
-    }
-
-    private enum ImportStatus {
-        ADDED,
-        ALREADY_EXISTS,
-        NOT_FOUND
-    }
-
-    private record ImportOutcome(ImportStatus status, BookDto bookDto) {
     }
 }
