@@ -1,10 +1,8 @@
 package com.example.demo.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -22,10 +20,7 @@ public class AuthService {
     private final SmartschoolProperties smartschoolProperties;
 
     public AuthService(WebClient.Builder webClientBuilder, SmartschoolProperties smartschoolProperties) {
-        this.webClient = webClientBuilder
-                .codecs(configurer -> configurer.defaultCodecs().jackson2JsonDecoder(
-                        new Jackson2JsonDecoder(new ObjectMapper(), MediaType.TEXT_HTML, MediaType.APPLICATION_JSON)))
-                .build();
+        this.webClient = webClientBuilder.build();
         this.smartschoolProperties = smartschoolProperties;
     }
 
@@ -40,8 +35,11 @@ public class AuthService {
         formData.add("code", code);
         formData.add("redirect_uri", smartschoolProperties.getRedirectUri());
 
+        String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/Token";
+        logger.info("Requesting access token from: {}", tokenUrl);
+
         return this.webClient.post()
-                .uri(smartschoolProperties.getApiBaseUrl() + "/OAuth/Token")
+                .uri(tokenUrl)
                 .headers(headers -> headers.setBasicAuth(smartschoolProperties.getClientId(),
                         smartschoolProperties.getClientSecret(), StandardCharsets.UTF_8))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
