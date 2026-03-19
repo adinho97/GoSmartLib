@@ -4,6 +4,7 @@ import com.example.demo.dto.BookDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.services.BulkImportService;
 import com.example.demo.services.BookService;
 import com.example.demo.services.IsbnService;
 import com.example.demo.services.OpenLibraryService;
@@ -33,6 +34,9 @@ class BookServiceTest {
 
     @Spy
     private IsbnService isbnService;
+
+    @Mock
+    private BulkImportService bulkImportService;
 
     @InjectMocks
     private BookService bookService;
