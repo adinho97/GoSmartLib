@@ -48,6 +48,16 @@ export class BookListComponent implements OnInit {
     "Poëzie",
     "Non-fictie algemeen",
   ];
+  readonly languages = [
+    "Nederlands",
+    "Engels",
+    "Frans",
+    "Duits",
+    "Spaans",
+    "Italiaans",
+    "Portugees",
+    "Latijn",
+  ];
   readonly nonFictionSubgenres = [
     "Biografie / autobiografie",
     "Wetenschap & technologie",
@@ -208,12 +218,7 @@ export class BookListComponent implements OnInit {
   }
 
   get availableLanguages(): string[] {
-    const languages = this.books
-      .map((book) => (book.taal || "").trim())
-      .filter((language) => language.length > 0);
-    return Array.from(new Set(languages)).sort((a, b) =>
-      a.localeCompare(b, "nl"),
-    );
+    return this.languages;
   }
 
   get filteredBooks(): BookItem[] {
