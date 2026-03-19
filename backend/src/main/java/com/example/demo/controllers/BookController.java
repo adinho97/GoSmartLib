@@ -76,7 +76,6 @@ public class BookController {
             return ResponseEntity.badRequest().build();
         }
 
-        // Only check ISBN uniqueness if ISBN is provided
         if (bookDto.getIsbn() != null && !bookDto.getIsbn().trim().isEmpty()) {
             if (repo.findByIsbnAndSchool_Id(bookDto.getIsbn(), school.getId()).isPresent()) {
                 logger.warn("Book with isbn {} already exists in school {}", bookDto.getIsbn(), school.getId());
@@ -86,7 +85,7 @@ public class BookController {
 
         try {
             Book entity = BookMapper.toEntity(bookDto);
-            entity.setId(null); // Keep id managed by the database
+            entity.setId(null); 
             entity.setSchool(school);
 
             logger.info("Persisting book entity: titel={}", entity.getTitel());
@@ -148,6 +147,22 @@ public class BookController {
 
         repo.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
+        if (!repo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
+
+        Book entity = BookMapper.toEntity(bookDto);
+        entity.setId(id); 
+        entity.setSchool(school);
+
+        Book saved = repo.save(entity);
+        return ResponseEntity.ok(BookMapper.toDto(saved));
     }
 
     @GetMapping("/{id}/reviews")

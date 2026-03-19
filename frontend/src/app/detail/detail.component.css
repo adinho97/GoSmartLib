@@ -38,6 +38,29 @@
   color: white;
 }
 
+/* JOUW NIEUWE EDIT KNOP */
+.edit-btn-detail {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  background: #d32f2f;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.2);
+}
+
+.edit-btn-detail:hover {
+  background: #b71c1c;
+}
+
 .book-title {
   text-align: center;
   font-size: 30px;
@@ -95,6 +118,7 @@
   color: #444;
 }
 
+/* REVIEWS STYLING */
 .review-section {
   margin-top: 30px;
   border-top: 1px solid #eee;
@@ -231,7 +255,7 @@
   color: #fff;
 }
 
-/* Responsive */
+/* RESPONSIVE (SAMENGEVOEGD) */
 @media (max-width: 900px) {
   .detail-content {
     flex-direction: column;
@@ -246,6 +270,12 @@
   .back-btn {
     position: static;
     margin-bottom: 20px;
+  }
+
+  .edit-btn-detail {
+    position: static;
+    margin: 10px auto 20px auto;
+    width: fit-content;
   }
 
   .review-header,

@@ -9,6 +9,7 @@ public class SmartschoolProperties {
     private String clientId;
     private String clientSecret;
     private String redirectUri;
+    private String apiBaseUrl;
 
     public String getClientId() {
         return clientId;
@@ -32,5 +33,13 @@ public class SmartschoolProperties {
 
     public void setRedirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
+    }
+
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    public void setApiBaseUrl(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
     }
 }
