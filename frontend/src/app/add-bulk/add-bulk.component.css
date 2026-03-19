@@ -277,8 +277,13 @@ tbody tr:hover td {
 }
 
 .pagination-meta {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #4b5563;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 
 /* ── Status badges ────────────────────────────────── */
@@ -307,4 +312,129 @@ tbody tr:hover td {
 .status.error {
   background: #fee2e2;
   color: #991b1b;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+
+/* Tablet: 2×4 stats grid, looser form */
+@media (max-width: 900px) {
+  .bulk-page {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Mobile landscape / small tablet */
+@media (max-width: 640px) {
+  .bulk-page {
+    padding: 1rem;
+  }
+
+  .bulk-page h1 {
+    font-size: 1.1rem;
+  }
+
+  /* Stack form fields vertically */
+  .input-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Labels full width above inputs */
+  label {
+    min-width: unset;
+  }
+
+  select,
+  input[type="file"] {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    background: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 0.875rem;
+    color: #1a1a1a;
+    transition: border-color 0.15s;
+    height: 38px;
+    line-height: 1;
+  }
+
+  button {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* 2×4 on mobile too, but tighter */
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .summary-item {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .summary-item .value {
+    font-size: 1.2rem;
+  }
+
+  /* Table: allow horizontal scroll */
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 480px;
+  }
+
+  /* Stack table controls */
+  .table-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .table-controls select {
+    width: 100%;
+  }
+
+  /* Stack pagination */
+  .pagination-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .actions-row button {
+    width: 100%;
+  }
+}
+
+/* Very small phones (< 380px) */
+@media (max-width: 380px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .summary-item .label {
+    font-size: 0.65rem;
+  }
+
+  .summary-item .value {
+    font-size: 1rem;
+  }
+
+  th,
+  td {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.8rem;
+  }
 }
