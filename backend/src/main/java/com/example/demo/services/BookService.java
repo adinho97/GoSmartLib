@@ -36,16 +36,18 @@ public class BookService {
     private final BookRepository bookRepository;
     private final SchoolService schoolService;
     private final OpenLibraryService openLibraryService;
+    private final IsbnService isbnService;
 
     public BookService(BookRepository bookRepository, SchoolService schoolService,
-            OpenLibraryService openLibraryService) {
+            OpenLibraryService openLibraryService, IsbnService isbnService) {
         this.bookRepository = bookRepository;
         this.schoolService = schoolService;
         this.openLibraryService = openLibraryService;
+        this.isbnService = isbnService;
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
-        String normalizedIsbn = requireValidNormalizedIsbn(isbn);
+        String normalizedIsbn = isbnService.requireValidNormalizedIsbn(isbn);
 
         if (schoolId == null) {
             return bookRepository.findByIsbn(normalizedIsbn)
@@ -57,7 +59,7 @@ public class BookService {
     }
 
     public BookDto fetchPreviewByIsbn(String isbn) {
-        String normalizedIsbn = requireValidNormalizedIsbn(isbn);
+        String normalizedIsbn = isbnService.requireValidNormalizedIsbn(isbn);
         Book fetched = openLibraryService.fetchBookFromOpenLibrary(normalizedIsbn);
         if (fetched == null) {
             return null;
@@ -67,7 +69,7 @@ public class BookService {
 
     @Transactional
     public BookDto importByIsbn(String isbn, Long schoolId) {
-        String normalizedIsbn = requireValidNormalizedIsbn(isbn);
+        String normalizedIsbn = isbnService.requireValidNormalizedIsbn(isbn);
         School school = schoolService.getByIdOrDefault(schoolId);
         ImportOutcome outcome = importByIsbnInternal(normalizedIsbn, school);
         return outcome.bookDto();
@@ -163,7 +165,7 @@ public class BookService {
             return new ImportOutcome(ImportStatus.NOT_FOUND, null);
         }
 
-        fetched.setIsbn(normalizeAndValidateIsbn(fetched.getIsbn())
+        fetched.setIsbn(isbnService.normalizeAndValidateIsbn(fetched.getIsbn())
                 .orElse(fetched.getIsbn()));
 
         fetched.setSchool(school);
@@ -301,7 +303,7 @@ public class BookService {
             return RowProcessResult.INVALID;
         }
 
-        Optional<String> normalizedIsbn = normalizeAndValidateIsbn(rawFirstColumn);
+        Optional<String> normalizedIsbn = isbnService.normalizeAndValidateIsbn(rawFirstColumn);
         if (normalizedIsbn.isEmpty()) {
             invalidRows.add(new ImportResultDto.RowResult(
                     rawFirstColumn,
@@ -313,64 +315,6 @@ public class BookService {
 
         boolean added = uniqueIsbns.add(normalizedIsbn.get());
         return added ? RowProcessResult.ADDED : RowProcessResult.DUPLICATE;
-    }
-
-    private Optional<String> normalizeAndValidateIsbn(String rawValue) {
-        if (rawValue == null) {
-            return Optional.empty();
-        }
-
-        String normalized = rawValue
-                .replace("-", "")
-                .replaceAll("\\s+", "")
-                .toUpperCase(Locale.ROOT);
-
-        if (normalized.isEmpty()) {
-            return Optional.empty();
-        }
-
-        if (normalized.length() == 10) {
-            if (!normalized.matches("\\d{9}[\\dX]")) {
-                return Optional.empty();
-            }
-            return isValidIsbn10(normalized) ? Optional.of(normalized) : Optional.empty();
-        }
-
-        if (normalized.length() == 13) {
-            if (!normalized.matches("\\d{13}")) {
-                return Optional.empty();
-            }
-            return isValidIsbn13(normalized) ? Optional.of(normalized) : Optional.empty();
-        }
-
-        return Optional.empty();
-    }
-
-    private String requireValidNormalizedIsbn(String rawValue) {
-        return normalizeAndValidateIsbn(rawValue)
-                .orElseThrow(() -> new IllegalArgumentException("Ongeldig ISBN-formaat"));
-    }
-
-    private boolean isValidIsbn10(String isbn10) {
-        int sum = 0;
-        for (int i = 0; i < 10; i++) {
-            char c = isbn10.charAt(i);
-            int digit = (c == 'X') ? 10 : Character.getNumericValue(c);
-            sum += (10 - i) * digit;
-        }
-        return sum % 11 == 0;
-    }
-
-    private boolean isValidIsbn13(String isbn13) {
-        int sum = 0;
-        for (int i = 0; i < 12; i++) {
-            int digit = Character.getNumericValue(isbn13.charAt(i));
-            sum += (i % 2 == 0) ? digit : digit * 3;
-        }
-
-        int expectedCheck = (10 - (sum % 10)) % 10;
-        int actualCheck = Character.getNumericValue(isbn13.charAt(12));
-        return expectedCheck == actualCheck;
     }
 
     private record ParsedBulkIsbn(

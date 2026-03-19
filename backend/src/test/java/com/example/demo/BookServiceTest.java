@@ -5,25 +5,21 @@ import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.services.BookService;
+import com.example.demo.services.IsbnService;
+import com.example.demo.services.OpenLibraryService;
 import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +27,12 @@ class BookServiceTest {
 
     @Mock
     private BookRepository bookRepository;
+
+    @Mock
+    private OpenLibraryService openLibraryService;
+
+    @Spy
+    private IsbnService isbnService;
 
     @InjectMocks
     private BookService bookService;
@@ -92,111 +94,71 @@ class BookServiceTest {
     }
 
     @Test
-    @SuppressWarnings("null")
     void importByIsbnShouldFetchFromOpenLibrarySaveAndReturnNewBook() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
         when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L)).thenReturn(Optional.empty());
+        when(openLibraryService.fetchBookFromOpenLibrary("9780553808049")).thenReturn(makeBook());
         when(bookRepository.save(any(Book.class))).thenReturn(makeBook());
 
-        Map<String, Object> bookBody = new HashMap<>();
-        bookBody.put("title", "Dune");
-        bookBody.put("authors", List.of(Map.of("key", "/authors/OL2732061A")));
+        BookDto result = bookService.importByIsbn("9780553808049", 1L);
 
-        Map<String, Object> authorBody = new HashMap<>();
-        authorBody.put("name", "Frank Herbert");
-
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (rt, ctx) -> {
-                when(rt.getForEntity(contains("isbn"), eq(Object.class)))
-                    .thenReturn(ResponseEntity.ok(bookBody));
-                when(rt.getForEntity(contains("authors"), eq(Object.class)))
-                    .thenReturn(ResponseEntity.ok(authorBody));
-        })) {
-            BookDto result = bookService.importByIsbn("9780553808049", 1L);
-
-            assertNotNull(result);
-            assertEquals("Dune", result.getTitel());
-            verify(bookRepository).save(any(Book.class));
-        }
+        assertNotNull(result);
+        assertEquals("Dune", result.getTitel());
+        verify(bookRepository).save(any(Book.class));
+        verify(openLibraryService).fetchBookFromOpenLibrary("9780553808049");
     }
 
     @Test
-    @SuppressWarnings("null")
     void importByIsbnShouldReturnNullWhenIsbnNotFoundInOpenLibrary() {
         when(schoolService.getByIdOrDefault(1L)).thenReturn(makeSchool());
         when(bookRepository.findByIsbnAndSchool_Id("0000000000000", 1L)).thenReturn(Optional.empty());
+        when(openLibraryService.fetchBookFromOpenLibrary("0000000000000")).thenReturn(null);
 
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class,
-                (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Object.class)))
-                        .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND)))) {
-            BookDto result = bookService.importByIsbn("0000000000000", 1L);
+        BookDto result = bookService.importByIsbn("0000000000000", 1L);
 
-            assertNull(result);
-            verify(bookRepository, never()).save(any());
-        }
+        assertNull(result);
+        verify(bookRepository, never()).save(any());
+        verify(openLibraryService).fetchBookFromOpenLibrary("0000000000000");
     }
 
     // ---- fetchPreviewByIsbn -------------------------------------------------
 
     @Test
-    @SuppressWarnings("null")
     void fetchPreviewByIsbnShouldReturnDtoWithoutPersisting() {
-        Map<String, Object> bookBody = new HashMap<>();
-        bookBody.put("title", "Dune");
-        bookBody.put("authors", List.of(Map.of("key", "/authors/OL2732061A")));
-        bookBody.put("languages", List.of(Map.of("key", "/languages/eng")));
+        Book preview = makeBook();
+        preview.setTaal("Engels");
+        when(openLibraryService.fetchBookFromOpenLibrary("9780553808049")).thenReturn(preview);
 
-        Map<String, Object> authorBody = new HashMap<>();
-        authorBody.put("name", "Frank Herbert");
+        BookDto result = bookService.fetchPreviewByIsbn("9780553808049");
 
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (rt, ctx) -> {
-                when(rt.getForEntity(contains("isbn"), eq(Object.class)))
-                    .thenReturn(ResponseEntity.ok(bookBody));
-                when(rt.getForEntity(contains("authors"), eq(Object.class)))
-                    .thenReturn(ResponseEntity.ok(authorBody));
-        })) {
-            BookDto result = bookService.fetchPreviewByIsbn("9780553808049");
-
-            assertNotNull(result);
-            assertEquals("Dune", result.getTitel());
-            assertEquals("Frank Herbert", result.getAuteur());
-            assertEquals("Engels", result.getTaal());
-            verify(bookRepository, never()).save(any());
-        }
+        assertNotNull(result);
+        assertEquals("Dune", result.getTitel());
+        assertEquals("Frank Herbert", result.getAuteur());
+        assertEquals("Engels", result.getTaal());
+        verify(bookRepository, never()).save(any());
+        verify(openLibraryService).fetchBookFromOpenLibrary("9780553808049");
     }
 
     @Test
-    @SuppressWarnings("null")
     void fetchPreviewByIsbnShouldMapFrenchLanguageToFrench() {
-        Map<String, Object> bookBody = new HashMap<>();
-        bookBody.put("title", "Le Petit Prince");
-        bookBody.put("authors", List.of(Map.of("key", "/authors/OL1000000A")));
-        bookBody.put("languages", List.of(Map.of("key", "/languages/fre")));
+        Book preview = makeBook();
+        preview.setTaal("Frans");
+        when(openLibraryService.fetchBookFromOpenLibrary("9780156012195")).thenReturn(preview);
 
-        Map<String, Object> authorBody = new HashMap<>();
-        authorBody.put("name", "Antoine de Saint-Exupery");
+        BookDto result = bookService.fetchPreviewByIsbn("9780156012195");
 
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (rt, ctx) -> {
-                when(rt.getForEntity(contains("isbn"), eq(Object.class)))
-                    .thenReturn(ResponseEntity.ok(bookBody));
-                when(rt.getForEntity(contains("authors"), eq(Object.class)))
-                    .thenReturn(ResponseEntity.ok(authorBody));
-        })) {
-            BookDto result = bookService.fetchPreviewByIsbn("9780156012195");
-
-            assertNotNull(result);
-            assertEquals("Frans", result.getTaal());
-        }
+        assertNotNull(result);
+        assertEquals("Frans", result.getTaal());
+        verify(openLibraryService).fetchBookFromOpenLibrary("9780156012195");
     }
 
     @Test
-    @SuppressWarnings("null")
     void fetchPreviewByIsbnShouldReturnNullWhenNotFoundInOpenLibrary() {
-        try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class,
-                (rt, ctx) -> when(rt.getForEntity(anyString(), eq(Object.class)))
-                        .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND)))) {
-            BookDto result = bookService.fetchPreviewByIsbn("0000000000000");
+        when(openLibraryService.fetchBookFromOpenLibrary("0000000000000")).thenReturn(null);
 
-            assertNull(result);
-        }
+        BookDto result = bookService.fetchPreviewByIsbn("0000000000000");
+
+        assertNull(result);
+        verify(openLibraryService).fetchBookFromOpenLibrary("0000000000000");
     }
 }
