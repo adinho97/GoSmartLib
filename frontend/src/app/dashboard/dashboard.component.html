@@ -16,7 +16,7 @@
 
     @if (!loading && featuredBooks.length > 0) {
       <div class="horizontal-scroll-wrapper">
-        @for (book of featuredBooks; track book) {
+        @for (book of featuredBooks; track book.id) {
           <div class="book-card">
             <div class="genre-tag">{{ book.genre }}</div>
             <div class="book-cover">
@@ -36,7 +36,6 @@
                 <span>{{ book.taal }}</span>
                 <span> • {{ book.paginas }} pag.</span>
               </div>
-              <p class="desc">{{ book.beschrijving }}</p>
               <button class="details-btn" (click)="seeDetail(book)">
                 Details
               </button>
@@ -63,7 +62,7 @@
       <div>
         <h2 class="section-title teacher-only-title">Didactische Collectie</h2>
         <div class="horizontal-scroll-wrapper didactic-wrapper">
-          @for (book of didacticBooks; track book) {
+          @for (book of didacticBooks; track book.id) {
             <div class="book-card teacher-card">
               <div class="genre-tag teacher-tag">{{ book.genre }}</div>
               <div class="book-cover">
