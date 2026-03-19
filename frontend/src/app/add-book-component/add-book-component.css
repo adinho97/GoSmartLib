@@ -120,12 +120,6 @@ textarea {
   accent-color: #871f42;
 }
 
-/* Didactiek focus styling */
-.didactic-locked {
-  background: #fff9f4 !important;
-  border: 2px solid #e67e22;
-}
-
 select:disabled {
   background: #fdf7f2;
   color: #d35400;
