@@ -106,6 +106,7 @@
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
               [value]="minPages"
+              [style.--slider-fill-end]="minPagesSliderFill + '%'"
               (input)="onMinPagesChange($any($event.target).value)"
             />
           </div>
@@ -113,10 +114,12 @@
             <label for="maxPages">Maximum pagina's: {{ maxPages }}</label>
             <input
               id="maxPages"
+              class="max-pages-slider"
               type="range"
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
               [value]="maxPages"
+              [style.--slider-fill-start]="maxPagesSliderFill + '%'"
               (input)="onMaxPagesChange($any($event.target).value)"
             />
           </div>

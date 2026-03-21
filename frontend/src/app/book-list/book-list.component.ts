@@ -339,6 +339,23 @@ export class BookListComponent implements OnInit {
     this.maxPages = Number(v);
     if (this.maxPages < this.minPages) this.minPages = this.maxPages;
   }
+
+  private getSliderFillPercent(value: number): number {
+    const min = this.minAvailablePages;
+    const max = this.maxAvailablePages;
+    if (max <= min) return 0;
+    const normalized = ((value - min) / (max - min)) * 100;
+    return Math.min(100, Math.max(0, normalized));
+  }
+
+  get minPagesSliderFill(): number {
+    return this.getSliderFillPercent(this.minPages);
+  }
+
+  get maxPagesSliderFill(): number {
+    return this.getSliderFillPercent(this.maxPages);
+  }
+
   goToPage(p: number) {
     this.currentPage = p;
     window.scrollTo({ top: 0, behavior: "smooth" });
