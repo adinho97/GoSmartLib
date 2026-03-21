@@ -2,6 +2,27 @@ import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 
+type DashboardBook = {
+  id: number;
+  titel: string;
+  auteur: string;
+  genre: string;
+  taal: string;
+  paginas: number | string;
+  coverUrl: string | null;
+};
+
+type BookResponse = {
+  id?: number;
+  titel?: string;
+  auteur?: string;
+  genre?: string;
+  taal?: string;
+  paginas?: number | null;
+  cover?: string | null;
+  beschrijving?: string;
+};
+
 @Component({
   selector: "app-dashboard",
   templateUrl: "./dashboard.component.html",
@@ -9,8 +30,8 @@ import { BookService } from "../services/book.service";
   standalone: false,
 })
 export class DashboardComponent implements OnInit {
-  featuredBooks: any[] = [];
-  didacticBooks: any[] = [];
+  featuredBooks: DashboardBook[] = [];
+  didacticBooks: DashboardBook[] = [];
   loading = true;
 
   get canSeeDidactic(): boolean {
@@ -30,15 +51,15 @@ export class DashboardComponent implements OnInit {
   async fetchBooks() {
     this.loading = true;
     try {
-      const data = await this.bookService.getBooks();
+      const data = (await this.bookService.getBooks()) as BookResponse[];
 
       this.featuredBooks = data
-        .filter((b: any) => (b.genre || "").toLowerCase() !== "didactiek")
-        .map((book: any) => this.mapBook(book));
+        .filter((book) => !this.isDidacticGenre(book.genre))
+        .map((book) => this.mapBook(book));
 
       this.didacticBooks = data
-        .filter((b: any) => (b.genre || "").toLowerCase() === "didactiek")
-        .map((book: any) => this.mapBook(book));
+        .filter((book) => this.isDidacticGenre(book.genre))
+        .map((book) => this.mapBook(book));
     } catch (error) {
       console.error("Fout bij ophalen boeken:", error);
     } finally {
@@ -46,24 +67,48 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private mapBook(book: any) {
+  private isDidacticGenre(genre: unknown): boolean {
+    return String(genre || "")
+      .toLowerCase()
+      .startsWith("didactiek");
+  }
+
+  private formatGenreForDisplay(genre: unknown): string {
+    const genreText = String(genre || "").trim();
+    if (!genreText) return "Algemeen";
+
+    const [baseGenre, subgenrePart] = genreText.split(" - ", 2);
+    if (!subgenrePart) return genreText;
+
+    const firstSubgenre = subgenrePart
+      .split(",")
+      .map((value) => value.trim())
+      .find((value) => value.length > 0);
+
+    return firstSubgenre ? `${baseGenre} - ${firstSubgenre}` : baseGenre;
+  }
+
+  private formatLanguageForDisplay(language: unknown): string {
+    const languageText = String(language || "");
+    if (!languageText) return "??";
+    return languageText.toLowerCase() === "nederlands"
+      ? "NL"
+      : languageText.substring(0, 2).toUpperCase();
+  }
+
+  private mapBook(book: BookResponse): DashboardBook {
     return {
-      id: book.id,
-      titel: book.titel,
-      auteur: book.auteur,
-      genre: book.genre || "Algemeen",
-      taal: book.taal
-        ? String(book.taal).toLowerCase() === "nederlands"
-          ? "NL"
-          : String(book.taal).substring(0, 2).toUpperCase()
-        : "??",
+      id: book.id || 0,
+      titel: book.titel || "",
+      auteur: book.auteur || "",
+      genre: this.formatGenreForDisplay(book.genre),
+      taal: this.formatLanguageForDisplay(book.taal),
       paginas: book.paginas || "?",
       coverUrl: book.cover || null,
-      desc: book.beschrijving || "Geen beschrijving beschikbaar.",
     };
   }
 
-  seeDetail(book: any) {
+  seeDetail(book: DashboardBook) {
     this.router.navigate(["/detail", book.id]);
   }
 }

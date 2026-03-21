@@ -29,18 +29,38 @@ h2 {
   color: #5a3a45;
 }
 
-.form-group input, 
-.form-group textarea {
+.form-group input,
+.form-group textarea,
+.form-group select {
   padding: 0.75rem;
   border: 1px solid rgba(96, 22, 47, 0.2);
   border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.2s;
+  font-family: inherit;
+  background: #fff;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
   border-color: #871f42;
+}
+
+.subgenres-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.3rem 0;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #2c2c2c;
 }
 
 .button-group {
@@ -51,18 +71,18 @@ h2 {
 }
 
 .save-button {
-  background: #e67e22; /* Oranje, net als de aanpasknop in de lijst */
+  background: #871f42;
   color: white;
   border: none;
-  padding: 0.7rem 1.5rem;
-  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .save-button:hover {
-  background: #d35400;
+  background: #60162f;
 }
 
 .cancel-button {
@@ -85,18 +105,4 @@ h2 {
   text-align: center;
   margin-top: 1rem;
   font-weight: 500;
-}
-/* In edit-book.component.css */
-.save-button {
-  background: #871f42;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.save-button:hover {
-  background: #60162f;
 }

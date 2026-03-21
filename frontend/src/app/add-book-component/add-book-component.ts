@@ -51,7 +51,29 @@ export class AddBookComponent implements OnInit {
     "Geschiedenis",
     "Kunst & cultuur",
   ];
+  readonly didacticSubgenres = [
+    "Wiskunde",
+    "Taal",
+    "Geschiedenis",
+    "Kleuteronderwijs",
+    "Lager onderwijs",
+    "Secundair onderwijs",
+    "Volwasseneneducatie",
+    "Geheugen",
+    "Begrip",
+    "Denkprocessen",
+    "Samenwerking",
+    "Interactie",
+    "Dialoog",
+    "Online leren",
+    "E-learning platforms",
+    "Educatieve apps",
+    "Creativiteit",
+    "Zelfexpressie",
+    "Ervaringsgericht leren",
+  ];
   selectedSubgenres: Set<string> = new Set();
+  selectedDidacticSubgenre = "";
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
@@ -112,6 +134,7 @@ export class AddBookComponent implements OnInit {
     this.isDidactic = state;
     this.book.genre = state ? "Didactiek" : "";
     this.selectedSubgenres.clear();
+    this.selectedDidacticSubgenre = "";
   }
 
   onGenreChange() {
@@ -156,6 +179,8 @@ export class AddBookComponent implements OnInit {
   }
 
   async onSubmit(bookForm: NgForm) {
+    this.submitState = "";
+    this.submitMessage = "";
     this.isSubmitted = true;
     if (bookForm.invalid) return;
 
@@ -180,6 +205,9 @@ export class AddBookComponent implements OnInit {
         const subgenresArray = Array.from(this.selectedSubgenres).sort();
         genreToSave = `Non-fictie algemeen - ${subgenresArray.join(", ")}`;
       }
+      if (this.book.genre === "Didactiek" && this.selectedDidacticSubgenre) {
+        genreToSave = `Didactiek - ${this.selectedDidacticSubgenre}`;
+      }
 
       await this.bookService.addBook(
         {
@@ -191,8 +219,8 @@ export class AddBookComponent implements OnInit {
       );
 
       this.resetForm(bookForm);
-      window.location.reload();
-      return;
+      this.submitState = "success";
+      this.submitMessage = "Boek succesvol toegevoegd.";
     } catch (error) {
       this.submitState = "error";
       this.submitMessage = "Fout bij opslaan. Controleer de verbinding.";
@@ -216,6 +244,7 @@ export class AddBookComponent implements OnInit {
     };
     this.isDidactic = false;
     this.selectedSubgenres.clear();
+    this.selectedDidacticSubgenre = "";
     this.selectedCoverFile = null;
     if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
     this.coverPreviewUrl = null;

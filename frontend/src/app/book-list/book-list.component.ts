@@ -26,9 +26,11 @@ type BookItem = {
   standalone: false,
 })
 export class BookListComponent implements OnInit {
+  readonly ratingStars = [0, 1, 2, 3, 4];
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
   readonly genres = [
+    "Didactiek",
     "Fictie algemeen",
     "Literaire roman",
     "Spanning / thriller",
@@ -47,6 +49,16 @@ export class BookListComponent implements OnInit {
     "Poëzie",
     "Non-fictie algemeen",
   ];
+  readonly languages = [
+    "Nederlands",
+    "Engels",
+    "Frans",
+    "Duits",
+    "Spaans",
+    "Italiaans",
+    "Portugees",
+    "Latijn",
+  ];
   readonly nonFictionSubgenres = [
     "Biografie / autobiografie",
     "Wetenschap & technologie",
@@ -55,6 +67,27 @@ export class BookListComponent implements OnInit {
     "Psychologie",
     "Geschiedenis",
     "Kunst & cultuur",
+  ];
+  readonly didacticSubgenres = [
+    "Wiskunde",
+    "Taal",
+    "Geschiedenis",
+    "Kleuteronderwijs",
+    "Lager onderwijs",
+    "Secundair onderwijs",
+    "Volwasseneneducatie",
+    "Geheugen",
+    "Begrip",
+    "Denkprocessen",
+    "Samenwerking",
+    "Interactie",
+    "Dialoog",
+    "Online leren",
+    "E-learning platforms",
+    "Educatieve apps",
+    "Creativiteit",
+    "Zelfexpressie",
+    "Ervaringsgericht leren",
   ];
   books: BookItem[] = [];
   isLoading = true;
@@ -75,6 +108,7 @@ export class BookListComponent implements OnInit {
   selectedLanguage = "";
   selectedMinAverageRating = "";
   selectedNonFictionSubgenre = "";
+  selectedDidacticSubgenre = "";
   minPages = this.minPageFilterLimit;
   maxPages = this.maxPageFilterLimit;
 
@@ -82,6 +116,7 @@ export class BookListComponent implements OnInit {
   appliedLanguage = "";
   appliedMinAverageRating = "";
   appliedNonFictionSubgenre = "";
+  appliedDidacticSubgenre = "";
   appliedMinPages = this.minPageFilterLimit;
   appliedMaxPages = this.maxPageFilterLimit;
 
@@ -113,14 +148,14 @@ export class BookListComponent implements OnInit {
     if (!genre) {
       // Clicking "Boekenlijst" removes the didactic quick-filter.
       this.selectedGenre = "";
-      this.selectedNonFictionSubgenre = "";
+      this.clearGenreSubgenres();
       this.applyFilters();
       return;
     }
 
     if (genre.toLowerCase() === "didactiek") {
       this.selectedGenre = "Didactiek";
-      this.selectedNonFictionSubgenre = "";
+      this.clearGenreSubgenres();
       this.applyFilters();
       return;
     }
@@ -129,8 +164,13 @@ export class BookListComponent implements OnInit {
       (g) => g.toLowerCase() === genre.toLowerCase(),
     );
     this.selectedGenre = matchedGenre || "";
-    this.selectedNonFictionSubgenre = "";
+    this.clearGenreSubgenres();
     this.applyFilters();
+  }
+
+  private clearGenreSubgenres() {
+    this.selectedNonFictionSubgenre = "";
+    this.selectedDidacticSubgenre = "";
   }
 
   async loadSchools() {
@@ -176,19 +216,6 @@ export class BookListComponent implements OnInit {
     }
   }
 
-  get availableGenres(): string[] {
-    return this.genres;
-  }
-
-  get availableLanguages(): string[] {
-    const languages = this.books
-      .map((book) => (book.taal || "").trim())
-      .filter((language) => language.length > 0);
-    return Array.from(new Set(languages)).sort((a, b) =>
-      a.localeCompare(b, "nl"),
-    );
-  }
-
   get filteredBooks(): BookItem[] {
     const query = this.searchQuery.trim().toLowerCase();
     return this.books.filter((book) => {
@@ -205,6 +232,16 @@ export class BookListComponent implements OnInit {
         ((): boolean => {
           const bookGenre = (book.genre || "").toLowerCase();
           const appliedGenre = this.appliedGenre.toLowerCase();
+
+          if (appliedGenre === "didactiek") {
+            if (!bookGenre.startsWith("didactiek")) return false;
+            if (this.appliedDidacticSubgenre) {
+              return bookGenre.includes(
+                this.appliedDidacticSubgenre.toLowerCase(),
+              );
+            }
+            return true;
+          }
 
           // For non-fiction, check genre prefix and apply subgenre filter if set
           if (appliedGenre === "non-fictie algemeen") {
@@ -265,6 +302,7 @@ export class BookListComponent implements OnInit {
     this.appliedLanguage = this.selectedLanguage;
     this.appliedMinAverageRating = this.selectedMinAverageRating;
     this.appliedNonFictionSubgenre = this.selectedNonFictionSubgenre;
+    this.appliedDidacticSubgenre = this.selectedDidacticSubgenre;
     this.appliedMinPages = this.minPages;
     this.appliedMaxPages = this.maxPages;
     this.currentPage = 1;
@@ -275,6 +313,9 @@ export class BookListComponent implements OnInit {
     if (this.selectedGenre !== "Non-fictie algemeen") {
       this.selectedNonFictionSubgenre = "";
     }
+    if (this.selectedGenre !== "Didactiek") {
+      this.selectedDidacticSubgenre = "";
+    }
   }
 
   clearFilters() {
@@ -284,6 +325,7 @@ export class BookListComponent implements OnInit {
     this.selectedLanguage = "";
     this.selectedMinAverageRating = "";
     this.selectedNonFictionSubgenre = "";
+    this.selectedDidacticSubgenre = "";
     this.minPages = this.minPageFilterLimit;
     this.maxPages = this.maxPageFilterLimit;
     this.applyFilters();
@@ -297,6 +339,23 @@ export class BookListComponent implements OnInit {
     this.maxPages = Number(v);
     if (this.maxPages < this.minPages) this.minPages = this.maxPages;
   }
+
+  private getSliderFillPercent(value: number): number {
+    const min = this.minAvailablePages;
+    const max = this.maxAvailablePages;
+    if (max <= min) return 0;
+    const normalized = ((value - min) / (max - min)) * 100;
+    return Math.min(100, Math.max(0, normalized));
+  }
+
+  get minPagesSliderFill(): number {
+    return this.getSliderFillPercent(this.minPages);
+  }
+
+  get maxPagesSliderFill(): number {
+    return this.getSliderFillPercent(this.maxPages);
+  }
+
   goToPage(p: number) {
     this.currentPage = p;
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -319,18 +378,16 @@ export class BookListComponent implements OnInit {
     }
   }
 
-  get selectedRangeLeft(): string {
-    return (this.minPages / this.maxPageFilterLimit) * 100 + "%";
-  }
-
-  get selectedRangeRight(): string {
-    return 100 - (this.maxPages / this.maxPageFilterLimit) * 100 + "%";
-  }
-
   getAverageRatingFillPercentage(book: BookItem): number {
     const average = book.averageRating || 0;
     const percentage = (average / 5) * 100;
     return Math.min(100, Math.max(0, percentage));
+  }
+
+  getStarFillPercentage(book: BookItem, starIndex: number): number {
+    const average = Math.min(5, Math.max(0, book.averageRating || 0));
+    const fillForStar = average - starIndex;
+    return Math.min(100, Math.max(0, fillForStar * 100));
   }
 
   async onSchoolChange(value: string) {

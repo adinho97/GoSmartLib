@@ -47,7 +47,7 @@
           @if (selectedGenre === "Didactiek") {
             <option value="Didactiek">Didactiek</option>
           }
-          @for (genre of availableGenres; track genre) {
+          @for (genre of genres; track genre) {
             <option [value]="genre">
               {{ genre }}
             </option>
@@ -64,10 +64,24 @@
             }
           </select>
         }
+        @if (selectedGenre === "Didactiek") {
+          <label for="didacticSubgenreFilter">Subgenre</label>
+          <select
+            id="didacticSubgenreFilter"
+            [(ngModel)]="selectedDidacticSubgenre"
+          >
+            <option value="">Alle subgenres</option>
+            @for (subgenre of didacticSubgenres; track subgenre) {
+              <option [value]="subgenre">
+                {{ subgenre }}
+              </option>
+            }
+          </select>
+        }
         <label for="taalFilter">Taal</label>
         <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
-          @for (language of availableLanguages; track language) {
+          @for (language of languages; track language) {
             <option [value]="language">
               {{ language }}
             </option>
@@ -92,6 +106,7 @@
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
               [value]="minPages"
+              [style.--slider-fill-end]="minPagesSliderFill + '%'"
               (input)="onMinPagesChange($any($event.target).value)"
             />
           </div>
@@ -99,10 +114,12 @@
             <label for="maxPages">Maximum pagina's: {{ maxPages }}</label>
             <input
               id="maxPages"
+              class="max-pages-slider"
               type="range"
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
               [value]="maxPages"
+              [style.--slider-fill-start]="maxPagesSliderFill + '%'"
               (input)="onMaxPagesChange($any($event.target).value)"
             />
           </div>
@@ -155,27 +172,41 @@
                 class="book-card"
                 [routerLink]="['/detail', book.id]"
                 [class.didactic-card]="
-                  (book.genre || '').toLowerCase() === 'didactiek'
+                  (book.genre || '').toLowerCase().startsWith('didactiek')
                 "
               >
-                @if ((book.genre || "").toLowerCase() === "didactiek") {
+                @if ((book.genre || "").toLowerCase().startsWith("didactiek")) {
                   <div class="didactic-badge">Lerarencollectie</div>
                 }
                 @if ((book.reviewCount || 0) >= 10) {
-                  <div class="score-badge">
-                    <span
-                      class="score-stars"
-                      aria-label="Gemiddelde score {{
-                        book.averageRating || 0 | number: '1.1-1'
-                      }} op 5"
-                    >
-                      <span class="score-stars-track">★★★★★</span>
-                      <span
-                        class="score-stars-fill"
-                        [style.width.%]="getAverageRatingFillPercentage(book)"
-                        >★★★★★</span
+                  <div
+                    class="rating-chip"
+                    aria-label="Gemiddelde score {{
+                      book.averageRating || 0 | number: '1.1-1'
+                    }} op 5"
+                  >
+                    <div class="rating-chip-score">
+                      {{ book.averageRating || 0 | number: "1.1-1" }}
+                    </div>
+                    <div class="rating-chip-meta">
+                      <span class="rating-chip-stars" aria-hidden="true">
+                        @for (star of ratingStars; track star) {
+                          <span class="rating-chip-star">
+                            <span class="rating-chip-star-track">★</span>
+                            <span
+                              class="rating-chip-star-fill"
+                              [style.width.%]="
+                                getStarFillPercentage(book, star)
+                              "
+                              >★</span
+                            >
+                          </span>
+                        }
+                      </span>
+                      <span class="rating-chip-count"
+                        >{{ book.reviewCount || 0 }} beoordelingen</span
                       >
-                    </span>
+                    </div>
                   </div>
                 }
                 <div class="book-cover-slot">
@@ -203,17 +234,26 @@
                     </p>
                   </div>
                   @if (isLibrarian) {
-                    <button
-                      type="button"
-                      class="delete-button"
-                      (click)="
-                        $event.stopPropagation();
-                        $event.preventDefault();
-                        deleteBook($event, book)
-                      "
-                    >
-                      Verwijder
-                    </button>
+                    <div class="admin-actions">
+                      <button
+                        type="button"
+                        class="delete-button"
+                        (click)="
+                          $event.stopPropagation();
+                          $event.preventDefault();
+                          deleteBook($event, book)
+                        "
+                      >
+                        Verwijder
+                      </button>
+                      <a
+                        class="edit-button"
+                        [routerLink]="['/edit', book.id]"
+                        (click)="$event.stopPropagation()"
+                      >
+                        Aanpassen
+                      </a>
+                    </div>
                   }
                 </div>
               </article>
