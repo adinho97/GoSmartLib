@@ -14,18 +14,21 @@ import axios from "axios";
 })
 export class DetailComponent implements OnInit {
   book!: Book;
-  
+
   // Rol-gebaseerde logica
   readonly userRole = localStorage.getItem("role");
   readonly isLibrarian = this.userRole === "bibbeheerder";
-  
+
   // Review-gerelateerde variabelen
   currentBookId: number | null = null;
   reviewRatings = [1, 2, 3, 4, 5];
   reviews: Review[] = [];
   newReviewRating = 0;
   newReviewComment = "";
+  newReviewAnonymous = false;
   reviewError = "";
+  readonly smartschoolUserName =
+    localStorage.getItem("userName") || "Gebruiker";
 
   constructor(
     private location: Location,
@@ -42,11 +45,11 @@ export class DetailComponent implements OnInit {
       this.bookService.getBookById(this.currentBookId).subscribe((data) => {
         this.book = data;
       });
-      
+
       // Laad de reviews
       this.loadReviews(this.currentBookId);
     }
-    
+
     // Debugging logs (optioneel)
     console.log("Huidige rol:", this.userRole);
     console.log("Is beheerder:", this.isLibrarian);
@@ -105,11 +108,14 @@ export class DetailComponent implements OnInit {
       const review = await this.bookService.addBookReview(this.currentBookId, {
         rating: this.newReviewRating,
         comment,
+        reviewerName: this.smartschoolUserName,
+        anonymous: this.newReviewAnonymous,
       });
 
       this.reviews = [review, ...this.reviews];
       this.newReviewRating = 0;
       this.newReviewComment = "";
+      this.newReviewAnonymous = false;
       this.reviewError = "";
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

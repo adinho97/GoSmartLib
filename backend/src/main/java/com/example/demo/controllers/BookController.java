@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
+    private static final String ANONYMOUS_REVIEWER_NAME = "Anoniem";
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
     private final BookService bookService;
@@ -217,6 +218,9 @@ public class BookController {
         String trimmedComment = request.getComment().trim();
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
+        boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
+        String reviewerName = isAnonymous ? ANONYMOUS_REVIEWER_NAME : request.getReviewerName().trim();
+        review.setReviewerName(reviewerName);
 
         Review saved = reviewRepository.save(review);
         return ResponseEntity.status(HttpStatus.CREATED).body(toReviewDto(saved));
@@ -248,8 +252,17 @@ public class BookController {
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
+        dto.setReviewerName(resolveReviewerName(review));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
+    }
+
+    private String resolveReviewerName(Review review) {
+        String reviewerName = review.getReviewerName();
+        if (reviewerName == null || reviewerName.isBlank()) {
+            return ANONYMOUS_REVIEWER_NAME;
+        }
+        return reviewerName;
     }
 
     private boolean isLibrarian(String userRole) {

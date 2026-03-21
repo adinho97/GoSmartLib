@@ -117,7 +117,12 @@ export class BookService {
 
   async addBookReview(
     bookId: number,
-    payload: { rating: number; comment: string },
+    payload: {
+      rating: number;
+      comment: string;
+      reviewerName: string;
+      anonymous: boolean;
+    },
   ): Promise<Review> {
     const res = await axios.post<Review>(
       `${this.apiUrl}/${bookId}/reviews`,
@@ -159,10 +164,7 @@ export class BookService {
     return res.data;
   }
 
-  async isBookInLibrary(
-    isbn: string,
-    schoolId?: number,
-  ): Promise<boolean> {
+  async isBookInLibrary(isbn: string, schoolId?: number): Promise<boolean> {
     try {
       await axios.get(
         this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
@@ -176,7 +178,7 @@ export class BookService {
     }
   }
   async updateBook(id: number, book: Book): Promise<Book> {
-  const res = await axios.put(`${this.apiUrl}/${id}`, book);
-  return res.data;
-}
+    const res = await axios.put(`${this.apiUrl}/${id}`, book);
+    return res.data;
+  }
 }
