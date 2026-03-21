@@ -21,10 +21,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @RestController
@@ -190,6 +192,7 @@ public class BookController {
         entity.setId(id); 
         entity.setSchool(school);
         entity.setLestip(existingBook.getLestip());
+        entity.setLestipAuteur(existingBook.getLestipAuteur());
 
         Book saved = repo.save(entity);
         return ResponseEntity.ok(BookMapper.toDto(saved));
@@ -197,7 +200,8 @@ public class BookController {
 
     @GetMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> getLestip(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
         if (!isTeacher(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -207,27 +211,70 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(toLestipDto(book.getLestip()));
+        return ResponseEntity.ok(toLestipDto(book, normalizeUserName(userName)));
     }
 
     @PutMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> updateLestip(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody UpdateLestipRequest request) {
         if (!isTeacher(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+
+        String normalizedUserName = normalizeUserName(userName);
 
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
             return ResponseEntity.notFound().build();
         }
 
+        if (hasLestip(book.getLestip())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
         String normalizedLestip = normalizeLestip(request.getLestip());
+        if (normalizedLestip == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         book.setLestip(normalizedLestip);
+        book.setLestipAuteur(normalizedUserName);
 
         Book savedBook = repo.save(book);
-        return ResponseEntity.ok(toLestipDto(savedBook.getLestip()));
+        return ResponseEntity.ok(toLestipDto(savedBook, normalizedUserName));
+    }
+
+    @DeleteMapping("/{id}/lestip")
+    public ResponseEntity<Void> deleteLestip(@PathVariable @NonNull Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+        if (!isTeacher(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String normalizedUserName = normalizeUserName(userName);
+
+        Book book = repo.findById(id).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!hasLestip(book.getLestip())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String lestipAuteur = book.getLestipAuteur();
+        boolean hasStoredAuteur = StringUtils.hasText(lestipAuteur);
+        if (hasStoredAuteur && (normalizedUserName == null || !isSameUser(normalizedUserName, lestipAuteur))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        book.setLestip(null);
+        book.setLestipAuteur(null);
+        repo.save(book);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/reviews")
@@ -305,9 +352,16 @@ public class BookController {
         return reviewerName;
     }
 
-    private LestipDto toLestipDto(String lestipText) {
+    private LestipDto toLestipDto(Book book, String currentUserName) {
         LestipDto dto = new LestipDto();
+        String lestipText = book.getLestip();
+        String lestipAuteur = book.getLestipAuteur();
+
         dto.setLestip(lestipText == null ? "" : lestipText);
+        dto.setAuteurNaam(lestipAuteur == null ? "" : lestipAuteur);
+        boolean magVerwijderen = hasLestip(lestipText)
+                && (!StringUtils.hasText(lestipAuteur) || (currentUserName != null && isSameUser(currentUserName, lestipAuteur)));
+        dto.setMagVerwijderen(magVerwijderen);
         return dto;
     }
 
@@ -322,6 +376,41 @@ public class BookController {
         }
 
         return trimmedLestip;
+    }
+
+    private String normalizeUserName(String userName) {
+        if (!StringUtils.hasText(userName)) {
+            return null;
+        }
+
+        String trimmedUserName = userName.trim();
+        if (trimmedUserName.isEmpty()) {
+            return null;
+        }
+
+        return trimmedUserName;
+    }
+
+    private boolean isSameUser(String firstUserName, String secondUserName) {
+        String normalizedFirst = canonicalUserName(firstUserName);
+        String normalizedSecond = canonicalUserName(secondUserName);
+
+        return normalizedFirst != null && normalizedFirst.equals(normalizedSecond);
+    }
+
+    private String canonicalUserName(String userName) {
+        if (!StringUtils.hasText(userName)) {
+            return null;
+        }
+
+        return userName
+                .trim()
+                .replaceAll("\\s+", " ")
+                .toLowerCase(Locale.ROOT);
+    }
+
+    private boolean hasLestip(String lestip) {
+        return StringUtils.hasText(lestip);
     }
 
     private boolean isLibrarian(String userRole) {
