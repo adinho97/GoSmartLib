@@ -233,6 +233,11 @@
                       <strong>Taal:</strong> {{ book.taal || "Onbekend" }}
                     </p>
                   </div>
+                  @if (isTeacher && (book.lestip || "").trim()) {
+                    <div class="lestip-preview">
+                      <strong>Lestip beschikbaar</strong>
+                    </div>
+                  }
                   @if (isLibrarian) {
                     <div class="admin-actions">
                       <button
