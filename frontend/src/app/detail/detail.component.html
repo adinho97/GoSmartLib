@@ -44,6 +44,58 @@
             <p>{{ book.beschrijving }}</p>
           </div>
 
+          @if (isTeacher) {
+            <section class="lestip-section" aria-label="Lestip">
+              <h3>Lestip (enkel zichtbaar voor leerkrachten)</h3>
+
+              @if (hasLestip) {
+                <div class="lestip-content">
+                  <p>{{ lestipText }}</p>
+                  <p class="lestip-author">
+                    Geplaatst door: {{ lestipAuteurNaam }}
+                  </p>
+                </div>
+              } @else {
+                <textarea
+                  id="newLestipText"
+                  name="newLestipText"
+                  rows="3"
+                  maxlength="500"
+                  [(ngModel)]="newLestipText"
+                  placeholder="Voeg een korte lestip toe voor andere leerkrachten"
+                ></textarea>
+              }
+
+              @if (lestipError) {
+                <p class="lestip-error">{{ lestipError }}</p>
+              }
+
+              @if (lestipSuccess) {
+                <p class="lestip-success">{{ lestipSuccess }}</p>
+              }
+
+              @if (!hasLestip) {
+                <button
+                  type="button"
+                  class="save-lestip-btn"
+                  (click)="saveLestip()"
+                >
+                  Lestip toevoegen
+                </button>
+              }
+
+              @if (hasLestip && magLestipVerwijderen) {
+                <button
+                  type="button"
+                  class="delete-lestip-btn"
+                  (click)="removeLestip()"
+                >
+                  Lestip verwijderen
+                </button>
+              }
+            </section>
+          }
+
           <section class="review-section" aria-label="Boek reviews">
             <div class="review-header">
               <h3>Reviews</h3>

@@ -18,6 +18,7 @@ export class DetailComponent implements OnInit {
   // Rol-gebaseerde logica
   readonly userRole = localStorage.getItem("role");
   readonly isLibrarian = this.userRole === "bibbeheerder";
+  readonly isTeacher = this.userRole === "leerkracht";
 
   // Review-gerelateerde variabelen
   currentBookId: number | null = null;
@@ -29,6 +30,14 @@ export class DetailComponent implements OnInit {
   reviewError = "";
   readonly smartschoolUserName =
     localStorage.getItem("userName") || "Gebruiker";
+
+  // Lestip-gerelateerde variabelen (enkel voor leerkrachten)
+  lestipText = "";
+  lestipAuteurNaam = "";
+  magLestipVerwijderen = false;
+  newLestipText = "";
+  lestipError = "";
+  lestipSuccess = "";
 
   constructor(
     private location: Location,
@@ -48,6 +57,10 @@ export class DetailComponent implements OnInit {
 
       // Laad de reviews
       this.loadReviews(this.currentBookId);
+
+      if (this.isTeacher) {
+        this.loadLestip(this.currentBookId);
+      }
     }
 
     // Debugging logs (optioneel)
@@ -158,6 +171,97 @@ export class DetailComponent implements OnInit {
       this.reviews = await this.bookService.getBookReviews(bookId);
     } catch {
       this.reviews = [];
+    }
+  }
+
+  get hasLestip(): boolean {
+    return !!this.lestipText.trim();
+  }
+
+  async saveLestip(): Promise<void> {
+    if (!this.isTeacher || this.currentBookId === null) {
+      return;
+    }
+
+    const lestipToSave = this.newLestipText.trim();
+    if (!lestipToSave) {
+      this.lestipSuccess = "";
+      this.lestipError = "Voeg eerst een lestip toe.";
+      return;
+    }
+
+    if (this.hasLestip) {
+      this.lestipSuccess = "";
+      this.lestipError = "Een bestaande lestip kan niet aangepast worden.";
+      return;
+    }
+
+    try {
+      const savedLestipData = await this.bookService.updateBookLestip(
+        this.currentBookId,
+        lestipToSave,
+      );
+      this.lestipText = savedLestipData.lestip || "";
+      this.newLestipText = "";
+      this.lestipAuteurNaam = savedLestipData.auteurNaam || "";
+      this.magLestipVerwijderen = !!savedLestipData.magVerwijderen;
+      this.lestipError = "";
+      this.lestipSuccess = "Lestip opgeslagen.";
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        if (status === 409) {
+          this.lestipSuccess = "";
+          this.lestipError =
+            "Deze lestip bestaat al en kan niet meer aangepast worden.";
+          return;
+        }
+      }
+      this.lestipSuccess = "";
+      this.lestipError = "Lestip opslaan mislukt. Probeer opnieuw.";
+    }
+  }
+
+  async removeLestip(): Promise<void> {
+    if (
+      !this.isTeacher ||
+      !this.magLestipVerwijderen ||
+      this.currentBookId === null
+    ) {
+      return;
+    }
+
+    if (!confirm("Lestip verwijderen?")) {
+      return;
+    }
+
+    try {
+      await this.bookService.deleteBookLestip(this.currentBookId);
+      this.lestipText = "";
+      this.newLestipText = "";
+      this.lestipAuteurNaam = "";
+      this.magLestipVerwijderen = false;
+      this.lestipError = "";
+      this.lestipSuccess = "Lestip verwijderd.";
+    } catch {
+      this.lestipSuccess = "";
+      this.lestipError = "Lestip verwijderen mislukt.";
+    }
+  }
+
+  private async loadLestip(bookId: number): Promise<void> {
+    try {
+      const lestipData = await this.bookService.getBookLestipDetails(bookId);
+      this.lestipText = lestipData.lestip || "";
+      this.lestipAuteurNaam = lestipData.auteurNaam || "";
+      this.magLestipVerwijderen = !!lestipData.magVerwijderen;
+      this.newLestipText = "";
+      this.lestipError = "";
+    } catch {
+      this.lestipText = "";
+      this.lestipAuteurNaam = "";
+      this.magLestipVerwijderen = false;
+      this.lestipError = "Lestip laden mislukt.";
     }
   }
 }

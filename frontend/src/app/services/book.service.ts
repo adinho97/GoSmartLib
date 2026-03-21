@@ -26,6 +26,12 @@ export interface BulkImportResult {
   results: BulkImportRowResult[];
 }
 
+export interface LestipResponse {
+  lestip: string;
+  auteurNaam: string;
+  magVerwijderen: boolean;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -60,9 +66,11 @@ export class BookService {
 
   private getRoleHeaders() {
     const role = localStorage.getItem("role") || "";
+    const userName = localStorage.getItem("userName") || "";
     return {
       headers: {
         "X-User-Role": role,
+        "X-User-Name": userName,
       },
     };
   }
@@ -134,6 +142,38 @@ export class BookService {
   async deleteBookReview(bookId: number, reviewId: number): Promise<void> {
     await axios.delete(
       `${this.apiUrl}/${bookId}/reviews/${reviewId}`,
+      this.getRoleHeaders(),
+    );
+  }
+
+  async getBookLestip(bookId: number): Promise<string> {
+    const data = await this.getBookLestipDetails(bookId);
+    return data.lestip || "";
+  }
+
+  async getBookLestipDetails(bookId: number): Promise<LestipResponse> {
+    const res = await axios.get<LestipResponse>(
+      `${this.apiUrl}/${bookId}/lestip`,
+      this.getRoleHeaders(),
+    );
+    return res.data;
+  }
+
+  async updateBookLestip(
+    bookId: number,
+    lestip: string,
+  ): Promise<LestipResponse> {
+    const res = await axios.put<LestipResponse>(
+      `${this.apiUrl}/${bookId}/lestip`,
+      { lestip },
+      this.getRoleHeaders(),
+    );
+    return res.data;
+  }
+
+  async deleteBookLestip(bookId: number): Promise<void> {
+    await axios.delete(
+      `${this.apiUrl}/${bookId}/lestip`,
       this.getRoleHeaders(),
     );
   }
