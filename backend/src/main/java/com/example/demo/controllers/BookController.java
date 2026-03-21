@@ -3,7 +3,9 @@ package com.example.demo.controllers;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
 import com.example.demo.dto.CreateReviewRequest;
+import com.example.demo.dto.LestipDto;
 import com.example.demo.dto.ReviewDto;
+import com.example.demo.dto.UpdateLestipRequest;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
+    private static final String TEACHER_ROLE = "leerkracht";
     private static final String ANONYMOUS_REVIEWER_NAME = "Anoniem";
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
@@ -176,7 +179,8 @@ public class BookController {
 
     @PutMapping("/{id}")
     public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
-        if (!repo.existsById(id)) {
+        Book existingBook = repo.findById(id).orElse(null);
+        if (existingBook == null) {
             return ResponseEntity.notFound().build();
         }
 
@@ -185,9 +189,45 @@ public class BookController {
         Book entity = BookMapper.toEntity(bookDto);
         entity.setId(id); 
         entity.setSchool(school);
+        entity.setLestip(existingBook.getLestip());
 
         Book saved = repo.save(entity);
         return ResponseEntity.ok(BookMapper.toDto(saved));
+    }
+
+    @GetMapping("/{id}/lestip")
+    public ResponseEntity<LestipDto> getLestip(@PathVariable @NonNull Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        if (!isTeacher(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Book book = repo.findById(id).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(toLestipDto(book.getLestip()));
+    }
+
+    @PutMapping("/{id}/lestip")
+    public ResponseEntity<LestipDto> updateLestip(@PathVariable @NonNull Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @Valid @RequestBody UpdateLestipRequest request) {
+        if (!isTeacher(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Book book = repo.findById(id).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String normalizedLestip = normalizeLestip(request.getLestip());
+        book.setLestip(normalizedLestip);
+
+        Book savedBook = repo.save(book);
+        return ResponseEntity.ok(toLestipDto(savedBook.getLestip()));
     }
 
     @GetMapping("/{id}/reviews")
@@ -265,7 +305,30 @@ public class BookController {
         return reviewerName;
     }
 
+    private LestipDto toLestipDto(String lestipText) {
+        LestipDto dto = new LestipDto();
+        dto.setLestip(lestipText == null ? "" : lestipText);
+        return dto;
+    }
+
+    private String normalizeLestip(String lestip) {
+        if (lestip == null) {
+            return null;
+        }
+
+        String trimmedLestip = lestip.trim();
+        if (trimmedLestip.isEmpty()) {
+            return null;
+        }
+
+        return trimmedLestip;
+    }
+
     private boolean isLibrarian(String userRole) {
         return LIBRARIAN_ROLE.equalsIgnoreCase(userRole);
+    }
+
+    private boolean isTeacher(String userRole) {
+        return TEACHER_ROLE.equalsIgnoreCase(userRole);
     }
 }

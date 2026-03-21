@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -525,5 +526,78 @@ class BookControllerTest {
                                 .andExpect(status().isNoContent());
 
                 verify(reviewRepository).delete(review);
+        }
+
+        @Test
+        void getLestipShouldReturnForbiddenForNonTeacher() throws Exception {
+                mockMvc.perform(get("/api/boeken/1/lestip"))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void getLestipShouldReturnNotFoundForTeacherWhenBookMissing() throws Exception {
+                when(bookRepository.findById(1L)).thenReturn(Optional.empty());
+
+                mockMvc.perform(get("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht"))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void getLestipShouldReturnLestipForTeacher() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+                book.setLestip("Lees hoofdstuk 3 klassikaal.");
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                mockMvc.perform(get("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.lestip").value("Lees hoofdstuk 3 klassikaal."));
+        }
+
+        @Test
+        void updateLestipShouldReturnForbiddenForNonTeacher() throws Exception {
+                String json = """
+                                {
+                                  "lestip": "Herhalingsoefening op pagina 40."
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/lestip")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void updateLestipShouldPersistTrimmedTipForTeacher() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Book saved = new Book();
+                saved.setId(1L);
+                saved.setLestip("Klassikaal bespreken na hoofdstuk 2.");
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(bookRepository.save(any(Book.class))).thenReturn(saved);
+
+                String json = """
+                                {
+                                  "lestip": "  Klassikaal bespreken na hoofdstuk 2.  "
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.lestip").value("Klassikaal bespreken na hoofdstuk 2."));
+
+                ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+                verify(bookRepository).save(captor.capture());
+                Book persisted = captor.getValue();
+                assertEquals("Klassikaal bespreken na hoofdstuk 2.", persisted.getLestip());
         }
 }
