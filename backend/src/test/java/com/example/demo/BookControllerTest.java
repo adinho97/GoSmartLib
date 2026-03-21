@@ -338,6 +338,7 @@ class BookControllerTest {
                 first.setId(3L);
                 first.setRating(5);
                 first.setComment("Topboek");
+                first.setReviewerName("Janssens Emma");
                 first.setCreatedAt(LocalDateTime.of(2026, 3, 18, 12, 30));
 
                 Review second = new Review();
@@ -354,6 +355,8 @@ class BookControllerTest {
                                 .andExpect(jsonPath("$[0].id").value(3))
                                 .andExpect(jsonPath("$[0].rating").value(5))
                                 .andExpect(jsonPath("$[0].comment").value("Topboek"))
+                                .andExpect(jsonPath("$[0].reviewerName").value("Janssens Emma"))
+                                .andExpect(jsonPath("$[1].reviewerName").value("Anoniem"))
                                 .andExpect(jsonPath("$[1].id").value(2));
         }
 
@@ -384,6 +387,7 @@ class BookControllerTest {
                 saved.setBook(book);
                 saved.setRating(5);
                 saved.setComment("Heel goed boek");
+                saved.setReviewerName("Janssens Emma");
                 saved.setCreatedAt(LocalDateTime.of(2026, 3, 18, 14, 0));
 
                 when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
@@ -392,7 +396,9 @@ class BookControllerTest {
                 String json = """
                                 {
                                   "rating": 5,
-                                  "comment": "  Heel goed boek  "
+                                                                                                                                        "comment": "  Heel goed boek  ",
+                                                                                                                                        "reviewerName": "  Janssens Emma  ",
+                                                                                                                                        "anonymous": false
                                 }
                                 """;
 
@@ -402,7 +408,8 @@ class BookControllerTest {
                                 .andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.id").value(9))
                                 .andExpect(jsonPath("$.rating").value(5))
-                                .andExpect(jsonPath("$.comment").value("Heel goed boek"));
+                                .andExpect(jsonPath("$.comment").value("Heel goed boek"))
+                                .andExpect(jsonPath("$.reviewerName").value("Janssens Emma"));
 
                 ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
                 verify(reviewRepository).save(captor.capture());
@@ -412,6 +419,44 @@ class BookControllerTest {
                 assertSame(book, persisted.getBook());
                 assertEquals(5, persisted.getRating());
                 assertEquals("Heel goed boek", persisted.getComment());
+                assertEquals("Janssens Emma", persisted.getReviewerName());
+        }
+
+        @Test
+        void createReviewShouldPersistAnonymousReviewerNameWhenRequested() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review saved = new Review();
+                saved.setId(10L);
+                saved.setBook(book);
+                saved.setRating(4);
+                saved.setComment("Leuk boek");
+                saved.setReviewerName("Anoniem");
+                saved.setCreatedAt(LocalDateTime.of(2026, 3, 18, 15, 0));
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(reviewRepository.save(any(Review.class))).thenReturn(saved);
+
+                String json = """
+                                {
+                                  "rating": 4,
+                                  "comment": "Leuk boek",
+                                  "reviewerName": "Janssens Emma",
+                                  "anonymous": true
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.reviewerName").value("Anoniem"));
+
+                ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
+                verify(reviewRepository).save(captor.capture());
+                Review persisted = captor.getValue();
+                assertEquals("Anoniem", persisted.getReviewerName());
         }
 
         @Test
