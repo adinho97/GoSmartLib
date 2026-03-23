@@ -57,7 +57,12 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
       );
 
       this.scanSubscription = this.barcodeService.getScans().subscribe((barcode) => {
-        void this.processScan(barcode);
+        // Populate the manual input field so user sees what was scanned
+        this.manualIsbn = barcode;
+        // After a brief delay to show the ISBN, process it
+        setTimeout(() => {
+          void this.addManualIsbn();
+        }, 200);
       });
     }
   }
