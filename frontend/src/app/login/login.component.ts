@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
     if (this.isLoading) {
       return;
     }
-    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=userinfo`;
+    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=fulluserinfo`;
     window.location.href = authUrl;
   }
 
@@ -45,7 +45,19 @@ export class LoginComponent implements OnInit {
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: (userInfo) => {
         console.log("Logged in user:", userInfo);
-        localStorage.setItem("userName", `${userInfo.name} ${userInfo.family_name}`);
+        localStorage.setItem(
+          "userName",
+          `${userInfo.name} ${userInfo.family_name}`,
+        );
+        if (userInfo.sub) {
+          localStorage.setItem("userId", userInfo.sub);
+        }
+        if (userInfo.accessToken) {
+          localStorage.setItem("smartschoolToken", userInfo.accessToken);
+        }
+        if (userInfo.platform) {
+          localStorage.setItem("smartschoolPlatform", userInfo.platform);
+        }
         this.setRole(userInfo.role);
         this.isLoading = false;
       },
