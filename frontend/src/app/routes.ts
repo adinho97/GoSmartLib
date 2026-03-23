@@ -10,6 +10,7 @@ import { DetailComponent } from "./detail/detail.component";
 import { BookListComponent } from "./book-list/book-list.component";
 import { ProfileComponent } from "./profile/profile.component";
 import { EditBookComponent } from "./edit-book/edit-book.component";
+import { AddBarcodeComponent } from "./add-barcode/add-barcode.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
@@ -36,6 +37,12 @@ export const appRoutes: Routes = [
   {
     path: "isbn",
     component: AddIsbnComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
+    path: "add-barcode",
+    component: AddBarcodeComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
   },
