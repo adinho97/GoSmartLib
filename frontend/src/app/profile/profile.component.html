@@ -5,6 +5,9 @@
 
     <h1>{{ userName }}</h1>
     <div class="profile-role">{{ role }}</div>
+    <button (click)="testSmartschoolMessage()" class="btn-secondary">
+      Test Smartschool Bericht
+    </button>
 
     <div class="settings-dropdown" (click)="$event.stopPropagation()">
       <button class="settings-btn" (click)="toggleSettings()">⚙</button>
@@ -52,9 +55,6 @@
   </div>
 
   <div class="profile-container">
-    <button (click)="testSmartschoolMessage()" class="btn-secondary">
-  Test Smartschool Bericht
-</button>
     <section class="profile-section">
       <h3 class="section-title">Geleende Boeken</h3>
       <div class="horizontal-scroll-wrapper">

@@ -12,11 +12,12 @@ export class SmartschoolService {
 
   sendMessage(recipientId: string, subject: string, body: string): Observable<void> {
     const token = localStorage.getItem('smartschoolToken');
+    const platformUrl = localStorage.getItem('smartschoolPlatform');
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
 
-    const payload = { recipientId, subject, body };
+    const payload = { recipientId, subject, body, platformUrl };
     return this.http.post<void>(this.apiUrl, payload, { headers });
   }
 }

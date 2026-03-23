@@ -20,14 +20,8 @@ public class SmartschoolMessageService {
         this.webClient = webClientBuilder.build();
         this.smartschoolProperties = smartschoolProperties;
     }
-
-    /**
-     * Sends a message via the Smartschool API.
-     * Adjust the endpoint path (/Api/V1/messages) if the specific Smartschool API
-     * version differs.
-     */
     public Mono<String> sendMessage(String accessToken, SmartschoolMessageRequest request) {
-        String messagesUrl = smartschoolProperties.getApiBaseUrl() + "/Api/V1/messages";
+        String messagesUrl = request.getPlatformUrl() + "/Api/V1/messages";
 
         // Construct the JSON payload required by Smartschool
         Map<String, String> payload = Map.of(

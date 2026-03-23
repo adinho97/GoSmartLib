@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 
 public class SmartschoolMessageRequest {
 
+    @NotBlank(message = "Platform URL is required")
+    private String platformUrl;
+
     @NotBlank(message = "Recipient ID is required")
     private String recipientId;
 
@@ -12,6 +15,14 @@ public class SmartschoolMessageRequest {
 
     @NotBlank(message = "Message body is required")
     private String body;
+
+    public String getPlatformUrl() {
+        return platformUrl;
+    }
+
+    public void setPlatformUrl(String platformUrl) {
+        this.platformUrl = platformUrl;
+    }
 
     public String getRecipientId() {
         return recipientId;

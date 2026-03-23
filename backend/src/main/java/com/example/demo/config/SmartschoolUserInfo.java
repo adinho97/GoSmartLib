@@ -19,6 +19,7 @@ public class SmartschoolUserInfo {
     @JsonAlias({ "Basisrol", "basisrol"})
     private String basisrol; // Smartschool uses this
     private String accessToken;
+    private String platform;
 
     public String getSub() {
         return sub;
@@ -92,5 +93,13 @@ public class SmartschoolUserInfo {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
     }
 }
