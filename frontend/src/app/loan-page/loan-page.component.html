@@ -3,8 +3,8 @@
     <div class="header-text">
       <h1>Uitlenen</h1>
       <p>
-        @if (step === 'leerling') { Stap 1 — Voer de leerling in }
-        @if (step === 'boeken') { Stap 2 — Selecteer boeken voor {{ username }} }
+        @if (step === 'leerling') { Stap 1 — Selecteer een leerling }
+        @if (step === 'boeken') { Stap 2 — Selecteer boeken voor {{ selectedLeerling?.username }} }
         @if (step === 'bevestiging') { Stap 3 — Bevestig de uitlening }
       </p>
     </div>
@@ -37,22 +37,55 @@
   @if (step === 'leerling') {
     <div class="step-card">
       <h2>Wie leent uit?</h2>
-      <div class="username-form">
-        <div class="input-row">
-          <input
-            type="text"
-            placeholder="Gebruikersnaam leerling (bv. jan.janssen)"
-            [(ngModel)]="username"
-            (keydown.enter)="confirmUsername()"
-            class="username-input"
-          />
-          <button class="primary-btn" (click)="confirmUsername()">
-            Verder →
-          </button>
-        </div>
-        @if (usernameError) {
-          <p class="field-error">{{ usernameError }}</p>
-        }
+
+      <div class="search-bar">
+        <input
+          type="text"
+          placeholder="Zoek op gebruikersnaam..."
+          [(ngModel)]="leerlingSearch"
+          (input)="onLeerlingSearch()"
+        />
+      </div>
+
+      @if (leerlingError) {
+        <p class="field-error">{{ leerlingError }}</p>
+      }
+
+      @if (leerlingenLoading) {
+        <p class="info-msg">Leerlingen laden...</p>
+      } @else if (filteredLeerlingen.length === 0) {
+        <p class="info-msg">
+          Geen leerlingen gevonden. Leerlingen verschijnen hier nadat
+          ze minstens één keer ingelogd hebben via Smartschool.
+        </p>
+      } @else {
+        <ul class="leerling-list">
+          @for (leerling of filteredLeerlingen; track leerling.sub) {
+            <li
+              class="leerling-item"
+              [class.selected]="selectedLeerling?.sub === leerling.sub"
+              (click)="selectLeerling(leerling)"
+            >
+              <div class="leerling-avatar">
+                {{ leerling.username.charAt(0).toUpperCase() }}
+              </div>
+              <span class="leerling-username">{{ leerling.username }}</span>
+              @if (selectedLeerling?.sub === leerling.sub) {
+                <span class="selected-check">✓</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="step-footer">
+        <button
+          class="primary-btn"
+          (click)="confirmLeerling()"
+          [disabled]="!selectedLeerling"
+        >
+          Verder met {{ selectedLeerling?.username || '...' }} →
+        </button>
       </div>
     </div>
   }
@@ -62,7 +95,7 @@
     <div class="step-card">
       <div class="step-card-header">
         <button class="ghost-btn" (click)="goBack()">← Terug</button>
-        <h2>Boeken voor <strong>{{ username }}</strong></h2>
+        <h2>Boeken voor <strong>{{ selectedLeerling?.username }}</strong></h2>
         <button
           class="primary-btn"
           (click)="proceedToConfirm()"
@@ -79,7 +112,7 @@
       <!-- Actieve uitleningen van deze leerling -->
       @if (activeLoans.length > 0) {
         <div class="active-loans-section">
-          <h3>Momenteel uitgeleend aan {{ username }}</h3>
+          <h3>Momenteel uitgeleend aan {{ selectedLeerling?.username }}</h3>
           <ul class="loans-list">
             @for (loan of activeLoans; track loan.id) {
               <li class="loan-row">
@@ -114,7 +147,7 @@
         />
       </div>
 
-      <!-- Boeken grid -->
+      <!-- Boeken lijst -->
       @if (isLoading) {
         <p class="info-msg">Boeken laden...</p>
       } @else {
@@ -164,7 +197,7 @@
       <div class="confirm-info">
         <div class="confirm-row">
           <span class="confirm-label">Leerling</span>
-          <span class="confirm-value">{{ username }}</span>
+          <span class="confirm-value">{{ selectedLeerling?.username }}</span>
         </div>
         <div class="confirm-row">
           <span class="confirm-label">Terugbrengdatum</span>
@@ -192,10 +225,7 @@
               <span class="book-title">{{ book.titel }}</span>
               <span class="book-author">{{ book.auteur }}</span>
             </div>
-            <button
-              class="remove-book-btn"
-              (click)="toggleBook(book)"
-            >✕</button>
+            <button class="remove-book-btn" (click)="toggleBook(book)">✕</button>
           </li>
         }
       </ul>

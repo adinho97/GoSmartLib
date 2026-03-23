@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
+import axios from "axios";
 
 type BookOption = {
   id: number;
@@ -11,6 +12,11 @@ type BookOption = {
   cover: string;
   availableCopies: number;
   totalCopies: number;
+};
+
+type Leerling = {
+  sub: string;
+  username: string;
 };
 
 type Step = "leerling" | "boeken" | "bevestiging";
@@ -25,8 +31,12 @@ export class LoanPageComponent implements OnInit {
   step: Step = "leerling";
 
   // Stap 1
-  username = "";
-  usernameError = "";
+  leerlingen: Leerling[] = [];
+  filteredLeerlingen: Leerling[] = [];
+  leerlingSearch = "";
+  selectedLeerling: Leerling | null = null;
+  leerlingenLoading = false;
+  leerlingError = "";
 
   // Stap 2
   books: BookOption[] = [];
@@ -34,7 +44,6 @@ export class LoanPageComponent implements OnInit {
   searchQuery = "";
   selectedBooks: BookOption[] = [];
   activeLoans: Loan[] = [];
-  selectedBookForReturn: BookOption | null = null;
 
   // Stap 3
   dueDate = "";
@@ -60,8 +69,54 @@ export class LoanPageComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.loadBooks();
+    await Promise.all([this.loadBooks(), this.loadLeerlingen()]);
     this.dueDate = this.defaultDueDate;
+  }
+
+  async loadLeerlingen() {
+    this.leerlingenLoading = true;
+    try {
+      const res = await axios.get("/api/gebruikers/leerlingen");
+      this.leerlingen = res.data;
+      this.filteredLeerlingen = [...this.leerlingen];
+    } catch {
+      this.leerlingError = "Leerlingen laden mislukt.";
+    } finally {
+      this.leerlingenLoading = false;
+    }
+  }
+
+  onLeerlingSearch() {
+    const q = this.leerlingSearch.trim().toLowerCase();
+    this.filteredLeerlingen = q
+      ? this.leerlingen.filter((l) =>
+          l.username.toLowerCase().includes(q)
+        )
+      : [...this.leerlingen];
+  }
+
+  selectLeerling(leerling: Leerling) {
+    this.selectedLeerling = leerling;
+    this.leerlingError = "";
+  }
+
+  confirmLeerling() {
+    if (!this.selectedLeerling) {
+      this.leerlingError = "Selecteer een leerling.";
+      return;
+    }
+    this.step = "boeken";
+    this.loadActiveLoansForUser();
+  }
+
+  async loadActiveLoansForUser() {
+    try {
+      this.activeLoans = await this.loanService.getActiveLoans(
+        this.selectedLeerling!.username
+      );
+    } catch {
+      this.activeLoans = [];
+    }
   }
 
   async loadBooks() {
@@ -70,7 +125,11 @@ export class LoanPageComponent implements OnInit {
       const schoolId = this.schoolService.getSelectedSchoolId() ?? undefined;
       const data = await this.bookService.getBooks(schoolId);
       this.books = data
-        .filter((b: any) => (b.genre || "").toLowerCase() !== "didactiek" || this.role !== "leerling")
+        .filter(
+          (b: any) =>
+            (b.genre || "").toLowerCase() !== "didactiek" ||
+            this.role !== "leerling"
+        )
         .map((b: any) => ({
           id: b.id,
           titel: b.titel,
@@ -87,33 +146,13 @@ export class LoanPageComponent implements OnInit {
     }
   }
 
-  // Stap 1 — leerling bevestigen
-  confirmUsername() {
-    if (!this.username.trim()) {
-      this.usernameError = "Voer een gebruikersnaam in.";
-      return;
-    }
-    this.usernameError = "";
-    this.step = "boeken";
-    this.loadActiveLoansForUser();
-  }
-
-  async loadActiveLoansForUser() {
-    try {
-      this.activeLoans = await this.loanService.getActiveLoans(this.username.trim());
-    } catch {
-      this.activeLoans = [];
-    }
-  }
-
-  // Stap 2 — boeken zoeken en selecteren
   onSearch() {
     const q = this.searchQuery.trim().toLowerCase();
     this.filteredBooks = q
       ? this.books.filter(
           (b) =>
             b.titel.toLowerCase().includes(q) ||
-            b.auteur.toLowerCase().includes(q),
+            b.auteur.toLowerCase().includes(q)
         )
       : [...this.books];
   }
@@ -140,9 +179,8 @@ export class LoanPageComponent implements OnInit {
     this.step = "bevestiging";
   }
 
-  // Stap 3 — bevestigen en uitlenen
   async loanBooks() {
-    if (!this.dueDate) return;
+    if (!this.dueDate || !this.selectedLeerling) return;
     this.isLoaning = true;
     this.errorMessage = "";
     this.successMessage = "";
@@ -150,14 +188,16 @@ export class LoanPageComponent implements OnInit {
       for (const book of this.selectedBooks) {
         await this.loanService.createLoan(
           book.id,
-          this.username.trim(),
-          this.dueDate,
+          this.selectedLeerling.username,
+          this.dueDate
         );
       }
-      this.successMessage = `${this.selectedBooks.length} boek(en) uitgeleend aan ${this.username.trim()}.`;
+      this.successMessage = `${this.selectedBooks.length} boek(en) uitgeleend aan ${this.selectedLeerling.username}.`;
       this.selectedBooks = [];
       this.step = "leerling";
-      this.username = "";
+      this.selectedLeerling = null;
+      this.leerlingSearch = "";
+      this.filteredLeerlingen = [...this.leerlingen];
       this.dueDate = this.defaultDueDate;
       await this.loadBooks();
     } catch (e: any) {
@@ -170,7 +210,6 @@ export class LoanPageComponent implements OnInit {
     }
   }
 
-  // Terugbrengen
   async returnLoan(loan: Loan) {
     try {
       await this.loanService.returnLoan(loan.id);
@@ -186,7 +225,6 @@ export class LoanPageComponent implements OnInit {
     return dueDate < this.today;
   }
 
-  // Navigatie
   goBack() {
     if (this.step === "boeken") {
       this.step = "leerling";
@@ -196,17 +234,5 @@ export class LoanPageComponent implements OnInit {
       this.step = "boeken";
       this.errorMessage = "";
     }
-  }
-
-  resetAll() {
-    this.step = "leerling";
-    this.username = "";
-    this.selectedBooks = [];
-    this.activeLoans = [];
-    this.searchQuery = "";
-    this.filteredBooks = [...this.books];
-    this.dueDate = this.defaultDueDate;
-    this.successMessage = "";
-    this.errorMessage = "";
   }
 }
