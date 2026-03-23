@@ -29,6 +29,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   scanMode = false;
   isProcessing = false;
   scannedBooks: ScannedBookResult[] = [];
+  manualIsbn = '';
   errorMessage = '';
   successMessage = '';
 
@@ -189,6 +190,17 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     if (this.scannedBooks.length > 0) {
       this.scannedBooks.shift();
     }
+  }
+
+  async addManualIsbn() {
+    const trimmedIsbn = this.manualIsbn.trim();
+    if (!trimmedIsbn) {
+      this.errorMessage = 'Voer een ISBN-nummer in.';
+      return;
+    }
+
+    this.manualIsbn = '';
+    await this.processScan(trimmedIsbn);
   }
 
   getStatusColor(status: string): string {

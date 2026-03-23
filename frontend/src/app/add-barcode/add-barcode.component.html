@@ -1,58 +1,92 @@
-<div class="barcode-container" #scanContainer>
-  <h1>Boeken toevoegen via barcode</h1>
+<div class="barcode-page" #scanContainer>
+  <div class="page-header">
+    <h1>Boeken toevoegen via barcode</h1>
+  </div>
 
-  @if (schools.length > 0) {
-    <div class="school-selector">
-      <label>Selecteer school:</label>
-      <select
-        [ngModel]="selectedSchoolId"
-        (ngModelChange)="onSchoolChange($event)"
-      >
-        @for (school of schools; track school.id) {
-          <option [value]="school.id">{{ school.naam }}</option>
+  <div class="main-card">
+    <!-- School selector -->
+    @if (schools.length > 0) {
+      <div class="school-selector">
+        <label>SELECTEER SCHOOL</label>
+        <select
+          [ngModel]="selectedSchoolId"
+          (ngModelChange)="onSchoolChange($event)"
+        >
+          @for (school of schools; track school.id) {
+            <option [value]="school.id">{{ school.naam }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="section">
+      <h2 class="section-label">BARCODE SCANNEN</h2>
+
+      <div class="scan-box">
+        <h3>Scan een barcode</h3>
+        <p>
+          Hou de barcode voor de scanner om het ISBN automatisch in te voeren
+        </p>
+
+        @if (!scanMode) {
+          <button
+            class="btn-primary"
+            (click)="activateScanMode()"
+            [disabled]="isProcessing"
+          >
+            Starten met scannen
+          </button>
+        } @else {
+          <div class="scan-active">
+            <div class="pulsing-indicator"></div>
+            <p class="scan-status">Klaar om te scannen...</p>
+            <button class="btn-secondary" (click)="deactivateScanMode()">
+              Stoppen
+            </button>
+          </div>
         }
-      </select>
+      </div>
     </div>
-  }
 
-  <div class="scan-controls">
-    @if (!scanMode) {
-      <button
-        class="btn-start-scan"
-        (click)="activateScanMode()"
-        [disabled]="isProcessing"
-      >
-        Starten met scannen
-      </button>
-    } @else {
-      <div class="scan-active">
-        <div class="pulsing-indicator"></div>
-        <p>Klaar om te scannen...</p>
-        <button class="btn-stop-scan" (click)="deactivateScanMode()">
-          STOPPEN
+    <!-- Manual input section -->
+    <div class="section">
+      <h2 class="section-label">OF VOER HANDMATIG IN</h2>
+      <div class="manual-input-row">
+        <input
+          type="text"
+          placeholder="Voer ISBN in (bv. 9780553808049)"
+          [(ngModel)]="manualIsbn"
+          (keyup.enter)="addManualIsbn()"
+          [disabled]="isProcessing"
+          class="isbn-input"
+        />
+        <button
+          class="btn-primary"
+          (click)="addManualIsbn()"
+          [disabled]="isProcessing || !manualIsbn.trim()"
+        >
+          Toevoegen
         </button>
       </div>
+    </div>
+
+    @if (errorMessage) {
+      <div class="message-error">{{ errorMessage }}</div>
+    }
+    @if (successMessage) {
+      <div class="message-success">{{ successMessage }}</div>
     }
   </div>
 
-  @if (errorMessage) {
-    <div class="message-error">{{ errorMessage }}</div>
-  }
-  @if (successMessage) {
-    <div class="message-success">{{ successMessage }}</div>
-  }
-
-  <div class="results-container">
+  <div class="results-card">
     <div class="results-header">
-      <h2>Gescande boeken ({{ scannedBooks.length }})</h2>
-      @if (scannedBooks.length > 0) {
-        <div class="results-actions">
-          <button class="btn-undo" (click)="undoLastScan()">
-            ↶ Ongedaan maken
-          </button>
-          <button class="btn-clear" (click)="clearSession()">🗑️ Wissen</button>
-        </div>
-      }
+      <h2>
+        Gescande boeken
+        <span class="count-badge">{{ scannedBooks.length }}</span>
+      </h2>
+      <a href="javascript:void(0)" class="clear-link" (click)="clearSession()"
+        >Alles wissen</a
+      >
     </div>
 
     @if (scannedBooks.length > 0) {
@@ -60,22 +94,21 @@
         @for (result of scannedBooks; track result.isbn + result.timestamp) {
           <div
             class="result-item"
-            [style.borderLeftColor]="getStatusColor(result.status)"
+            [ngClass]="'status-' + result.status.toLowerCase()"
           >
-            <div
-              class="result-status"
-              [style.backgroundColor]="getStatusColor(result.status)"
-            >
+            <div class="result-status-icon">
               {{
                 result.status === "ADDED"
                   ? "✓"
                   : result.status === "ALREADY_EXISTS"
-                    ? "⚠"
-                    : "✗"
+                    ? "!"
+                    : "✕"
               }}
             </div>
             <div class="result-details">
-              <div class="result-title">{{ result.titre || result.isbn }}</div>
+              <div class="result-title">
+                {{ result.titre || "Onbekend boek" }}
+              </div>
               <div class="result-isbn">{{ result.isbn }}</div>
               <div class="result-message">{{ result.message }}</div>
             </div>
@@ -86,7 +119,7 @@
         }
       </div>
     } @else {
-      <p class="no-results">Geen boeken gescand</p>
+      <p class="no-results">Nog geen boeken gescand</p>
     }
   </div>
 </div>
