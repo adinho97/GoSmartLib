@@ -16,8 +16,9 @@ public class SmartschoolUserInfo {
     @JsonAlias({ "surname", "naam", "achternaam", "lastName" })
     private String familyName;
     private String role;
-    @JsonAlias({ "Basisrol", "basisrol", "type", "function" })
+    @JsonAlias({ "Basisrol", "basisrol"})
     private String basisrol; // Smartschool uses this
+    private String accessToken;
 
     public String getSub() {
         return sub;
@@ -83,5 +84,13 @@ public class SmartschoolUserInfo {
 
     public void setBasisrol(String basisrol) {
         this.basisrol = basisrol;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 }
