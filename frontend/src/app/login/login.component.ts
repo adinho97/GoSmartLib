@@ -49,6 +49,9 @@ export class LoginComponent implements OnInit {
           "userName",
           `${userInfo.name} ${userInfo.family_name}`,
         );
+        if (userInfo.sub) {
+          localStorage.setItem("userId", userInfo.sub);
+        }
         if (userInfo.accessToken) {
           localStorage.setItem("smartschoolToken", userInfo.accessToken);
         }
