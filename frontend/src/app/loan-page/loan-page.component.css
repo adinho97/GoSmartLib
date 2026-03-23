@@ -564,3 +564,61 @@
   font-style: italic;
   padding: 8px 0;
 }
+.leerling-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.leerling-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: white;
+}
+
+.leerling-item:hover {
+  border-color: #8B0000;
+}
+
+.leerling-item.selected {
+  border-color: #8B0000;
+  background: #fff8fb;
+}
+
+.leerling-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #8B0000;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.leerling-username {
+  flex: 1;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.step-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
