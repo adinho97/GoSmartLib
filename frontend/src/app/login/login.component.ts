@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
     if (this.isLoading) {
       return;
     }
-    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=[userinfo fulluserinfo sendmessage]`;
+    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=userinfo fulluserinfo sendmessage`;
     window.location.href = authUrl;
   }
 
