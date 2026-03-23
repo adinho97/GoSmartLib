@@ -15,6 +15,12 @@ public class CreateReviewRequest {
     @Size(max = 500)
     private String comment;
 
+    @NotBlank
+    @Size(max = 120)
+    private String reviewerName;
+
+    private Boolean anonymous;
+
     public Integer getRating() {
         return rating;
     }
@@ -29,5 +35,21 @@ public class CreateReviewRequest {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getReviewerName() {
+        return reviewerName;
+    }
+
+    public void setReviewerName(String reviewerName) {
+        this.reviewerName = reviewerName;
+    }
+
+    public Boolean getAnonymous() {
+        return anonymous;
+    }
+
+    public void setAnonymous(Boolean anonymous) {
+        this.anonymous = anonymous;
     }
 }

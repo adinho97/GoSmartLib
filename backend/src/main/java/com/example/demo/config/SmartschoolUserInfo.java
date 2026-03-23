@@ -1,18 +1,28 @@
 package com.example.demo.config;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SmartschoolUserInfo {
+    @JsonAlias({ "userID", "userid", "userId", "id", "userIdentifier" })
     private String sub; // user id
+
+    @JsonAlias({ "name", "Name" })
     private String name;
     @JsonProperty("given_name")
+    @JsonAlias({ "firstname", "voornaam", "firstName" })
     private String givenName;
     @JsonProperty("family_name")
+    @JsonAlias({ "surname", "naam", "achternaam", "lastName" })
     private String familyName;
     private String role;
+    @JsonAlias({ "Basisrol", "basisrol" })
     private String basisrol; // Smartschool uses this
+    private String accessToken;
+    @JsonAlias({ "platform", "Platform" })
+    private String platform;
 
     public String getSub() {
         return sub;
@@ -59,6 +69,12 @@ public class SmartschoolUserInfo {
                     return "leerling"; // default to least privileged
             }
         }
+        // Fallback: If basisrol is missing but we have a user (name or sub), default to
+        // 'leerling'
+        // so the frontend receives a valid role and redirects to dashboard.
+        if (this.name != null || this.sub != null) {
+            return "leerling";
+        }
         return role;
     }
 
@@ -72,5 +88,21 @@ public class SmartschoolUserInfo {
 
     public void setBasisrol(String basisrol) {
         this.basisrol = basisrol;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
     }
 }

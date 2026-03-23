@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -231,6 +233,55 @@ class BookControllerTest {
                                 .andExpect(status().isNotFound());
         }
 
+        // ---- POST /api/boeken/isbn/bulk ---------------------------------------
+
+        @Test
+        void importBulkByIsbnShouldReturnResultWhenUploadIsValid() throws Exception {
+                MockMultipartFile file = new MockMultipartFile(
+                                "file",
+                                "bulk.csv",
+                                "text/csv",
+                                "isbn\n9780553808049".getBytes());
+
+                var result = new com.example.demo.dto.ImportResultDto();
+                result.setTotalRows(1);
+                result.setUniqueIsbnsProcessed(1);
+                result.setDuplicateRowsSkipped(0);
+                result.setResults(List.of(new com.example.demo.dto.ImportResultDto.RowResult(
+                                "9780553808049",
+                                com.example.demo.dto.ImportResultDto.Status.ADDED,
+                                "Boek toegevoegd.",
+                                1L)));
+
+                when(bookService.importBulkByIsbn(any(), any())).thenReturn(result);
+
+                mockMvc.perform(multipart("/api/boeken/isbn/bulk")
+                                .file(file)
+                                .param("schoolId", "1"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.totalRows").value(1))
+                                .andExpect(jsonPath("$.uniqueIsbnsProcessed").value(1))
+                                .andExpect(jsonPath("$.results[0].status").value("ADDED"));
+        }
+
+        @Test
+        void importBulkByIsbnShouldReturnBadRequestWhenServiceRejectsFile() throws Exception {
+                MockMultipartFile file = new MockMultipartFile(
+                                "file",
+                                "bulk.txt",
+                                "text/plain",
+                                "abc".getBytes());
+
+                when(bookService.importBulkByIsbn(any(), any()))
+                                .thenThrow(new IllegalArgumentException(
+                                                "Unsupported file type. Use CSV, XLS or XLSX."));
+
+                mockMvc.perform(multipart("/api/boeken/isbn/bulk")
+                                .file(file)
+                                .param("schoolId", "1"))
+                                .andExpect(status().isBadRequest());
+        }
+
         // ---- helpers ------------------------------------------------------------
 
         private BookDto makeDto() {
@@ -287,6 +338,7 @@ class BookControllerTest {
                 first.setId(3L);
                 first.setRating(5);
                 first.setComment("Topboek");
+                first.setReviewerName("Janssens Emma");
                 first.setCreatedAt(LocalDateTime.of(2026, 3, 18, 12, 30));
 
                 Review second = new Review();
@@ -303,6 +355,8 @@ class BookControllerTest {
                                 .andExpect(jsonPath("$[0].id").value(3))
                                 .andExpect(jsonPath("$[0].rating").value(5))
                                 .andExpect(jsonPath("$[0].comment").value("Topboek"))
+                                .andExpect(jsonPath("$[0].reviewerName").value("Janssens Emma"))
+                                .andExpect(jsonPath("$[1].reviewerName").value("Anoniem"))
                                 .andExpect(jsonPath("$[1].id").value(2));
         }
 
@@ -333,6 +387,7 @@ class BookControllerTest {
                 saved.setBook(book);
                 saved.setRating(5);
                 saved.setComment("Heel goed boek");
+                saved.setReviewerName("Janssens Emma");
                 saved.setCreatedAt(LocalDateTime.of(2026, 3, 18, 14, 0));
 
                 when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
@@ -341,7 +396,9 @@ class BookControllerTest {
                 String json = """
                                 {
                                   "rating": 5,
-                                  "comment": "  Heel goed boek  "
+                                                                                                                                        "comment": "  Heel goed boek  ",
+                                                                                                                                        "reviewerName": "  Janssens Emma  ",
+                                                                                                                                        "anonymous": false
                                 }
                                 """;
 
@@ -351,7 +408,8 @@ class BookControllerTest {
                                 .andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.id").value(9))
                                 .andExpect(jsonPath("$.rating").value(5))
-                                .andExpect(jsonPath("$.comment").value("Heel goed boek"));
+                                .andExpect(jsonPath("$.comment").value("Heel goed boek"))
+                                .andExpect(jsonPath("$.reviewerName").value("Janssens Emma"));
 
                 ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
                 verify(reviewRepository).save(captor.capture());
@@ -361,6 +419,44 @@ class BookControllerTest {
                 assertSame(book, persisted.getBook());
                 assertEquals(5, persisted.getRating());
                 assertEquals("Heel goed boek", persisted.getComment());
+                assertEquals("Janssens Emma", persisted.getReviewerName());
+        }
+
+        @Test
+        void createReviewShouldPersistAnonymousReviewerNameWhenRequested() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review saved = new Review();
+                saved.setId(10L);
+                saved.setBook(book);
+                saved.setRating(4);
+                saved.setComment("Leuk boek");
+                saved.setReviewerName("Anoniem");
+                saved.setCreatedAt(LocalDateTime.of(2026, 3, 18, 15, 0));
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(reviewRepository.save(any(Review.class))).thenReturn(saved);
+
+                String json = """
+                                {
+                                  "rating": 4,
+                                  "comment": "Leuk boek",
+                                  "reviewerName": "Janssens Emma",
+                                  "anonymous": true
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.reviewerName").value("Anoniem"));
+
+                ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
+                verify(reviewRepository).save(captor.capture());
+                Review persisted = captor.getValue();
+                assertEquals("Anoniem", persisted.getReviewerName());
         }
 
         @Test

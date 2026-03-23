@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.BookDto;
+import com.example.demo.dto.ImportResultDto;
 import com.example.demo.dto.CreateReviewRequest;
 import com.example.demo.dto.ReviewDto;
 import com.example.demo.entities.Book;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
+    private static final String ANONYMOUS_REVIEWER_NAME = "Anoniem";
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
     private final BookService bookService;
@@ -102,14 +105,24 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> getByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId) {
-        return bookService.findByIsbn(isbn, schoolId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            return bookService.findByIsbn(isbn, schoolId)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/preview/{isbn}")
     public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
-        BookDto dto = bookService.fetchPreviewByIsbn(isbn);
+        BookDto dto;
+        try {
+            dto = bookService.fetchPreviewByIsbn(isbn);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
@@ -130,6 +143,18 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/isbn/bulk")
+    public ResponseEntity<ImportResultDto> importBulkByIsbn(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false) Long schoolId) {
+        try {
+            ImportResultDto result = bookService.importBulkByIsbn(file, schoolId);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -208,6 +233,9 @@ public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @Re
         String trimmedComment = request.getComment().trim();
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
+        boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
+        String reviewerName = isAnonymous ? ANONYMOUS_REVIEWER_NAME : request.getReviewerName().trim();
+        review.setReviewerName(reviewerName);
 
         Review saved = reviewRepository.save(review);
         return ResponseEntity.status(HttpStatus.CREATED).body(toReviewDto(saved));
@@ -239,8 +267,17 @@ public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @Re
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
+        dto.setReviewerName(resolveReviewerName(review));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
+    }
+
+    private String resolveReviewerName(Review review) {
+        String reviewerName = review.getReviewerName();
+        if (reviewerName == null || reviewerName.isBlank()) {
+            return ANONYMOUS_REVIEWER_NAME;
+        }
+        return reviewerName;
     }
 
     private boolean isLibrarian(String userRole) {

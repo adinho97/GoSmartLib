@@ -18,18 +18,23 @@ import axios from "axios";
 export class DetailComponent implements OnInit, OnDestroy {
   book!: Book;
 
+  // Rol-gebaseerde logica
   readonly userRole = localStorage.getItem("role");
   readonly isLibrarian = this.userRole === "bibbeheerder";
   readonly isTeacherOrLibrarian = ["leerkracht", "bibbeheerder"].includes(
     this.userRole || ""
   );
 
+  // Review-gerelateerde variabelen
   currentBookId: number | null = null;
   reviewRatings = [1, 2, 3, 4, 5];
   reviews: Review[] = [];
   newReviewRating = 0;
   newReviewComment = "";
+  newReviewAnonymous = false;
   reviewError = "";
+  readonly smartschoolUserName =
+    localStorage.getItem("userName") || "Gebruiker";
 
   copySummary = { total: 0, available: 0 };
 
@@ -51,6 +56,8 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.bookService.getBookById(this.currentBookId).subscribe((data) => {
         this.book = data;
       });
+
+      // Laad de reviews
       this.loadReviews(this.currentBookId);
       this.loadCopySummary(this.currentBookId);
     }
@@ -123,10 +130,13 @@ export class DetailComponent implements OnInit, OnDestroy {
       const review = await this.bookService.addBookReview(this.currentBookId, {
         rating: this.newReviewRating,
         comment,
+        reviewerName: this.smartschoolUserName,
+        anonymous: this.newReviewAnonymous,
       });
       this.reviews = [review, ...this.reviews];
       this.newReviewRating = 0;
       this.newReviewComment = "";
+      this.newReviewAnonymous = false;
       this.reviewError = "";
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
