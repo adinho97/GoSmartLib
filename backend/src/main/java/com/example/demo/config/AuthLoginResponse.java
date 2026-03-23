@@ -6,6 +6,7 @@ public class AuthLoginResponse {
     private String username;
     private String givenName;
     private String familyName;
+    private String accessToken;
 
     public AuthLoginResponse(String sub, String role, String username,
                               String givenName, String familyName) {
@@ -21,4 +22,6 @@ public class AuthLoginResponse {
     public String getUsername() { return username; }
     public String getGivenName() { return givenName; }
     public String getFamilyName() { return familyName; }
+    public String getAccessToken() { return accessToken; }
+    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
 }
