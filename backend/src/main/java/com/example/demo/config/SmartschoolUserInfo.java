@@ -6,8 +6,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SmartschoolUserInfo {
-    @JsonAlias({ "userID", "userid", "userId", "id" })
+    @JsonAlias({ "userID", "userid", "userId", "id", "userIdentifier" })
     private String sub; // user id
+
+    @JsonAlias({ "name", "Name" })
     private String name;
     @JsonProperty("given_name")
     @JsonAlias({ "firstname", "voornaam", "firstName" })
@@ -16,9 +18,10 @@ public class SmartschoolUserInfo {
     @JsonAlias({ "surname", "naam", "achternaam", "lastName" })
     private String familyName;
     private String role;
-    @JsonAlias({ "Basisrol", "basisrol"})
+    @JsonAlias({ "Basisrol", "basisrol" })
     private String basisrol; // Smartschool uses this
     private String accessToken;
+    @JsonAlias({ "platform", "Platform" })
     private String platform;
 
     public String getSub() {
