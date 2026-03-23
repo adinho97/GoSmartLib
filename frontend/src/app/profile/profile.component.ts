@@ -67,8 +67,7 @@ export class ProfileComponent {
   }
 
   testSmartschoolMessage(): void {
-  //const userId = localStorage.getItem('userId');
-  const userId = "L9lzwjXkrvlOKYAvq2hXXw==";
+  const userId = localStorage.getItem('userId');
   if (!userId) {
     alert('Gebruikers-ID niet gevonden. Log opnieuw in.');
     return;
