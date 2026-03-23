@@ -47,17 +47,21 @@ textarea {
   border: 1px solid #ddd;
 }
 
-/* Cover Upload - Verbeterde ruimte */
+/* Cover Upload */
 .cover-file-input {
   position: absolute;
   opacity: 0;
   width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .cover-upload-row {
   display: flex;
   align-items: center;
-  gap: 15px; /* Ruimte tussen de knop en de tekst */
+  gap: 15px;
   margin-top: 8px;
 }
 
@@ -77,6 +81,75 @@ textarea {
   color: #666;
   font-size: 0.9rem;
   font-style: italic;
+}
+
+.cover-preview-wrapper {
+  margin-top: 12px;
+}
+
+.cover-preview {
+  max-width: 120px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Group Toggle */
+.button-group {
+  display: flex;
+  background: #eee;
+  padding: 5px;
+  border-radius: 12px;
+  gap: 5px;
+}
+
+.group-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  color: #777;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.btn-normal.active {
+  background: #871f42;
+  color: white;
+  box-shadow: 0 4px 10px rgba(135, 31, 66, 0.2);
+}
+
+.btn-didactic.active {
+  background: #e67e22;
+  color: white;
+  box-shadow: 0 4px 10px rgba(230, 126, 34, 0.2);
+}
+
+.group-btn:hover:not(.active) {
+  background: #e0e0e0;
+  color: #333;
+}
+
+/* Didactiek focus styling */
+.didactic-locked {
+  background: #fff9f4 !important;
+  border: 2px solid #e67e22;
+}
+
+.readonly-input {
+  background: #fdf7f2;
+  color: #d35400;
+  font-weight: bold;
+  border: 1px solid #e67e22;
+  cursor: not-allowed;
+}
+
+.helper-text {
+  color: #e67e22;
+  font-size: 13px;
+  margin-top: 5px;
+  font-weight: 600;
 }
 
 /* Checkbox styling */
@@ -128,11 +201,14 @@ select:disabled {
   cursor: not-allowed;
 }
 
-.helper-text {
-  color: #e67e22;
-  font-size: 13px;
-  margin-top: 5px;
-  font-weight: 600;
+.field-invalid {
+  border-color: #c62828 !important;
+}
+
+.field-error {
+  color: #c62828;
+  font-size: 0.8rem;
+  margin-top: 4px;
 }
 
 .submit-btn {
@@ -153,6 +229,7 @@ select:disabled {
   text-align: center;
   font-weight: bold;
 }
+
 .error-message {
   color: #c62828;
   text-align: center;

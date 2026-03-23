@@ -1,8 +1,42 @@
 <div class="edit-container">
   <h2>Boek aanpassen</h2>
 
+  <div class="copy-manager">
+    <div class="copy-info">
+      <span class="copy-count">
+        {{ copySummary.available }} / {{ copySummary.total }} exemplaren beschikbaar
+      </span>
+    </div>
+    <div class="copy-actions">
+      <button
+        type="button"
+        class="copy-btn remove"
+        (click)="removeCopy()"
+        [disabled]="isRemovingCopy || copySummary.total === 0"
+      >
+        − Verwijderen
+      </button>
+      <button
+        type="button"
+        class="copy-btn add"
+        (click)="addCopy()"
+        [disabled]="isAddingCopy"
+      >
+        + Toevoegen
+      </button>
+    </div>
+    @if (copyMessage) {
+      <p class="copy-success">{{ copyMessage }}</p>
+    }
+    @if (copyError) {
+      <p class="copy-error">{{ copyError }}</p>
+    }
+  </div>
+
   @if (isLoading) {
-    <p style="text-align: center">Gegevens ophalen...</p>
+    <p style="text-align: center; font-family: Arial, sans-serif;">
+      Gegevens ophalen...
+    </p>
   } @else {
     <form (ngSubmit)="onSubmit()">
       <div class="form-group">

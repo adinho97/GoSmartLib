@@ -38,7 +38,6 @@
   color: white;
 }
 
-/* JOUW NIEUWE EDIT KNOP */
 .edit-btn-detail {
   position: absolute;
   top: 25px;
@@ -64,8 +63,36 @@
 .book-title {
   text-align: center;
   font-size: 30px;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
   color: #871f42;
+}
+
+.availability-bar {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.avail-badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.avail-badge.available {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.avail-badge.unavailable {
+  background: #fdecea;
+  color: #c62828;
+}
+
+.avail-badge.none {
+  background: #f5f5f5;
+  color: #888;
 }
 
 .detail-content {
@@ -118,7 +145,6 @@
   color: #444;
 }
 
-/* REVIEWS STYLING */
 .review-section {
   margin-top: 30px;
   border-top: 1px solid #eee;
@@ -287,7 +313,6 @@
   color: #fff;
 }
 
-/* RESPONSIVE (SAMENGEVOEGD) */
 @media (max-width: 900px) {
   .detail-content {
     flex-direction: column;

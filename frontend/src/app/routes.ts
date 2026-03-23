@@ -10,6 +10,7 @@ import { DetailComponent } from "./detail/detail.component";
 import { BookListComponent } from "./book-list/book-list.component";
 import { ProfileComponent } from "./profile/profile.component";
 import { EditBookComponent } from "./edit-book/edit-book.component";
+import { LoanPageComponent } from "./loan-page/loan-page.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
@@ -64,6 +65,12 @@ export const appRoutes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
+  {
+  path: 'uitleen',
+  component: LoanPageComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ['leerkracht', 'bibbeheerder'] },
+},
 ];
 
 @NgModule({

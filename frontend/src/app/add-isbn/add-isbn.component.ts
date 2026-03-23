@@ -1,18 +1,20 @@
 import { Component } from "@angular/core";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
+import { LoanService } from "../services/loan.service";
 import { School } from "../models/school";
 
 @Component({
-    selector: "app-add-isbn",
-    templateUrl: "./add-isbn.component.html",
-    styleUrls: ["./add-isbn.component.css"],
-    standalone: false
+  selector: "app-add-isbn",
+  templateUrl: "./add-isbn.component.html",
+  styleUrls: ["./add-isbn.component.css"],
+  standalone: false,
 })
 export class AddIsbnComponent {
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   isbn = "";
+  aantalExemplaren: number = 1;
   isLoading = false;
   isImporting = false;
   isAlreadyInLibrary = false;
@@ -24,6 +26,7 @@ export class AddIsbnComponent {
   constructor(
     private bookService: BookService,
     private schoolService: SchoolService,
+    private loanService: LoanService,
   ) {
     void this.loadSchools();
   }
@@ -35,13 +38,11 @@ export class AddIsbnComponent {
       const hasStoredSchool =
         storedSchoolId !== null &&
         this.schools.some((school) => school.id === storedSchoolId);
-
       const fallbackSchoolId =
         this.schools.length > 0 ? this.schools[0].id : null;
       this.selectedSchoolId = hasStoredSchool
         ? storedSchoolId
         : fallbackSchoolId;
-
       if (this.selectedSchoolId !== null) {
         this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
       }
@@ -64,14 +65,12 @@ export class AddIsbnComponent {
       this.errorMessage = "Voer een ISBN-nummer in.";
       return;
     }
-
     this.isLoading = true;
     this.errorMessage = "";
     this.successMessage = "";
     this.isAlreadyInLibrary = false;
     this.hasCheckedLibraryStatus = false;
     this.book = null;
-
     try {
       this.book = await this.bookService.fetchBookByIsbn(trimmed);
       this.isAlreadyInLibrary = await this.bookService.isBookInLibrary(
@@ -100,26 +99,32 @@ export class AddIsbnComponent {
       this.successMessage = "Reeds in de bibliotheek.";
       return;
     }
-
     const isbnToImport = (this.book?.isbn || this.isbn).trim();
     if (!isbnToImport) {
       this.errorMessage = "Geen ISBN beschikbaar om toe te voegen.";
       return;
     }
-
     this.isImporting = true;
     this.errorMessage = "";
     this.successMessage = "";
-
     try {
       const savedBook = await this.bookService.importBookByIsbn(
         isbnToImport,
         this.selectedSchoolId ?? undefined,
       );
+      console.log('savedBook:', savedBook);
+
+      if (savedBook?.id && this.aantalExemplaren > 0) {
+        const promises = Array.from({ length: this.aantalExemplaren }, () =>
+          this.loanService.addCopy(savedBook.id),
+        );
+        await Promise.all(promises);
+      }
+
       this.book = savedBook;
       this.isAlreadyInLibrary = true;
       this.hasCheckedLibraryStatus = true;
-      this.successMessage = "Boek toegevoegd aan bibliotheek.";
+      this.successMessage = `Boek toegevoegd met ${this.aantalExemplaren} exemplaar/exemplaren.`;
     } catch (err: any) {
       if (err?.response?.status === 400) {
         this.errorMessage = "Ongeldig ISBN-nummer.";

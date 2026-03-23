@@ -1,6 +1,7 @@
 <div class="add-book-page">
   <h1>Voeg manueel een boek toe</h1>
   <form (ngSubmit)="onSubmit(bookForm)" #bookForm="ngForm" class="book-form">
+
     <div class="form-row">
       <label for="school">School</label>
       <select
@@ -13,11 +14,11 @@
       >
         <option [ngValue]="null">Kies een school</option>
         @for (school of schools; track school) {
-        <option [ngValue]="school.id">{{ school.naam }}</option>
+          <option [ngValue]="school.id">{{ school.naam }}</option>
         }
       </select>
       @if (school.errors?.['required'] && (school.touched || isSubmitted)) {
-      <small class="field-error"> School is verplicht. </small>
+        <small class="field-error">School is verplicht.</small>
       }
     </div>
 
@@ -62,13 +63,9 @@
         </span>
       </div>
       @if (coverPreviewUrl) {
-      <div class="cover-preview-wrapper">
-        <img
-          [src]="coverPreviewUrl"
-          alt="Cover preview"
-          class="cover-preview"
-        />
-      </div>
+        <div class="cover-preview-wrapper">
+          <img [src]="coverPreviewUrl" alt="Cover preview" class="cover-preview" />
+        </div>
       }
     </div>
 
@@ -96,57 +93,58 @@
     <div class="form-row">
       <label for="genre">Genre</label>
       @if (!isDidactic) {
-      <select
-        id="genre"
-        name="genre"
-        [(ngModel)]="book.genre"
-        (change)="onGenreChange()"
-      >
-        <option value="">Kies een genre</option>
-        @for (g of genres; track g) {
-        <option [value]="g">{{ g }}</option>
-        }
-      </select>
-      } @if (isDidactic) {
-      <select id="genre" name="genre" disabled>
-        <option [value]="book.genre">{{ book.genre }}</option>
-      </select>
-      <small class="helper-text"
-        >Dit genre staat vast voor de lerarencollectie.</small
-      >
+        <select
+          id="genre"
+          name="genre"
+          [(ngModel)]="book.genre"
+          (change)="onGenreChange()"
+        >
+          <option value="">Kies een genre</option>
+          @for (g of genres; track g) {
+            <option [value]="g">{{ g }}</option>
+          }
+        </select>
+      }
+      @if (isDidactic) {
+        <select id="genre" name="genre" disabled>
+          <option [value]="book.genre">{{ book.genre }}</option>
+        </select>
+        <small class="helper-text">Dit genre staat vast voor de lerarencollectie.</small>
       }
     </div>
 
     @if (isDidactic) {
-    <div class="form-row">
-      <label for="didacticSubgenre">Subgenre (didactiek)</label>
-      <select
-        id="didacticSubgenre"
-        name="didacticSubgenre"
-        [(ngModel)]="selectedDidacticSubgenre"
-      >
-        <option value="">Kies een subgenre</option>
-        @for (sg of didacticSubgenres; track sg) {
-        <option [value]="sg">{{ sg }}</option>
-        }
-      </select>
-    </div>
-    } @if (!isDidactic && book.genre === "Non-fictie algemeen") {
-    <div class="form-row">
-      <label>Subgenres</label>
-      <div class="subgenres-checkboxes">
-        @for (sg of nonFictionSubgenres; track sg) {
-        <label class="checkbox-item">
-          <input
-            type="checkbox"
-            [checked]="isSubgenreSelected(sg)"
-            (change)="toggleSubgenre(sg)"
-          />
-          {{ sg }}
-        </label>
-        }
+      <div class="form-row">
+        <label for="didacticSubgenre">Subgenre (didactiek)</label>
+        <select
+          id="didacticSubgenre"
+          name="didacticSubgenre"
+          [(ngModel)]="selectedDidacticSubgenre"
+        >
+          <option value="">Kies een subgenre</option>
+          @for (sg of didacticSubgenres; track sg) {
+            <option [value]="sg">{{ sg }}</option>
+          }
+        </select>
       </div>
-    </div>
+    }
+
+    @if (!isDidactic && book.genre === "Non-fictie algemeen") {
+      <div class="form-row">
+        <label>Subgenres</label>
+        <div class="subgenres-checkboxes">
+          @for (sg of nonFictionSubgenres; track sg) {
+            <label class="checkbox-item">
+              <input
+                type="checkbox"
+                [checked]="isSubgenreSelected(sg)"
+                (change)="toggleSubgenre(sg)"
+              />
+              {{ sg }}
+            </label>
+          }
+        </div>
+      </div>
     }
 
     <div class="form-row">
@@ -174,7 +172,7 @@
       <select id="taal" name="taal" [(ngModel)]="book.taal">
         <option value="">Kies een taal</option>
         @for (language of languages; track language) {
-        <option [value]="language">{{ language }}</option>
+          <option [value]="language">{{ language }}</option>
         }
       </select>
     </div>
@@ -182,6 +180,19 @@
     <div class="form-row">
       <label for="uitgeverij">Uitgeverij</label>
       <input id="uitgeverij" name="uitgeverij" [(ngModel)]="book.uitgeverij" />
+    </div>
+
+    <div class="form-row">
+      <label for="aantalExemplaren">Aantal exemplaren</label>
+      <input
+        id="aantalExemplaren"
+        name="aantalExemplaren"
+        type="number"
+        min="0"
+        max="99"
+        [(ngModel)]="aantalExemplaren"
+      />
+      <small class="helper-text">Hoeveel fysieke exemplaren voeg je toe?</small>
     </div>
 
     <button
@@ -193,12 +204,12 @@
     </button>
 
     @if (submitMessage) {
-    <p
-      [class.success-message]="submitState === 'success'"
-      [class.error-message]="submitState === 'error'"
-    >
-      {{ submitMessage }}
-    </p>
+      <p
+        [class.success-message]="submitState === 'success'"
+        [class.error-message]="submitState === 'error'"
+      >
+        {{ submitMessage }}
+      </p>
     }
   </form>
 </div>
