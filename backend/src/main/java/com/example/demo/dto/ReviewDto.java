@@ -6,6 +6,7 @@ public class ReviewDto {
     private Long id;
     private Integer rating;
     private String comment;
+    private String reviewerName;
     private LocalDateTime createdAt;
 
     public Long getId() {
@@ -30,6 +31,14 @@ public class ReviewDto {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getReviewerName() {
+        return reviewerName;
+    }
+
+    public void setReviewerName(String reviewerName) {
+        this.reviewerName = reviewerName;
     }
 
     public LocalDateTime getCreatedAt() {

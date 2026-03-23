@@ -2,11 +2,11 @@
   <h2>Boek aanpassen</h2>
 
   <div class="copy-manager">
-<div class="copy-info">
-  <span class="copy-count">
-    {{ copySummary.available }} / {{ copySummary.total }} exemplaren beschikbaar
-  </span>
-</div>
+    <div class="copy-info">
+      <span class="copy-count">
+        {{ copySummary.available }} / {{ copySummary.total }} exemplaren beschikbaar
+      </span>
+    </div>
     <div class="copy-actions">
       <button
         type="button"
@@ -39,38 +39,105 @@
     </p>
   } @else {
     <form (ngSubmit)="onSubmit()">
-      <div class="form-layout">
+      <div class="form-group">
+        <label for="titel">Titel</label>
+        <input
+          id="titel"
+          type="text"
+          [(ngModel)]="book.titel"
+          name="titel"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="auteur">Auteur</label>
+        <input
+          id="auteur"
+          type="text"
+          [(ngModel)]="book.auteur"
+          name="auteur"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="genre">Genre</label>
+        <select
+          id="genre"
+          [(ngModel)]="selectedGenre"
+          name="genre"
+          (change)="onGenreChange()"
+        >
+          <option value="">Kies een genre</option>
+          @for (g of genres; track g) {
+            <option [value]="g">{{ g }}</option>
+          }
+        </select>
+      </div>
+
+      @if (selectedGenre === "Didactiek") {
         <div class="form-group">
-          <label for="titel">Titel</label>
-          <input id="titel" type="text"
-            [(ngModel)]="book.titel" name="titel" required>
+          <label for="didacticSubgenre">Subgenre (didactiek)</label>
+          <select
+            id="didacticSubgenre"
+            name="didacticSubgenre"
+            [(ngModel)]="selectedDidacticSubgenre"
+          >
+            <option value="">Kies een subgenre</option>
+            @for (sg of didacticSubgenres; track sg) {
+              <option [value]="sg">{{ sg }}</option>
+            }
+          </select>
         </div>
+      }
+
+      @if (selectedGenre === "Non-fictie algemeen") {
         <div class="form-group">
-          <label for="auteur">Auteur</label>
-          <input id="auteur" type="text"
-            [(ngModel)]="book.auteur" name="auteur" required>
+          <label>Subgenres</label>
+          <div class="subgenres-checkboxes">
+            @for (sg of nonFictionSubgenres; track sg) {
+              <label class="checkbox-item">
+                <input
+                  type="checkbox"
+                  [checked]="isSubgenreSelected(sg)"
+                  (change)="toggleSubgenre(sg)"
+                />
+                {{ sg }}
+              </label>
+            }
+          </div>
         </div>
-        <div class="form-group">
-          <label for="genre">Genre</label>
-          <input id="genre" type="text"
-            [(ngModel)]="book.genre" name="genre">
-        </div>
-        <div class="form-group">
-          <label for="taal">Taal</label>
-          <input id="taal" type="text"
-            [(ngModel)]="book.taal" name="taal">
-        </div>
-        <div class="form-group full-width">
-          <label for="beschrijving">Beschrijving</label>
-          <textarea id="beschrijving"
-            [(ngModel)]="book.beschrijving" name="beschrijving"></textarea>
-        </div>
-        <div class="button-group">
-          <button type="submit" class="save-button">Opslaan</button>
-          <button type="button" class="cancel-button" (click)="cancel()">
-            Annuleren
-          </button>
-        </div>
+      }
+
+      <div class="form-group">
+        <label for="taal">Taal</label>
+        <select id="taal" [(ngModel)]="book.taal" name="taal">
+          <option value="">Kies een taal</option>
+          @if (book.taal && !hasKnownLanguage) {
+            <option [value]="book.taal">{{ book.taal }}</option>
+          }
+          @for (language of languages; track language) {
+            <option [value]="language">{{ language }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="beschrijving">Beschrijving</label>
+        <textarea
+          id="beschrijving"
+          rows="5"
+          [(ngModel)]="book.beschrijving"
+          name="beschrijving"
+        ></textarea>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="save-button">Opslaan</button>
+        <button type="button" class="cancel-button" (click)="cancel()">
+          Annuleren
+        </button>
       </div>
     </form>
   }

@@ -5,6 +5,7 @@ import { LoginComponent } from "./login/login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
+import { AddBulkComponent } from "./add-bulk/add-bulk.component";
 import { DetailComponent } from "./detail/detail.component";
 import { BookListComponent } from "./book-list/book-list.component";
 import { ProfileComponent } from "./profile/profile.component";
@@ -45,6 +46,13 @@ export const appRoutes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
   },
+  {
+    path: "isbn-bulk",
+    component: AddBulkComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] }
+  }
+,
   {
     path: "books",
     component: BookListComponent,

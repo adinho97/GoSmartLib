@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import com.example.demo.entities.AppUser;
 import com.example.demo.repositories.AppUserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -19,13 +20,16 @@ public class AuthService {
     private final WebClient webClient;
     private final SmartschoolProperties smartschoolProperties;
     private final AppUserRepository appUserRepository;
+    private final ObjectMapper objectMapper;
 
     public AuthService(WebClient.Builder webClientBuilder,
                        SmartschoolProperties smartschoolProperties,
-                       AppUserRepository appUserRepository) {
+                       AppUserRepository appUserRepository,
+                       ObjectMapper objectMapper) {
         this.webClient = webClientBuilder.build();
         this.smartschoolProperties = smartschoolProperties;
         this.appUserRepository = appUserRepository;
+        this.objectMapper = objectMapper;
     }
 
     public Mono<AuthLoginResponse> processSmartschoolCallback(String code) {
@@ -37,9 +41,8 @@ public class AuthService {
     private AuthLoginResponse saveUserAndBuildResponse(SmartschoolUserInfo userInfo) {
         String sub = userInfo.getSub();
         String role = userInfo.getRole();
-        String username = userInfo.getName(); // Smartschool 'name' = username (bv. petersp)
+        String username = userInfo.getName();
 
-        // Zoek bestaande user of maak nieuwe aan — sla NOOIT naam op
         AppUser user = appUserRepository.findBySub(sub).orElseGet(() -> {
             AppUser newUser = new AppUser();
             newUser.setSub(sub);
@@ -49,12 +52,10 @@ public class AuthService {
             return newUser;
         });
 
-        // Update role en username bij elke login (kan veranderen)
         user.setRole(role);
         user.setUsername(username);
         appUserRepository.save(user);
 
-        // Geef naam terug aan frontend maar sla die NOOIT op in DB
         return new AuthLoginResponse(
             sub,
             role,
@@ -64,13 +65,13 @@ public class AuthService {
         );
     }
 
-    // --- Bestaande methodes ongewijzigd ---
-
     private Mono<SmartschoolTokenResponse> getAccessToken(String code) {
         String clientSecret = smartschoolProperties.getClientSecret();
-        if (clientSecret == null || clientSecret.isBlank() || "${SMARTSCHOOL_CLIENT_SECRET}".equals(clientSecret)) {
+        if (clientSecret == null || clientSecret.isBlank()
+                || "${SMARTSCHOOL_CLIENT_SECRET}".equals(clientSecret)) {
             logger.error("SMARTSCHOOL_CLIENT_SECRET environment variable is not set or empty.");
-            return Mono.error(new IllegalStateException("Smartschool client secret is not configured on the server."));
+            return Mono.error(new IllegalStateException(
+                    "Smartschool client secret is not configured on the server."));
         }
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
@@ -93,16 +94,29 @@ public class AuthService {
                         return response.bodyToMono(String.class)
                                 .defaultIfEmpty("[no body]")
                                 .flatMap(body -> {
-                                    logger.error("Non-2xx response from token endpoint. Status: {}, Body: {}",
-                                            response.statusCode(), body);
+                                    logger.error(
+                                            "Non-2xx response from Smartschool token endpoint. Status: {}, Headers: {}, Body: {}",
+                                            response.statusCode(),
+                                            response.headers().asHttpHeaders(),
+                                            body);
                                     return Mono.error(new RuntimeException(
-                                            "Error from Smartschool token endpoint. Status: " + response.statusCode()));
+                                            "Error from Smartschool token endpoint. Status: "
+                                                    + response.statusCode()));
                                 });
                     }
-                    if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML)).orElse(false)) {
+                    if (response.headers().contentType()
+                            .map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML))
+                            .orElse(false)) {
                         return response.bodyToMono(String.class)
-                                .flatMap(body -> Mono.error(new RuntimeException(
-                                        "Smartschool returned HTML at token endpoint: " + body)));
+                                .flatMap(body -> {
+                                    logger.error(
+                                            "Smartschool returned HTML on a 2xx response. Status: {}, Headers: {}, Body: {}",
+                                            response.statusCode(),
+                                            response.headers().asHttpHeaders(),
+                                            body);
+                                    return Mono.error(new RuntimeException(
+                                            "Smartschool returned HTML at token endpoint: " + body));
+                                });
                     }
                     return response.bodyToMono(SmartschoolTokenResponse.class)
                             .doOnSuccess(token -> logger.info("Successfully retrieved access token"));
@@ -116,19 +130,50 @@ public class AuthService {
                 .headers(headers -> headers.setBearerAuth(tokenResponse.getAccessToken()))
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
-                        if (response.headers().contentType().map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML)).orElse(false)) {
+                        if (response.headers().contentType()
+                                .map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML))
+                                .orElse(false)) {
                             return response.bodyToMono(String.class)
-                                    .flatMap(body -> Mono.error(new RuntimeException(
-                                            "Smartschool userinfo returned HTML: " + body)));
+                                    .flatMap(body -> {
+                                        logger.error(
+                                                "Smartschool userinfo returned HTML on a 2xx response. Status: {}, Headers: {}, Body: {}",
+                                                response.statusCode(),
+                                                response.headers().asHttpHeaders(),
+                                                body);
+                                        return Mono.error(new RuntimeException(
+                                                "Smartschool userinfo returned HTML: " + body));
+                                    });
                         }
-                        return response.bodyToMono(SmartschoolUserInfo.class);
+                        return response.bodyToMono(String.class)
+                                .map(json -> {
+                                    logger.info("Raw Smartschool UserInfo Response: {}", json);
+                                    try {
+                                        return objectMapper.readValue(json, SmartschoolUserInfo.class);
+                                    } catch (Exception e) {
+                                        logger.error("Error parsing UserInfo JSON", e);
+                                        throw new RuntimeException("Failed to parse UserInfo", e);
+                                    }
+                                });
                     }
                     return response.bodyToMono(String.class)
                             .defaultIfEmpty("[no body]")
-                            .flatMap(body -> Mono.error(new RuntimeException(
-                                    "Error from userinfo endpoint. Status: " + response.statusCode())));
+                            .flatMap(body -> {
+                                logger.error(
+                                        "Non-2xx response from Smartschool userinfo endpoint. Status: {}, Headers: {}, Body: {}",
+                                        response.statusCode(),
+                                        response.headers().asHttpHeaders(),
+                                        body);
+                                return Mono.error(new RuntimeException(
+                                        "Error from Smartschool userinfo endpoint. Status: "
+                                                + response.statusCode()));
+                            });
                 })
-                .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for: {}", userInfo.getName()))
+                .map(userInfo -> {
+                    userInfo.setAccessToken(tokenResponse.getAccessToken());
+                    return userInfo;
+                })
+                .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for user: {}",
+                        userInfo.getName()))
                 .doOnError(error -> logger.error("Failed to retrieve user info", error.getMessage()));
     }
 }
