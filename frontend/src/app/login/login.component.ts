@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
     if (this.isLoading) {
       return;
     }
-    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=fulluserinfo`;
+    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=userinfo`;
     window.location.href = authUrl;
   }
 
@@ -49,9 +49,6 @@ export class LoginComponent implements OnInit {
         this.setRole(userInfo.role);
         if (userInfo.sub) {
           localStorage.setItem("userId", userInfo.sub);
-        }
-        if (userInfo.accessToken) {
-          localStorage.setItem("smartschoolToken", userInfo.accessToken);
         }
         if (userInfo.platform) {
           localStorage.setItem("smartschoolPlatform", userInfo.platform);
