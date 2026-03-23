@@ -1,1 +1,92 @@
-<p>add-barcode works!</p>
+<div class="barcode-container" #scanContainer>
+  <h1>Boeken toevoegen via barcode</h1>
+
+  @if (schools.length > 0) {
+    <div class="school-selector">
+      <label>Selecteer school:</label>
+      <select
+        [ngModel]="selectedSchoolId"
+        (ngModelChange)="onSchoolChange($event)"
+      >
+        @for (school of schools; track school.id) {
+          <option [value]="school.id">{{ school.naam }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  <div class="scan-controls">
+    @if (!scanMode) {
+      <button
+        class="btn-start-scan"
+        (click)="activateScanMode()"
+        [disabled]="isProcessing"
+      >
+        Starten met scannen
+      </button>
+    } @else {
+      <div class="scan-active">
+        <div class="pulsing-indicator"></div>
+        <p>Klaar om te scannen...</p>
+        <button class="btn-stop-scan" (click)="deactivateScanMode()">
+          STOPPEN
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (errorMessage) {
+    <div class="message-error">{{ errorMessage }}</div>
+  }
+  @if (successMessage) {
+    <div class="message-success">{{ successMessage }}</div>
+  }
+
+  <div class="results-container">
+    <div class="results-header">
+      <h2>Gescande boeken ({{ scannedBooks.length }})</h2>
+      @if (scannedBooks.length > 0) {
+        <div class="results-actions">
+          <button class="btn-undo" (click)="undoLastScan()">
+            ↶ Ongedaan maken
+          </button>
+          <button class="btn-clear" (click)="clearSession()">🗑️ Wissen</button>
+        </div>
+      }
+    </div>
+
+    @if (scannedBooks.length > 0) {
+      <div class="results-list">
+        @for (result of scannedBooks; track result.isbn + result.timestamp) {
+          <div
+            class="result-item"
+            [style.borderLeftColor]="getStatusColor(result.status)"
+          >
+            <div
+              class="result-status"
+              [style.backgroundColor]="getStatusColor(result.status)"
+            >
+              {{
+                result.status === "ADDED"
+                  ? "✓"
+                  : result.status === "ALREADY_EXISTS"
+                    ? "⚠"
+                    : "✗"
+              }}
+            </div>
+            <div class="result-details">
+              <div class="result-title">{{ result.titre || result.isbn }}</div>
+              <div class="result-isbn">{{ result.isbn }}</div>
+              <div class="result-message">{{ result.message }}</div>
+            </div>
+            <div class="result-time">
+              {{ result.timestamp | date: "HH:mm:ss" }}
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="no-results">Geen boeken gescand</p>
+    }
+  </div>
+</div>
