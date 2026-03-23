@@ -70,7 +70,6 @@ public class BookController {
         School school;
         try {
             school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
-            logger.info("Found school: {}", school.getNaam());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             logger.error("School not found or invalid: {}", bookDto.getSchoolId(), ex);
             return ResponseEntity.badRequest().build();
@@ -78,21 +77,22 @@ public class BookController {
 
         if (bookDto.getIsbn() != null && !bookDto.getIsbn().trim().isEmpty()) {
             if (repo.findByIsbnAndSchool_Id(bookDto.getIsbn(), school.getId()).isPresent()) {
-                logger.warn("Book with isbn {} already exists in school {}", bookDto.getIsbn(), school.getId());
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }
 
         try {
             Book entity = BookMapper.toEntity(bookDto);
-            entity.setId(null); 
+            entity.setId(null);
             entity.setSchool(school);
-
-            logger.info("Persisting book entity: titel={}", entity.getTitel());
             Book saved = repo.save(entity);
-            logger.info("Book saved successfully with id: {}", saved.getId());
+            logger.info("Book saved with id: {}", saved.getId());
 
-            return ResponseEntity.ok(BookMapper.toDto(saved));
+            BookDto result = repo.findById(saved.getId())
+                    .map(BookMapper::toDto)
+                    .orElse(BookMapper.toDto(saved));
+
+            return ResponseEntity.ok(result);
         } catch (Exception ex) {
             logger.error("Error creating book", ex);
             throw ex;
@@ -149,21 +149,36 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
-        if (!repo.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
-
-        Book entity = BookMapper.toEntity(bookDto);
-        entity.setId(id); 
-        entity.setSchool(school);
-
-        Book saved = repo.save(entity);
-        return ResponseEntity.ok(BookMapper.toDto(saved));
+   @PutMapping("/{id}")
+public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
+    Book existing = repo.findById(id).orElse(null);
+    if (existing == null) {
+        return ResponseEntity.notFound().build();
     }
+
+    existing.setTitel(bookDto.getTitel());
+    existing.setAuteur(bookDto.getAuteur());
+    existing.setIsbn(bookDto.getIsbn());
+    existing.setCover(bookDto.getCover());
+    existing.setBeschrijving(bookDto.getBeschrijving());
+    existing.setGenre(bookDto.getGenre());
+    existing.setUitgaveDatum(bookDto.getUitgaveDatum());
+    existing.setPaginas(bookDto.getPaginas());
+    existing.setTaal(bookDto.getTaal());
+    existing.setUitgeverij(bookDto.getUitgeverij());
+
+    if (bookDto.getSchoolId() != null) {
+        School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
+        existing.setSchool(school);
+    }
+
+    repo.save(existing);
+
+    return repo.findById(id)
+            .map(BookMapper::toDto)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+}
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id) {

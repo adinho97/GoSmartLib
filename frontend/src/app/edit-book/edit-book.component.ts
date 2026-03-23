@@ -1,47 +1,56 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { BookService } from '../services/book.service';
-import { Book } from '../models/book';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { BookService } from "../services/book.service";
+import { LoanService } from "../services/loan.service";
+import { Book } from "../models/book";
+import { FormsModule } from "@angular/forms";
+import { CommonModule } from "@angular/common";
 
 @Component({
-  selector: 'app-edit-book',
+  selector: "app-edit-book",
   standalone: true,
-  imports: [FormsModule],
-  templateUrl: './edit-book.component.html',
-  styleUrls: ['./edit-book.component.css']
+  imports: [FormsModule, CommonModule],
+  templateUrl: "./edit-book.component.html",
+  styleUrls: ["./edit-book.component.css"],
 })
 export class EditBookComponent implements OnInit {
   bookId!: number;
-  
-  // Geen ISBN meer hier, want het staat niet in je interface
+
   book: Book = {
     id: 0,
-    titel: '',
-    auteur: '',
-    cover: '',
-    beschrijving: '',
-    genre: '',
-    uitgaveDatum: '',
-    paginas: 0, 
-    taal: '',
-    uitgeverij: ''
+    titel: "",
+    auteur: "",
+    cover: "",
+    beschrijving: "",
+    genre: "",
+    uitgaveDatum: "",
+    paginas: 0,
+    taal: "",
+    uitgeverij: "",
   };
 
   isLoading = true;
-  errorMessage = '';
+  errorMessage = "";
+
+  copySummary = { total: 0, available: 0 };
+  isAddingCopy = false;
+  isRemovingCopy = false;
+  copyMessage = "";
+  copyError = "";
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private bookService: BookService
+    private bookService: BookService,
+    private loanService: LoanService,
   ) {}
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.paramMap.get('id');
+    const idParam = this.route.snapshot.paramMap.get("id");
     if (idParam) {
       this.bookId = Number(idParam);
       this.loadBook();
+      this.loadCopySummary();
     }
   }
 
@@ -51,23 +60,66 @@ export class EditBookComponent implements OnInit {
         this.book = data;
         this.isLoading = false;
       },
-      error: (err) => {
-        this.errorMessage = 'Kon het boek niet laden.';
+      error: () => {
+        this.errorMessage = "Kon het boek niet laden.";
         this.isLoading = false;
-      }
+      },
     });
+  }
+
+  async loadCopySummary() {
+    try {
+      this.copySummary = await this.loanService.getCopySummary(this.bookId);
+    } catch {
+      this.copySummary = { total: 0, available: 0 };
+    }
+  }
+
+  async addCopy() {
+    this.isAddingCopy = true;
+    this.copyMessage = "";
+    this.copyError = "";
+    try {
+      await this.loanService.addCopy(this.bookId);
+      // Herlaad de summary vers van de server
+      await this.loadCopySummary();
+      this.copyMessage = "Exemplaar toegevoegd.";
+    } catch {
+      this.copyError = "Toevoegen mislukt.";
+    } finally {
+      this.isAddingCopy = false;
+    }
+  }
+
+  async removeCopy() {
+    if (this.copySummary.available === 0) {
+      this.copyError = "Geen beschikbare exemplaren om te verwijderen.";
+      return;
+    }
+    this.isRemovingCopy = true;
+    this.copyMessage = "";
+    this.copyError = "";
+    try {
+      await this.loanService.removeAvailableCopy(this.bookId);
+      await this.loadCopySummary();
+      this.copyMessage = "Exemplaar verwijderd.";
+    } catch (err: any) {
+      this.copyError = err?.message || "Verwijderen mislukt.";
+    } finally {
+      this.isRemovingCopy = false;
+    }
   }
 
   async onSubmit() {
     try {
       await this.bookService.updateBook(this.bookId, this.book);
-      this.router.navigate(['/books']); 
-    } catch (err) {
-      this.errorMessage = 'Fout bij het opslaan van wijzigingen.';
+      this.router.navigate(["/detail", this.bookId]);
+    } catch {
+      this.errorMessage = "Fout bij het opslaan van wijzigingen.";
     }
   }
 
   cancel() {
-    this.router.navigate(['/books']);
+    this.router.navigate(["/detail", this.bookId]);
   }
 }

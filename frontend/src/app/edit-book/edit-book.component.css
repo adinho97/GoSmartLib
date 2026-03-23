@@ -1,77 +1,98 @@
 .edit-container {
-  max-width: 600px;
-  margin: 3rem auto;
-  padding: 2rem;
+  max-width: 650px;
+  margin: 1.5rem auto;
+  padding: 1.8rem 2rem;
   background: #fff;
   border-radius: 18px;
   border: 1px solid rgba(96, 22, 47, 0.1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  font-family: "Inter", sans-serif;
+  font-family: Arial, sans-serif;
 }
 
 h2 {
-  font-family: "Georgia", serif;
+  font-family: Arial, sans-serif;
   color: #60162f;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   text-align: center;
+  font-size: 1.3rem;
+}
+
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem 1.2rem;
 }
 
 .form-group {
-  margin-bottom: 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
 
 .form-group label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #5a3a45;
+  font-family: Arial, sans-serif;
 }
 
-.form-group input, 
+.form-group input,
 .form-group textarea {
-  padding: 0.75rem;
+  padding: 0.55rem 0.75rem;
   border: 1px solid rgba(96, 22, 47, 0.2);
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-family: Arial, sans-serif;
   transition: border-color 0.2s;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #871f42;
+}
+
+.form-group textarea {
+  resize: none;
+  height: 90px;
 }
 
 .button-group {
   display: flex;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
   justify-content: center;
+  grid-column: 1 / -1;
 }
 
 .save-button {
-  background: #e67e22; /* Oranje, net als de aanpasknop in de lijst */
+  background: #871f42;
   color: white;
   border: none;
-  padding: 0.7rem 1.5rem;
+  padding: 0.6rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
+  font-family: Arial, sans-serif;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .save-button:hover {
-  background: #d35400;
+  background: #60162f;
 }
 
 .cancel-button {
   background: transparent;
   color: #871f42;
   border: 1px solid #871f42;
-  padding: 0.7rem 1.5rem;
+  padding: 0.6rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
+  font-family: Arial, sans-serif;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -83,20 +104,90 @@ h2 {
 .error {
   color: #871f42;
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   font-weight: 500;
-}
-/* In edit-book.component.css */
-.save-button {
-  background: #871f42;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
+  font-family: Arial, sans-serif;
 }
 
-.save-button:hover {
+.copy-manager {
+  background: #fff8fb;
+  border: 1px solid #f0dde5;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.copy-info {
+  font-size: 0.95rem;
+  color: #333;
+  font-family: Arial, sans-serif;
+}
+
+.copy-count strong {
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 400;
+}
+
+.copy-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.copy-btn {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-family: Arial, sans-serif;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.copy-btn.add {
+  background: #871f42;
+  color: white;
+}
+
+.copy-btn.add:hover:not(:disabled) {
   background: #60162f;
+}
+
+.copy-btn.remove {
+  background: transparent;
+  border: 2px solid #871f42;
+  color: #871f42;
+}
+
+.copy-btn.remove:hover:not(:disabled) {
+  background: #fdecea;
+}
+
+.copy-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.copy-success {
+  color: #2e7d32;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+
+.copy-error {
+  color: #c62828;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0;
+  width: 100%;
+  font-family: Arial, sans-serif;
 }
