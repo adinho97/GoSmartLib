@@ -11,9 +11,6 @@ public class SmartschoolUserInfo {
 
     @JsonAlias({ "name", "Name" })
     private String name;
-    @JsonProperty("given_name")
-    @JsonAlias({ "firstname", "voornaam", "firstName" })
-    private String givenName;
     @JsonProperty("family_name")
     @JsonAlias({ "surname", "naam", "achternaam", "lastName" })
     private String familyName;
@@ -38,14 +35,6 @@ public class SmartschoolUserInfo {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getGivenName() {
-        return givenName;
-    }
-
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
     }
 
     public String getFamilyName() {
