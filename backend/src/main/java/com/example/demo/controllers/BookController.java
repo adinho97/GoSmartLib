@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.BookDto;
+import com.example.demo.dto.ImportResultDto;
 import com.example.demo.dto.CreateReviewRequest;
 import com.example.demo.dto.ReviewDto;
 import com.example.demo.entities.Book;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
+    private static final String ANONYMOUS_REVIEWER_NAME = "Anoniem";
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
     private final BookService bookService;
@@ -70,7 +73,6 @@ public class BookController {
         School school;
         try {
             school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
-            logger.info("Found school: {}", school.getNaam());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             logger.error("School not found or invalid: {}", bookDto.getSchoolId(), ex);
             return ResponseEntity.badRequest().build();
@@ -78,21 +80,22 @@ public class BookController {
 
         if (bookDto.getIsbn() != null && !bookDto.getIsbn().trim().isEmpty()) {
             if (repo.findByIsbnAndSchool_Id(bookDto.getIsbn(), school.getId()).isPresent()) {
-                logger.warn("Book with isbn {} already exists in school {}", bookDto.getIsbn(), school.getId());
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }
 
         try {
             Book entity = BookMapper.toEntity(bookDto);
-            entity.setId(null); 
+            entity.setId(null);
             entity.setSchool(school);
-
-            logger.info("Persisting book entity: titel={}", entity.getTitel());
             Book saved = repo.save(entity);
-            logger.info("Book saved successfully with id: {}", saved.getId());
+            logger.info("Book saved with id: {}", saved.getId());
 
-            return ResponseEntity.ok(BookMapper.toDto(saved));
+            BookDto result = repo.findById(saved.getId())
+                    .map(BookMapper::toDto)
+                    .orElse(BookMapper.toDto(saved));
+
+            return ResponseEntity.ok(result);
         } catch (Exception ex) {
             logger.error("Error creating book", ex);
             throw ex;
@@ -102,14 +105,24 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> getByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId) {
-        return bookService.findByIsbn(isbn, schoolId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            return bookService.findByIsbn(isbn, schoolId)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/preview/{isbn}")
     public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
-        BookDto dto = bookService.fetchPreviewByIsbn(isbn);
+        BookDto dto;
+        try {
+            dto = bookService.fetchPreviewByIsbn(isbn);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
@@ -132,6 +145,18 @@ public class BookController {
         return ResponseEntity.ok(dto);
     }
 
+    @PostMapping("/isbn/bulk")
+    public ResponseEntity<ImportResultDto> importBulkByIsbn(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false) Long schoolId) {
+        try {
+            ImportResultDto result = bookService.importBulkByIsbn(file, schoolId);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
@@ -149,21 +174,36 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
-        if (!repo.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
-
-        Book entity = BookMapper.toEntity(bookDto);
-        entity.setId(id); 
-        entity.setSchool(school);
-
-        Book saved = repo.save(entity);
-        return ResponseEntity.ok(BookMapper.toDto(saved));
+   @PutMapping("/{id}")
+public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
+    Book existing = repo.findById(id).orElse(null);
+    if (existing == null) {
+        return ResponseEntity.notFound().build();
     }
+
+    existing.setTitel(bookDto.getTitel());
+    existing.setAuteur(bookDto.getAuteur());
+    existing.setIsbn(bookDto.getIsbn());
+    existing.setCover(bookDto.getCover());
+    existing.setBeschrijving(bookDto.getBeschrijving());
+    existing.setGenre(bookDto.getGenre());
+    existing.setUitgaveDatum(bookDto.getUitgaveDatum());
+    existing.setPaginas(bookDto.getPaginas());
+    existing.setTaal(bookDto.getTaal());
+    existing.setUitgeverij(bookDto.getUitgeverij());
+
+    if (bookDto.getSchoolId() != null) {
+        School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
+        existing.setSchool(school);
+    }
+
+    repo.save(existing);
+
+    return repo.findById(id)
+            .map(BookMapper::toDto)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+}
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id) {
@@ -193,6 +233,9 @@ public class BookController {
         String trimmedComment = request.getComment().trim();
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
+        boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
+        String reviewerName = isAnonymous ? ANONYMOUS_REVIEWER_NAME : request.getReviewerName().trim();
+        review.setReviewerName(reviewerName);
 
         Review saved = reviewRepository.save(review);
         return ResponseEntity.status(HttpStatus.CREATED).body(toReviewDto(saved));
@@ -224,8 +267,17 @@ public class BookController {
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
+        dto.setReviewerName(resolveReviewerName(review));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
+    }
+
+    private String resolveReviewerName(Review review) {
+        String reviewerName = review.getReviewerName();
+        if (reviewerName == null || reviewerName.isBlank()) {
+            return ANONYMOUS_REVIEWER_NAME;
+        }
+        return reviewerName;
     }
 
     private boolean isLibrarian(String userRole) {

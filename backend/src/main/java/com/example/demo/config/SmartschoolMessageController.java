@@ -1,0 +1,35 @@
+package com.example.demo.config;
+
+import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+@RestController
+@RequestMapping("/api/smartschool")
+public class SmartschoolMessageController {
+
+    private final SmartschoolMessageService messageService;
+
+    public SmartschoolMessageController(SmartschoolMessageService messageService) {
+        this.messageService = messageService;
+    }
+
+    @PostMapping("/messages")
+    public Mono<ResponseEntity<Void>> sendMessage(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+            @Valid @RequestBody SmartschoolMessageRequest request) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
+
+        String accessToken = authHeader.substring(7);
+
+        return messageService.sendMessage(accessToken, request)
+                .map(response -> ResponseEntity.ok().<Void>build())
+                .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()));
+    }
+}

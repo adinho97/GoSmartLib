@@ -1,6 +1,9 @@
-import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { Component, OnInit, OnDestroy } from "@angular/core";
+import { ActivatedRoute, Router, NavigationEnd } from "@angular/router";
+import { Subscription } from "rxjs";
+import { filter } from "rxjs/operators";
 import { BookService } from "../services/book.service";
+import { LoanService } from "../services/loan.service";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import { Location } from "@angular/common";
@@ -12,25 +15,37 @@ import axios from "axios";
   styleUrls: ["./detail.component.css"],
   standalone: false,
 })
-export class DetailComponent implements OnInit {
+export class DetailComponent implements OnInit, OnDestroy {
   book!: Book;
-  
+
   // Rol-gebaseerde logica
   readonly userRole = localStorage.getItem("role");
   readonly isLibrarian = this.userRole === "bibbeheerder";
-  
+  readonly isTeacherOrLibrarian = ["leerkracht", "bibbeheerder"].includes(
+    this.userRole || ""
+  );
+
   // Review-gerelateerde variabelen
   currentBookId: number | null = null;
   reviewRatings = [1, 2, 3, 4, 5];
   reviews: Review[] = [];
   newReviewRating = 0;
   newReviewComment = "";
+  newReviewAnonymous = false;
   reviewError = "";
+  readonly smartschoolUserName =
+    localStorage.getItem("userName") || "Gebruiker";
+
+  copySummary = { total: 0, available: 0 };
+
+  private routerSub!: Subscription;
 
   constructor(
     private location: Location,
     private route: ActivatedRoute,
+    private router: Router,
     private bookService: BookService,
+    private loanService: LoanService,
   ) {}
 
   ngOnInit(): void {
@@ -38,25 +53,39 @@ export class DetailComponent implements OnInit {
     this.currentBookId = Number.isFinite(id) ? id : null;
 
     if (this.currentBookId !== null) {
-      // Laad het boek
       this.bookService.getBookById(this.currentBookId).subscribe((data) => {
         this.book = data;
       });
-      
+
       // Laad de reviews
       this.loadReviews(this.currentBookId);
+      this.loadCopySummary(this.currentBookId);
     }
-    
-    // Debugging logs (optioneel)
-    console.log("Huidige rol:", this.userRole);
-    console.log("Is beheerder:", this.isLibrarian);
+
+    this.routerSub = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (this.currentBookId !== null) {
+        this.loadCopySummary(this.currentBookId);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
   }
 
   goBack(): void {
     this.location.back();
   }
 
-  // --- REVIEW METHODES ---
+  async loadCopySummary(bookId: number) {
+    try {
+      this.copySummary = await this.loanService.getCopySummary(bookId);
+    } catch {
+      this.copySummary = { total: 0, available: 0 };
+    }
+  }
 
   getReviewDate(date: string | Date): string {
     let d: Date;
@@ -88,28 +117,26 @@ export class DetailComponent implements OnInit {
       this.reviewError = "Boek kon niet worden gevonden.";
       return;
     }
-
     const comment = this.newReviewComment.trim();
-
     if (this.newReviewRating < 1 || this.newReviewRating > 5) {
       this.reviewError = "Kies een score van 1 tot 5 sterren.";
       return;
     }
-
     if (!comment) {
       this.reviewError = "Voeg een korte comment toe.";
       return;
     }
-
     try {
       const review = await this.bookService.addBookReview(this.currentBookId, {
         rating: this.newReviewRating,
         comment,
+        reviewerName: this.smartschoolUserName,
+        anonymous: this.newReviewAnonymous,
       });
-
       this.reviews = [review, ...this.reviews];
       this.newReviewRating = 0;
       this.newReviewComment = "";
+      this.newReviewAnonymous = false;
       this.reviewError = "";
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -125,17 +152,11 @@ export class DetailComponent implements OnInit {
 
   async deleteReview(reviewId: number): Promise<void> {
     if (!this.isLibrarian) return;
-
-    if (this.currentBookId === null) {
-      this.reviewError = "Boek kon niet worden gevonden.";
-      return;
-    }
-
+    if (this.currentBookId === null) return;
     if (!confirm("Review verwijderen?")) return;
-
     try {
       await this.bookService.deleteBookReview(this.currentBookId, reviewId);
-      this.reviews = this.reviews.filter((review) => review.id !== reviewId);
+      this.reviews = this.reviews.filter((r) => r.id !== reviewId);
     } catch {
       this.reviewError = "Review verwijderen mislukt. Probeer opnieuw.";
     }
@@ -143,8 +164,9 @@ export class DetailComponent implements OnInit {
 
   get averageRating(): number {
     if (this.reviews.length === 0) return 0;
-    const total = this.reviews.reduce((sum, review) => sum + review.rating, 0);
-    return total / this.reviews.length;
+    return (
+      this.reviews.reduce((s, r) => s + r.rating, 0) / this.reviews.length
+    );
   }
 
   private async loadReviews(bookId: number): Promise<void> {

@@ -5,6 +5,27 @@ import { Book } from "../models/book";
 import { Review } from "../models/review";
 import axios from "axios";
 
+export type BulkImportStatus =
+  | "ADDED"
+  | "ALREADY_EXISTS"
+  | "NOT_FOUND"
+  | "INVALID_ISBN"
+  | "ERROR";
+
+export interface BulkImportRowResult {
+  isbn: string;
+  status: BulkImportStatus;
+  message: string;
+  bookId: number | null;
+}
+
+export interface BulkImportResult {
+  totalRows: number;
+  uniqueIsbnsProcessed: number;
+  duplicateRowsSkipped: number;
+  results: BulkImportRowResult[];
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -96,7 +117,12 @@ export class BookService {
 
   async addBookReview(
     bookId: number,
-    payload: { rating: number; comment: string },
+    payload: {
+      rating: number;
+      comment: string;
+      reviewerName: string;
+      anonymous: boolean;
+    },
   ): Promise<Review> {
     const res = await axios.post<Review>(
       `${this.apiUrl}/${bookId}/reviews`,
@@ -124,6 +150,20 @@ export class BookService {
     return res.data;
   }
 
+  async importBooksByUpload(
+    file: File,
+    schoolId?: number,
+  ): Promise<BulkImportResult> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await axios.post<BulkImportResult>(
+      this.withSchoolId(`${this.apiUrl}/isbn/bulk`, schoolId),
+      formData,
+    );
+    return res.data;
+  }
+
   async isBookInLibrary(isbn: string, schoolId?: number): Promise<boolean> {
     try {
       await axios.get(
@@ -138,7 +178,7 @@ export class BookService {
     }
   }
   async updateBook(id: number, book: Book): Promise<Book> {
-  const res = await axios.put(`${this.apiUrl}/${id}`, book);
-  return res.data;
-}
+    const res = await axios.put(`${this.apiUrl}/${id}`, book);
+    return res.data;
+  }
 }

@@ -1,10 +1,7 @@
 package com.example.demo.config;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -18,7 +15,8 @@ public class AuthController {
     }
 
     @PostMapping("/smartschool-login")
-    public Mono<ResponseEntity<SmartschoolUserInfo>> smartschoolLogin(@RequestBody LoginRequest loginRequest) {
+    public Mono<ResponseEntity<AuthLoginResponse>> smartschoolLogin(
+            @RequestBody LoginRequest loginRequest) {
         return authService.processSmartschoolCallback(loginRequest.getCode())
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.status(401).build());

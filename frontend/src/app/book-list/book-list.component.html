@@ -4,24 +4,23 @@
       <h1>Boekenlijst</h1>
       <p>Ontdek en beheer alle beschikbare boeken op één plek.</p>
     </div>
-    <div class="header-actions">
-      <a class="header-button secondary" [routerLink]="['/dashboard']">Terug naar dashboard</a>
-      @if (isLibrarian) {
-        <a class="header-button" [routerLink]="['/add']">Boek toevoegen</a>
-      }
-    </div>
+    @if (isTeacher && schools.length > 0) {
+      <div class="school-selector-bar">
+        <label for="schoolFilter">School</label>
+        <select
+          id="schoolFilter"
+          [ngModel]="selectedSchoolId"
+          (ngModelChange)="onSchoolChange($event)"
+        >
+          @for (school of schools; track school) {
+            <option [value]="school.id">
+              {{ school.naam }}
+            </option>
+          }
+        </select>
+      </div>
+    }
   </header>
-
-  @if (isTeacher && schools.length > 0) {
-    <div class="school-selector-bar">
-      <label for="schoolFilter">Geselecteerde school</label>
-      <select id="schoolFilter" [ngModel]="selectedSchoolId" (ngModelChange)="onSchoolChange($event)">
-        @for (school of schools; track school) {
-          <option [value]="school.id">{{ school.naam }}</option>
-        }
-      </select>
-    </div>
-  }
 
   @if (isLoading) {
     <p class="info-message">Boeken laden...</p>
@@ -39,21 +38,55 @@
       <aside class="filters-sidebar" aria-label="Boekfilters">
         <h2>Filters</h2>
         <label for="genreFilter">Genre</label>
-        <select id="genreFilter" [(ngModel)]="selectedGenre">
+        <select
+          id="genreFilter"
+          [(ngModel)]="selectedGenre"
+          (ngModelChange)="onGenreChange()"
+        >
           <option value="">Alle genres</option>
-          @for (genre of availableGenres; track genre) {
-            <option [value]="genre">{{ genre }}</option>
+          @if (selectedGenre === "Didactiek") {
+            <option value="Didactiek">Didactiek</option>
+          }
+          @for (genre of genres; track genre) {
+            <option [value]="genre">
+              {{ genre }}
+            </option>
           }
         </select>
-        
+        @if (selectedGenre === "Non-fictie algemeen") {
+          <label for="subgenreFilter">Subgenre</label>
+          <select id="subgenreFilter" [(ngModel)]="selectedNonFictionSubgenre">
+            <option value="">Alle subgenres</option>
+            @for (subgenre of nonFictionSubgenres; track subgenre) {
+              <option [value]="subgenre">
+                {{ subgenre }}
+              </option>
+            }
+          </select>
+        }
+        @if (selectedGenre === "Didactiek") {
+          <label for="didacticSubgenreFilter">Subgenre</label>
+          <select
+            id="didacticSubgenreFilter"
+            [(ngModel)]="selectedDidacticSubgenre"
+          >
+            <option value="">Alle subgenres</option>
+            @for (subgenre of didacticSubgenres; track subgenre) {
+              <option [value]="subgenre">
+                {{ subgenre }}
+              </option>
+            }
+          </select>
+        }
         <label for="taalFilter">Taal</label>
         <select id="taalFilter" [(ngModel)]="selectedLanguage">
           <option value="">Alle talen</option>
-          @for (language of availableLanguages; track language) {
-            <option [value]="language">{{ language }}</option>
+          @for (language of languages; track language) {
+            <option [value]="language">
+              {{ language }}
+            </option>
           }
         </select>
-        
         <label for="averageFilter">Gemiddelde score (min.)</label>
         <select id="averageFilter" [(ngModel)]="selectedMinAverageRating">
           <option value="">Alle scores</option>
@@ -63,7 +96,6 @@
           <option value="4">4.0+</option>
           <option value="4.5">4.5+</option>
         </select>
-        
         <div class="page-slider-group">
           <label>Pagina's: {{ minPages }} - {{ maxPages }}</label>
           <div class="single-page-slider">
@@ -74,6 +106,7 @@
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
               [value]="minPages"
+              [style.--slider-fill-end]="minPagesSliderFill + '%'"
               (input)="onMinPagesChange($any($event.target).value)"
             />
           </div>
@@ -81,84 +114,150 @@
             <label for="maxPages">Maximum pagina's: {{ maxPages }}</label>
             <input
               id="maxPages"
+              class="max-pages-slider"
               type="range"
               [min]="minAvailablePages"
               [max]="maxAvailablePages"
               [value]="maxPages"
+              [style.--slider-fill-start]="maxPagesSliderFill + '%'"
               (input)="onMaxPagesChange($any($event.target).value)"
             />
           </div>
         </div>
-        
-        <button type="button" class="apply-filters-button" (click)="applyFilters()">Filters toepassen</button>
-        <button type="button" class="reset-filters-button" (click)="clearFilters()">Filters wissen</button>
+        <button
+          type="button"
+          class="apply-filters-button"
+          (click)="applyFilters()"
+        >
+          Filters toepassen
+        </button>
+        <button
+          type="button"
+          class="reset-filters-button"
+          (click)="clearFilters()"
+        >
+          Filters wissen
+        </button>
       </aside>
-
       <section class="books-content">
         <div class="search-bar-wrapper">
           <label for="bookSearch">Zoek op titel of auteur</label>
           <div class="search-controls">
-            <input id="bookSearch" type="text" placeholder="Bijv. Harry Potter of J.K. Rowling" [(ngModel)]="searchInput" (keydown.enter)="applySearch()" />
-            <button type="button" class="search-button" (click)="applySearch()">Zoeken</button>
+            <input
+              id="bookSearch"
+              type="text"
+              placeholder="Bijv. Harry Potter of J.K. Rowling"
+              [(ngModel)]="searchInput"
+              (keydown.enter)="applySearch()"
+            />
+            <button type="button" class="search-button" (click)="applySearch()">
+              Zoeken
+            </button>
           </div>
         </div>
-
         @if (filteredBooks.length > 0) {
           <p class="filter-result-count">
             {{ filteredBooks.length }} boek(en) gevonden
           </p>
-          
+        }
+        @if (filteredBooks.length === 0) {
+          <div class="info-message">
+            Geen boeken gevonden voor deze filters.
+          </div>
+        }
+        @if (filteredBooks.length > 0) {
           <div class="books-grid">
-            @for (book of pagedBooks; track book.id) {
-              <article class="book-card" [routerLink]="['/detail', book.id]" [class.didactic-card]="(book.genre || '').toLowerCase() === 'didactiek'">
-                
-                @if ((book.genre || "").toLowerCase() === "didactiek") {
+            @for (book of pagedBooks; track book) {
+              <article
+                class="book-card"
+                [routerLink]="['/detail', book.id]"
+                [class.didactic-card]="
+                  (book.genre || '').toLowerCase().startsWith('didactiek')
+                "
+              >
+                @if ((book.genre || "").toLowerCase().startsWith("didactiek")) {
                   <div class="didactic-badge">Lerarencollectie</div>
                 }
-
                 @if ((book.reviewCount || 0) >= 10) {
-                  <div class="score-badge">
-                    <span class="score-stars" aria-label="Gemiddelde score {{ book.averageRating || 0 | number: '1.1-1' }} op 5">
-                      <span class="score-stars-track">★★★★★</span>
-                      <span class="score-stars-fill" [style.width.%]="getAverageRatingFillPercentage(book)">★★★★★</span>
-                    </span>
+                  <div
+                    class="rating-chip"
+                    aria-label="Gemiddelde score {{
+                      book.averageRating || 0 | number: '1.1-1'
+                    }} op 5"
+                  >
+                    <div class="rating-chip-score">
+                      {{ book.averageRating || 0 | number: "1.1-1" }}
+                    </div>
+                    <div class="rating-chip-meta">
+                      <span class="rating-chip-stars" aria-hidden="true">
+                        @for (star of ratingStars; track star) {
+                          <span class="rating-chip-star">
+                            <span class="rating-chip-star-track">★</span>
+                            <span
+                              class="rating-chip-star-fill"
+                              [style.width.%]="
+                                getStarFillPercentage(book, star)
+                              "
+                              >★</span
+                            >
+                          </span>
+                        }
+                      </span>
+                      <span class="rating-chip-count"
+                        >{{ book.reviewCount || 0 }} beoordelingen</span
+                      >
+                    </div>
                   </div>
                 }
-
                 <div class="book-cover-slot">
                   @if ((book.cover || "").trim()) {
-                    <img [src]="book.cover" [alt]="book.titel" class="book-cover" />
+                    <img
+                      [src]="book.cover"
+                      [alt]="book.titel"
+                      class="book-cover"
+                    />
                   } @else {
-                    <div class="book-cover-placeholder">Geen cover beschikbaar</div>
+                    <div class="book-cover-placeholder">
+                      Geen cover beschikbaar
+                    </div>
                   }
                 </div>
-
                 <div class="book-content">
                   <h2>{{ book.titel }}</h2>
                   <p class="book-author">{{ book.auteur }}</p>
-                  
                   <div class="book-meta-group">
-                    <p class="book-meta"><strong>Genre:</strong> {{ book.genre || "Onbekend" }}</p>
-                    <p class="book-meta"><strong>Taal:</strong> {{ book.taal || "Onbekend" }}</p>
+                    <p class="book-meta">
+                      <strong>Genre:</strong> {{ book.genre || "Onbekend" }}
+                    </p>
+                    <p class="book-meta">
+                      <strong>Taal:</strong> {{ book.taal || "Onbekend" }}
+                    </p>
                   </div>
-                  
                   @if (isLibrarian) {
                     <div class="admin-actions">
-                      <a class="edit-button" [routerLink]="['/edit', book.id]" (click)="$event.stopPropagation()">
-                        Aanpassen
-                      </a>
-                      <button type="button" class="delete-button" (click)="$event.stopPropagation(); $event.preventDefault(); deleteBook($event, book)">
+                      <button
+                        type="button"
+                        class="delete-button"
+                        (click)="
+                          $event.stopPropagation();
+                          $event.preventDefault();
+                          deleteBook($event, book)
+                        "
+                      >
                         Verwijder
                       </button>
+                      <a
+                        class="edit-button"
+                        [routerLink]="['/edit', book.id]"
+                        (click)="$event.stopPropagation()"
+                      >
+                        Aanpassen
+                      </a>
                     </div>
                   }
                 </div>
               </article>
             }
-          </div>
-        } @else {
-          <div class="info-message">
-            Geen boeken gevonden voor deze filters.
           </div>
         }
       </section>
@@ -168,7 +267,14 @@
   @if (!isLoading && !error && filteredBooks.length > 0 && totalPages > 1) {
     <nav class="pagination">
       @for (page of pageNumbers; track page) {
-        <button type="button" class="pagination-button" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+        <button
+          type="button"
+          class="pagination-button"
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)"
+        >
+          {{ page }}
+        </button>
       }
     </nav>
   }

@@ -8,10 +8,12 @@ import { LoginComponent } from "./login/login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
+import { AddBulkComponent } from "./add-bulk/add-bulk.component";
 import { BookListComponent } from "./book-list/book-list.component";
 import { provideHttpClient } from "@angular/common/http";
 import { DetailComponent } from './detail/detail.component';
 import { ProfileComponent } from './profile/profile.component';
+import { LoanPageComponent } from "./loan-page/loan-page.component";
 
 @NgModule({
   declarations: [
@@ -20,9 +22,11 @@ import { ProfileComponent } from './profile/profile.component';
     DashboardComponent,
     AddBookComponent,
     AddIsbnComponent,
+    AddBulkComponent,
     DetailComponent,
     BookListComponent,
     ProfileComponent,
+    LoanPageComponent
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideHttpClient()],

@@ -50,6 +50,26 @@ public class BookDto {
 
     private Double averageRating;
 
+    private int totalCopies;
+
+    private int availableCopies;
+
+    public int getTotalCopies() {
+        return totalCopies;
+    }
+
+    public void setTotalCopies(int totalCopies) {
+        this.totalCopies = totalCopies;
+    }
+
+    public int getAvailableCopies() {
+        return availableCopies;
+    }
+
+    public void setAvailableCopies(int availableCopies) {
+        this.availableCopies = availableCopies;
+    }
+
     public Long getId() {
         return id;
     }
@@ -170,4 +190,3 @@ public class BookDto {
         this.averageRating = averageRating;
     }
 }
-
