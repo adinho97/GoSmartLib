@@ -11,6 +11,7 @@ import { BookListComponent } from "./book-list/book-list.component";
 import { ProfileComponent } from "./profile/profile.component";
 import { EditBookComponent } from "./edit-book/edit-book.component";
 import { AddBarcodeComponent } from "./add-barcode/add-barcode.component";
+import { GeneralAddComponent } from "./general-add/general-add.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
@@ -37,6 +38,12 @@ export const appRoutes: Routes = [
   {
     path: "isbn",
     component: AddIsbnComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
+    path: "add-general",
+    component: GeneralAddComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
   },
