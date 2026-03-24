@@ -47,10 +47,4 @@ export class AppComponent {
       this.currentUrl.startsWith("/books") && !this.isDidacticCollectionActive
     );
   }
-
-  get isAddBookActive(): boolean {
-    return (
-      this.currentUrl.startsWith("/add") || this.currentUrl.startsWith("/isbn")
-    );
-  }
 }

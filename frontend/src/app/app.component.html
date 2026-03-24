@@ -17,33 +17,9 @@
           Boekenlijst
         </a>
         @if (isLibrarian) {
-          <div class="nav-dropdown" tabindex="0">
-            <button
-              type="button"
-              class="nav-dropdown-trigger"
-              [class.active-dropdown]="isAddBookActive"
-            >
-              Boek toevoegen
-              <svg
-                class="dropdown-arrow"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-              >
-                <path fill="currentColor" d="M7 10l5 5 5-5z" />
-              </svg>
-            </button>
-            <div class="nav-dropdown-menu">
-              <a routerLink="/add-general" routerLinkActive="active">
-                Alle methodes (tabs)
-              </a>
-              <a routerLink="/isbn" routerLinkActive="active"> Via ISBN </a>
-              <a routerLink="/add" routerLinkActive="active">
-                Manueel invoeren
-              </a>
-            </div>
-          </div>
+          <a routerLink="/add-general" routerLinkActive="active">
+            Boek toevoegen
+          </a>
         }
         @if (isTeacher) {
           <a
