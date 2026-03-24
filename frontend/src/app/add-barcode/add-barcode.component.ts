@@ -29,7 +29,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   scanMode = false;
   isProcessing = false;
   scannedBooks: ScannedBookResult[] = [];
-  manualIsbn = '';
+  lastScannedIsbn = '';
   errorMessage = '';
   successMessage = '';
 
@@ -57,11 +57,11 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
       );
 
       this.scanSubscription = this.barcodeService.getScans().subscribe((barcode) => {
-        // Populate the manual input field so user sees what was scanned
-        this.manualIsbn = barcode;
-        // After a brief delay to show the ISBN, process it
+        this.lastScannedIsbn = barcode;
+
+        // Keep a brief delay so the scanned ISBN is visible before processing.
         setTimeout(() => {
-          void this.addManualIsbn();
+          void this.processScan(barcode);
         }, 200);
       });
     }
@@ -186,6 +186,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
 
   clearSession() {
     this.scannedBooks = [];
+    this.lastScannedIsbn = '';
     this.errorMessage = '';
     this.successMessage = '';
     this.deactivateScanMode();
@@ -195,17 +196,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     if (this.scannedBooks.length > 0) {
       this.scannedBooks.shift();
     }
-  }
-
-  async addManualIsbn() {
-    const trimmedIsbn = this.manualIsbn.trim();
-    if (!trimmedIsbn) {
-      this.errorMessage = 'Voer een ISBN-nummer in.';
-      return;
-    }
-
-    this.manualIsbn = '';
-    await this.processScan(trimmedIsbn);
   }
 
   getStatusColor(status: string): string {

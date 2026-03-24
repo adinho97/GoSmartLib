@@ -145,29 +145,24 @@
   margin: 0 0 20px 0;
 }
 
-/* Manual input */
-.manual-input-row {
-  display: flex;
-  gap: 10px;
+/* Scanned ISBN preview */
+.isbn-preview-row {
+  display: block;
 }
 
-.isbn-input {
-  flex: 1;
+.isbn-preview-input {
+  width: 100%;
   padding: 12px 14px;
   font-size: 15px;
   border: 1px solid #d4c1c9;
   border-radius: 10px;
   outline: none;
-  transition: all 0.2s ease;
+  background: #fff;
+  color: #333;
+  letter-spacing: 0.3px;
 }
 
-.isbn-input:focus {
-  border-color: #c8859d;
-  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.08);
-}
-
-.isbn-input:disabled {
-  background: #f5f5f5;
+.isbn-preview-input::placeholder {
   color: #999;
 }
 
