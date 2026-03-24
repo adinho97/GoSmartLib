@@ -142,6 +142,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     this.cameraPreviewIsbn = '';
     this.cameraErrorMessage = '';
 
+    await this.waitForViewRender();
     await this.startCameraDecoding();
   }
 
@@ -162,6 +163,12 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
 
     if (!navigator.mediaDevices?.getUserMedia) {
       this.cameraErrorMessage = 'Deze browser ondersteunt geen camera-scanning.';
+      this.cameraMode = false;
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      this.cameraErrorMessage = 'Camera-scanning werkt alleen op HTTPS of localhost.';
       this.cameraMode = false;
       return;
     }
@@ -196,14 +203,29 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
       );
 
       this.isCameraDecoding = true;
-    } catch {
-      this.cameraErrorMessage =
-        'Kan camera niet starten. Controleer toestemming en probeer opnieuw.';
+    } catch (err: any) {
+      let errorMessage = 'Kan camera niet starten. Controleer toestemming en probeer opnieuw.';
+
+      if (err?.name === 'NotAllowedError') {
+        errorMessage = 'Camera-toestemming geweigerd. Zet deze in instellingen aan.';
+      } else if (err?.name === 'NotFoundError') {
+        errorMessage = 'Geen camera gevonden op dit apparaat.';
+      } else if (err?.name === 'TrackStartError') {
+        errorMessage = 'Camera wordt al door een ander programma gebruikt.';
+      }
+
+      this.cameraErrorMessage = errorMessage;
       this.cameraMode = false;
       this.isCameraDecoding = false;
     }
   }
 
+
+  private waitForViewRender(): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(), 0);
+    });
+  }
   private stopCameraDecoding() {
     if (this.cameraControls) {
       this.cameraControls.stop();
