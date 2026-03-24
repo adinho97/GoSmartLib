@@ -28,20 +28,55 @@
           Hou de barcode voor de scanner om het ISBN automatisch in te voeren
         </p>
 
-        @if (!scanMode) {
+        <div class="scan-actions">
           <button
             class="btn-primary"
             (click)="activateScanMode()"
-            [disabled]="isProcessing"
+            [disabled]="isProcessing || scanMode"
           >
-            Starten met scannen
+            Barcode scanner
           </button>
-        } @else {
+
+          <button
+            class="btn-secondary"
+            (click)="activateCameraMode()"
+            [disabled]="isProcessing || cameraMode"
+          >
+            Camera scanner
+          </button>
+        </div>
+
+        @if (scanMode) {
           <div class="scan-active">
             <div class="pulsing-indicator"></div>
             <p class="scan-status">Klaar om te scannen...</p>
             <button class="btn-secondary" (click)="deactivateScanMode()">
               Stoppen
+            </button>
+          </div>
+        }
+
+        @if (cameraMode) {
+          <div class="camera-panel">
+            <div class="camera-preview">
+              <p class="camera-placeholder">
+                Camera preview komt hier (volgende stap: live stream + decode)
+              </p>
+            </div>
+
+            <div class="camera-meta">
+              <span class="camera-meta-label">Laatst gedetecteerd</span>
+              <span class="camera-meta-value">{{
+                cameraPreviewIsbn || "Nog niets gedetecteerd"
+              }}</span>
+            </div>
+
+            @if (cameraErrorMessage) {
+              <p class="camera-error">{{ cameraErrorMessage }}</p>
+            }
+
+            <button class="btn-secondary" (click)="deactivateCameraMode()">
+              Camera stoppen
             </button>
           </div>
         }

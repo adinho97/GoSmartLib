@@ -27,9 +27,12 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   scanMode = false;
+  cameraMode = false;
   isProcessing = false;
   scannedBooks: ScannedBookResult[] = [];
   lastScannedIsbn = '';
+  cameraPreviewIsbn = '';
+  cameraErrorMessage = '';
   errorMessage = '';
   successMessage = '';
 
@@ -108,6 +111,10 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   }
 
   activateScanMode() {
+    if (this.cameraMode) {
+      this.deactivateCameraMode();
+    }
+
     this.scanMode = true;
     this.errorMessage = '';
     this.barcodeService.activateScanMode();
@@ -116,6 +123,21 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   deactivateScanMode() {
     this.scanMode = false;
     this.barcodeService.deactivateScanMode();
+  }
+
+  activateCameraMode() {
+    if (this.scanMode) {
+      this.deactivateScanMode();
+    }
+
+    this.cameraMode = true;
+    this.cameraErrorMessage = '';
+  }
+
+  deactivateCameraMode() {
+    this.cameraMode = false;
+    this.cameraPreviewIsbn = '';
+    this.cameraErrorMessage = '';
   }
 
   async processScan(barcode: string) {
@@ -187,9 +209,11 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   clearSession() {
     this.scannedBooks = [];
     this.lastScannedIsbn = '';
+    this.cameraPreviewIsbn = '';
     this.errorMessage = '';
     this.successMessage = '';
     this.deactivateScanMode();
+    this.deactivateCameraMode();
   }
 
   undoLastScan() {
