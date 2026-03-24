@@ -175,6 +175,15 @@
   margin-bottom: 10px;
 }
 
+.camera-video {
+  width: 100%;
+  min-height: 200px;
+  max-height: 280px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #141414;
+}
+
 .camera-placeholder {
   margin: 0;
   text-align: center;

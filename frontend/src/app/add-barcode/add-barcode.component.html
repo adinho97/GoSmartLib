@@ -59,10 +59,22 @@
         @if (cameraMode) {
           <div class="camera-panel">
             <div class="camera-preview">
-              <p class="camera-placeholder">
-                Camera preview komt hier (volgende stap: live stream + decode)
-              </p>
+              <video
+                #cameraVideo
+                class="camera-video"
+                autoplay
+                muted
+                playsinline
+              ></video>
             </div>
+
+            <p class="camera-placeholder">
+              {{
+                isCameraDecoding
+                  ? "Camera actief. Richt op een barcode."
+                  : "Camera wordt gestart..."
+              }}
+            </p>
 
             <div class="camera-meta">
               <span class="camera-meta-label">Laatst gedetecteerd</span>

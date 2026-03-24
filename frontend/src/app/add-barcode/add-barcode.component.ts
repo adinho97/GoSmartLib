@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { BarcodeService } from '../services/barcode.service';
 import { BookService } from '../services/book.service';
 import { SchoolService } from '../services/school.service';
@@ -23,12 +24,14 @@ export interface ScannedBookResult {
 })
 export class AddBarcodeComponent implements OnInit, OnDestroy {
   @ViewChild('scanContainer') scanContainer!: ElementRef;
+  @ViewChild('cameraVideo') cameraVideo?: ElementRef<HTMLVideoElement>;
 
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   scanMode = false;
   cameraMode = false;
-  isProcessing = false;
+  isProcessing = false; 
+  isCameraDecoding = false;
   scannedBooks: ScannedBookResult[] = [];
   lastScannedIsbn = '';
   cameraPreviewIsbn = '';
@@ -44,6 +47,10 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   };
 
   private scanSubscription: any;
+  private readonly cameraCodeReader = new BrowserMultiFormatReader();
+  private cameraControls: IScannerControls | null = null;
+  private cameraCooldownUntil = 0;
+  private readonly CAMERA_SCAN_COOLDOWN_MS = 1200;
 
   constructor(
     private barcodeService: BarcodeService,
@@ -72,6 +79,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
 
 
   ngOnDestroy() {
+    this.deactivateCameraMode();
     this.barcodeService.deactivateScanMode();
 
     if (this.scanSubscription) {
@@ -125,19 +133,91 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     this.barcodeService.deactivateScanMode();
   }
 
-  activateCameraMode() {
+  async activateCameraMode() {
     if (this.scanMode) {
       this.deactivateScanMode();
     }
 
     this.cameraMode = true;
+    this.cameraPreviewIsbn = '';
     this.cameraErrorMessage = '';
+
+    await this.startCameraDecoding();
   }
 
   deactivateCameraMode() {
+    this.stopCameraDecoding();
     this.cameraMode = false;
     this.cameraPreviewIsbn = '';
     this.cameraErrorMessage = '';
+  }
+
+  private async startCameraDecoding() {
+    const videoElement = this.cameraVideo?.nativeElement;
+    if (!videoElement) {
+      this.cameraErrorMessage = 'Camera-element niet gevonden.';
+      this.cameraMode = false;
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.cameraErrorMessage = 'Deze browser ondersteunt geen camera-scanning.';
+      this.cameraMode = false;
+      return;
+    }
+
+    this.stopCameraDecoding();
+
+    try {
+      this.cameraControls = await this.cameraCodeReader.decodeFromVideoDevice(
+        undefined,
+        videoElement,
+        (result) => {
+          if (!result) {
+            return;
+          }
+
+          const decodedValue = result.getText()?.trim();
+          if (!decodedValue) {
+            return;
+          }
+
+          const now = Date.now();
+          if (now < this.cameraCooldownUntil) {
+            return;
+          }
+
+          this.cameraCooldownUntil = now + this.CAMERA_SCAN_COOLDOWN_MS;
+          this.cameraPreviewIsbn = decodedValue;
+          this.lastScannedIsbn = decodedValue;
+
+          void this.processScan(decodedValue);
+        },
+      );
+
+      this.isCameraDecoding = true;
+    } catch {
+      this.cameraErrorMessage =
+        'Kan camera niet starten. Controleer toestemming en probeer opnieuw.';
+      this.cameraMode = false;
+      this.isCameraDecoding = false;
+    }
+  }
+
+  private stopCameraDecoding() {
+    if (this.cameraControls) {
+      this.cameraControls.stop();
+      this.cameraControls = null;
+    }
+
+    const videoElement = this.cameraVideo?.nativeElement;
+    if (videoElement?.srcObject) {
+      const stream = videoElement.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      videoElement.srcObject = null;
+    }
+
+    this.isCameraDecoding = false;
   }
 
   async processScan(barcode: string) {
