@@ -34,7 +34,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   isCameraDecoding = false;
   scannedBooks: ScannedBookResult[] = [];
   lastScannedIsbn = '';
-  cameraPreviewIsbn = '';
   cameraErrorMessage = '';
   errorMessage = '';
   successMessage = '';
@@ -146,7 +145,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     }
 
     this.cameraMode = true;
-    this.cameraPreviewIsbn = '';
     this.cameraErrorMessage = '';
 
     await this.waitForViewRender();
@@ -162,7 +160,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   deactivateCameraMode() {
     this.stopCameraDecoding();
     this.cameraMode = false;
-    this.cameraPreviewIsbn = '';
     this.cameraErrorMessage = '';
   }
 
@@ -207,7 +204,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
           }
 
           this.cameraCooldownUntil = now + this.CAMERA_SCAN_COOLDOWN_MS;
-          this.cameraPreviewIsbn = decodedValue;
           this.lastScannedIsbn = decodedValue;
 
           void this.processScan(decodedValue);
@@ -380,7 +376,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     this.scannedBooks = [];
     this.currentScannedBooksPage = 1;
     this.lastScannedIsbn = '';
-    this.cameraPreviewIsbn = '';
     this.errorMessage = '';
     this.successMessage = '';
     this.deactivateScanMode();

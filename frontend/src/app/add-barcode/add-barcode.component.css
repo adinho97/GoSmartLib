@@ -191,26 +191,6 @@
   font-size: 13px;
 }
 
-.camera-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 10px;
-}
-
-.camera-meta-label {
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: #999;
-  font-weight: 600;
-}
-
-.camera-meta-value {
-  font-size: 14px;
-  color: #333;
-}
-
 .camera-error {
   margin: 0 0 10px 0;
   color: #c0392b;

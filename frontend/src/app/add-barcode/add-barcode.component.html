@@ -76,13 +76,6 @@
               }}
             </p>
 
-            <div class="camera-meta">
-              <span class="camera-meta-label">Laatst gedetecteerd</span>
-              <span class="camera-meta-value">{{
-                cameraPreviewIsbn || "Nog niets gedetecteerd"
-              }}</span>
-            </div>
-
             @if (cameraErrorMessage) {
               <p class="camera-error">{{ cameraErrorMessage }}</p>
             }
