@@ -51,6 +51,8 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   private cameraControls: IScannerControls | null = null;
   private cameraCooldownUntil = 0;
   private readonly CAMERA_SCAN_COOLDOWN_MS = 1200;
+  private readonly SCANNED_BOOKS_PAGE_SIZE = 5;
+  currentScannedBooksPage = 1;
 
   private readonly isIosSafari =
     /iPad|iPhone|iPod/.test(navigator.userAgent) &&
@@ -256,6 +258,55 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     this.isCameraDecoding = false;
   }
 
+  get totalScannedBooksPages(): number {
+    return Math.max(
+      1,
+      Math.ceil(this.scannedBooks.length / this.SCANNED_BOOKS_PAGE_SIZE),
+    );
+  }
+
+  get paginatedScannedBooks(): ScannedBookResult[] {
+    const startIndex =
+      (this.currentScannedBooksPage - 1) * this.SCANNED_BOOKS_PAGE_SIZE;
+    return this.scannedBooks.slice(
+      startIndex,
+      startIndex + this.SCANNED_BOOKS_PAGE_SIZE,
+    );
+  }
+
+  get scannedBooksPageNumbers(): number[] {
+    return Array.from(
+      { length: this.totalScannedBooksPages },
+      (_, index) => index + 1,
+    );
+  }
+
+  goToScannedBooksPage(page: number) {
+    if (page < 1 || page > this.totalScannedBooksPages) {
+      return;
+    }
+
+    this.currentScannedBooksPage = page;
+  }
+
+  goToPreviousScannedBooksPage() {
+    this.goToScannedBooksPage(this.currentScannedBooksPage - 1);
+  }
+
+  goToNextScannedBooksPage() {
+    this.goToScannedBooksPage(this.currentScannedBooksPage + 1);
+  }
+
+  private resetToFirstScannedBooksPage() {
+    this.currentScannedBooksPage = 1;
+  }
+
+  private normalizeScannedBooksPage() {
+    if (this.currentScannedBooksPage > this.totalScannedBooksPages) {
+      this.currentScannedBooksPage = this.totalScannedBooksPages;
+    }
+  }
+
   async processScan(barcode: string) {
     if (this.isProcessing) return;
     this.isProcessing = true;
@@ -277,6 +328,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
           message: 'Reeds in bibliotheek',
           timestamp: new Date(),
         });
+        this.resetToFirstScannedBooksPage();
         return;
       }
 
@@ -292,6 +344,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
         message: 'Toegevoegd aan bibliotheek',
         timestamp: new Date(),
       });
+      this.resetToFirstScannedBooksPage();
 
       this.successMessage = `✓ ${savedBook?.titel || 'Boek'} toegevoegd`;
     } catch (err: any) {
@@ -315,6 +368,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
         message: message,
         timestamp: new Date(),
       });
+      this.resetToFirstScannedBooksPage();
 
       this.errorMessage = message;
     } finally {
@@ -324,6 +378,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
 
   clearSession() {
     this.scannedBooks = [];
+    this.currentScannedBooksPage = 1;
     this.lastScannedIsbn = '';
     this.cameraPreviewIsbn = '';
     this.errorMessage = '';
@@ -335,6 +390,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   undoLastScan() {
     if (this.scannedBooks.length > 0) {
       this.scannedBooks.shift();
+      this.normalizeScannedBooksPage();
     }
   }
 

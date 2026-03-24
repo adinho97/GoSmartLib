@@ -141,7 +141,10 @@
 
     @if (scannedBooks.length > 0) {
       <div class="results-list">
-        @for (result of scannedBooks; track result.isbn + result.timestamp) {
+        @for (
+          result of paginatedScannedBooks;
+          track result.isbn + result.timestamp
+        ) {
           <div
             class="result-item"
             [ngClass]="'status-' + result.status.toLowerCase()"
@@ -168,6 +171,38 @@
           </div>
         }
       </div>
+
+      @if (totalScannedBooksPages > 1) {
+        <div class="pagination-row">
+          <button
+            class="btn-secondary pagination-btn"
+            (click)="goToPreviousScannedBooksPage()"
+            [disabled]="currentScannedBooksPage === 1"
+          >
+            Vorige
+          </button>
+
+          <div class="pagination-pages">
+            @for (page of scannedBooksPageNumbers; track page) {
+              <button
+                class="pagination-page"
+                [class.active]="page === currentScannedBooksPage"
+                (click)="goToScannedBooksPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          </div>
+
+          <button
+            class="btn-secondary pagination-btn"
+            (click)="goToNextScannedBooksPage()"
+            [disabled]="currentScannedBooksPage === totalScannedBooksPages"
+          >
+            Volgende
+          </button>
+        </div>
+      }
     } @else {
       <p class="no-results">Nog geen boeken gescand</p>
     }
