@@ -151,6 +151,12 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     await this.startCameraDecoding();
   }
 
+  async retryCameraMode() {
+    this.cameraErrorMessage = '';
+    await this.waitForViewRender();
+    await this.startCameraDecoding();
+  }
+
   deactivateCameraMode() {
     this.stopCameraDecoding();
     this.cameraMode = false;
@@ -162,21 +168,18 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     const videoElement = this.cameraVideo?.nativeElement;
     if (!videoElement) {
       this.cameraErrorMessage = 'Camera-element niet gevonden.';
-      this.cameraMode = false;
       return;
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
       this.cameraErrorMessage =
         'Deze browser ondersteunt geen camera-scanning. Gebruik een recente browser (Safari/Chrome/Edge).';
-      this.cameraMode = false;
       return;
     }
 
     if (!window.isSecureContext) {
       this.cameraErrorMessage =
         'Camera-scanning werkt alleen op HTTPS of localhost.';
-      this.cameraMode = false;
       return;
     }
 
@@ -227,7 +230,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
       }
 
       this.cameraErrorMessage = errorMessage;
-      this.cameraMode = false;
       this.isCameraDecoding = false;
     }
   }

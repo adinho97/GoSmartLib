@@ -87,9 +87,21 @@
               <p class="camera-error">{{ cameraErrorMessage }}</p>
             }
 
-            <button class="btn-secondary" (click)="deactivateCameraMode()">
-              Camera stoppen
-            </button>
+            <div class="camera-actions">
+              @if (cameraErrorMessage) {
+                <button
+                  class="btn-secondary"
+                  (click)="retryCameraMode()"
+                  [disabled]="isProcessing || isCameraDecoding"
+                >
+                  Opnieuw proberen
+                </button>
+              }
+
+              <button class="btn-secondary" (click)="deactivateCameraMode()">
+                Camera stoppen
+              </button>
+            </div>
           </div>
         }
       </div>

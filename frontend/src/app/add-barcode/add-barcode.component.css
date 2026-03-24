@@ -217,6 +217,12 @@
   font-size: 13px;
 }
 
+.camera-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* Scanned ISBN preview */
 .isbn-preview-row {
   display: block;
