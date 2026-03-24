@@ -52,6 +52,11 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   private cameraCooldownUntil = 0;
   private readonly CAMERA_SCAN_COOLDOWN_MS = 1200;
 
+  private readonly isIosSafari =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+    /Safari/.test(navigator.userAgent) &&
+    !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+
   constructor(
     private barcodeService: BarcodeService,
     private bookService: BookService,
@@ -162,13 +167,15 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      this.cameraErrorMessage = 'Deze browser ondersteunt geen camera-scanning.';
+      this.cameraErrorMessage =
+        'Deze browser ondersteunt geen camera-scanning. Gebruik een recente browser (Safari/Chrome/Edge).';
       this.cameraMode = false;
       return;
     }
 
     if (!window.isSecureContext) {
-      this.cameraErrorMessage = 'Camera-scanning werkt alleen op HTTPS of localhost.';
+      this.cameraErrorMessage =
+        'Camera-scanning werkt alleen op HTTPS of localhost.';
       this.cameraMode = false;
       return;
     }
@@ -207,11 +214,16 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
       let errorMessage = 'Kan camera niet starten. Controleer toestemming en probeer opnieuw.';
 
       if (err?.name === 'NotAllowedError') {
-        errorMessage = 'Camera-toestemming geweigerd. Zet deze in instellingen aan.';
+        errorMessage = this.isIosSafari
+          ? 'Camera-toestemming geweigerd. Open iOS Instellingen > Safari > Camera en sta toegang toe, herlaad daarna de pagina.'
+          : 'Camera-toestemming geweigerd. Zet deze in instellingen aan.';
       } else if (err?.name === 'NotFoundError') {
         errorMessage = 'Geen camera gevonden op dit apparaat.';
-      } else if (err?.name === 'TrackStartError') {
+      } else if (err?.name === 'TrackStartError' || err?.name === 'NotReadableError') {
         errorMessage = 'Camera wordt al door een ander programma gebruikt.';
+      } else if (err?.name === 'AbortError') {
+        errorMessage =
+          'Camera-start onderbroken. Probeer opnieuw en controleer browserrechten.';
       }
 
       this.cameraErrorMessage = errorMessage;
