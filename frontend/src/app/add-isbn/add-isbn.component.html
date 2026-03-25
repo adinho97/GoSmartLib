@@ -2,8 +2,10 @@
   <h1>Zoek boek via ISBN</h1>
 
   @if (schools.length > 0) {
-    <div class="isbn-input-row">
+    <div class="school-selector">
+      <label for="schoolSelect">SELECTEER SCHOOL</label>
       <select
+        id="schoolSelect"
         [ngModel]="selectedSchoolId"
         (ngModelChange)="onSchoolChange($event)"
         aria-label="Kies school"

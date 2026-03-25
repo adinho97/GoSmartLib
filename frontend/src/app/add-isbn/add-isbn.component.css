@@ -16,6 +16,38 @@ h1 {
   font-weight: 700;
 }
 
+.school-selector {
+  margin-bottom: 20px;
+}
+
+.school-selector label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #999;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.school-selector select {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1px solid #d4c1c9;
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.school-selector select:focus {
+  border-color: #c8859d;
+  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.08);
+}
+
 .isbn-input-row {
   display: flex;
   gap: 10px;
