@@ -33,10 +33,13 @@ public class SmartschoolUserInfo {
 
     public String getSub() { return sub; }
     public void setSub(String sub) { this.sub = sub; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
     public String getGivenName() { return givenName; }
     public void setGivenName(String givenName) { this.givenName = givenName; }
+
     public String getFamilyName() { return familyName; }
     public void setFamilyName(String familyName) { this.familyName = familyName; }
 
@@ -58,10 +61,13 @@ public class SmartschoolUserInfo {
     }
 
     public void setRole(String role) { this.role = role; }
+
     public String getBasisrol() { return basisrol; }
     public void setBasisrol(String basisrol) { this.basisrol = basisrol; }
+
     public String getAccessToken() { return accessToken; }
     public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
+
     public String getPlatform() { return platform; }
     public void setPlatform(String platform) { this.platform = platform; }
 }
