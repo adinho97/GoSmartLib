@@ -1,19 +1,27 @@
 .isbn-page {
   max-width: 650px;
   margin: 50px auto;
+  font-family: Arial, sans-serif;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.main-card {
   padding: 35px;
   background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
   border: 1px solid #f0dde5;
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #871f42;
-  font-size: 26px;
-  font-weight: 700;
 }
 
 .school-selector {
@@ -24,7 +32,7 @@ h1 {
   display: block;
   margin-bottom: 10px;
   font-weight: 600;
-  color: #999;
+  color: #1a1a1a;
   font-size: 12px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -135,7 +143,7 @@ h1 {
 
 .book-info h2 {
   margin: 0 0 10px;
-  color: #5c2b3c;
+  color: #1a1a1a;
   font-size: 20px;
 }
 
@@ -164,7 +172,7 @@ h1 {
   font-size: 14px;
   font-weight: 600;
   color: #fff;
-  background: linear-gradient(135deg, #357a38 0%, #1f7a3a 100%);
+  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -172,7 +180,7 @@ h1 {
 }
 
 .add-button:hover:not(:disabled) {
-  box-shadow: 0 4px 14px rgba(31, 122, 58, 0.28);
+  box-shadow: 0 4px 14px rgba(135, 31, 66, 0.25);
 }
 
 .add-button:disabled {

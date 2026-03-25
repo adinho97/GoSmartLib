@@ -2,6 +2,7 @@
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem 2rem;
+  font-family: Arial, sans-serif;
 }
 
 .general-add-header {
@@ -11,6 +12,7 @@
 .general-add-header h1 {
   margin: 0;
   font-size: 2rem;
+  color: #1a1a1a;
 }
 
 .general-add-header p {
@@ -26,9 +28,9 @@
 }
 
 .tab-button {
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  color: #7e9dd2;
+  border: 1px solid #d4c1c9;
+  background: #fff8fb;
+  color: #871f42;
   border-radius: 999px;
   padding: 0.55rem 1rem;
   cursor: pointer;
@@ -37,8 +39,8 @@
 }
 
 .tab-button:hover {
-  background: #eef2ff;
-  border-color: #94a3b8;
+  background: #fdf0f5;
+  border-color: #c8859d;
 }
 
 .tab-button.active {

@@ -2,6 +2,22 @@
 .bulk-page {
   max-width: 1100px;
   margin: 50px auto;
+  font-family: Arial, sans-serif;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.main-card {
   padding: 2.5rem 2rem;
   background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
   border: 1px solid #f0dde5;
@@ -15,15 +31,6 @@
 }
 
 /* ── Page header ──────────────────────────────────── */
-.bulk-page h1 {
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  letter-spacing: -0.01em;
-  margin: 0 0 0.25rem;
-}
-
-/* ── Card wrapper ─────────────────────────────────── */
 .card {
   background: #fff;
   border: 1px solid #e5e7eb;
@@ -63,7 +70,7 @@
 label {
   font-weight: 600;
   font-size: 0.875rem;
-  color: #374151;
+  color: #1a1a1a;
   min-width: 72px;
 }
 
@@ -91,7 +98,7 @@ button {
   border: none;
   border-radius: 8px;
   padding: 0.55rem 1.1rem;
-  background: #871f42;
+  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
   color: #fff;
   cursor: pointer;
   font-family: Arial, sans-serif;
@@ -104,7 +111,7 @@ button {
 }
 
 button:hover:not([disabled]) {
-  background: #6e1934;
+  box-shadow: 0 4px 16px rgba(135, 31, 66, 0.25);
 }
 
 button:active:not([disabled]) {
@@ -117,7 +124,7 @@ button[disabled] {
 }
 
 button.secondary {
-  background: transparent;
+  background: #fff;
   color: #871f42;
   border: 1.5px solid #871f42;
 }
@@ -322,7 +329,7 @@ tbody tr:hover td {
 
 /* Tablet: 2×4 stats grid, looser form */
 @media (max-width: 900px) {
-  .bulk-page {
+  .main-card {
     padding: 1.5rem 1.25rem;
   }
 
@@ -333,12 +340,12 @@ tbody tr:hover td {
 
 /* Mobile landscape / small tablet */
 @media (max-width: 640px) {
-  .bulk-page {
+  .main-card {
     padding: 1rem;
   }
 
-  .bulk-page h1 {
-    font-size: 1.1rem;
+  .page-header h1 {
+    font-size: 1.2rem;
   }
 
   /* Stack form fields vertically */
