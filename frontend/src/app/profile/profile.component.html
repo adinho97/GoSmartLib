@@ -1,13 +1,12 @@
 <div class="profile-wrapper">
   <div class="profile-header">
-    <!-- Back Button -->
     <button class="back-btn" (click)="goBack()">← Terug</button>
 
     <h1>{{ userName }}</h1>
     <div class="profile-role">{{ role }}</div>
-    <button (click)="testSmartschoolMessage()" class="btn-secondary">
+    <!-- <button (click)="testSmartschoolMessage()" class="btn-secondary">
       Test Smartschool Bericht
-    </button>
+    </button> -->
 
     <div class="settings-dropdown" (click)="$event.stopPropagation()">
       <button class="settings-btn" (click)="toggleSettings()">⚙</button>
