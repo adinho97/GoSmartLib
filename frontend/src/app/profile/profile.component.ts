@@ -67,14 +67,8 @@ export class ProfileComponent {
   }
 
   testSmartschoolMessage(): void {
-  const userId = localStorage.getItem('userId');
-  if (!userId) {
-    alert('Gebruikers-ID niet gevonden. Log opnieuw in.');
-    return;
-  }
-
+    
   this.smartschoolService.sendMessage(
-    userId, 
     'Testbericht van GoSmartLib', 
     'Dit is een testbericht verstuurd vanuit je profielpagina.'
   ).subscribe({

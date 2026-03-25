@@ -7,9 +7,6 @@ public class SmartschoolMessageRequest {
     @NotBlank(message = "Platform URL is required")
     private String platformUrl;
 
-    @NotBlank(message = "Recipient ID is required")
-    private String recipientId;
-
     @NotBlank(message = "Subject is required")
     private String subject;
 
@@ -22,14 +19,6 @@ public class SmartschoolMessageRequest {
 
     public void setPlatformUrl(String platformUrl) {
         this.platformUrl = platformUrl;
-    }
-
-    public String getRecipientId() {
-        return recipientId;
-    }
-
-    public void setRecipientId(String recipientId) {
-        this.recipientId = recipientId;
     }
 
     public String getSubject() {
