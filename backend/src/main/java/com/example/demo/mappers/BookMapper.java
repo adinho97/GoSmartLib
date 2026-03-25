@@ -3,6 +3,8 @@ package com.example.demo.mappers;
 import com.example.demo.dto.BookDto;
 import com.example.demo.entities.Book;
 
+import com.example.demo.entities.BookCopy;
+
 public class BookMapper {
 
     public static BookDto toDto(Book book) {
@@ -37,6 +39,13 @@ public class BookMapper {
                         .sum();
                 dto.setAverageRating(total / reviewCount);
             }
+        }
+        if (book.getCopies() != null) {
+            dto.setTotalCopies(book.getCopies().size());
+            long available = book.getCopies().stream()
+                    .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE)
+                    .count();
+            dto.setAvailableCopies((int) available);
         }
 
         return dto;

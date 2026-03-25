@@ -1,6 +1,7 @@
 import { Component, HostListener } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { SmartschoolService } from '../services/smartschool.service';
 
 @Component({
     selector: 'app-profile',
@@ -9,6 +10,7 @@ import { Router } from '@angular/router';
     standalone: false
 })
 export class ProfileComponent {
+
 
   role = localStorage.getItem('role') || 'gebruiker';
 
@@ -29,7 +31,8 @@ export class ProfileComponent {
   borrowedBooks = [{ title: 'Book Four', deadline: new Date(), cover: '', id: 4 }];
   readingList = [{ title: 'Book Five', author: 'Author C', cover: '', id: 5 }];
 
-  constructor(private location: Location, private router: Router) {}
+  constructor(private location: Location, private router: Router, private smartschoolService: SmartschoolService) {
+  }
 
   ngOnInit() {
     const saved = localStorage.getItem('dashboardSettings');
@@ -62,4 +65,24 @@ export class ProfileComponent {
   goToDetail(bookId: number) {
     this.router.navigate(['/detail', bookId]);
   }
+
+  testSmartschoolMessage(): void {
+  const userId = localStorage.getItem('userId');
+  if (!userId) {
+    alert('Gebruikers-ID niet gevonden. Log opnieuw in.');
+    return;
+  }
+
+  this.smartschoolService.sendMessage(
+    userId, 
+    'Testbericht van GoSmartLib', 
+    'Dit is een testbericht verstuurd vanuit je profielpagina.'
+  ).subscribe({
+    next: () => alert('Bericht succesvol verzonden! Check je Smartschool berichten.'),
+    error: (err) => {
+      console.error(err);
+      alert('Er ging iets mis bij het versturen van het bericht.');
+    }
+  });
+}
 }

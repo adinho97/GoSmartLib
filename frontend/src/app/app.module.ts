@@ -15,6 +15,7 @@ import { provideHttpClient } from "@angular/common/http";
 import { DetailComponent } from './detail/detail.component';
 import { ProfileComponent } from './profile/profile.component';
 import { GeneralAddComponent } from './general-add/general-add.component';
+import { LoanPageComponent } from "./loan-page/loan-page.component";
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import { GeneralAddComponent } from './general-add/general-add.component';
     DetailComponent,
     BookListComponent,
     ProfileComponent,
+    LoanPageComponent
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule, AddBarcodeComponent],
   providers: [provideHttpClient()],

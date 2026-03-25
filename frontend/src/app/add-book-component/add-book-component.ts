@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
+import { LoanService } from "../services/loan.service";
 import { School } from "../models/school";
 
 export enum Language {
@@ -82,8 +83,8 @@ export class AddBookComponent implements OnInit {
   isSubmitted = false;
   submitMessage = "";
   submitState: "success" | "error" | "" = "";
-
   isDidactic = false;
+  aantalExemplaren: number = 1;
 
   book = {
     titel: "",
@@ -101,6 +102,7 @@ export class AddBookComponent implements OnInit {
   constructor(
     private bookService: BookService,
     private schoolService: SchoolService,
+    private loanService: LoanService,
   ) {}
 
   async ngOnInit() {
@@ -114,13 +116,11 @@ export class AddBookComponent implements OnInit {
       const hasStoredSchool =
         storedSchoolId !== null &&
         this.schools.some((school) => school.id === storedSchoolId);
-
       const fallbackSchoolId =
         this.schools.length > 0 ? this.schools[0].id : null;
       this.selectedSchoolId = hasStoredSchool
         ? storedSchoolId
         : fallbackSchoolId;
-
       if (this.selectedSchoolId !== null) {
         this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
       }
@@ -158,11 +158,9 @@ export class AddBookComponent implements OnInit {
   onCoverSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] || null;
-
     if (this.coverPreviewUrl) {
       URL.revokeObjectURL(this.coverPreviewUrl);
     }
-
     this.selectedCoverFile = file;
     if (file) {
       this.coverPreviewUrl = URL.createObjectURL(file);
@@ -196,7 +194,7 @@ export class AddBookComponent implements OnInit {
         ? await this.toBase64(this.selectedCoverFile)
         : "";
 
-      // Format genre with subgenres if non-fiction
+      // Format genre with subgenres if non-fiction or didactic
       let genreToSave = this.book.genre;
       if (
         this.book.genre === "Non-fictie algemeen" &&
@@ -220,7 +218,7 @@ export class AddBookComponent implements OnInit {
 
       this.resetForm(bookForm);
       this.submitState = "success";
-      this.submitMessage = "Boek succesvol toegevoegd.";
+      this.submitMessage = `Boek succesvol toegevoegd aan de bibliotheek.`;
     } catch (error) {
       this.submitState = "error";
       this.submitMessage = "Fout bij opslaan. Controleer de verbinding.";
@@ -243,6 +241,7 @@ export class AddBookComponent implements OnInit {
       uitgeverij: "",
     };
     this.isDidactic = false;
+    this.aantalExemplaren = 1;
     this.selectedSubgenres.clear();
     this.selectedDidacticSubgenre = "";
     this.selectedCoverFile = null;

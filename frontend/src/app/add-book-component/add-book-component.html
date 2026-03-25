@@ -21,7 +21,7 @@
           }
         </select>
         @if (school.errors?.['required'] && (school.touched || isSubmitted)) {
-        <small class="field-error"> School is verplicht. </small>
+        <small class="field-error">School is verplicht.</small>
         }
       </div>
 
@@ -190,6 +190,21 @@
           name="uitgeverij"
           [(ngModel)]="book.uitgeverij"
         />
+      </div>
+
+      <div class="form-row">
+        <label for="aantalExemplaren">Aantal exemplaren</label>
+        <input
+          id="aantalExemplaren"
+          name="aantalExemplaren"
+          type="number"
+          min="0"
+          max="99"
+          [(ngModel)]="aantalExemplaren"
+        />
+        <small class="helper-text"
+          >Hoeveel fysieke exemplaren voeg je toe?</small
+        >
       </div>
 
       <button

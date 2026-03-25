@@ -35,6 +35,17 @@
       </button>
     </div>
 
+    <div class="isbn-input-row exemplaren-row">
+      <label>Aantal exemplaren</label>
+      <input
+        type="number"
+        min="1"
+        max="99"
+        [(ngModel)]="aantalExemplaren"
+        class="exemplaren-input"
+      />
+    </div>
+
     @if (errorMessage) {
       <p class="error-message">{{ errorMessage }}</p>
     }
