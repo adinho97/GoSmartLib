@@ -244,7 +244,6 @@
 
 .btn-primary:hover:not(:disabled) {
   box-shadow: 0 4px 16px rgba(135, 31, 66, 0.25);
-  transform: translateY(-1px);
 }
 
 .btn-primary:disabled {
