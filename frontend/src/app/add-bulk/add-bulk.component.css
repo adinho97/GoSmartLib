@@ -1,10 +1,14 @@
 /* ── Base ─────────────────────────────────────────── */
 .bulk-page {
   max-width: 1100px;
-  margin: 0 auto;
+  margin: 50px auto;
   padding: 2.5rem 2rem;
+  background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
+  border: 1px solid #f0dde5;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
   font-family: Arial, sans-serif;
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   overflow: visible;
