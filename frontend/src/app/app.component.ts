@@ -28,6 +28,10 @@ export class AppComponent {
     return this.userRole === "bibbeheerder";
   }
 
+  get canAccessLoans(): boolean {
+    return this.isTeacher || this.isLibrarian;
+  }
+
   get showNavbar(): boolean {
     const url = this.router.url || "";
     const isAuthPage =

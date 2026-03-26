@@ -30,6 +30,9 @@
             Didactische collectie
           </a>
         }
+        @if (canAccessLoans) {
+          <a routerLink="/uitleen" routerLinkActive="active">Boek uitlenen</a>
+        }
         <div class="profile-menu" (click)="$event.stopPropagation()">
           <button
             type="button"

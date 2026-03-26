@@ -1,5 +1,4 @@
 import { Component, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
@@ -65,7 +64,6 @@ export class LoanPageComponent implements OnInit {
     private bookService: BookService,
     private loanService: LoanService,
     private schoolService: SchoolService,
-    private router: Router,
   ) {}
 
   async ngOnInit() {
@@ -235,4 +233,5 @@ export class LoanPageComponent implements OnInit {
       this.errorMessage = "";
     }
   }
+
 }

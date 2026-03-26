@@ -3,22 +3,38 @@
     <div class="header-text">
       <h1>Uitlenen</h1>
       <p>
-        @if (step === 'leerling') { Stap 1 — Selecteer een leerling }
-        @if (step === 'boeken') { Stap 2 — Selecteer boeken voor {{ selectedLeerling?.username }} }
-        @if (step === 'bevestiging') { Stap 3 — Bevestig de uitlening }
+        @if (step === "leerling") {
+          Stap 1 — Selecteer een leerling
+        }
+        @if (step === "boeken") {
+          Stap 2 — Selecteer boeken voor {{ selectedLeerling?.username }}
+        }
+        @if (step === "bevestiging") {
+          Stap 3 — Bevestig de uitlening
+        }
       </p>
     </div>
-    <a class="back-btn" [routerLink]="['/dashboard']">← Dashboard</a>
   </header>
 
   <!-- Stap indicator -->
   <div class="step-indicator">
-    <div class="step" [class.active]="step === 'leerling'" [class.done]="step === 'boeken' || step === 'bevestiging'">
+    <div
+      class="step"
+      [class.active]="step === 'leerling'"
+      [class.done]="step === 'boeken' || step === 'bevestiging'"
+    >
       <span class="step-num">1</span>
       <span class="step-label">Leerling</span>
     </div>
-    <div class="step-line" [class.done]="step === 'boeken' || step === 'bevestiging'"></div>
-    <div class="step" [class.active]="step === 'boeken'" [class.done]="step === 'bevestiging'">
+    <div
+      class="step-line"
+      [class.done]="step === 'boeken' || step === 'bevestiging'"
+    ></div>
+    <div
+      class="step"
+      [class.active]="step === 'boeken'"
+      [class.done]="step === 'bevestiging'"
+    >
       <span class="step-num">2</span>
       <span class="step-label">Boeken</span>
     </div>
@@ -34,7 +50,7 @@
   }
 
   <!-- STAP 1: Leerling -->
-  @if (step === 'leerling') {
+  @if (step === "leerling") {
     <div class="step-card">
       <h2>Wie leent uit?</h2>
 
@@ -55,8 +71,8 @@
         <p class="info-msg">Leerlingen laden...</p>
       } @else if (filteredLeerlingen.length === 0) {
         <p class="info-msg">
-          Geen leerlingen gevonden. Leerlingen verschijnen hier nadat
-          ze minstens één keer ingelogd hebben via Smartschool.
+          Geen leerlingen gevonden. Leerlingen verschijnen hier nadat ze
+          minstens één keer ingelogd hebben via Smartschool.
         </p>
       } @else {
         <ul class="leerling-list">
@@ -84,18 +100,20 @@
           (click)="confirmLeerling()"
           [disabled]="!selectedLeerling"
         >
-          Verder met {{ selectedLeerling?.username || '...' }} →
+          Verder met {{ selectedLeerling?.username || "..." }} →
         </button>
       </div>
     </div>
   }
 
   <!-- STAP 2: Boeken selecteren -->
-  @if (step === 'boeken') {
+  @if (step === "boeken") {
     <div class="step-card">
       <div class="step-card-header">
         <button class="ghost-btn" (click)="goBack()">← Terug</button>
-        <h2>Boeken voor <strong>{{ selectedLeerling?.username }}</strong></h2>
+        <h2>
+          Boeken voor <strong>{{ selectedLeerling?.username }}</strong>
+        </h2>
         <button
           class="primary-btn"
           (click)="proceedToConfirm()"
@@ -118,12 +136,19 @@
               <li class="loan-row">
                 <div class="loan-book-info">
                   @if (loan.bookCover) {
-                    <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="loan-cover" />
+                    <img
+                      [src]="loan.bookCover"
+                      [alt]="loan.bookTitel"
+                      class="loan-cover"
+                    />
                   }
                   <span class="loan-title">{{ loan.bookTitel }}</span>
                 </div>
-                <span class="loan-due" [class.overdue]="isOverdue(loan.dueDate)">
-                  tot {{ loan.dueDate | date:'dd/MM/yyyy' }}
+                <span
+                  class="loan-due"
+                  [class.overdue]="isOverdue(loan.dueDate)"
+                >
+                  tot {{ loan.dueDate | date: "dd/MM/yyyy" }}
                   @if (isOverdue(loan.dueDate)) {
                     <span class="overdue-tag">Te laat</span>
                   }
@@ -171,7 +196,10 @@
                 <span class="book-author">{{ book.auteur }}</span>
               </div>
               <div class="book-item-right">
-                <span class="copy-badge" [class.zero]="book.availableCopies === 0">
+                <span
+                  class="copy-badge"
+                  [class.zero]="book.availableCopies === 0"
+                >
                   {{ book.availableCopies }}/{{ book.totalCopies }}
                 </span>
                 @if (isSelected(book)) {
@@ -186,7 +214,7 @@
   }
 
   <!-- STAP 3: Bevestigen -->
-  @if (step === 'bevestiging') {
+  @if (step === "bevestiging") {
     <div class="step-card">
       <div class="step-card-header">
         <button class="ghost-btn" (click)="goBack()">← Terug</button>
@@ -225,7 +253,9 @@
               <span class="book-title">{{ book.titel }}</span>
               <span class="book-author">{{ book.auteur }}</span>
             </div>
-            <button class="remove-book-btn" (click)="toggleBook(book)">✕</button>
+            <button class="remove-book-btn" (click)="toggleBook(book)">
+              ✕
+            </button>
           </li>
         }
       </ul>
@@ -239,7 +269,11 @@
         (click)="loanBooks()"
         [disabled]="isLoaning || !dueDate || selectedBooks.length === 0"
       >
-        {{ isLoaning ? 'Bezig...' : '✓ Bevestig uitlening van ' + selectedBooks.length + ' boek(en)' }}
+        {{
+          isLoaning
+            ? "Bezig..."
+            : "✓ Bevestig uitlening van " + selectedBooks.length + " boek(en)"
+        }}
       </button>
     </div>
   }
