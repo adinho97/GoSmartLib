@@ -265,8 +265,6 @@
 
 .apply-filters-button:hover,
 .search-button:hover,
-.delete-button:hover,
-.edit-button:hover,
 .pagination-button.active {
   background: #60162f;
   border-color: #60162f;
@@ -588,8 +586,7 @@
   height: 34px;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  border: none;
-  background: #871f42;
+  border: 1px solid transparent;
   color: #fff;
   cursor: pointer;
   text-decoration: none;
@@ -601,9 +598,28 @@
   transition: all 0.2s ease;
 }
 
-.delete-button:hover,
+.edit-button {
+  background: #871f42;
+  border-color: #871f42;
+  color: #ffffff;
+}
+
+.delete-button {
+  background: #fff;
+  border-color: #c34762;
+  color: #a12d4c;
+}
+
 .edit-button:hover {
   background: #60162f;
+  border-color: #60162f;
+  color: #ffffff;
+}
+
+.delete-button:hover {
+  background: #fff0f4;
+  border-color: #a12d4c;
+  color: #7e1f38;
 }
 
 .score-badge {

@@ -97,7 +97,7 @@ export class BookListComponent implements OnInit {
   readonly isTeacher = this.userRole === "leerkracht";
   readonly isTeacherOrLibrarian =
     this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
-  readonly pageSize = 16;
+  readonly pageSize = 15;
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   currentPage = 1;
