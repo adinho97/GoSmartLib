@@ -136,6 +136,15 @@
   word-break: break-word;
 }
 
+.profile-role-text {
+  margin: -2px 0 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  padding-left: 0.5rem;
+  text-transform: none;
+}
+
 .profile-logout-btn {
   width: 100%;
   border: 1.5px solid #871f42;

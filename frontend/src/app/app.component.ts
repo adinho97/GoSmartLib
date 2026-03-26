@@ -58,6 +58,13 @@ export class AppComponent {
     return localStorage.getItem("userName") || "Gebruiker";
   }
 
+  get userRoleLabel(): string {
+    const role = this.userRole.toLowerCase();
+    if (role === "leerkracht") return "Leerkracht";
+    if (role === "bibbeheerder") return "Bibliotheekbeheerder";
+    return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Onbekende rol";
+  }
+
   toggleProfileMenu(event: Event): void {
     event.stopPropagation();
     this.profileMenuOpen = !this.profileMenuOpen;
