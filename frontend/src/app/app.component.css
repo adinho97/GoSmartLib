@@ -69,6 +69,16 @@
   font-weight: 600;
 }
 
+.profile-link {
+  justify-content: center;
+  min-width: 40px;
+  padding: 8px;
+}
+
+.profile-link svg {
+  display: block;
+}
+
 .app-shell.with-nav {
   min-height: calc(100vh - 64px);
 }
