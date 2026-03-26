@@ -1,27 +1,29 @@
 @if (book) {
   <div class="detail-wrapper">
     <div class="detail-card">
-      <button class="back-btn" (click)="goBack()">← Terug</button>
+      <div class="detail-top-actions">
+        <button class="back-btn" (click)="goBack()">← Terug</button>
 
-      @if (isLibrarian) {
-        <a class="edit-btn-detail" [routerLink]="['/edit', book.id]">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-            ></path>
-          </svg>
-          Aanpassen
-        </a>
-      }
+        @if (isLibrarian) {
+          <a class="edit-btn-detail" [routerLink]="['/edit', book.id]">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+              ></path>
+            </svg>
+            Aanpassen
+          </a>
+        }
+      </div>
 
       <h1 class="book-title">{{ book.titel }}</h1>
 
@@ -34,7 +36,8 @@
           </span>
         } @else {
           <span class="avail-badge available">
-            {{ copySummary.available }} / {{ copySummary.total }} exemplaren beschikbaar
+            {{ copySummary.available }} / {{ copySummary.total }} exemplaren
+            beschikbaar
           </span>
         }
       </div>
@@ -87,7 +90,11 @@
               </div>
 
               <label>Jouw score</label>
-              <div class="rating-stars" role="radiogroup" aria-label="Kies een score">
+              <div
+                class="rating-stars"
+                role="radiogroup"
+                aria-label="Kies een score"
+              >
                 @for (rating of reviewRatings; track rating) {
                   <button
                     type="button"
@@ -95,7 +102,9 @@
                     [class.active]="rating <= newReviewRating"
                     [attr.aria-label]="rating + ' ster'"
                     (click)="setReviewRating(rating)"
-                  >★</button>
+                  >
+                    ★
+                  </button>
                 }
               </div>
 
@@ -141,7 +150,9 @@
                         type="button"
                         class="delete-review-btn"
                         (click)="deleteReview(review.id)"
-                      >Verwijder review</button>
+                      >
+                        Verwijder review
+                      </button>
                     }
                   </article>
                 }
