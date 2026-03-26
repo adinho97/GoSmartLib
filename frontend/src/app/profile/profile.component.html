@@ -1,192 +1,210 @@
-<div class="profile-page">
+<div class="profile-page" [class.embedded]="embedded">
   <div class="profile-shell">
-    <header class="profile-hero">
-      <button class="back-btn" (click)="goBack()">← Terug</button>
+    @if (showHero) {
+      <header class="profile-hero">
+        @if (!embedded) {
+          <button class="back-btn" (click)="goBack()">← Terug</button>
+        }
 
-      <div class="identity-row">
-        <div class="avatar">{{ userName.charAt(0).toUpperCase() }}</div>
-        <div class="identity-text">
-          <h1>{{ userName }}</h1>
-          <p>Jouw leescentrum en persoonlijke boekinzichten</p>
-        </div>
+        <div class="identity-row">
+          <div class="avatar">{{ userName.charAt(0).toUpperCase() }}</div>
+          <div class="identity-text">
+            <h1>{{ userName }}</h1>
+            <p>Jouw leescentrum en persoonlijke boekinzichten</p>
+          </div>
 
-        <div class="identity-actions" (click)="$event.stopPropagation()">
-          <div class="settings-dropdown">
-            <button class="settings-btn" (click)="toggleSettings()">
-              Weergave-instellingen
-            </button>
-
-            <div class="dropdown-menu" [class.show]="settingsOpen">
-              <label class="setting-option">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="dashboardSettings.showFavorites"
-                />
-                Favoriete boeken tonen
-              </label>
-
-              <label class="setting-option">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="dashboardSettings.showReadingHistory"
-                />
-                Leeshistoriek tonen
-              </label>
-
-              <label class="setting-option">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="dashboardSettings.showBorrowed"
-                />
-                Geleende boeken tonen
-              </label>
-
-              <label class="setting-option">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="dashboardSettings.showHighlighted"
-                />
-                Klasleeslijst tonen
-              </label>
-
-              <label class="setting-option">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="dashboardSettings.showDeadline"
-                />
-                Deadlines tonen bij geleende boeken
-              </label>
-
-              <button class="save-btn" (click)="saveDashboardSettings()">
-                Opslaan
+          <div class="identity-actions" (click)="$event.stopPropagation()">
+            <div class="settings-dropdown">
+              <button class="settings-btn" (click)="toggleSettings()">
+                Weergave-instellingen
               </button>
+
+              <div class="dropdown-menu" [class.show]="settingsOpen">
+                <label class="setting-option">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="dashboardSettings.showFavorites"
+                  />
+                  Favoriete boeken tonen
+                </label>
+
+                <label class="setting-option">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="dashboardSettings.showReadingHistory"
+                  />
+                  Leeshistoriek tonen
+                </label>
+
+                <label class="setting-option">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="dashboardSettings.showBorrowed"
+                  />
+                  Geleende boeken tonen
+                </label>
+
+                <label class="setting-option">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="dashboardSettings.showHighlighted"
+                  />
+                  Klasleeslijst tonen
+                </label>
+
+                <label class="setting-option">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="dashboardSettings.showDeadline"
+                  />
+                  Deadlines tonen bij geleende boeken
+                </label>
+
+                <button class="save-btn" (click)="saveDashboardSettings()">
+                  Opslaan
+                </button>
+              </div>
             </div>
+
+            <div class="profile-role">{{ role }}</div>
           </div>
+        </div>
 
-          <div class="profile-role">{{ role }}</div>
-        </div>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat-card">
-          <span class="stat-label">Geleend</span>
-          <strong>{{ borrowedBooks.length }}</strong>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Favorieten</span>
-          <strong>{{ favoriteBooks.length }}</strong>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Historiek</span>
-          <strong>{{ readingHistory.length }}</strong>
-        </div>
-      </div>
-    </header>
-
-    <div class="profile-sections">
-      @if (dashboardSettings.showBorrowed) {
-        <section class="profile-section">
-          <div class="section-head">
-            <h3 class="section-title">Geleende boeken</h3>
-            <span class="section-count">{{ borrowedBooks.length }}</span>
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-label">Geleend</span>
+            <strong>{{ borrowedBooks.length }}</strong>
           </div>
-          <div class="horizontal-scroll-wrapper">
-            @for (book of borrowedBooks; track book) {
-              <article class="profile-book-card" (click)="goToDetail(book.id)">
-                @if (book.cover) {
-                  <div class="book-cover"><img [src]="book.cover" /></div>
-                } @else {
-                  <div class="cover-placeholder">Geen cover</div>
-                }
-                <div class="book-content">
-                  <h4>{{ book.title }}</h4>
-                  @if (dashboardSettings.showDeadline) {
-                    <div class="book-meta">
-                      Terugbrengen voor {{ book.deadline | date }}
-                    </div>
+          <div class="stat-card">
+            <span class="stat-label">Favorieten</span>
+            <strong>{{ favoriteBooks.length }}</strong>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Historiek</span>
+            <strong>{{ readingHistory.length }}</strong>
+          </div>
+        </div>
+      </header>
+    }
+
+    @if (showSections) {
+      <div class="profile-sections">
+        @if (dashboardSettings.showBorrowed) {
+          <section class="profile-section">
+            <div class="section-head">
+              <h3 class="section-title">Geleende boeken</h3>
+              <span class="section-count">{{ borrowedBooks.length }}</span>
+            </div>
+            <div class="horizontal-scroll-wrapper">
+              @for (book of borrowedBooks; track book) {
+                <article
+                  class="profile-book-card"
+                  (click)="goToDetail(book.id)"
+                >
+                  @if (book.cover) {
+                    <div class="book-cover"><img [src]="book.cover" /></div>
+                  } @else {
+                    <div class="cover-placeholder">Geen cover</div>
                   }
-                </div>
-              </article>
-            }
-          </div>
-        </section>
-      }
-
-      @if (dashboardSettings.showHighlighted) {
-        <section class="profile-section">
-          <div class="section-head">
-            <h3 class="section-title">Klasleeslijst</h3>
-            <span class="section-count">{{ readingList.length }}</span>
-          </div>
-          <div class="horizontal-scroll-wrapper">
-            @for (book of readingList; track book) {
-              <article class="profile-book-card" (click)="goToDetail(book.id)">
-                @if (book.cover) {
-                  <div class="book-cover"><img [src]="book.cover" /></div>
-                } @else {
-                  <div class="cover-placeholder">Geen cover</div>
-                }
-                <div class="book-content">
-                  <h4>{{ book.title }}</h4>
-                  <div class="book-meta">{{ book.author }}</div>
-                </div>
-              </article>
-            }
-          </div>
-        </section>
-      }
-
-      @if (dashboardSettings.showFavorites) {
-        <section class="profile-section">
-          <div class="section-head">
-            <h3 class="section-title">Favoriete boeken</h3>
-            <span class="section-count">{{ favoriteBooks.length }}</span>
-          </div>
-          <div class="horizontal-scroll-wrapper">
-            @for (book of favoriteBooks; track book) {
-              <article class="profile-book-card" (click)="goToDetail(book.id)">
-                @if (book.cover) {
-                  <div class="book-cover">
-                    <img [src]="book.cover" alt="{{ book.title }}" />
+                  <div class="book-content">
+                    <h4>{{ book.title }}</h4>
+                    @if (dashboardSettings.showDeadline) {
+                      <div class="book-meta">
+                        Terugbrengen voor {{ book.deadline | date }}
+                      </div>
+                    }
                   </div>
-                } @else {
-                  <div class="cover-placeholder">Geen cover</div>
-                }
-                <div class="book-content">
-                  <h4>{{ book.title }}</h4>
-                  <div class="book-meta">{{ book.author }}</div>
-                </div>
-              </article>
-            }
-          </div>
-        </section>
-      }
+                </article>
+              }
+            </div>
+          </section>
+        }
 
-      @if (dashboardSettings.showReadingHistory) {
-        <section class="profile-section">
-          <div class="section-head">
-            <h3 class="section-title">Ontleenhistoriek</h3>
-            <span class="section-count">{{ readingHistory.length }}</span>
-          </div>
-          <div class="horizontal-scroll-wrapper">
-            @for (book of readingHistory; track book) {
-              <article class="profile-book-card" (click)="goToDetail(book.id)">
-                @if (book.cover) {
-                  <div class="book-cover"><img [src]="book.cover" /></div>
-                } @else {
-                  <div class="cover-placeholder">Geen cover</div>
-                }
-                <div class="book-content">
-                  <h4>{{ book.title }}</h4>
-                  <div class="book-meta">
-                    Ontleend op {{ book.loanedDate | date }}
+        @if (dashboardSettings.showHighlighted) {
+          <section class="profile-section">
+            <div class="section-head">
+              <h3 class="section-title">Klasleeslijst</h3>
+              <span class="section-count">{{ readingList.length }}</span>
+            </div>
+            <div class="horizontal-scroll-wrapper">
+              @for (book of readingList; track book) {
+                <article
+                  class="profile-book-card"
+                  (click)="goToDetail(book.id)"
+                >
+                  @if (book.cover) {
+                    <div class="book-cover"><img [src]="book.cover" /></div>
+                  } @else {
+                    <div class="cover-placeholder">Geen cover</div>
+                  }
+                  <div class="book-content">
+                    <h4>{{ book.title }}</h4>
+                    <div class="book-meta">{{ book.author }}</div>
                   </div>
-                </div>
-              </article>
-            }
-          </div>
-        </section>
-      }
-    </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+
+        @if (dashboardSettings.showFavorites) {
+          <section class="profile-section">
+            <div class="section-head">
+              <h3 class="section-title">Favoriete boeken</h3>
+              <span class="section-count">{{ favoriteBooks.length }}</span>
+            </div>
+            <div class="horizontal-scroll-wrapper">
+              @for (book of favoriteBooks; track book) {
+                <article
+                  class="profile-book-card"
+                  (click)="goToDetail(book.id)"
+                >
+                  @if (book.cover) {
+                    <div class="book-cover">
+                      <img [src]="book.cover" alt="{{ book.title }}" />
+                    </div>
+                  } @else {
+                    <div class="cover-placeholder">Geen cover</div>
+                  }
+                  <div class="book-content">
+                    <h4>{{ book.title }}</h4>
+                    <div class="book-meta">{{ book.author }}</div>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+
+        @if (dashboardSettings.showReadingHistory) {
+          <section class="profile-section">
+            <div class="section-head">
+              <h3 class="section-title">Ontleenhistoriek</h3>
+              <span class="section-count">{{ readingHistory.length }}</span>
+            </div>
+            <div class="horizontal-scroll-wrapper">
+              @for (book of readingHistory; track book) {
+                <article
+                  class="profile-book-card"
+                  (click)="goToDetail(book.id)"
+                >
+                  @if (book.cover) {
+                    <div class="book-cover"><img [src]="book.cover" /></div>
+                  } @else {
+                    <div class="cover-placeholder">Geen cover</div>
+                  }
+                  <div class="book-content">
+                    <h4>{{ book.title }}</h4>
+                    <div class="book-meta">
+                      Ontleend op {{ book.loanedDate | date }}
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    }
   </div>
 </div>

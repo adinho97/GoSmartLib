@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, Input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { SmartschoolService } from '../services/smartschool.service';
@@ -10,6 +10,10 @@ import { SmartschoolService } from '../services/smartschool.service';
     standalone: false
 })
 export class ProfileComponent {
+
+  @Input() embedded = false;
+  @Input() showHero = true;
+  @Input() showSections = true;
 
 
   role = localStorage.getItem('role') || 'gebruiker';

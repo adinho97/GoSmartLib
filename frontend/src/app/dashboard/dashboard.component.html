@@ -5,6 +5,14 @@
   </header>
 
   <main class="container">
+    <section class="dashboard-profile-top">
+      <app-profile
+        [embedded]="true"
+        [showHero]="true"
+        [showSections]="false"
+      ></app-profile>
+    </section>
+
     <h2 class="section-title">Uitgelichte boeken</h2>
 
     @if (loading) {
@@ -93,5 +101,13 @@
         </div>
       </div>
     }
+
+    <section class="dashboard-profile-section">
+      <app-profile
+        [embedded]="true"
+        [showHero]="false"
+        [showSections]="true"
+      ></app-profile>
+    </section>
   </main>
 </div>

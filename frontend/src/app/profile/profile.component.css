@@ -5,6 +5,17 @@
   font-family: Arial, sans-serif;
 }
 
+.profile-page.embedded {
+  min-height: auto;
+  background: transparent;
+}
+
+.profile-page.embedded .profile-shell {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .profile-shell {
   max-width: 1180px;
   margin: 0 auto;
