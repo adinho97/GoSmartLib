@@ -5,6 +5,63 @@
   font-family: Arial, sans-serif;
 }
 
+.profile-page-popup {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+}
+
+.profile-popover {
+  width: min(360px, 100%);
+  background: #ffffff;
+  border: 1px solid #f0dde5;
+  border-radius: 16px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+  padding: 1rem;
+}
+
+.profile-popover-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.profile-page-popup .avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 1.3rem;
+}
+
+.profile-page-popup .identity-text h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.profile-page-popup .identity-text p {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.logout-btn {
+  width: 100%;
+  border: 1.5px solid #871f42;
+  background: #fff;
+  color: #871f42;
+  border-radius: 999px;
+  padding: 0.62rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #fff0f4;
+}
+
 .profile-page.embedded {
   min-height: auto;
   background: transparent;

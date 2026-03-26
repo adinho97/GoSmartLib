@@ -74,12 +74,6 @@ export const appRoutes: Routes = [
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
   {
-    path: "profile",
-    component: ProfileComponent,
-    canActivate: [AuthGuard],
-    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
-  },
-  {
   path: 'uitleen',
   component: LoanPageComponent,
   canActivate: [AuthGuard],

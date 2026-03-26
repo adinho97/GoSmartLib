@@ -30,28 +30,44 @@
             Didactische collectie
           </a>
         }
-        <a
-          class="profile-link"
-          routerLink="/profile"
-          routerLinkActive="active"
-          aria-label="Profiel"
-          title="Profiel"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+        <div class="profile-menu" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="profile-link"
+            aria-label="Profielmenu"
+            title="Profielmenu"
+            [class.active]="profileMenuOpen"
+            (click)="toggleProfileMenu($event)"
           >
-            <path d="M20 21a8 8 0 0 0-16 0"></path>
-            <circle cx="12" cy="8" r="4"></circle>
-          </svg>
-        </a>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20 21a8 8 0 0 0-16 0"></path>
+              <circle cx="12" cy="8" r="4"></circle>
+            </svg>
+          </button>
+
+          @if (profileMenuOpen) {
+            <div class="profile-dropdown" role="menu" aria-label="Profielmenu">
+              <p class="profile-name">{{ userName }}</p>
+              <button
+                type="button"
+                class="profile-logout-btn"
+                (click)="logout()"
+              >
+                Uitloggen
+              </button>
+            </div>
+          }
+        </div>
       </div>
     </nav>
   </header>
