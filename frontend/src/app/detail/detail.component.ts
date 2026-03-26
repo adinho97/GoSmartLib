@@ -6,7 +6,6 @@ import { BookService } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
-import { Location } from "@angular/common";
 import axios from "axios";
 
 @Component({
@@ -41,7 +40,6 @@ export class DetailComponent implements OnInit, OnDestroy {
   private routerSub!: Subscription;
 
   constructor(
-    private location: Location,
     private route: ActivatedRoute,
     private router: Router,
     private bookService: BookService,
@@ -76,7 +74,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.location.back();
+    this.router.navigate(["/books"]);
   }
 
   async loadCopySummary(bookId: number) {
