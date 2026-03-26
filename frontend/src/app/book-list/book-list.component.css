@@ -1,69 +1,58 @@
 .book-list-page {
-  padding: 2.5rem;
-  background: linear-gradient(180deg, #f8f5f6 0%, #f3ecef 100%);
-  min-height: 100vh;
-  font-family: "Inter", sans-serif;
-  color: #2c2c2c;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+  font-family: Arial, sans-serif;
+  color: #1a1a1a;
 }
 
 .school-selector-bar {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 0.6rem;
   width: fit-content;
-  padding: 0.55rem 0.7rem;
-  border-radius: 10px;
-  border: 1px solid rgba(96, 22, 47, 0.16);
-  background: #ffffff;
-  box-shadow: 0 4px 14px rgba(96, 22, 47, 0.12);
+  padding: 0.4rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid #d4c1c9;
+  background: #fff8fb;
 }
 
 .school-selector-bar label {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: #60162f;
+  color: #871f42;
   white-space: nowrap;
 }
 
 .school-selector-bar select {
   min-width: 230px;
   height: 34px;
-  border: 1px solid rgba(96, 22, 47, 0.24);
-  border-radius: 8px;
+  border: 1px solid #d4c1c9;
+  border-radius: 999px;
   padding: 0 0.55rem;
   background: #fff;
-  color: #2c2c2c;
+  color: #4f1a2e;
   font-size: 0.88rem;
 }
 
 .book-list-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1.3rem 1.5rem;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #fff7fa 0%, #f6edf1 100%);
-  border: 1px solid rgba(96, 22, 47, 0.1);
+  margin-bottom: 1rem;
 }
 
 .book-list-page h1 {
-  font-family: "Georgia", "Times New Roman", serif;
-  font-size: 2.75rem;
+  font-size: 2rem;
   margin: 0;
-  color: #60162f;
-  letter-spacing: 0.8px;
-  line-height: 1.1;
-  text-shadow: 0 2px 8px rgba(96, 22, 47, 0.12);
+  color: #1a1a1a;
 }
 
 .header-text p {
-  margin: 0.4rem 0 0;
-  color: #6f4b58;
-  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  color: #5a6472;
 }
 
 .header-actions {
@@ -119,17 +108,16 @@
 .book-list-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: 1.4rem;
+  gap: 1rem;
   align-items: flex-start;
   width: 100%;
 }
 
 .filters-sidebar {
   flex: 0 0 280px;
-  background: #fff;
-  border: 1px solid rgba(96, 22, 47, 0.12);
-  border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(96, 22, 47, 0.08);
+  background: #fff8fb;
+  border: 1px solid #d4c1c9;
+  border-radius: 12px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -140,24 +128,24 @@
 
 .filters-sidebar h2 {
   margin: 0 0 0.25rem;
-  color: #60162f;
-  font-size: 1.2rem;
+  color: #1a1a1a;
+  font-size: 1.15rem;
 }
 
 .filters-sidebar label {
   font-size: 0.85rem;
-  color: #5a3a45;
+  color: #5a6472;
   font-weight: 600;
 }
 
 .filters-sidebar select,
 .filters-sidebar input[type="date"] {
   height: 36px;
-  border: 1px solid rgba(96, 22, 47, 0.22);
-  border-radius: 8px;
+  border: 1px solid #d4c1c9;
+  border-radius: 10px;
   padding: 0 0.55rem;
   font-size: 0.9rem;
-  background: #fff;
+  background: #ffffff;
 }
 
 .page-slider-group {
@@ -175,7 +163,7 @@
 
 .single-page-slider label {
   font-size: 0.8rem;
-  color: #6d4a56;
+  color: #5a6472;
 }
 
 .single-page-slider input[type="range"] {
@@ -194,8 +182,8 @@
     to right,
     #871f42 0%,
     #871f42 var(--slider-fill-end),
-    #e6d6dc var(--slider-fill-end),
-    #e6d6dc 100%
+    #f0dce5 var(--slider-fill-end),
+    #f0dce5 100%
   );
 }
 
@@ -206,16 +194,16 @@
     to right,
     #871f42 0%,
     #871f42 var(--slider-fill-end),
-    #e6d6dc var(--slider-fill-end),
-    #e6d6dc 100%
+    #f0dce5 var(--slider-fill-end),
+    #f0dce5 100%
   );
 }
 
 .single-page-slider input.max-pages-slider::-webkit-slider-runnable-track {
   background: linear-gradient(
     to right,
-    #e6d6dc 0%,
-    #e6d6dc var(--slider-fill-start),
+    #f0dce5 0%,
+    #f0dce5 var(--slider-fill-start),
     #871f42 var(--slider-fill-start),
     #871f42 100%
   );
@@ -224,8 +212,8 @@
 .single-page-slider input.max-pages-slider::-moz-range-track {
   background: linear-gradient(
     to right,
-    #e6d6dc 0%,
-    #e6d6dc var(--slider-fill-start),
+    #f0dce5 0%,
+    #f0dce5 var(--slider-fill-start),
     #871f42 var(--slider-fill-start),
     #871f42 100%
   );
@@ -233,20 +221,20 @@
 
 .single-page-slider input[type="range"]::-webkit-slider-thumb {
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  border: 2px solid #60162f;
+  border: 2px solid #871f42;
   background: #fff;
-  margin-top: -6px;
+  margin-top: -5px;
   cursor: pointer;
 }
 
 .single-page-slider input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  border: 2px solid #60162f;
+  border: 2px solid #871f42;
   background: #fff;
   cursor: pointer;
 }
@@ -254,23 +242,41 @@
 .apply-filters-button {
   margin-top: 0.6rem;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid #871f42;
   background: #871f42;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .reset-filters-button {
   margin-top: 0.4rem;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid #871f42;
-  background: transparent;
+  background: #fff8fb;
   color: #871f42;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apply-filters-button:hover,
+.search-button:hover,
+.delete-button:hover,
+.edit-button:hover,
+.pagination-button.active {
+  background: #60162f;
+  border-color: #60162f;
+  color: #ffffff;
+}
+
+.reset-filters-button:hover,
+.pagination-button:hover {
+  background: #fdf0f5;
+  border-color: #c8859d;
 }
 
 .books-content {
@@ -293,8 +299,8 @@
 .search-bar-wrapper input {
   flex: 1;
   height: 38px;
-  border: 1px solid rgba(96, 22, 47, 0.22);
-  border-radius: 8px;
+  border: 1px solid #d4c1c9;
+  border-radius: 10px;
   padding: 0 0.65rem;
   background: #fff;
 }
@@ -302,12 +308,13 @@
 .search-button {
   height: 38px;
   padding: 0 0.95rem;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid #871f42;
   background: #871f42;
   color: #fff;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .books-grid {
@@ -319,10 +326,10 @@
 
 .book-card {
   background: #ffffff;
-  border-radius: 18px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(96, 22, 47, 0.08);
-  box-shadow: 0 5px 14px rgba(96, 22, 47, 0.08);
+  border: 1px solid #e8d8de;
+  box-shadow: 0 4px 10px rgba(96, 22, 47, 0.06);
   transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
@@ -332,8 +339,8 @@
 }
 
 .book-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 22px rgba(96, 22, 47, 0.14);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(96, 22, 47, 0.12);
 }
 
 .book-card.didactic-card {
@@ -543,16 +550,14 @@
 }
 
 .book-content h2 {
-  font-family: "Georgia", serif;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   margin: 0;
-  color: #60162f;
+  color: #1a1a1a;
   min-height: 3rem;
 }
 
 .book-author {
   color: #871f42;
-  font-style: italic;
   margin: 0;
   min-height: 1.35rem;
 }
@@ -582,7 +587,7 @@
   width: 100%;
   height: 34px;
   padding: 0.4rem 0.8rem;
-  border-radius: 8px;
+  border-radius: 999px;
   border: none;
   background: #871f42;
   color: #fff;
@@ -593,13 +598,12 @@
   line-height: 1;
   font-family: inherit;
   margin: 0;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
 }
 
 .delete-button:hover,
 .edit-button:hover {
   background: #60162f;
-  opacity: 0.9;
 }
 
 .score-badge {
@@ -619,12 +623,13 @@
 .pagination-button {
   min-width: 38px;
   height: 38px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid #871f42;
-  background: #fff;
+  background: #fff8fb;
   color: #871f42;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .pagination-button.active {
@@ -650,7 +655,8 @@
   }
 
   .book-list-header {
-    padding: 1rem;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .book-list-layout {
@@ -658,7 +664,6 @@
   }
 
   .school-selector-bar {
-    position: static;
     margin: 0 0 1rem;
     width: 100%;
     justify-content: space-between;
