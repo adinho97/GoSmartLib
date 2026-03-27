@@ -19,6 +19,9 @@ public class AppUser {
     @Column(nullable = false)
     private String username; // Smartschool username (bv. petersp)
 
+    @Column
+    private String smartschoolRefreshToken;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getSub() { return sub; }
@@ -27,4 +30,6 @@ public class AppUser {
     public void setRole(String role) { this.role = role; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+    public String getSmartschoolRefreshToken() { return smartschoolRefreshToken; }
+    public void setSmartschoolRefreshToken(String smartschoolRefreshToken) { this.smartschoolRefreshToken = smartschoolRefreshToken; }
 }
