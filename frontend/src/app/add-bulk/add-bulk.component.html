@@ -35,8 +35,9 @@
     </div>
 
     <p class="hint">
-      Ondersteund: CSV, XLS, XLSX. Duplicaten in hetzelfde bestand worden
-      automatisch overgeslagen.
+      Ondersteund: CSV, XLS, XLSX. Zorg dat je bestand minimaal een kolom heeft
+      met het ISBN. Optioneel kun je een kolom 'Aantal' toevoegen. Duplicaten in
+      hetzelfde bestand worden automatisch overgeslagen.
     </p>
 
     @if (errorMessage) {
@@ -52,14 +53,6 @@
         <div class="summary-item">
           <span class="label">Rijen</span>
           <span class="value">{{ result.totalRows }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="label">Uniek verwerkt</span>
-          <span class="value">{{ result.uniqueIsbnsProcessed }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="label">Duplicaten overgeslagen</span>
-          <span class="value">{{ result.duplicateRowsSkipped }}</span>
         </div>
         <div class="summary-item success">
           <span class="label">Toegevoegd</span>
