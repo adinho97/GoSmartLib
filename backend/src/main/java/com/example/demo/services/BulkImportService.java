@@ -82,7 +82,7 @@ public class BulkImportService {
 
                 String[] columns = splitColumns(trimmedLine);
                 String rawFirstColumn = columns[0].trim();
-                
+
                 if (lineNumber == 1 && rawFirstColumn.equalsIgnoreCase("isbn")) {
                     continue;
                 }
@@ -264,11 +264,11 @@ public class BulkImportService {
         String isbn = normalizedIsbn.get();
         boolean isDuplicate = isbnQuantityPairs.stream()
                 .anyMatch(p -> p.isbn().equals(isbn));
-        
+
         if (isDuplicate) {
             return RowProcessResult.DUPLICATE;
         }
-        
+
         isbnQuantityPairs.add(new IsbnQuantityPair(isbn, quantity));
         return RowProcessResult.ADDED;
     }
