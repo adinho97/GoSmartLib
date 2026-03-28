@@ -32,6 +32,11 @@
       <button (click)="uploadFile()" [disabled]="isUploading || !selectedFile">
         {{ isUploading ? "Verwerken..." : "Upload en verwerk" }}
       </button>
+      <div class="actions-row">
+        <button class="secondary" (click)="downloadImportTemplate()">
+          Download sjabloon
+        </button>
+      </div>
     </div>
 
     <p class="hint">

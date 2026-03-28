@@ -7,6 +7,7 @@ import {
 } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: "app-add-bulk",
@@ -218,5 +219,20 @@ export class AddBulkComponent {
     const escaped = value.replace(/"/g, '""');
     return `"${escaped}"`;
   }
+
+  downloadImportTemplate(): void {
+  const headers = [['ISBN', 'Aantal']];
+
+  const worksheet = XLSX.utils.aoa_to_sheet(headers);
+  worksheet['!cols'] = [
+    { wch: 20 }, 
+    { wch: 10 }, 
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
+
+  XLSX.writeFile(workbook, 'isbn-import-template.xlsx');
+}
 
 }
