@@ -16,11 +16,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class BulkImportService {
@@ -31,6 +29,9 @@ public class BulkImportService {
 
     public BulkImportService(IsbnService isbnService) {
         this.isbnService = isbnService;
+    }
+
+    public record IsbnQuantityPair(String isbn, int quantity) {
     }
 
     public ParsedBulkIsbn parseAndValidate(MultipartFile file) {
@@ -62,7 +63,7 @@ public class BulkImportService {
     }
 
     private ParsedBulkIsbn parseCsvIsbns(MultipartFile file) {
-        Set<String> uniqueIsbns = new LinkedHashSet<>();
+        List<IsbnQuantityPair> isbnQuantityPairs = new ArrayList<>();
         List<ImportResultDto.RowResult> invalidRows = new ArrayList<>();
         int totalRows = 0;
         int duplicateRowsSkipped = 0;
@@ -79,16 +80,41 @@ public class BulkImportService {
                     continue;
                 }
 
-                String rawFirstColumn = splitFirstColumn(trimmedLine).trim();
+                String[] columns = splitColumns(trimmedLine);
+                String rawFirstColumn = columns[0].trim();
+                
                 if (lineNumber == 1 && rawFirstColumn.equalsIgnoreCase("isbn")) {
                     continue;
                 }
 
                 totalRows++;
+                int quantity = 1;
+                if (columns.length > 1 && !columns[1].trim().isEmpty()) {
+                    try {
+                        quantity = Integer.parseInt(columns[1].trim());
+                        if (quantity <= 0) {
+                            invalidRows.add(new ImportResultDto.RowResult(
+                                    rawFirstColumn,
+                                    ImportResultDto.Status.INVALID_ISBN,
+                                    "Hoeveelheid moet groter dan 0 zijn",
+                                    null));
+                            continue;
+                        }
+                    } catch (NumberFormatException e) {
+                        invalidRows.add(new ImportResultDto.RowResult(
+                                rawFirstColumn,
+                                ImportResultDto.Status.INVALID_ISBN,
+                                "Ongeldig getal in hoeveelheid kolom",
+                                null));
+                        continue;
+                    }
+                }
+
                 RowProcessResult rowResult = processParsedIsbnValue(
                         rawFirstColumn,
                         lineNumber,
-                        uniqueIsbns,
+                        quantity,
+                        isbnQuantityPairs,
                         invalidRows,
                         true);
                 if (rowResult == RowProcessResult.DUPLICATE) {
@@ -99,11 +125,11 @@ public class BulkImportService {
             throw new IllegalArgumentException("Failed to read CSV file", e);
         }
 
-        return new ParsedBulkIsbn(new ArrayList<>(uniqueIsbns), invalidRows, totalRows, duplicateRowsSkipped);
+        return new ParsedBulkIsbn(isbnQuantityPairs, invalidRows, totalRows, duplicateRowsSkipped);
     }
 
     private ParsedBulkIsbn parseExcelIsbns(MultipartFile file) {
-        Set<String> uniqueIsbns = new LinkedHashSet<>();
+        List<IsbnQuantityPair> isbnQuantityPairs = new ArrayList<>();
         List<ImportResultDto.RowResult> invalidRows = new ArrayList<>();
         int totalRows = 0;
         int duplicateRowsSkipped = 0;
@@ -133,10 +159,37 @@ public class BulkImportService {
                 }
 
                 totalRows++;
+                int quantity = 1;
+                Cell quantityCell = row.getCell(1);
+                if (quantityCell != null) {
+                    String quantityStr = formatter.formatCellValue(quantityCell).trim();
+                    if (!quantityStr.isEmpty()) {
+                        try {
+                            quantity = Integer.parseInt(quantityStr);
+                            if (quantity <= 0) {
+                                invalidRows.add(new ImportResultDto.RowResult(
+                                        rawFirstColumn,
+                                        ImportResultDto.Status.INVALID_ISBN,
+                                        "Hoeveelheid moet groter dan 0 zijn",
+                                        null));
+                                continue;
+                            }
+                        } catch (NumberFormatException e) {
+                            invalidRows.add(new ImportResultDto.RowResult(
+                                    rawFirstColumn,
+                                    ImportResultDto.Status.INVALID_ISBN,
+                                    "Ongeldig getal in hoeveelheid kolom",
+                                    null));
+                            continue;
+                        }
+                    }
+                }
+
                 RowProcessResult rowResult = processParsedIsbnValue(
                         rawFirstColumn,
                         lineNumber,
-                        uniqueIsbns,
+                        quantity,
+                        isbnQuantityPairs,
                         invalidRows,
                         false);
                 if (rowResult == RowProcessResult.DUPLICATE) {
@@ -149,13 +202,14 @@ public class BulkImportService {
             throw new IllegalArgumentException("Failed to read Excel file", ex);
         }
 
-        return new ParsedBulkIsbn(new ArrayList<>(uniqueIsbns), invalidRows, totalRows, duplicateRowsSkipped);
+        return new ParsedBulkIsbn(isbnQuantityPairs, invalidRows, totalRows, duplicateRowsSkipped);
     }
 
-    private String splitFirstColumn(String line) {
+    private String[] splitColumns(String line) {
         int comma = line.indexOf(',');
         int semicolon = line.indexOf(';');
         int tab = line.indexOf('\t');
+        int space = line.indexOf(' ');
 
         int splitAt = Integer.MAX_VALUE;
         if (comma >= 0) {
@@ -167,17 +221,23 @@ public class BulkImportService {
         if (tab >= 0) {
             splitAt = Math.min(splitAt, tab);
         }
+        if (space >= 0) {
+            splitAt = Math.min(splitAt, space);
+        }
 
         if (splitAt == Integer.MAX_VALUE) {
-            return line;
+            return new String[] { line };
         }
-        return line.substring(0, splitAt);
+        String firstColumn = line.substring(0, splitAt);
+        String rest = line.substring(splitAt + 1);
+        return new String[] { firstColumn, rest };
     }
 
     private RowProcessResult processParsedIsbnValue(
             String rawFirstColumn,
             int lineNumber,
-            Set<String> uniqueIsbns,
+            int quantity,
+            List<IsbnQuantityPair> isbnQuantityPairs,
             List<ImportResultDto.RowResult> invalidRows,
             boolean treatEmptyAsInvalid) {
         if (rawFirstColumn.isEmpty()) {
@@ -201,12 +261,20 @@ public class BulkImportService {
             return RowProcessResult.INVALID;
         }
 
-        boolean added = uniqueIsbns.add(normalizedIsbn.get());
-        return added ? RowProcessResult.ADDED : RowProcessResult.DUPLICATE;
+        String isbn = normalizedIsbn.get();
+        boolean isDuplicate = isbnQuantityPairs.stream()
+                .anyMatch(p -> p.isbn().equals(isbn));
+        
+        if (isDuplicate) {
+            return RowProcessResult.DUPLICATE;
+        }
+        
+        isbnQuantityPairs.add(new IsbnQuantityPair(isbn, quantity));
+        return RowProcessResult.ADDED;
     }
 
     public record ParsedBulkIsbn(
-            List<String> uniqueIsbns,
+            List<IsbnQuantityPair> isbnQuantityPairs,
             List<ImportResultDto.RowResult> invalidRows,
             int totalRows,
             int duplicateRowsSkipped) {
