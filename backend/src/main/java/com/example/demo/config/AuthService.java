@@ -88,7 +88,7 @@ public class AuthService {
         private AuthLoginResponse saveUserAndBuildResponse(SmartschoolUserInfo userInfo) {
                 String sub = userInfo.getSub();
                 String role = userInfo.getRole();
-                String username = userInfo.getName();
+                String displayName = userInfo.getName(); // Renamed to clarify it's for display only
 
                 AppUser user = appUserRepository.findBySub(sub).orElseGet(() -> {
                         AppUser newUser = new AppUser();
@@ -105,7 +105,7 @@ public class AuthService {
                 AuthLoginResponse response = new AuthLoginResponse(
                                 sub,
                                 role,
-                                username,
+                                displayName,
                                 userInfo.getGivenName(),
                                 userInfo.getFamilyName());
                 response.setAccessToken(userInfo.getAccessToken());
