@@ -32,6 +32,19 @@ public class AuthService {
                 this.objectMapper = objectMapper;
         }
 
+        public Mono<SmartschoolUserInfo> getUserInfoBySub(String sub) {
+                return Mono.justOrEmpty(appUserRepository.findBySub(sub))
+                                .switchIfEmpty(Mono.error(new RuntimeException("User not found for sub: " + sub)))
+                                .flatMap(user -> {
+                                        if (user.getSmartschoolRefreshToken() == null) {
+                                                return Mono.error(new RuntimeException(
+                                                                "No refresh token available for user: " + sub));
+                                        }
+                                        return refreshAccessToken(user.getSmartschoolRefreshToken());
+                                })
+                                .flatMap(this::getUserInfo);
+        }
+
         public Mono<AuthLoginResponse> processSmartschoolCallback(String code) {
                 return getAccessToken(code)
                                 .flatMap(this::getUserInfo)
