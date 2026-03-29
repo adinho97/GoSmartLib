@@ -87,11 +87,27 @@ public class BookService {
             try {
                 ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(isbn, school);
                 if (outcome.status() == ImportCoreService.ImportStatus.ALREADY_EXISTS) {
-                    rows.add(new ImportResultDto.RowResult(
-                            isbn,
-                            ImportResultDto.Status.ALREADY_EXISTS,
-                            "Boek bestaat al in de bibliotheek.",
-                            outcome.bookDto() != null ? outcome.bookDto().getId() : null));
+                    // Book already exists, so just add the copies
+                    Book book = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId()).orElse(null);
+                    if (book != null) {
+                        for (int i = 0; i < quantity; i++) {
+                            BookCopy copy = new BookCopy();
+                            copy.setBook(book);
+                            copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
+                            bookCopyRepository.save(copy);
+                        }
+                        rows.add(new ImportResultDto.RowResult(
+                                isbn,
+                                ImportResultDto.Status.ADDED,
+                                "Boek al in bibliotheek - " + quantity + " exemplaren toegevoegd.",
+                                outcome.bookDto() != null ? outcome.bookDto().getId() : null));
+                    } else {
+                        rows.add(new ImportResultDto.RowResult(
+                                isbn,
+                                ImportResultDto.Status.ERROR,
+                                "Boek bestaat maar kon niet worden gevonden.",
+                                null));
+                    }
                     continue;
                 }
 
