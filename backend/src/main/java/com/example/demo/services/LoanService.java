@@ -61,12 +61,12 @@ public class LoanService {
     }
 
     public List<LoanDto> getActiveLoansForUser(String username) {
-        return loanRepo.findByUsernameAndReturnedAtIsNull(username)
+        return loanRepo.findByUserSubAndReturnedAtIsNull(username)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     public List<LoanDto> getLoanHistoryForUser(String username) {
-        return loanRepo.findByUsernameAndReturnedAtIsNotNull(username)
+        return loanRepo.findByUserSubAndReturnedAtIsNotNull(username)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 

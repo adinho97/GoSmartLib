@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
     List<Loan> findByDueDateAndReturnedAtIsNull(LocalDate dueDate);
-    List<Loan> findByUsernameAndReturnedAtIsNull(String username);
-    List<Loan> findByUsernameAndReturnedAtIsNotNull(String username);
+    List<Loan> findByUserSubAndReturnedAtIsNull(String userSub);
+    List<Loan> findByUserSubAndReturnedAtIsNotNull(String userSub);
     List<Loan> findByCopy_Book_IdAndReturnedAtIsNull(Long bookId);
     Optional<Loan> findByCopy_IdAndReturnedAtIsNull(Long copyId);
     void deleteByCopy_Id(Long copyId);
