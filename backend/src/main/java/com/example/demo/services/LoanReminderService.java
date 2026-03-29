@@ -50,14 +50,14 @@ public class LoanReminderService {
                 .flatMap(loan -> {
                     if (loan.getUserSub() == null)
                         return Flux.empty();
-                    return Flux.fromIterable(appUserRepository.findBySub(loan.getUserSub()).stream())
+                    return Flux.fromIterable(appUserRepository.findBySub(loan.getUserSub()).map(List::of).orElse(List.of()))
                             .flatMap(user -> sendReminderToUser(user, loan));
                 })
                 .doOnComplete(() -> logger.info("Finished processing reminders."))
                 .subscribe();
     }
 
-    private Flux<Object> sendReminderToUser(AppUser user, Loan loan) {
+    private Flux<String> sendReminderToUser(AppUser user, Loan loan) {
         if (user.getSmartschoolRefreshToken() == null || loan.getCopy() == null || loan.getCopy().getBook() == null) {
             logger.warn("User {} has no refresh token. Cannot send automated reminder.", user.getSub());
             return Flux.empty();
