@@ -504,6 +504,7 @@
   max-height: 90vh;
   overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
+  overflow-x: hidden;
 }
 
 @keyframes modalSlideIn {

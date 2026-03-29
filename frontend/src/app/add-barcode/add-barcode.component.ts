@@ -424,7 +424,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
           isbn: barcode,
           titre: this.pendingScannedBook.book?.titel || 'Onbekend',
           status: 'ADDED',
-          message: `${isAlreadyInLibrary ? 'Gescand en' : 'Toegevoegd met'} ${this.pendingCopiesCount} exemplaar(en)`,
+          message: `${isAlreadyInLibrary ? 'Gescand en' : 'Toegevoegd met'} ${this.pendingCopiesCount} exemplaar(en). Totaal in bibliotheek: ${totalCopies} exemplaar(en)`,
           copiesTotalCount: totalCopies,
           copiesAdded: this.pendingCopiesCount,
           timestamp: new Date(),
