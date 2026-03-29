@@ -200,4 +200,80 @@
       <p class="no-results">Nog geen boeken gescand</p>
     }
   </div>
+
+  <!-- Barcode Modal -->
+  @if (showBarcodeModal && pendingScannedBook) {
+    <div class="modal-overlay" (click)="cancelBarcodeAdd()">
+      <div class="barcode-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Boek Details</h2>
+          <button class="modal-close-btn" (click)="cancelBarcodeAdd()">
+            ✕
+          </button>
+        </div>
+
+        <div class="modal-content">
+          <div class="book-card">
+            @if (pendingScannedBook.book?.cover) {
+              <img
+                [src]="pendingScannedBook.book.cover"
+                alt="Cover"
+                class="book-cover"
+              />
+            }
+            <div class="book-info">
+              <h3>{{ pendingScannedBook.book?.titel || "Onbekend boek" }}</h3>
+              <p>
+                <strong>Auteur:</strong>
+                {{ pendingScannedBook.book?.auteur || "N/A" }}
+              </p>
+              <p><strong>ISBN:</strong> {{ pendingScannedBook.isbn }}</p>
+
+              @if (pendingScannedBook.isAlreadyInLibrary) {
+                <p class="library-status">
+                  Reeds in de bibliotheek:
+                  {{ pendingScannedBook.copiesTotalCount }} exemplaren
+                </p>
+              } @else {
+                <p class="new-book-status">
+                  Nieuw boek - nog niet in bibliotheek
+                </p>
+              }
+            </div>
+          </div>
+
+          <div class="modal-copies-section">
+            <label for="barcodeCopiesTotalCount"
+              >Aantal exemplaren toe te voegen:</label
+            >
+            <input
+              id="barcodeCopiesTotalCount"
+              type="number"
+              min="1"
+              max="99"
+              [(ngModel)]="pendingCopiesCount"
+              class="copies-input"
+            />
+          </div>
+
+          <div class="modal-actions">
+            <button
+              class="btn-cancel"
+              (click)="cancelBarcodeAdd()"
+              [disabled]="isConfirmingBarcode"
+            >
+              Annuleren
+            </button>
+            <button
+              class="btn-confirm"
+              (click)="confirmBarcodeAdd()"
+              [disabled]="isConfirmingBarcode || pendingCopiesCount < 1"
+            >
+              {{ isConfirmingBarcode ? "Toevoegen..." : "Toevoegen" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>

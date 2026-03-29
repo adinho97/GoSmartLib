@@ -97,7 +97,11 @@
                   (click)="addCopiesToExisting()"
                   [disabled]="isLoading || isImporting || aantalExemplaren < 1"
                 >
-                  {{ isImporting ? "Toevoegen..." : "Voeg " + aantalExemplaren + " exemplaar(en) toe" }}
+                  {{
+                    isImporting
+                      ? "Toevoegen..."
+                      : "Voeg " + aantalExemplaren + " exemplaar(en) toe"
+                  }}
                 </button>
               } @else {
                 <button
@@ -105,7 +109,9 @@
                   (click)="addToLibrary()"
                   [disabled]="isLoading || isImporting || aantalExemplaren < 1"
                 >
-                  {{ isImporting ? "Toevoegen..." : "Voeg toe aan bibliotheek" }}
+                  {{
+                    isImporting ? "Toevoegen..." : "Voeg toe aan bibliotheek"
+                  }}
                 </button>
               }
             }

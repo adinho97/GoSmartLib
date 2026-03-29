@@ -5,6 +5,7 @@ import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { BarcodeService } from '../services/barcode.service';
 import { BookService } from '../services/book.service';
 import { SchoolService } from '../services/school.service';
+import { LoanService } from '../services/loan.service';
 import { School } from '../models/school';
 
 export interface ScannedBookResult {
@@ -12,7 +13,16 @@ export interface ScannedBookResult {
   titre: string;
   status: 'ADDED' | 'ALREADY_EXISTS' | 'NOT_FOUND' | 'ERROR';
   message: string;
+  copiesTotalCount?: number;
+  copiesAdded?: number;
   timestamp: Date;
+}
+
+export interface PendingBarcodeBook {
+  isbn: string;
+  book: any;
+  isAlreadyInLibrary: boolean;
+  copiesTotalCount: number;
 }
 
 @Component({
@@ -37,6 +47,12 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   cameraErrorMessage = '';
   errorMessage = '';
   successMessage = '';
+  
+  // Modal state
+  showBarcodeModal = false;
+  pendingScannedBook: PendingBarcodeBook | null = null;
+  pendingCopiesCount: number = 1;
+  isConfirmingBarcode = false;
 
   readonly statusColors: Record<string, string> = {
     ADDED: '#4caf50',
@@ -62,6 +78,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     private barcodeService: BarcodeService,
     private bookService: BookService,
     private schoolService: SchoolService,
+    private loanService: LoanService,
   ) {}
 
   async ngOnInit() {
@@ -309,40 +326,31 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     try {
-      const book = await this.bookService.fetchBookByIsbn(barcode);
-
-      const alreadyExists = await this.bookService.isBookInLibrary(
+      // Fetch book from database first (library), then from OpenLibrary if not found
+      let libraryBook = await this.bookService.getBookByIsbnFromLibrary(
         barcode,
         this.selectedSchoolId ?? undefined,
       );
 
-      if (alreadyExists) {
-        this.scannedBooks.unshift({
-          isbn: barcode,
-          titre: book?.titel || 'Onbekend',
-          status: 'ALREADY_EXISTS',
-          message: 'Reeds in bibliotheek',
-          timestamp: new Date(),
-        });
-        this.resetToFirstScannedBooksPage();
-        return;
+      let book = libraryBook || (await this.bookService.fetchBookByIsbn(barcode));
+      const isAlreadyInLibrary = libraryBook !== null;
+
+      // Get copy count if book exists in library
+      let copiesTotalCount = 0;
+      if (isAlreadyInLibrary && libraryBook?.id) {
+        const summary = await this.loanService.getCopySummary(libraryBook.id);
+        copiesTotalCount = summary.total;
       }
 
-      const savedBook = await this.bookService.importBookByIsbn(
-        barcode,
-        this.selectedSchoolId ?? undefined,
-      );
-
-      this.scannedBooks.unshift({
+      // Show modal instead of immediately adding
+      this.pendingScannedBook = {
         isbn: barcode,
-        titre: savedBook?.titel || book?.titel || 'Onbekend',
-        status: 'ADDED',
-        message: 'Toegevoegd aan bibliotheek',
-        timestamp: new Date(),
-      });
-      this.resetToFirstScannedBooksPage();
-
-      this.successMessage = `✓ ${savedBook?.titel || 'Boek'} toegevoegd`;
+        book: book,
+        isAlreadyInLibrary: isAlreadyInLibrary,
+        copiesTotalCount: copiesTotalCount,
+      };
+      this.pendingCopiesCount = 1;
+      this.showBarcodeModal = true;
     } catch (err: any) {
       let status: ScannedBookResult['status'] = 'ERROR';
       let message = 'Er ging iets mis';
@@ -372,12 +380,85 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     }
   }
 
+  async confirmBarcodeAdd() {
+    if (!this.pendingScannedBook || this.isConfirmingBarcode) return;
+    if (this.pendingCopiesCount < 1) {
+      this.errorMessage = 'Voer een geldig aantal exemplaren in.';
+      return;
+    }
+
+    this.isConfirmingBarcode = true;
+    this.errorMessage = '';
+
+    try {
+      const barcode = this.pendingScannedBook.isbn;
+      const isAlreadyInLibrary = this.pendingScannedBook.isAlreadyInLibrary;
+
+      let bookId: number | null = null;
+
+      if (isAlreadyInLibrary) {
+        // Book already exists, just add copies
+        bookId = this.pendingScannedBook.book?.id;
+      } else {
+        // Import new book first, then add copies
+        const savedBook = await this.bookService.importBookByIsbn(
+          barcode,
+          this.selectedSchoolId ?? undefined,
+        );
+        bookId = savedBook?.id;
+      }
+
+      if (bookId) {
+        // Add copies
+        const promises = Array.from({ length: this.pendingCopiesCount }, () =>
+          this.loanService.addCopy(bookId),
+        );
+        await Promise.all(promises);
+
+        // Get updated copy count
+        const summary = await this.loanService.getCopySummary(bookId);
+        const totalCopies = summary.total;
+
+        // Add result to list
+        this.scannedBooks.unshift({
+          isbn: barcode,
+          titre: this.pendingScannedBook.book?.titel || 'Onbekend',
+          status: 'ADDED',
+          message: `${isAlreadyInLibrary ? 'Gescand en' : 'Toegevoegd met'} ${this.pendingCopiesCount} exemplaar(en)`,
+          copiesTotalCount: totalCopies,
+          copiesAdded: this.pendingCopiesCount,
+          timestamp: new Date(),
+        });
+        this.resetToFirstScannedBooksPage();
+
+        this.successMessage = `✓ ${this.pendingScannedBook.book?.titel || 'Boek'} verwerkt`;
+      }
+
+      this.closeBarcodeModal();
+    } catch (err: any) {
+      this.errorMessage = 'Er ging iets mis bij het verwerken van het boek.';
+    } finally {
+      this.isConfirmingBarcode = false;
+    }
+  }
+
+  cancelBarcodeAdd() {
+    this.closeBarcodeModal();
+  }
+
+  private closeBarcodeModal() {
+    this.showBarcodeModal = false;
+    this.pendingScannedBook = null;
+    this.pendingCopiesCount = 1;
+  }
+
   clearSession() {
     this.scannedBooks = [];
     this.currentScannedBooksPage = 1;
     this.lastScannedIsbn = '';
     this.errorMessage = '';
     this.successMessage = '';
+    this.closeBarcodeModal();
     this.deactivateScanMode();
     this.deactivateCameraMode();
   }
