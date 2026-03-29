@@ -45,6 +45,20 @@ public class AuthService {
                                 .onErrorResume(error -> Mono.empty()); // Continue even if revocation fails
         }
 
+        public Mono<Boolean> validateToken(String accessToken) {
+                return this.webClient.get()
+                                .uri(smartschoolProperties.getApiBaseUrl() + "/Api/V1/userinfo")
+                                .headers(headers -> headers.setBearerAuth(accessToken))
+                                .retrieve()
+                                .toBodilessEntity()
+                                .then(Mono.just(true))
+                                .doOnSuccess(v -> logger.info("Token validation successful"))
+                                .onErrorResume(error -> {
+                                        logger.debug("Token validation failed: {}", error.getMessage());
+                                        return Mono.just(false);
+                                });
+        }
+
         private Mono<Void> revokeSmartschoolToken(String accessToken) {
                 String revokeUrl = smartschoolProperties.getApiBaseUrl() + "/Api/V1/revoke";
                 logger.info("Revoking access token at: {}", revokeUrl);

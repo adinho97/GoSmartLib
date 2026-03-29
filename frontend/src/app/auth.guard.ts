@@ -58,18 +58,18 @@ export class AuthGuard implements CanActivate {
   }
 
   private validateTokenWithServer(accessToken: string): Observable<boolean> {
-    // Use the userinfo endpoint to validate the token
-    // If token is invalid/expired, the server will return 401
-    return this.http.get(
-      "/api/V1/userinfo",
+    // Use the backend token validation endpoint
+    // If token is invalid/expired, the server will return false
+    return this.http.get<boolean>(
+      "/api/auth/validate-token",
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       }
     ).pipe(
-      map(() => true), // Token is valid
-      catchError(() => of(false)), // Token is invalid
+      map((isValid) => isValid), // Token is valid if response is true
+      catchError(() => of(false)), // Token is invalid if request fails
     );
   }
 

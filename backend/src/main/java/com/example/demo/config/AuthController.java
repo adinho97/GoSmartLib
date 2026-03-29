@@ -27,4 +27,15 @@ public class AuthController {
         return authService.logout(logoutRequest.getAccessToken())
                 .then(Mono.just(ResponseEntity.ok().<Void>build()));
     }
+
+    @GetMapping("/validate-token")
+    public Mono<ResponseEntity<Boolean>> validateToken(
+            @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return Mono.just(ResponseEntity.ok(false));
+        }
+        final String accessToken = authHeader.substring(7);
+        return authService.validateToken(accessToken)
+                .map(ResponseEntity::ok);
+    }
 }
