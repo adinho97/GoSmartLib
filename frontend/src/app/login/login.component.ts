@@ -77,6 +77,8 @@ export class LoginComponent implements OnInit {
 
   setRole(role: string): void {
     localStorage.setItem("role", role);
+    // For development: set a dev token that the guard will recognize
+    localStorage.setItem("smartschoolToken", "dev-token-" + role);
     if (!localStorage.getItem("selectedSchoolId")) {
       localStorage.setItem("selectedSchoolId", "1");
     }

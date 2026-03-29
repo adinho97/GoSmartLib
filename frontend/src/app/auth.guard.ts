@@ -58,6 +58,11 @@ export class AuthGuard implements CanActivate {
   }
 
   private validateTokenWithServer(accessToken: string): Observable<boolean> {
+    // Allow dev tokens for development (skip server validation)
+    if (accessToken.startsWith("dev-token-")) {
+      return of(true);
+    }
+
     // Use the backend token validation endpoint
     // If token is invalid/expired, the server will return false
     return this.http.get<boolean>(
