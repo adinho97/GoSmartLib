@@ -21,24 +21,26 @@ public class UserController {
     public ResponseEntity<List<UserDto>> getLeerlingen() {
         List<UserDto> leerlingen = appUserRepository.findByRole("leerling")
                 .stream()
-                .map(u -> new UserDto(u.getSub(), u.getSub(), u.getRole()))
+                .map(u -> new UserDto(u.getSub(), u.getRole()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(leerlingen);
     }
 
     public static class UserDto {
         private String sub;
-        private String username;
         private String role;
 
-        public UserDto(String sub, String username, String role) {
+        public UserDto(String sub, String role) {
             this.sub = sub;
-            this.username = username;
             this.role = role;
         }
 
-        public String getSub() { return sub; }
-        public String getUsername() { return username; }
-        public String getRole() { return role; }
+        public String getSub() {
+            return sub;
+        }
+
+        public String getRole() {
+            return role;
+        }
     }
 }
