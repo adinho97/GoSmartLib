@@ -1,6 +1,5 @@
 package com.example.demo.controllers;
 
-import com.example.demo.entities.AppUser;
 import com.example.demo.repositories.AppUserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

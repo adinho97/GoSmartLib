@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class LoanReminderService {
@@ -50,8 +51,8 @@ public class LoanReminderService {
                 .flatMap(loan -> {
                     if (loan.getUserSub() == null)
                         return Flux.empty();
-                    return Flux.fromIterable(appUserRepository.findBySub(loan.getUserSub()).map(List::of).orElse(List.of()))
-                            .flatMap(user -> sendReminderToUser(user, loan));
+                    return Mono.justOrEmpty(appUserRepository.findBySub(loan.getUserSub()))
+                            .flatMapMany(user -> sendReminderToUser(user, loan));
                 })
                 .doOnComplete(() -> logger.info("Finished processing reminders."))
                 .subscribe();
