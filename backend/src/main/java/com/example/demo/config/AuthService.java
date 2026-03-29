@@ -32,6 +32,19 @@ public class AuthService {
                 this.objectMapper = objectMapper;
         }
 
+        public Mono<SmartschoolUserInfo> getUserInfoBySub(String sub) {
+                return Mono.justOrEmpty(appUserRepository.findBySub(sub))
+                                .switchIfEmpty(Mono.error(new RuntimeException("User not found for sub: " + sub)))
+                                .flatMap(user -> {
+                                        if (user.getSmartschoolRefreshToken() == null) {
+                                                return Mono.error(new RuntimeException(
+                                                                "No refresh token available for user: " + sub));
+                                        }
+                                        return refreshAccessToken(user.getSmartschoolRefreshToken());
+                                })
+                                .flatMap(this::getUserInfo);
+        }
+
         public Mono<AuthLoginResponse> processSmartschoolCallback(String code) {
                 return getAccessToken(code)
                                 .flatMap(this::getUserInfo)
@@ -81,13 +94,12 @@ public class AuthService {
                         AppUser newUser = new AppUser();
                         newUser.setSub(sub);
                         newUser.setRole(role);
-                        newUser.setUsername(username);
                         logger.info("Nieuwe gebruiker aangemaakt met sub: {}", sub);
                         return newUser;
                 });
 
                 user.setRole(role);
-                user.setUsername(username);
+                user.setSmartschoolRefreshToken(userInfo.getRefreshToken());
                 appUserRepository.save(user);
 
                 AuthLoginResponse response = new AuthLoginResponse(
@@ -163,7 +175,70 @@ public class AuthService {
                                 .doOnError(error -> logger.error("Failed to retrieve access token", error));
         }
 
-        private Mono<SmartschoolUserInfo> getUserInfo(SmartschoolTokenResponse tokenResponse) {
+        public Mono<SmartschoolTokenResponse> refreshAccessToken(String refreshToken) {
+                String clientSecret = smartschoolProperties.getClientSecret();
+                if (clientSecret == null || clientSecret.isBlank()
+                                || "${SMARTSCHOOL_CLIENT_SECRET}".equals(clientSecret)) {
+                        logger.error("SMARTSCHOOL_CLIENT_SECRET environment variable is not set or empty.");
+                        return Mono.error(new IllegalStateException(
+                                        "Smartschool client secret is not configured on the server."));
+                }
+
+                MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+                formData.add("grant_type", "refresh_token");
+                formData.add("refresh_token", refreshToken);
+                formData.add("client_id", smartschoolProperties.getClientId());
+                formData.add("client_secret", clientSecret);
+
+                String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/index/token";
+                logger.info("Requesting new access token using refresh token from: {}", tokenUrl);
+
+                return this.webClient.post()
+                                .uri(tokenUrl)
+                                .header("User-Agent", "GoSmartLib-Backend")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .bodyValue(formData)
+                                .exchangeToMono(response -> {
+                                        if (!response.statusCode().is2xxSuccessful()) {
+                                                return response.bodyToMono(String.class)
+                                                                .defaultIfEmpty("[no body]")
+                                                                .flatMap(body -> {
+                                                                        logger.error(
+                                                                                        "Non-2xx response from Smartschool token endpoint (refresh). Status: {}, Headers: {}, Body: {}",
+                                                                                        response.statusCode(),
+                                                                                        response.headers()
+                                                                                                        .asHttpHeaders(),
+                                                                                        body);
+                                                                        return Mono.error(new RuntimeException(
+                                                                                        "Error from Smartschool token endpoint (refresh). Status: "
+                                                                                                        + response.statusCode()));
+                                                                });
+                                        }
+                                        if (response.headers().contentType()
+                                                        .map(mt -> mt.isCompatibleWith(MediaType.TEXT_HTML))
+                                                        .orElse(false)) {
+                                                return response.bodyToMono(String.class)
+                                                                .flatMap(body -> {
+                                                                        logger.error(
+                                                                                        "Smartschool returned HTML on a 2xx response (refresh). Status: {}, Headers: {}, Body: {}",
+                                                                                        response.statusCode(),
+                                                                                        response.headers()
+                                                                                                        .asHttpHeaders(),
+                                                                                        body);
+                                                                        return Mono.error(new RuntimeException(
+                                                                                        "Smartschool returned HTML at token endpoint (refresh): "
+                                                                                                        + body));
+                                                                });
+                                        }
+                                        return response.bodyToMono(SmartschoolTokenResponse.class)
+                                                        .doOnSuccess(token -> logger
+                                                                        .info("Successfully retrieved new access token using refresh token."));
+                                })
+                                .doOnError(error -> logger.error(
+                                                "Failed to retrieve new access token using refresh token.", error));
+        }
+
+        public Mono<SmartschoolUserInfo> getUserInfo(SmartschoolTokenResponse tokenResponse) {
                 return this.webClient.get()
                                 .uri(smartschoolProperties.getApiBaseUrl() + "/Api/V1/userinfo")
                                 .headers(headers -> headers.setBearerAuth(tokenResponse.getAccessToken()))
@@ -216,6 +291,7 @@ public class AuthService {
                                 })
                                 .map(userInfo -> {
                                         userInfo.setAccessToken(tokenResponse.getAccessToken());
+                                        userInfo.setRefreshToken(tokenResponse.getRefreshToken());
                                         return userInfo;
                                 })
                                 .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for user: {}",

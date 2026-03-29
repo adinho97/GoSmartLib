@@ -16,7 +16,7 @@ public class Loan {
     private BookCopy copy;
 
     @Column(nullable = false)
-    private String username;
+    private String userSub;
 
     @Column(nullable = false)
     private LocalDate loanedAt;
@@ -30,8 +30,8 @@ public class Loan {
     public void setId(Long id) { this.id = id; }
     public BookCopy getCopy() { return copy; }
     public void setCopy(BookCopy copy) { this.copy = copy; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public String getUserSub() { return userSub; }
+    public void setUserSub(String userSub) { this.userSub = userSub; }
     public LocalDate getLoanedAt() { return loanedAt; }
     public void setLoanedAt(LocalDate loanedAt) { this.loanedAt = loanedAt; }
     public LocalDate getDueDate() { return dueDate; }

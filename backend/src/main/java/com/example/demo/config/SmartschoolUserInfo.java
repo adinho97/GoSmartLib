@@ -31,6 +31,8 @@ public class SmartschoolUserInfo {
     @JsonAlias({ "platform", "Platform" })
     private String platform;
 
+    private String refreshToken;
+
     public String getSub() { return sub; }
     public void setSub(String sub) { this.sub = sub; }
 
@@ -70,4 +72,7 @@ public class SmartschoolUserInfo {
 
     public String getPlatform() { return platform; }
     public void setPlatform(String platform) { this.platform = platform; }
+
+    public String getRefreshToken() { return refreshToken; }
+    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
 }

@@ -1,6 +1,7 @@
 import { Component, HostListener, Input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { SmartschoolService } from '../services/smartschool.service';
 
 @Component({
@@ -35,7 +36,12 @@ export class ProfileComponent {
   borrowedBooks = [{ title: 'Book Four', deadline: new Date(), cover: '', id: 4 }];
   readingList = [{ title: 'Book Five', author: 'Author C', cover: '', id: 5 }];
 
-  constructor(private location: Location, private router: Router, private smartschoolService: SmartschoolService) {
+  constructor(
+    private location: Location,
+    private router: Router,
+    private smartschoolService: SmartschoolService,
+    private http: HttpClient
+  ) {
   }
 
   ngOnInit() {
@@ -83,4 +89,15 @@ export class ProfileComponent {
     }
   });
 }
+
+  sendTestReminder() {
+  const sub = localStorage.getItem('userId');
+  if (!sub) return;
+
+  this.http.post(`/api/users/${sub}/test-reminder`, {}).subscribe({
+    next: () => alert('Testbericht verzonden!'),
+    error: (err) => console.error('Fout bij verzenden:', err)
+  });
+}
+
 }

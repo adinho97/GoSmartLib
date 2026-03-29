@@ -38,7 +38,7 @@ class LoanServiceTest {
         // 1. Arrange
         CreateLoanRequest request = new CreateLoanRequest();
         request.setBookId(1L);
-        request.setUsername("test-user");
+        request.setUserSub("ABCD-1234");
         request.setDueDate(LocalDate.now().plusDays(14));
 
         // We bouwen de keten van achter naar voren op:
@@ -57,7 +57,7 @@ class LoanServiceTest {
         savedLoan.setId(500L);
         savedLoan.setCopy(mockCopy); // CRUCIAAL: Voorkomt de BookCopy.getId() NullPointer
         savedLoan.setDueDate(request.getDueDate());
-        savedLoan.setUsername(request.getUsername());
+        savedLoan.setUserSub(request.getUserSub());
         savedLoan.setLoanedAt(LocalDate.now());
 
         // Mock de repository calls
