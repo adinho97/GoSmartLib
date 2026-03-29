@@ -21,7 +21,7 @@ public class UserController {
     public ResponseEntity<List<UserDto>> getLeerlingen() {
         List<UserDto> leerlingen = appUserRepository.findByRole("leerling")
                 .stream()
-                .map(u -> new UserDto(u.getSub(), u.getUsername(), u.getRole()))
+                .map(u -> new UserDto(u.getSub(), u.getSub(), u.getRole()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(leerlingen);
     }
