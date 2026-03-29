@@ -177,6 +177,20 @@ export class BookService {
       throw err;
     }
   }
+  
+  async getBookByIsbnFromLibrary(isbn: string, schoolId?: number): Promise<Book | null> {
+    try {
+      const res = await axios.get<Book>(
+        this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
+      );
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return null;
+      }
+      throw err;
+    }
+  }
   async updateBook(id: number, book: Book): Promise<Book> {
     const res = await axios.put(`${this.apiUrl}/${id}`, book);
     return res.data;
