@@ -1,5 +1,6 @@
 import { Component, HostListener } from "@angular/core";
 import { Router } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
 
 @Component({
   selector: "app-root",
@@ -10,7 +11,7 @@ import { Router } from "@angular/router";
 export class AppComponent {
   profileMenuOpen = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private http: HttpClient) {}
 
   private get currentUrl(): string {
     return (this.router.url || "").toLowerCase();
@@ -75,8 +76,29 @@ export class AppComponent {
   }
 
   logout(): void {
-    localStorage.clear();
+    const accessToken = localStorage.getItem("smartschoolToken");
     this.profileMenuOpen = false;
+
+    if (accessToken) {
+      this.http.post("/api/auth/logout", { accessToken }).subscribe({
+        next: () => {
+          console.log("Logged out successfully");
+          this.completeLogout();
+        },
+        error: (err) => {
+          console.warn("Error revoking token, but proceeding with logout", err);
+          this.completeLogout();
+        },
+      });
+    } else {
+      this.completeLogout();
+    }
+  }
+
+  private completeLogout(): void {
+    localStorage.clear();
+    // Prevent back button access
+    window.history.replaceState(null, "", "/login");
     this.router.navigate(["/login"]);
   }
 
