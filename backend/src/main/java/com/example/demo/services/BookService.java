@@ -81,6 +81,7 @@ public class BookService {
         result.setDuplicateRowsSkipped(parsed.duplicateRowsSkipped());
 
         List<ImportResultDto.RowResult> rows = new ArrayList<>(parsed.invalidRows());
+        int totalCopiesAdded = 0;
         for (BulkImportService.IsbnQuantityPair pair : parsed.isbnQuantityPairs()) {
             String isbn = pair.isbn();
             int quantity = pair.quantity();
@@ -96,6 +97,7 @@ public class BookService {
                             copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
                             bookCopyRepository.save(copy);
                         }
+                        totalCopiesAdded += quantity;
                         rows.add(new ImportResultDto.RowResult(
                                 isbn,
                                 ImportResultDto.Status.ADDED,
@@ -129,6 +131,7 @@ public class BookService {
                         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
                         bookCopyRepository.save(copy);
                     }
+                    totalCopiesAdded += quantity;
                 }
 
                 rows.add(new ImportResultDto.RowResult(
@@ -145,6 +148,7 @@ public class BookService {
             }
         }
 
+        result.setTotalCopiesAdded(totalCopiesAdded);
         result.setResults(rows);
         return result;
     }

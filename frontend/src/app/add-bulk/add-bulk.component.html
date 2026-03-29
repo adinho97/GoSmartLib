@@ -32,7 +32,11 @@
       <button (click)="uploadFile()" [disabled]="isUploading || !selectedFile">
         {{ isUploading ? "Verwerken..." : "Upload en verwerk" }}
       </button>
-      <button class="secondary" (click)="downloadImportTemplate()" [disabled]="isUploading">
+      <button
+        class="secondary"
+        (click)="downloadImportTemplate()"
+        [disabled]="isUploading"
+      >
         Download sjabloon
       </button>
     </div>
@@ -54,7 +58,7 @@
     @if (result) {
       <div class="summary-grid">
         <div class="summary-item">
-          <span class="label">Rijen</span>
+          <span class="label">Boeken</span>
           <span class="value">{{ result.totalRows }}</span>
         </div>
         <div class="summary-item success">
@@ -62,8 +66,8 @@
           <span class="value">{{ getStatusCount("ADDED") }}</span>
         </div>
         <div class="summary-item info">
-          <span class="label">Bestond al</span>
-          <span class="value">{{ getStatusCount("ALREADY_EXISTS") }}</span>
+          <span class="label">Exemplaren toegevoegd</span>
+          <span class="value">{{ result.totalCopiesAdded }}</span>
         </div>
         <div class="summary-item warning">
           <span class="label">Niet gevonden</span>

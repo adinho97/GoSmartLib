@@ -198,7 +198,10 @@ class BookServiceTest {
                         "Ongeldig ISBN-formaat", null));
 
         BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
-                List.of("9780553808049", "9780156012195", "0000000000000"),
+                List.of(
+                        new BulkImportService.IsbnQuantityPair("9780553808049", 1),
+                        new BulkImportService.IsbnQuantityPair("9780156012195", 2),
+                        new BulkImportService.IsbnQuantityPair("0000000000000", 1)),
                 invalidRows,
                 4,
                 0);
@@ -229,7 +232,7 @@ class BookServiceTest {
                 List.of(
                         ImportResultDto.Status.INVALID_ISBN,
                         ImportResultDto.Status.ADDED,
-                        ImportResultDto.Status.ALREADY_EXISTS,
+                        ImportResultDto.Status.ADDED,
                         ImportResultDto.Status.NOT_FOUND),
                 statuses);
     }
@@ -240,7 +243,7 @@ class BookServiceTest {
         School school = makeSchool();
 
         BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
-                List.of("9780553808049"),
+                List.of(new BulkImportService.IsbnQuantityPair("9780553808049", 1)),
                 List.of(),
                 1,
                 0);

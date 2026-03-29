@@ -8,7 +8,6 @@ import java.util.Map;
 public class ImportResultDto {
     public enum Status {
         ADDED,
-        ALREADY_EXISTS,
         NOT_FOUND,
         INVALID_ISBN,
         ERROR
@@ -17,6 +16,7 @@ public class ImportResultDto {
     private int totalRows;
     private int uniqueIsbnsProcessed;
     private int duplicateRowsSkipped;
+    private int totalCopiesAdded;
     private List<RowResult> results = new ArrayList<>();
 
     public int getTotalRows() {
@@ -41,6 +41,14 @@ public class ImportResultDto {
 
     public void setDuplicateRowsSkipped(int duplicateRowsSkipped) {
         this.duplicateRowsSkipped = duplicateRowsSkipped;
+    }
+
+    public int getTotalCopiesAdded() {
+        return totalCopiesAdded;
+    }
+
+    public void setTotalCopiesAdded(int totalCopiesAdded) {
+        this.totalCopiesAdded = totalCopiesAdded;
     }
 
     public List<RowResult> getResults() {

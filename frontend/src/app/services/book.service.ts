@@ -7,7 +7,6 @@ import axios from "axios";
 
 export type BulkImportStatus =
   | "ADDED"
-  | "ALREADY_EXISTS"
   | "NOT_FOUND"
   | "INVALID_ISBN"
   | "ERROR";
@@ -23,6 +22,7 @@ export interface BulkImportResult {
   totalRows: number;
   uniqueIsbnsProcessed: number;
   duplicateRowsSkipped: number;
+  totalCopiesAdded: number;
   results: BulkImportRowResult[];
 }
 

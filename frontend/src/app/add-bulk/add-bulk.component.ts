@@ -20,7 +20,6 @@ export class AddBulkComponent {
   readonly statusFilters: Array<"" | BulkImportStatus> = [
     "",
     "ADDED",
-    "ALREADY_EXISTS",
     "NOT_FOUND",
     "INVALID_ISBN",
     "ERROR",
