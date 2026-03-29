@@ -38,6 +38,26 @@ public class AuthService {
                                 .map(this::saveUserAndBuildResponse);
         }
 
+        public Mono<Void> logout(String accessToken) {
+                return revokeSmartschoolToken(accessToken)
+                                .doOnSuccess(v -> logger.info("User logged out and token revoked successfully"))
+                                .doOnError(error -> logger.error("Error during logout, but proceeding anyway", error))
+                                .onErrorResume(error -> Mono.empty()); // Continue even if revocation fails
+        }
+
+        private Mono<Void> revokeSmartschoolToken(String accessToken) {
+                String revokeUrl = smartschoolProperties.getApiBaseUrl() + "/Api/V1/revoke";
+                logger.info("Revoking access token at: {}", revokeUrl);
+
+                return this.webClient.post()
+                                .uri(revokeUrl + "?access_token=" + accessToken)
+                                .retrieve()
+                                .toBodilessEntity()
+                                .doOnSuccess(response -> logger.info("Token revoked successfully"))
+                                .doOnError(error -> logger.warn("Failed to revoke token: {}", error.getMessage()))
+                                .then(); // Return empty Mono<Void>
+        }
+
         private AuthLoginResponse saveUserAndBuildResponse(SmartschoolUserInfo userInfo) {
                 String sub = userInfo.getSub();
                 String role = userInfo.getRole();
