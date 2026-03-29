@@ -19,7 +19,7 @@ public class AppUser {
     @Column(nullable = false)
     private String username; // Smartschool username (bv. petersp)
 
-    @Column
+    @Column(length = 2048)
     private String smartschoolRefreshToken;
 
     public Long getId() { return id; }
