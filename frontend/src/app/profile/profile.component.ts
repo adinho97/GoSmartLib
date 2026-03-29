@@ -90,14 +90,4 @@ export class ProfileComponent {
   });
 }
 
-  sendTestReminder() {
-  const sub = localStorage.getItem('userId');
-  if (!sub) return;
-
-  this.http.post(`/api/users/${sub}/test-reminder`, {}).subscribe({
-    next: () => alert('Testbericht verzonden!'),
-    error: (err) => console.error('Fout bij verzenden:', err)
-  });
-}
-
 }

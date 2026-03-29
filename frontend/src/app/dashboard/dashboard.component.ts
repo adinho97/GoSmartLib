@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
+import { HttpClient } from "@angular/common/http";
 
 type DashboardBook = {
   id: number;
@@ -42,6 +43,7 @@ export class DashboardComponent implements OnInit {
   constructor(
     private router: Router,
     private bookService: BookService,
+    private http: HttpClient,
   ) {}
 
   async ngOnInit() {
@@ -111,4 +113,14 @@ export class DashboardComponent implements OnInit {
   seeDetail(book: DashboardBook) {
     this.router.navigate(["/detail", book.id]);
   }
+
+  sendTestReminder() {
+  const sub = localStorage.getItem('userId');
+  if (!sub) return;
+
+  this.http.post(`/api/users/${sub}/test-reminder`, {}).subscribe({
+    next: () => alert('Testbericht verzonden!'),
+    error: (err) => console.error('Fout bij verzenden:', err)
+  });
+}
 }
