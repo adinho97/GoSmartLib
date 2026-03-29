@@ -21,4 +21,10 @@ public class AuthController {
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.status(401).build());
     }
+
+    @PostMapping("/logout")
+    public Mono<ResponseEntity<Void>> logout(@RequestBody LogoutRequest logoutRequest) {
+        return authService.logout(logoutRequest.getAccessToken())
+                .then(Mono.just(ResponseEntity.ok().<Void>build()));
+    }
 }
