@@ -22,6 +22,14 @@ export interface BulkImportResult {
   results: BulkImportRowResult[];
 }
 
+export interface WishlistItem {
+  id: number;
+  bookId: number;
+  titel: string;
+  auteur: string;
+  cover: string | null;
+  addedAt: string;
+}
 export interface LestipResponse {
   lestip: string;
   auteurNaam: string;
@@ -254,5 +262,55 @@ export class BookService {
   async updateBook(id: number, book: Book): Promise<Book> {
     const res = await axios.put(`${this.apiUrl}/${id}`, book);
     return res.data;
+  }
+
+  private getUserSubHeaders() {
+    const userSub =
+      localStorage.getItem("sub") ||
+      localStorage.getItem("userId") ||
+      "";
+    return {
+      headers: {
+        "X-User-Sub": userSub,
+      },
+    };
+  }
+
+  async addToWishlist(bookId: number): Promise<void> {
+    await axios.post(
+      "/api/verlanglijst",
+      { bookId },
+      this.getUserSubHeaders(),
+    );
+  }
+
+  async removeFromWishlist(bookId: number): Promise<void> {
+    await axios.delete(
+      `/api/verlanglijst/${bookId}`,
+      this.getUserSubHeaders(),
+    );
+  }
+
+  async getUserWishlist(): Promise<WishlistItem[]> {
+    const res = await axios.get<WishlistItem[]>(
+      "/api/verlanglijst",
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async isWishlisted(bookId: number): Promise<boolean> {
+    try {
+      const res = await axios.get<boolean>(
+        `/api/verlanglijst/${bookId}/check`,
+        this.getUserSubHeaders(),
+      );
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return false;
+      }
+      throw err;
+    }
   }
 }

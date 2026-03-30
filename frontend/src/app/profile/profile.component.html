@@ -34,6 +34,14 @@
                   <label class="setting-option">
                     <input
                       type="checkbox"
+                      [(ngModel)]="dashboardSettings.showWishlist"
+                    />
+                    Verlanglijst tonen
+                  </label>
+
+                  <label class="setting-option">
+                    <input
+                      type="checkbox"
                       [(ngModel)]="dashboardSettings.showFavorites"
                     />
                     Favoriete boeken tonen
@@ -155,6 +163,44 @@
                   </article>
                 }
               </div>
+            </section>
+          }
+
+          @if (dashboardSettings.showWishlist) {
+            <section class="profile-section wishlist-section">
+              <div class="section-head">
+                <h3 class="section-title">Verlanglijst</h3>
+                <span class="section-count">{{ wishlistBooks.length }}</span>
+              </div>
+
+              @if (wishlistLoading) {
+                <div class="inline-empty">Verlanglijst laden...</div>
+              } @else if (wishlistBooks.length === 0) {
+                <div class="inline-empty">
+                  Nog geen boeken op je verlanglijst.
+                </div>
+              } @else {
+                <div class="horizontal-scroll-wrapper">
+                  @for (book of wishlistBooks; track book.id) {
+                    <article
+                      class="profile-book-card"
+                      (click)="goToDetail(book.id)"
+                    >
+                      @if (book.cover) {
+                        <div class="book-cover">
+                          <img [src]="book.cover" alt="{{ book.title }}" />
+                        </div>
+                      } @else {
+                        <div class="cover-placeholder">Geen cover</div>
+                      }
+                      <div class="book-content">
+                        <h4>{{ book.title }}</h4>
+                        <div class="book-meta">{{ book.author }}</div>
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
             </section>
           }
 
