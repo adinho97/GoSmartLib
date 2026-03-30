@@ -19,6 +19,9 @@ public class AppUser {
     @Column(columnDefinition = "TEXT")
     private String smartschoolRefreshToken;
 
+    @Column(columnDefinition = "TEXT")
+    private String accessToken;
+
     public Long getId() {
         return id;
     }
@@ -49,5 +52,13 @@ public class AppUser {
 
     public void setSmartschoolRefreshToken(String smartschoolRefreshToken) {
         this.smartschoolRefreshToken = smartschoolRefreshToken;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 }

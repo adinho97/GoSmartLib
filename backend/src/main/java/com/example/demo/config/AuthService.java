@@ -100,6 +100,7 @@ public class AuthService {
 
                 user.setRole(role);
                 user.setSmartschoolRefreshToken(userInfo.getRefreshToken());
+                user.setAccessToken(userInfo.getAccessToken());
                 appUserRepository.save(user);
 
                 AuthLoginResponse response = new AuthLoginResponse(
