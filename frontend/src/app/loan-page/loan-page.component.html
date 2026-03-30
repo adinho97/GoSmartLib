@@ -1,0 +1,280 @@
+<div class="loan-page">
+  <header class="loan-header">
+    <div class="header-text">
+      <h1>Uitlenen</h1>
+      <p>
+        @if (step === "leerling") {
+          Stap 1 — Selecteer een leerling
+        }
+        @if (step === "boeken") {
+          Stap 2 — Selecteer boeken voor {{ selectedLeerling?.username }}
+        }
+        @if (step === "bevestiging") {
+          Stap 3 — Bevestig de uitlening
+        }
+      </p>
+    </div>
+  </header>
+
+  <!-- Stap indicator -->
+  <div class="step-indicator">
+    <div
+      class="step"
+      [class.active]="step === 'leerling'"
+      [class.done]="step === 'boeken' || step === 'bevestiging'"
+    >
+      <span class="step-num">1</span>
+      <span class="step-label">Leerling</span>
+    </div>
+    <div
+      class="step-line"
+      [class.done]="step === 'boeken' || step === 'bevestiging'"
+    ></div>
+    <div
+      class="step"
+      [class.active]="step === 'boeken'"
+      [class.done]="step === 'bevestiging'"
+    >
+      <span class="step-num">2</span>
+      <span class="step-label">Boeken</span>
+    </div>
+    <div class="step-line" [class.done]="step === 'bevestiging'"></div>
+    <div class="step" [class.active]="step === 'bevestiging'">
+      <span class="step-num">3</span>
+      <span class="step-label">Bevestigen</span>
+    </div>
+  </div>
+
+  @if (successMessage) {
+    <div class="success-banner">{{ successMessage }}</div>
+  }
+
+  <!-- STAP 1: Leerling -->
+  @if (step === "leerling") {
+    <div class="step-card">
+      <h2>Wie leent uit?</h2>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          placeholder="Zoek op gebruikersnaam..."
+          [(ngModel)]="leerlingSearch"
+          (input)="onLeerlingSearch()"
+        />
+      </div>
+
+      @if (leerlingError) {
+        <p class="field-error">{{ leerlingError }}</p>
+      }
+
+      @if (leerlingenLoading) {
+        <p class="info-msg">Leerlingen laden...</p>
+      } @else if (filteredLeerlingen.length === 0) {
+        <p class="info-msg">
+          Geen leerlingen gevonden. Leerlingen verschijnen hier nadat ze
+          minstens één keer ingelogd hebben via Smartschool.
+        </p>
+      } @else {
+        <ul class="leerling-list">
+          @for (leerling of filteredLeerlingen; track leerling.sub) {
+            <li
+              class="leerling-item"
+              [class.selected]="selectedLeerling?.sub === leerling.sub"
+              (click)="selectLeerling(leerling)"
+            >
+              <div class="leerling-avatar">
+                {{ leerling.username.charAt(0).toUpperCase() }}
+              </div>
+              <span class="leerling-username">{{ leerling.username }}</span>
+              @if (selectedLeerling?.sub === leerling.sub) {
+                <span class="selected-check">✓</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="step-footer">
+        <button
+          class="primary-btn"
+          (click)="confirmLeerling()"
+          [disabled]="!selectedLeerling"
+        >
+          Verder met {{ selectedLeerling?.username || "..." }} →
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- STAP 2: Boeken selecteren -->
+  @if (step === "boeken") {
+    <div class="step-card">
+      <div class="step-card-header">
+        <button class="ghost-btn" (click)="goBack()">← Terug</button>
+        <h2>
+          Boeken voor <strong>{{ selectedLeerling?.username }}</strong>
+        </h2>
+        <button
+          class="primary-btn"
+          (click)="proceedToConfirm()"
+          [disabled]="selectedBooks.length === 0"
+        >
+          {{ selectedBooks.length }} boek(en) → Verder
+        </button>
+      </div>
+
+      @if (errorMessage) {
+        <p class="field-error">{{ errorMessage }}</p>
+      }
+
+      <!-- Actieve uitleningen van deze leerling -->
+      @if (activeLoans.length > 0) {
+        <div class="active-loans-section">
+          <h3>Momenteel uitgeleend aan {{ selectedLeerling?.username }}</h3>
+          <ul class="loans-list">
+            @for (loan of activeLoans; track loan.id) {
+              <li class="loan-row">
+                <div class="loan-book-info">
+                  @if (loan.bookCover) {
+                    <img
+                      [src]="loan.bookCover"
+                      [alt]="loan.bookTitel"
+                      class="loan-cover"
+                    />
+                  }
+                  <span class="loan-title">{{ loan.bookTitel }}</span>
+                </div>
+                <span
+                  class="loan-due"
+                  [class.overdue]="isOverdue(loan.dueDate)"
+                >
+                  tot {{ loan.dueDate | date: "dd/MM/yyyy" }}
+                  @if (isOverdue(loan.dueDate)) {
+                    <span class="overdue-tag">Te laat</span>
+                  }
+                </span>
+                <button class="return-btn" (click)="returnLoan(loan)">
+                  ✓ Teruggebracht
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <!-- Zoekbalk -->
+      <div class="search-bar">
+        <input
+          type="text"
+          placeholder="Zoek op titel of auteur..."
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()"
+        />
+      </div>
+
+      <!-- Boeken lijst -->
+      @if (isLoading) {
+        <p class="info-msg">Boeken laden...</p>
+      } @else {
+        <ul class="book-list">
+          @for (book of filteredBooks; track book.id) {
+            <li
+              class="book-item"
+              [class.selected]="isSelected(book)"
+              [class.unavailable]="book.availableCopies === 0"
+              (click)="toggleBook(book)"
+            >
+              <div class="book-cover-small">
+                @if (book.cover) {
+                  <img [src]="book.cover" [alt]="book.titel" />
+                } @else {
+                  <div class="no-cover">?</div>
+                }
+              </div>
+              <div class="book-info">
+                <span class="book-title">{{ book.titel }}</span>
+                <span class="book-author">{{ book.auteur }}</span>
+              </div>
+              <div class="book-item-right">
+                <span
+                  class="copy-badge"
+                  [class.zero]="book.availableCopies === 0"
+                >
+                  {{ book.availableCopies }}/{{ book.totalCopies }}
+                </span>
+                @if (isSelected(book)) {
+                  <span class="selected-check">✓</span>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <!-- STAP 3: Bevestigen -->
+  @if (step === "bevestiging") {
+    <div class="step-card">
+      <div class="step-card-header">
+        <button class="ghost-btn" (click)="goBack()">← Terug</button>
+        <h2>Bevestig uitlening</h2>
+        <div></div>
+      </div>
+
+      <div class="confirm-info">
+        <div class="confirm-row">
+          <span class="confirm-label">Leerling</span>
+          <span class="confirm-value">{{ selectedLeerling?.username }}</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">Terugbrengdatum</span>
+          <input
+            type="date"
+            [(ngModel)]="dueDate"
+            [min]="today"
+            class="date-input"
+          />
+        </div>
+      </div>
+
+      <h3 class="books-header">Geselecteerde boeken</h3>
+      <ul class="confirm-book-list">
+        @for (book of selectedBooks; track book.id) {
+          <li class="confirm-book-row">
+            <div class="book-cover-small">
+              @if (book.cover) {
+                <img [src]="book.cover" [alt]="book.titel" />
+              } @else {
+                <div class="no-cover">?</div>
+              }
+            </div>
+            <div class="book-info">
+              <span class="book-title">{{ book.titel }}</span>
+              <span class="book-author">{{ book.auteur }}</span>
+            </div>
+            <button class="remove-book-btn" (click)="toggleBook(book)">
+              ✕
+            </button>
+          </li>
+        }
+      </ul>
+
+      @if (errorMessage) {
+        <p class="field-error">{{ errorMessage }}</p>
+      }
+
+      <button
+        class="loan-confirm-btn"
+        (click)="loanBooks()"
+        [disabled]="isLoaning || !dueDate || selectedBooks.length === 0"
+      >
+        {{
+          isLoaning
+            ? "Bezig..."
+            : "✓ Bevestig uitlening van " + selectedBooks.length + " boek(en)"
+        }}
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,35 @@
+<section class="general-add-page">
+  <header class="general-add-header">
+    <h1>Boeken toevoegen</h1>
+    <p>Kies een toevoegmethode</p>
+  </header>
+
+  <nav class="tab-nav" aria-label="Toevoegmethode tabs">
+    @for (tab of tabs; track tab.key) {
+      <button
+        type="button"
+        class="tab-button"
+        [class.active]="activeTab === tab.key"
+        (click)="setTab(tab.key)"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </nav>
+
+  <section class="tab-panel" [hidden]="activeTab !== 'isbn'">
+    <app-add-isbn></app-add-isbn>
+  </section>
+
+  <section class="tab-panel" [hidden]="activeTab !== 'manual'">
+    <app-add-book></app-add-book>
+  </section>
+
+  <section class="tab-panel" [hidden]="activeTab !== 'bulk'">
+    <app-add-bulk></app-add-bulk>
+  </section>
+
+  <section class="tab-panel" [hidden]="activeTab !== 'barcode'">
+    <app-add-barcode></app-add-barcode>
+  </section>
+</section>

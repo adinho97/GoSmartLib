@@ -1,0 +1,54 @@
+.general-add-page {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.general-add-header {
+  margin-bottom: 1rem;
+}
+
+.general-add-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #1a1a1a;
+}
+
+.general-add-header p {
+  margin-top: 0.5rem;
+  color: #5a6472;
+}
+
+.tab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab-button {
+  border: 1px solid #d4c1c9;
+  background: #fff8fb;
+  color: #871f42;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  background: #fdf0f5;
+  border-color: #c8859d;
+}
+
+.tab-button.active {
+  background: #871f42;
+  color: #ffffff;
+  border-color: #871f42;
+}
+
+.tab-panel {
+  margin-top: 0.75rem;
+}

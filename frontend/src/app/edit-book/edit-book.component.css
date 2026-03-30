@@ -1,43 +1,66 @@
 .edit-container {
-  max-width: 600px;
-  margin: 3rem auto;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 18px;
-  border: 1px solid rgba(96, 22, 47, 0.1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  font-family: "Inter", sans-serif;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+  font-family: Arial, sans-serif;
 }
 
-h2 {
-  font-family: "Georgia", serif;
-  color: #60162f;
-  margin-bottom: 1.5rem;
-  text-align: center;
+.edit-header {
+  margin-bottom: 1rem;
+}
+
+.edit-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  color: #1a1a1a;
+}
+
+.edit-header p {
+  margin-top: 0.5rem;
+  color: #5a6472;
+}
+
+.edit-panel {
+  margin-top: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #f0dde5;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
 }
 
 .form-group {
-  margin-bottom: 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
 
 .form-group label {
   font-size: 0.85rem;
-  font-weight: 700;
-  color: #5a3a45;
+  font-weight: 600;
+  color: #5a6472;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
-  padding: 0.75rem;
-  border: 1px solid rgba(96, 22, 47, 0.2);
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: border-color 0.2s;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.9rem;
   font-family: inherit;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   background: #fff;
 }
 
@@ -46,63 +69,189 @@ h2 {
 .form-group select:focus {
   outline: none;
   border-color: #871f42;
+  box-shadow: 0 0 0 2px rgba(135, 31, 66, 0.08);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 90px;
 }
 
 .subgenres-checkboxes {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  padding: 0.3rem 0;
+  padding: 0.2rem 0;
 }
 
 .checkbox-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #2c2c2c;
 }
 
 .button-group {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  justify-content: flex-start;
+  grid-column: 1 / -1;
 }
 
 .save-button {
+  border: 1px solid #871f42;
   background: #871f42;
   color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
 }
 
 .save-button:hover {
   background: #60162f;
+  border-color: #60162f;
 }
 
 .cancel-button {
-  background: transparent;
+  background: #fff;
   color: #871f42;
   border: 1px solid #871f42;
-  padding: 0.7rem 1.5rem;
-  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .cancel-button:hover {
-  background: #fdf2f5;
+  background: #fff0f4;
+  border-color: #c8859d;
 }
 
 .error {
   color: #871f42;
-  text-align: center;
-  margin-top: 1rem;
+  text-align: left;
+  margin-top: 0.5rem;
   font-weight: 500;
+}
+
+.copy-manager {
+  background: #fff8fb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.copy-info {
+  font-size: 0.92rem;
+  color: #2c2c2c;
+}
+
+.copy-count strong {
+  font-size: 0.92rem;
+  color: #2c2c2c;
+  font-weight: 600;
+}
+
+.copy-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.copy-btn {
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.copy-btn.add {
+  background: #871f42;
+  border-color: #871f42;
+  color: white;
+}
+
+.copy-btn.add:hover:not(:disabled) {
+  background: #60162f;
+  border-color: #60162f;
+}
+
+.copy-btn.remove {
+  background: #fff;
+  border-color: #871f42;
+  color: #871f42;
+}
+
+.copy-btn.remove:hover:not(:disabled) {
+  background: #fdf0f5;
+  border-color: #c8859d;
+}
+
+.copy-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.copy-success {
+  color: #2e7d32;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0;
+  width: 100%;
+}
+
+.copy-success.copy-success-danger {
+  color: #c62828;
+}
+
+.copy-error {
+  color: #c62828;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0;
+  width: 100%;
+}
+
+.loading-message {
+  text-align: left;
+  color: #5a6472;
+}
+
+@media (max-width: 900px) {
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    justify-content: stretch;
+  }
+
+  .save-button,
+  .cancel-button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .copy-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .copy-btn {
+    flex: 1;
+  }
 }

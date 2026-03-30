@@ -1,0 +1,279 @@
+<div class="barcode-page" #scanContainer>
+  <div class="page-header">
+    <h1>Boeken toevoegen via een barcode</h1>
+  </div>
+
+  <div class="main-card">
+    <!-- School selector -->
+    @if (schools.length > 0) {
+      <div class="school-selector">
+        <label>SELECTEER SCHOOL</label>
+        <select
+          [ngModel]="selectedSchoolId"
+          (ngModelChange)="onSchoolChange($event)"
+        >
+          @for (school of schools; track school.id) {
+            <option [value]="school.id">{{ school.naam }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="section">
+      <h2 class="section-label">BARCODE SCANNEN</h2>
+
+      <div class="scan-box">
+        <h3>Scan een barcode</h3>
+        <p>
+          Hou de barcode voor de scanner om het ISBN automatisch in te voeren
+        </p>
+
+        <div class="scan-actions">
+          <button
+            class="btn-primary"
+            (click)="activateScanMode()"
+            [disabled]="isProcessing || scanMode"
+          >
+            Barcode scanner
+          </button>
+
+          <button
+            class="btn-secondary"
+            (click)="activateCameraMode()"
+            [disabled]="isProcessing || cameraMode"
+          >
+            Camera scanner
+          </button>
+        </div>
+
+        @if (scanMode) {
+          <div class="scan-active">
+            <div class="pulsing-indicator"></div>
+            <p class="scan-status">Klaar om te scannen...</p>
+            <button class="btn-secondary" (click)="deactivateScanMode()">
+              Stoppen
+            </button>
+          </div>
+        }
+
+        @if (cameraMode) {
+          <div class="camera-panel">
+            <div class="camera-preview">
+              <video
+                #cameraVideo
+                class="camera-video"
+                autoplay
+                muted
+                playsinline
+              ></video>
+            </div>
+
+            <p class="camera-placeholder">
+              {{
+                isCameraDecoding
+                  ? "Camera actief. Richt op een barcode."
+                  : "Camera wordt gestart..."
+              }}
+            </p>
+
+            @if (cameraErrorMessage) {
+              <p class="camera-error">{{ cameraErrorMessage }}</p>
+            }
+
+            <div class="camera-actions">
+              @if (cameraErrorMessage) {
+                <button
+                  class="btn-secondary"
+                  (click)="retryCameraMode()"
+                  [disabled]="isProcessing || isCameraDecoding"
+                >
+                  Opnieuw proberen
+                </button>
+              }
+
+              <button class="btn-secondary" (click)="deactivateCameraMode()">
+                Camera stoppen
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-label">LAATST GESCAND ISBN</h2>
+      <div class="isbn-preview-row">
+        <input
+          type="text"
+          class="isbn-preview-input"
+          [value]="lastScannedIsbn"
+          placeholder="Nog niets gescand"
+          readonly
+        />
+      </div>
+    </div>
+
+    @if (errorMessage) {
+      <div class="message-error">{{ errorMessage }}</div>
+    }
+    @if (successMessage) {
+      <div class="message-success">{{ successMessage }}</div>
+    }
+  </div>
+
+  <div class="results-card">
+    <div class="results-header">
+      <h2>
+        Gescande boeken
+        <span class="count-badge">{{ scannedBooks.length }}</span>
+      </h2>
+      <a href="javascript:void(0)" class="clear-link" (click)="clearSession()"
+        >Alles wissen</a
+      >
+    </div>
+
+    @if (scannedBooks.length > 0) {
+      <div class="results-list">
+        @for (
+          result of paginatedScannedBooks;
+          track result.isbn + result.timestamp
+        ) {
+          <div
+            class="result-item"
+            [ngClass]="'status-' + result.status.toLowerCase()"
+          >
+            <div class="result-status-icon">
+              {{
+                result.status === "ADDED"
+                  ? "✓"
+                  : result.status === "ALREADY_EXISTS"
+                    ? "!"
+                    : "✕"
+              }}
+            </div>
+            <div class="result-details">
+              <div class="result-title">
+                {{ result.titre || "Onbekend boek" }}
+              </div>
+              <div class="result-isbn">{{ result.isbn }}</div>
+              <div class="result-message">{{ result.message }}</div>
+            </div>
+            <div class="result-time">
+              {{ result.timestamp | date: "HH:mm:ss" }}
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (totalScannedBooksPages > 1) {
+        <div class="pagination-row">
+          <button
+            class="btn-secondary pagination-btn"
+            (click)="goToPreviousScannedBooksPage()"
+            [disabled]="currentScannedBooksPage === 1"
+          >
+            Vorige
+          </button>
+
+          <div class="pagination-pages">
+            @for (page of scannedBooksPageNumbers; track page) {
+              <button
+                class="pagination-page"
+                [class.active]="page === currentScannedBooksPage"
+                (click)="goToScannedBooksPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          </div>
+
+          <button
+            class="btn-secondary pagination-btn"
+            (click)="goToNextScannedBooksPage()"
+            [disabled]="currentScannedBooksPage === totalScannedBooksPages"
+          >
+            Volgende
+          </button>
+        </div>
+      }
+    } @else {
+      <p class="no-results">Nog geen boeken gescand</p>
+    }
+  </div>
+
+  <!-- Barcode Modal -->
+  @if (showBarcodeModal && pendingScannedBook) {
+    <div class="modal-overlay" (click)="cancelBarcodeAdd()">
+      <div class="barcode-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Boek details</h2>
+          <button class="modal-close-btn" (click)="cancelBarcodeAdd()">
+            ✕
+          </button>
+        </div>
+
+        <div class="modal-content">
+          <div class="book-card">
+            @if (pendingScannedBook.book?.cover) {
+              <img
+                [src]="pendingScannedBook.book.cover"
+                alt="Cover"
+                class="book-cover"
+              />
+            }
+            <div class="book-info">
+              <h3>{{ pendingScannedBook.book?.titel || "Onbekend boek" }}</h3>
+              <p>
+                <strong>Auteur:</strong>
+                {{ pendingScannedBook.book?.auteur || "N/A" }}
+              </p>
+              <p><strong>ISBN:</strong> {{ pendingScannedBook.isbn }}</p>
+
+              @if (pendingScannedBook.isAlreadyInLibrary) {
+                <p class="library-status">
+                  Reeds in de bibliotheek:
+                  {{ pendingScannedBook.copiesTotalCount }} exemplaren
+                </p>
+              } @else {
+                <p class="new-book-status">
+                  Nieuw boek - nog niet in bibliotheek
+                </p>
+              }
+            </div>
+          </div>
+
+          <div class="modal-copies-section">
+            <label for="barcodeCopiesTotalCount"
+              >Aantal exemplaren toe te voegen:</label
+            >
+            <input
+              id="barcodeCopiesTotalCount"
+              type="number"
+              min="1"
+              max="99"
+              [(ngModel)]="pendingCopiesCount"
+              class="copies-input"
+            />
+          </div>
+
+          <div class="modal-actions">
+            <button
+              class="btn-cancel"
+              (click)="cancelBarcodeAdd()"
+              [disabled]="isConfirmingBarcode"
+            >
+              Annuleren
+            </button>
+            <button
+              class="btn-confirm"
+              (click)="confirmBarcodeAdd()"
+              [disabled]="isConfirmingBarcode || pendingCopiesCount < 1"
+            >
+              {{ isConfirmingBarcode ? "Toevoegen..." : "Toevoegen" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,627 @@
+.loan-page {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.loan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0 0.9rem;
+  border-bottom: 1px solid #f0dde5;
+  margin-bottom: 1rem;
+}
+
+.loan-header h1 {
+  color: #1a1a1a;
+  margin: 0;
+  font-size: 2rem;
+}
+
+.loan-header p {
+  margin: 4px 0 0;
+  color: #5a6472;
+  font-size: 0.9rem;
+}
+
+.back-btn {
+  padding: 8px 18px;
+  background: transparent;
+  border: 2px solid #8b0000;
+  color: #8b0000;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.back-btn:hover {
+  background: #8b0000;
+  color: white;
+}
+
+/* Stap indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 28px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  color: #871f42;
+  border: 1px solid #d4c1c9;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.step.active .step-num {
+  background: #871f42;
+  color: white;
+  border-color: #871f42;
+}
+
+.step.done .step-num {
+  background: #871f42;
+  color: white;
+  border-color: #871f42;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.step.active .step-label {
+  color: #871f42;
+}
+
+.step.done .step-label {
+  color: #871f42;
+}
+
+.step-line {
+  width: 80px;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 0 8px;
+  margin-bottom: 20px;
+  transition: background 0.3s;
+}
+
+.step-line.done {
+  background: #871f42;
+}
+
+/* Success banner */
+.success-banner {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Stap card */
+.step-card {
+  background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
+  border-radius: 16px;
+  border: 1px solid #f0dde5;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  padding: 28px;
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.step-card-header h2 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 1.2rem;
+}
+
+.step-card h2 {
+  color: #1a1a1a;
+  font-size: 1.2rem;
+  margin: 0 0 20px;
+}
+
+/* Stap 1 */
+.username-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-row {
+  display: flex;
+  gap: 12px;
+}
+
+.username-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.username-input:focus {
+  outline: none;
+  border-color: #8b0000;
+}
+
+.field-error {
+  color: #c62828;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+}
+
+/* Buttons */
+.primary-btn {
+  padding: 10px 20px;
+  background: #871f42;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: #60162f;
+}
+
+.primary-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ghost-btn {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1.5px solid #871f42;
+  color: #871f42;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.ghost-btn:hover {
+  background: #fff0f4;
+}
+
+/* Actieve uitleningen */
+.active-loans-section {
+  background: #fff8fb;
+  border: 1px solid #f0dde5;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.active-loans-section h3 {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #871f42;
+}
+
+.loans-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loan-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #f0dde5;
+}
+
+.loan-book-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.loan-cover {
+  width: 32px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.loan-title {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loan-due {
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.loan-due.overdue {
+  color: #c62828;
+  font-weight: 600;
+}
+
+.overdue-tag {
+  background: #fdecea;
+  color: #c62828;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.return-btn {
+  padding: 5px 12px;
+  background: #fff;
+  color: #871f42;
+  border: 1.5px solid #871f42;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.return-btn:hover {
+  background: #fff0f4;
+}
+
+/* Zoekbalk */
+.search-bar {
+  margin-bottom: 16px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #c8859d;
+  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.08);
+}
+
+/* Boekenlijst */
+.book-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.book-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.book-item:hover:not(.unavailable) {
+  border-color: #871f42;
+}
+
+.book-item.selected {
+  border-color: #871f42;
+  background: #fff8fb;
+}
+
+.book-item.unavailable {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.book-cover-small {
+  width: 38px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.book-cover-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.no-cover {
+  width: 100%;
+  height: 100%;
+  background: #eee;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 1rem;
+}
+
+.book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.book-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-author {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.book-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.copy-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.copy-badge.zero {
+  background: #fdecea;
+  color: #c62828;
+}
+
+.selected-check {
+  color: #871f42;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* Stap 3 */
+.confirm-info {
+  background: #f9f9f9;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirm-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.confirm-label {
+  font-weight: 700;
+  color: #1a1a1a;
+  font-size: 0.85rem;
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.confirm-value {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.date-input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.books-header {
+  color: #1a1a1a;
+  font-size: 0.95rem;
+  margin: 0 0 12px;
+}
+
+.confirm-book-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.confirm-book-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fff8fb;
+  border-radius: 10px;
+  border: 1px solid #f0dde5;
+}
+
+.remove-book-btn {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.remove-book-btn:hover {
+  color: #c62828;
+  background: #fdecea;
+}
+
+.loan-confirm-btn {
+  width: 100%;
+  padding: 14px;
+  background: #871f42;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.loan-confirm-btn:hover:not(:disabled) {
+  background: #60162f;
+}
+
+.loan-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.info-msg {
+  color: #6b7280;
+  font-style: italic;
+  padding: 8px 0;
+}
+.leerling-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.leerling-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: white;
+}
+
+.leerling-item:hover {
+  border-color: #871f42;
+}
+
+.leerling-item.selected {
+  border-color: #871f42;
+  background: #fff8fb;
+}
+
+.leerling-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #871f42;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.leerling-username {
+  flex: 1;
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+}
+
+.step-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}

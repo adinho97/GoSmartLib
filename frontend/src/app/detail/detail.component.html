@@ -1,29 +1,47 @@
 @if (book) {
   <div class="detail-wrapper">
     <div class="detail-card">
-      <button class="back-btn" (click)="goBack()">← Terug</button>
+      <div class="detail-top-actions">
+        <button class="back-btn" (click)="goBack()">← Terug</button>
 
-      @if (isLibrarian) {
-        <a class="edit-btn-detail" [routerLink]="['/edit', book.id]">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-            ></path>
-          </svg>
-          Aanpassen
-        </a>
-      }
+        @if (isLibrarian) {
+          <a class="edit-btn-detail" [routerLink]="['/edit', book.id]">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+              ></path>
+            </svg>
+            Aanpassen
+          </a>
+        }
+      </div>
 
       <h1 class="book-title">{{ book.titel }}</h1>
+
+      <div class="availability-bar">
+        @if (copySummary.total === 0) {
+          <span class="avail-badge none">Geen exemplaren geregistreerd</span>
+        } @else if (copySummary.available === 0) {
+          <span class="avail-badge unavailable">
+            Alle {{ copySummary.total }} exemplaren zijn uitgeleend
+          </span>
+        } @else {
+          <span class="avail-badge available">
+            {{ copySummary.available }} / {{ copySummary.total }} exemplaren
+            beschikbaar
+          </span>
+        }
+      </div>
+
       <div class="detail-content">
         <div class="book-cover">
           @if (book.cover) {
@@ -35,10 +53,11 @@
             <div><span>Auteur</span>{{ book.auteur }}</div>
             <div><span>Genre</span>{{ book.genre }}</div>
             <div><span>Taal</span>{{ book.taal }}</div>
-            <div><span>Pagina’s</span>{{ book.paginas }}</div>
+            <div><span>Pagina's</span>{{ book.paginas }}</div>
             <div><span>Uitgave</span>{{ book.uitgaveDatum | date }}</div>
             <div><span>Uitgeverij</span>{{ book.uitgeverij }}</div>
           </div>
+
           <div class="book-description">
             <h3>Beschrijving</h3>
             <p>{{ book.beschrijving }}</p>
@@ -141,7 +160,7 @@
                 }
               </div>
 
-              <label for="reviewComment">Comment</label>
+              <label for="reviewComment">Review</label>
               <textarea
                 id="reviewComment"
                 name="reviewComment"

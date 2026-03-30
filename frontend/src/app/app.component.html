@@ -12,35 +12,13 @@
         >
           Dashboard
         </a>
-        <a routerLink="/profile" routerLinkActive="active"> Profiel </a>
         <a routerLink="/books" [class.active]="isBooksListActive">
-          Boekenlijst
+          Boekencatalogus
         </a>
         @if (isLibrarian) {
-          <div class="nav-dropdown" tabindex="0">
-            <button
-              type="button"
-              class="nav-dropdown-trigger"
-              [class.active-dropdown]="isAddBookActive"
-            >
-              Boek toevoegen
-              <svg
-                class="dropdown-arrow"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-              >
-                <path fill="currentColor" d="M7 10l5 5 5-5z" />
-              </svg>
-            </button>
-            <div class="nav-dropdown-menu">
-              <a routerLink="/isbn" routerLinkActive="active"> Via ISBN </a>
-              <a routerLink="/add" routerLinkActive="active">
-                Manueel invoeren
-              </a>
-            </div>
-          </div>
+          <a routerLink="/add-general" routerLinkActive="active">
+            Boek toevoegen
+          </a>
         }
         @if (isTeacher) {
           <a
@@ -52,6 +30,48 @@
             Didactische collectie
           </a>
         }
+        @if (canAccessLoans) {
+          <a routerLink="/uitleen" routerLinkActive="active">Boek uitlenen</a>
+        }
+        <div class="profile-menu" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="profile-link"
+            aria-label="Profielmenu"
+            title="Profielmenu"
+            [class.active]="profileMenuOpen"
+            (click)="toggleProfileMenu($event)"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20 21a8 8 0 0 0-16 0"></path>
+              <circle cx="12" cy="8" r="4"></circle>
+            </svg>
+          </button>
+
+          @if (profileMenuOpen) {
+            <div class="profile-dropdown" role="menu" aria-label="Profielmenu">
+              <p class="profile-name">{{ userName }}</p>
+              <p class="profile-role-text">{{ userRoleLabel }}</p>
+              <button
+                type="button"
+                class="profile-logout-btn"
+                (click)="logout()"
+              >
+                Uitloggen
+              </button>
+            </div>
+          }
+        </div>
       </div>
     </nav>
   </header>

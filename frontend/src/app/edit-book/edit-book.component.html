@@ -1,114 +1,159 @@
 <div class="edit-container">
-  <h2>Boek aanpassen</h2>
+  <header class="edit-header">
+    <h2>Boek aanpassen</h2>
+    <p>Werk de boekgegevens en exemplaren bij</p>
+  </header>
 
-  @if (isLoading) {
-    <p style="text-align: center">Gegevens ophalen...</p>
-  } @else {
-    <form (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="titel">Titel</label>
-        <input
-          id="titel"
-          type="text"
-          [(ngModel)]="book.titel"
-          name="titel"
-          required
-        />
+  <section class="edit-panel">
+    <div class="copy-manager">
+      <div class="copy-info">
+        <span class="copy-count">
+          {{ copySummary.available }} / {{ copySummary.total }} exemplaren
+          beschikbaar
+        </span>
       </div>
-
-      <div class="form-group">
-        <label for="auteur">Auteur</label>
-        <input
-          id="auteur"
-          type="text"
-          [(ngModel)]="book.auteur"
-          name="auteur"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="genre">Genre</label>
-        <select
-          id="genre"
-          [(ngModel)]="selectedGenre"
-          name="genre"
-          (change)="onGenreChange()"
+      <div class="copy-actions">
+        <button
+          type="button"
+          class="copy-btn remove"
+          (click)="removeCopy()"
+          [disabled]="isRemovingCopy || copySummary.total === 0"
         >
-          <option value="">Kies een genre</option>
-          @for (g of genres; track g) {
-            <option [value]="g">{{ g }}</option>
-          }
-        </select>
-      </div>
-
-      @if (selectedGenre === "Didactiek") {
-        <div class="form-group">
-          <label for="didacticSubgenre">Subgenre (didactiek)</label>
-          <select
-            id="didacticSubgenre"
-            name="didacticSubgenre"
-            [(ngModel)]="selectedDidacticSubgenre"
-          >
-            <option value="">Kies een subgenre</option>
-            @for (sg of didacticSubgenres; track sg) {
-              <option [value]="sg">{{ sg }}</option>
-            }
-          </select>
-        </div>
-      }
-
-      @if (selectedGenre === "Non-fictie algemeen") {
-        <div class="form-group">
-          <label>Subgenres</label>
-          <div class="subgenres-checkboxes">
-            @for (sg of nonFictionSubgenres; track sg) {
-              <label class="checkbox-item">
-                <input
-                  type="checkbox"
-                  [checked]="isSubgenreSelected(sg)"
-                  (change)="toggleSubgenre(sg)"
-                />
-                {{ sg }}
-              </label>
-            }
-          </div>
-        </div>
-      }
-
-      <div class="form-group">
-        <label for="taal">Taal</label>
-        <select id="taal" [(ngModel)]="book.taal" name="taal">
-          <option value="">Kies een taal</option>
-          @if (book.taal && !hasKnownLanguage) {
-            <option [value]="book.taal">{{ book.taal }}</option>
-          }
-          @for (language of languages; track language) {
-            <option [value]="language">{{ language }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="beschrijving">Beschrijving</label>
-        <textarea
-          id="beschrijving"
-          rows="5"
-          [(ngModel)]="book.beschrijving"
-          name="beschrijving"
-        ></textarea>
-      </div>
-
-      <div class="button-group">
-        <button type="submit" class="save-button">Opslaan</button>
-        <button type="button" class="cancel-button" (click)="cancel()">
-          Annuleren
+          − Verwijderen
+        </button>
+        <button
+          type="button"
+          class="copy-btn add"
+          (click)="addCopy()"
+          [disabled]="isAddingCopy"
+        >
+          + Toevoegen
         </button>
       </div>
-    </form>
-  }
+      @if (copyMessage) {
+        <p
+          class="copy-success"
+          [class.copy-success-danger]="copyMessage === 'Exemplaar verwijderd.'"
+        >
+          {{ copyMessage }}
+        </p>
+      }
+      @if (copyError) {
+        <p class="copy-error">{{ copyError }}</p>
+      }
+    </div>
 
-  @if (errorMessage) {
-    <p class="error">{{ errorMessage }}</p>
-  }
+    @if (isLoading) {
+      <p class="loading-message">Gegevens ophalen...</p>
+    } @else {
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-layout">
+          <div class="form-group">
+            <label for="titel">Titel</label>
+            <input
+              id="titel"
+              type="text"
+              [(ngModel)]="book.titel"
+              name="titel"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="auteur">Auteur</label>
+            <input
+              id="auteur"
+              type="text"
+              [(ngModel)]="book.auteur"
+              name="auteur"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="genre">Genre</label>
+            <select
+              id="genre"
+              [(ngModel)]="selectedGenre"
+              name="genre"
+              (change)="onGenreChange()"
+            >
+              <option value="">Kies een genre</option>
+              @for (g of genres; track g) {
+                <option [value]="g">{{ g }}</option>
+              }
+            </select>
+          </div>
+
+          @if (selectedGenre === "Didactiek") {
+            <div class="form-group">
+              <label for="didacticSubgenre">Subgenre (didactiek)</label>
+              <select
+                id="didacticSubgenre"
+                name="didacticSubgenre"
+                [(ngModel)]="selectedDidacticSubgenre"
+              >
+                <option value="">Kies een subgenre</option>
+                @for (sg of didacticSubgenres; track sg) {
+                  <option [value]="sg">{{ sg }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (selectedGenre === "Non-fictie algemeen") {
+            <div class="form-group full-width">
+              <label>Subgenres</label>
+              <div class="subgenres-checkboxes">
+                @for (sg of nonFictionSubgenres; track sg) {
+                  <label class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      [checked]="isSubgenreSelected(sg)"
+                      (change)="toggleSubgenre(sg)"
+                    />
+                    {{ sg }}
+                  </label>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="form-group">
+            <label for="taal">Taal</label>
+            <select id="taal" [(ngModel)]="book.taal" name="taal">
+              <option value="">Kies een taal</option>
+              @if (book.taal && !hasKnownLanguage) {
+                <option [value]="book.taal">{{ book.taal }}</option>
+              }
+              @for (language of languages; track language) {
+                <option [value]="language">{{ language }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="beschrijving">Beschrijving</label>
+            <textarea
+              id="beschrijving"
+              rows="5"
+              [(ngModel)]="book.beschrijving"
+              name="beschrijving"
+            ></textarea>
+          </div>
+
+          <div class="button-group">
+            <button type="submit" class="save-button">Opslaan</button>
+            <button type="button" class="cancel-button" (click)="cancel()">
+              Annuleren
+            </button>
+          </div>
+        </div>
+      </form>
+    }
+
+    @if (errorMessage) {
+      <p class="error">{{ errorMessage }}</p>
+    }
+  </section>
 </div>

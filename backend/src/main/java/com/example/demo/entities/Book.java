@@ -8,8 +8,8 @@ import jakarta.validation.constraints.Size;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "boeken")
@@ -67,7 +67,18 @@ public class Book {
     private School school;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews = new ArrayList<>();
+    private Set<Review> reviews = new HashSet<>();
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<BookCopy> copies = new HashSet<>();
+
+    public Set<BookCopy> getCopies() {
+        return copies;
+    }
+
+    public void setCopies(Set<BookCopy> copies) {
+        this.copies = copies;
+    }
 
     public Long getId() {
         return id;
@@ -180,12 +191,11 @@ public class Book {
     public void setSchool(School school) {
         this.school = school;
     }
-
-    public List<Review> getReviews() {
+    public Set<Review> getReviews() {
         return reviews;
     }
 
-    public void setReviews(List<Review> reviews) {
+    public void setReviews(Set<Review> reviews) {
         this.reviews = reviews;
     }
 }

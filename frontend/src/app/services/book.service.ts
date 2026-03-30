@@ -7,7 +7,6 @@ import axios from "axios";
 
 export type BulkImportStatus =
   | "ADDED"
-  | "ALREADY_EXISTS"
   | "NOT_FOUND"
   | "INVALID_ISBN"
   | "ERROR";
@@ -23,6 +22,7 @@ export interface BulkImportResult {
   totalRows: number;
   uniqueIsbnsProcessed: number;
   duplicateRowsSkipped: number;
+  totalCopiesAdded: number;
   results: BulkImportRowResult[];
 }
 
@@ -213,6 +213,20 @@ export class BookService {
     } catch (err: any) {
       if (err?.response?.status === 404) {
         return false;
+      }
+      throw err;
+    }
+  }
+  
+  async getBookByIsbnFromLibrary(isbn: string, schoolId?: number): Promise<Book | null> {
+    try {
+      const res = await axios.get<Book>(
+        this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
+      );
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return null;
       }
       throw err;
     }
