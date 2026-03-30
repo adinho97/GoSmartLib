@@ -48,6 +48,8 @@ export class ProfileComponent {
   borrowedBooks: ProfileBookCard[] = [{ title: 'Book Four', deadline: new Date(), cover: '', id: 4 }];
   readingList: ProfileBookCard[] = [{ title: 'Book Five', author: 'Author C', cover: '', id: 5 }];
   wishlistLoading = false;
+  readonly wishlistPageSize = 6;
+  currentWishlistPage = 1;
 
   constructor(
     private location: Location,
@@ -76,10 +78,44 @@ export class ProfileComponent {
         author: item.auteur,
         cover: item.cover || '',
       }));
+      this.currentWishlistPage = 1;
     } catch {
       this.wishlistBooks = [];
     } finally {
       this.wishlistLoading = false;
+    }
+  }
+
+  get totalWishlistPages(): number {
+    return Math.max(1, Math.ceil(this.wishlistBooks.length / this.wishlistPageSize));
+  }
+
+  get wishlistPageNumbers(): number[] {
+    return Array.from({ length: this.totalWishlistPages }, (_, i) => i + 1);
+  }
+
+  get pagedWishlistBooks(): ProfileBookCard[] {
+    const start = (this.currentWishlistPage - 1) * this.wishlistPageSize;
+    return this.wishlistBooks.slice(start, start + this.wishlistPageSize);
+  }
+
+  goToWishlistPage(page: number) {
+    this.currentWishlistPage = page;
+  }
+
+  async removeFromWishlist(event: MouseEvent, bookId: number) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    try {
+      await this.bookService.removeFromWishlist(bookId);
+      this.wishlistBooks = this.wishlistBooks.filter((book) => book.id !== bookId);
+
+      if (this.currentWishlistPage > this.totalWishlistPages) {
+        this.currentWishlistPage = this.totalWishlistPages;
+      }
+    } catch {
+      // Keep silent here to avoid noisy alerts on dashboard profile cards.
     }
   }
 

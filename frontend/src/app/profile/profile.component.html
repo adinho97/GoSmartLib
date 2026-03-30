@@ -180,12 +180,20 @@
                   Nog geen boeken op je verlanglijst.
                 </div>
               } @else {
-                <div class="horizontal-scroll-wrapper">
-                  @for (book of wishlistBooks; track book.id) {
+                <div class="wishlist-grid">
+                  @for (book of pagedWishlistBooks; track book.id) {
                     <article
                       class="profile-book-card"
                       (click)="goToDetail(book.id)"
                     >
+                      <button
+                        type="button"
+                        class="wishlist-remove-btn"
+                        aria-label="Verwijder uit verlanglijst"
+                        (click)="removeFromWishlist($event, book.id)"
+                      >
+                        ×
+                      </button>
                       @if (book.cover) {
                         <div class="book-cover">
                           <img [src]="book.cover" alt="{{ book.title }}" />
@@ -200,6 +208,21 @@
                     </article>
                   }
                 </div>
+
+                @if (totalWishlistPages > 1) {
+                  <div class="wishlist-pagination">
+                    @for (page of wishlistPageNumbers; track page) {
+                      <button
+                        type="button"
+                        class="wishlist-page-btn"
+                        [class.active]="page === currentWishlistPage"
+                        (click)="goToWishlistPage(page)"
+                      >
+                        {{ page }}
+                      </button>
+                    }
+                  </div>
+                }
               }
             </section>
           }

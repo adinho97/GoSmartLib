@@ -265,21 +265,83 @@
 }
 
 .wishlist-section {
-  border-color: #efced9;
-  background: linear-gradient(180deg, #fff9fc 0%, #ffffff 65%);
+  border-color: #f0dde5;
+  background: #ffffff;
 }
 
 .wishlist-section .section-title {
-  color: #7c1d47;
+  color: #1a1a1a;
 }
 
 .inline-empty {
-  border: 1px dashed #dcb8c6;
+  border: 1px dashed #d4c1c9;
   border-radius: 10px;
-  background: #fff8fb;
-  color: #7c4a5f;
+  background: #fafbfc;
+  color: #5a6472;
   font-size: 0.88rem;
   padding: 0.7rem 0.8rem;
+}
+
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.wishlist-grid .profile-book-card {
+  position: relative;
+}
+
+.wishlist-remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #5f6570;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+  display: grid;
+  place-items: center;
+}
+
+.wishlist-remove-btn:hover {
+  background: #ffffff;
+  color: #9a2748;
+}
+
+.wishlist-pagination {
+  margin-top: 0.7rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.wishlist-page-btn {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #d4c1c9;
+  background: #ffffff;
+  color: #5a6472;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wishlist-page-btn:hover {
+  background: #f8f1f5;
+}
+
+.wishlist-page-btn.active {
+  background: #871f42;
+  border-color: #871f42;
+  color: #ffffff;
 }
 
 .section-head {
@@ -405,6 +467,10 @@
     left: 0;
     right: auto;
   }
+
+  .wishlist-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 560px) {
@@ -418,6 +484,10 @@
 
   .horizontal-scroll-wrapper {
     grid-auto-columns: 160px;
+  }
+
+  .wishlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .book-cover,
