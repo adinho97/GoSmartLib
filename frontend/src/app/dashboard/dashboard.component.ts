@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
+import { HttpClient } from "@angular/common/http";
 
 type DashboardBook = {
   id: number;
@@ -37,25 +38,22 @@ export class DashboardComponent implements OnInit {
   loading = true;
   loansLoading = true;
 
+  today = new Date().toISOString().split("T")[0];
+
   get canSeeDidactic(): boolean {
     const role = localStorage.getItem("role");
     return role === "leerkracht" || role === "bibbeheerder";
-  }
-
-  get isLeerling(): boolean {
-    return localStorage.getItem("role") === "leerling";
   }
 
   get currentUsername(): string {
     return localStorage.getItem("username") || "";
   }
 
-  today = new Date().toISOString().split("T")[0];
-
   constructor(
     private router: Router,
     private bookService: BookService,
     private loanService: LoanService,
+    private http: HttpClient,
   ) {}
 
   async ngOnInit() {
@@ -141,5 +139,14 @@ export class DashboardComponent implements OnInit {
 
   goToDetail(bookId: number) {
     this.router.navigate(["/detail", bookId]);
+  }
+
+  sendTestReminder() {
+    const sub = localStorage.getItem("userId");
+    if (!sub) return;
+    this.http.post(`/api/users/${sub}/test-reminder`, {}).subscribe({
+      next: () => alert("Testbericht verzonden!"),
+      error: (err) => console.error("Fout bij verzenden:", err),
+    });
   }
 }

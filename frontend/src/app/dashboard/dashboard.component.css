@@ -1,6 +1,6 @@
 /* Algemene instellingen */
 .home-wrapper {
-  font-family: "Segoe UI", Roboto, sans-serif;
+  font-family: Arial, sans-serif;
   background: #f9f9f9;
   min-height: 100vh;
   color: #333;
@@ -11,12 +11,12 @@
   text-align: center;
   padding: 58px 20px 60px;
   background: linear-gradient(180deg, #fff 0%, #fff6f8 100%);
-  border-bottom: 1px solid rgba(139, 0, 0, 0.16);
+  border-bottom: 1px solid rgba(135, 31, 66, 0.16);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .hero h1 {
-  color: #8b0000;
+  color: #871f42;
   font-size: clamp(2.1rem, 4vw, 3rem);
   margin: 0;
   font-weight: 800;
@@ -40,10 +40,11 @@
 
 .section-title {
   font-size: 1.6rem;
-  border-left: 6px solid #8b0000;
+  border-left: 6px solid #871f42;
   padding-left: 15px;
   margin-bottom: 30px;
   font-weight: 700;
+  color: #1a1a1a;
 }
 
 /* Horizontaal Scrollen */
@@ -56,16 +57,16 @@
   scroll-snap-type: x mandatory;
 }
 
-/* Custom Scrollbar (Donkerrood) */
+/* Custom Scrollbar */
 .horizontal-scroll-wrapper::-webkit-scrollbar {
   height: 8px;
 }
 .horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
-  background: #8b0000;
+  background: #871f42;
   border-radius: 10px;
 }
 
-/* Moderne Boek Kaart */
+/* Boek Kaart */
 .book-card {
   flex: 0 0 260px;
   scroll-snap-align: start;
@@ -83,13 +84,12 @@
 
 .book-card:hover {
   transform: translateY(-10px);
-  border-color: #8b0000;
-  box-shadow: 0 15px 35px rgba(139, 0, 0, 0.12);
+  border-color: #871f42;
+  box-shadow: 0 15px 35px rgba(135, 31, 66, 0.12);
 }
 
-/* Genre Tag */
 .genre-tag {
-  background: #8b0000;
+  background: #871f42;
   color: white;
   font-size: 0.65rem;
   padding: 4px 12px;
@@ -134,7 +134,7 @@
 }
 
 .book-content h4 {
-  color: #8b0000;
+  color: #871f42;
   font-size: 1.1rem;
   margin: 0 0 8px 0;
   font-weight: 700;
@@ -153,10 +153,9 @@
   margin-bottom: 15px;
 }
 
-/* Knoppen */
 .details-btn {
   margin-top: auto;
-  background: #8b0000;
+  background: #871f42;
   color: white;
   border: none;
   padding: 12px 20px;
@@ -169,18 +168,15 @@
 }
 
 .details-btn:hover {
-  background: #a00000;
+  background: #60162f;
   transform: scale(1.05);
 }
 
-/* =========================================
-   SPECIFIEKE DIDACTIEK STYLING (ORANJE)
-   ========================================= */
-
+/* Didactiek */
 .teacher-only-title {
   margin-top: 50px;
   color: #d35400;
-  border-left: 6px solid #e67e22; /* Oranje marker */
+  border-left: 6px solid #e67e22;
   padding-left: 15px;
 }
 
@@ -190,10 +186,9 @@
   border-radius: 15px;
 }
 
-/* De oranje zijrand voor didactische boeken */
 .book-card.teacher-card {
   border: none;
-  border-left: 10px solid #e67e22 !important; /* De dikke oranje rand */
+  border-left: 10px solid #e67e22 !important;
   background: #fffdfb;
 }
 
@@ -221,14 +216,14 @@
   flex-direction: column;
   align-items: center;
   padding: 80px;
-  color: #8b0000;
+  color: #871f42;
 }
 
 .spinner {
   width: 45px;
   height: 45px;
-  border: 4px solid rgba(139, 0, 0, 0.1);
-  border-top: 4px solid #8b0000;
+  border: 4px solid rgba(135, 31, 66, 0.1);
+  border-top: 4px solid #871f42;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 15px;
@@ -252,8 +247,6 @@
     max-width: 400px;
   }
 }
-
-/* Uitgeleende boeken sectie */
 .loans-scroll-wrapper {
   display: flex;
   gap: 12px;
@@ -268,7 +261,7 @@
 }
 
 .loans-scroll-wrapper::-webkit-scrollbar-thumb {
-  background: #8b0000;
+  background: #871f42;
   border-radius: 10px;
 }
 
@@ -287,8 +280,8 @@
 }
 
 .loan-card:hover {
-  border-color: #8b0000;
-  box-shadow: 0 4px 14px rgba(139, 0, 0, 0.1);
+  border-color: #871f42;
+  box-shadow: 0 4px 14px rgba(135, 31, 66, 0.1);
   transform: translateY(-2px);
 }
 
