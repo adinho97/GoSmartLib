@@ -195,4 +195,51 @@ export class BookService {
     const res = await axios.put(`${this.apiUrl}/${id}`, book);
     return res.data;
   }
+
+  private getUserSubHeaders() {
+    const userSub = localStorage.getItem("sub") || "";
+    return {
+      headers: {
+        "X-User-Sub": userSub,
+      },
+    };
+  }
+
+  async addToWishlist(bookId: number): Promise<void> {
+    await axios.post(
+      "/api/verlanglijst",
+      { bookId },
+      this.getUserSubHeaders(),
+    );
+  }
+
+  async removeFromWishlist(bookId: number): Promise<void> {
+    await axios.delete(
+      `/api/verlanglijst/${bookId}`,
+      this.getUserSubHeaders(),
+    );
+  }
+
+  async getUserWishlist(): Promise<Book[]> {
+    const res = await axios.get<Book[]>(
+      "/api/verlanglijst",
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async isWishlisted(bookId: number): Promise<boolean> {
+    try {
+      const res = await axios.get<boolean>(
+        `/api/verlanglijst/${bookId}/check`,
+        this.getUserSubHeaders(),
+      );
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return false;
+      }
+      throw err;
+    }
+  }
 }
