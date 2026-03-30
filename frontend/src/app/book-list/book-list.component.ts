@@ -122,6 +122,7 @@ export class BookListComponent implements OnInit {
 
   minAvailablePages = this.minPageFilterLimit;
   maxAvailablePages = this.maxPageFilterLimit;
+  wishlistedBookIds = new Set<number>();
 
   constructor(
     private route: ActivatedRoute,
@@ -398,5 +399,22 @@ export class BookListComponent implements OnInit {
     }
 
     await this.loadBooks();
+  }
+
+  toggleWishlist(event: MouseEvent, bookId?: number) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!bookId) return;
+
+    if (this.wishlistedBookIds.has(bookId)) {
+      this.wishlistedBookIds.delete(bookId);
+      return;
+    }
+
+    this.wishlistedBookIds.add(bookId);
+  }
+
+  isWishlisted(bookId?: number): boolean {
+    return !!bookId && this.wishlistedBookIds.has(bookId);
   }
 }

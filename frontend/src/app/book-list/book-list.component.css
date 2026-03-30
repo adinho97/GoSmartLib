@@ -657,6 +657,39 @@
   color: #fff;
 }
 
+.wishlist-button {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 12;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.wishlist-button:hover {
+  transform: scale(1.12);
+}
+
+.wishlist-button svg {
+  fill: transparent;
+  transition: fill 0.15s ease;
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.2;
+}
+
+.wishlist-button.active svg {
+  fill: #d4537e;
+}
+
 @media (max-width: 1024px) {
   .book-list-layout {
     grid-template-columns: 1fr;
