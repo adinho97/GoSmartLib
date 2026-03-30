@@ -16,6 +16,8 @@ import axios from "axios";
 })
 export class DetailComponent implements OnInit, OnDestroy {
   book!: Book;
+  isWishlistedBook = false;
+  wishlistBusy = false;
 
   // Rol-gebaseerde logica
   readonly userRole = localStorage.getItem("role");
@@ -61,6 +63,8 @@ export class DetailComponent implements OnInit, OnDestroy {
         this.book = data;
       });
 
+      this.loadWishlistState(this.currentBookId);
+
       // Laad de reviews
       this.loadReviews(this.currentBookId);
 
@@ -82,6 +86,31 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+  }
+
+  private async loadWishlistState(bookId: number): Promise<void> {
+    try {
+      this.isWishlistedBook = await this.bookService.isWishlisted(bookId);
+    } catch {
+      this.isWishlistedBook = false;
+    }
+  }
+
+  async toggleWishlist(): Promise<void> {
+    if (!this.currentBookId || this.wishlistBusy) return;
+
+    this.wishlistBusy = true;
+    try {
+      if (this.isWishlistedBook) {
+        await this.bookService.removeFromWishlist(this.currentBookId);
+        this.isWishlistedBook = false;
+      } else {
+        await this.bookService.addToWishlist(this.currentBookId);
+        this.isWishlistedBook = true;
+      }
+    } finally {
+      this.wishlistBusy = false;
+    }
   }
 
   goBack(): void {

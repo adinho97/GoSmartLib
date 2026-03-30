@@ -288,7 +288,7 @@
   gap: 0.7rem;
   justify-content: start;
   align-items: start;
-  padding: 0.1rem 0.1rem 0.35rem;
+  padding: 0.2rem 0.1rem 0.45rem;
   overflow: hidden;
 }
 
@@ -301,19 +301,6 @@
   width: 180px;
   min-width: 180px;
   max-width: 180px;
-  height: 278px;
-  min-height: 278px;
-  max-height: 278px;
-  overflow: hidden;
-}
-
-.wishlist-card .book-cover,
-.wishlist-card .cover-placeholder {
-  height: 165px;
-}
-
-.wishlist-card .book-content {
-  min-height: 82px;
 }
 
 .wishlist-card .book-content h4 {
