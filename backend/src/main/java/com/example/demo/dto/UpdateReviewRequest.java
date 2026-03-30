@@ -12,7 +12,7 @@ public class UpdateReviewRequest {
     private Integer rating;
 
     @NotBlank
-    @Size(max = 1000)
+    @Size(max = 500)
     private String comment;
 
     public Integer getRating() {
