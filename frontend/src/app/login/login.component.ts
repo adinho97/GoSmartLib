@@ -57,6 +57,7 @@ export class LoginComponent implements OnInit {
         this.setRole(userInfo.role);
         if (userInfo.sub) {
           localStorage.setItem("userId", userInfo.sub);
+          localStorage.setItem("sub", userInfo.sub);
         }
         if (userInfo.platform) {
           localStorage.setItem("smartschoolPlatform", userInfo.platform);

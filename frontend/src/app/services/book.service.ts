@@ -245,7 +245,10 @@ export class BookService {
   }
 
   private getUserSubHeaders() {
-    const userSub = localStorage.getItem("sub") || "";
+    const userSub =
+      localStorage.getItem("sub") ||
+      localStorage.getItem("userId") ||
+      "";
     return {
       headers: {
         "X-User-Sub": userSub,
