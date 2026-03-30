@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
+import { LoanService, Loan } from "../services/loan.service";
 
 type DashboardBook = {
   id: number;
@@ -32,31 +33,42 @@ type BookResponse = {
 export class DashboardComponent implements OnInit {
   featuredBooks: DashboardBook[] = [];
   didacticBooks: DashboardBook[] = [];
+  myLoans: Loan[] = [];
   loading = true;
+  loansLoading = true;
 
   get canSeeDidactic(): boolean {
     const role = localStorage.getItem("role");
     return role === "leerkracht" || role === "bibbeheerder";
   }
 
+  get isLeerling(): boolean {
+    return localStorage.getItem("role") === "leerling";
+  }
+
+  get currentUsername(): string {
+    return localStorage.getItem("username") || "";
+  }
+
+  today = new Date().toISOString().split("T")[0];
+
   constructor(
     private router: Router,
     private bookService: BookService,
+    private loanService: LoanService,
   ) {}
 
   async ngOnInit() {
-    await this.fetchBooks();
+    await Promise.all([this.fetchBooks(), this.fetchMyLoans()]);
   }
 
   async fetchBooks() {
     this.loading = true;
     try {
       const data = (await this.bookService.getBooks()) as BookResponse[];
-
       this.featuredBooks = data
         .filter((book) => !this.isDidacticGenre(book.genre))
         .map((book) => this.mapBook(book));
-
       this.didacticBooks = data
         .filter((book) => this.isDidacticGenre(book.genre))
         .map((book) => this.mapBook(book));
@@ -67,24 +79,39 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  async fetchMyLoans() {
+    this.loansLoading = true;
+    const username = this.currentUsername;
+    if (!username) {
+      this.loansLoading = false;
+      return;
+    }
+    try {
+      this.myLoans = await this.loanService.getActiveLoans(username);
+    } catch {
+      this.myLoans = [];
+    } finally {
+      this.loansLoading = false;
+    }
+  }
+
+  isOverdue(dueDate: string): boolean {
+    return dueDate < this.today;
+  }
+
   private isDidacticGenre(genre: unknown): boolean {
-    return String(genre || "")
-      .toLowerCase()
-      .startsWith("didactiek");
+    return String(genre || "").toLowerCase().startsWith("didactiek");
   }
 
   private formatGenreForDisplay(genre: unknown): string {
     const genreText = String(genre || "").trim();
     if (!genreText) return "Algemeen";
-
     const [baseGenre, subgenrePart] = genreText.split(" - ", 2);
     if (!subgenrePart) return genreText;
-
     const firstSubgenre = subgenrePart
       .split(",")
       .map((value) => value.trim())
       .find((value) => value.length > 0);
-
     return firstSubgenre ? `${baseGenre} - ${firstSubgenre}` : baseGenre;
   }
 
@@ -110,5 +137,9 @@ export class DashboardComponent implements OnInit {
 
   seeDetail(book: DashboardBook) {
     this.router.navigate(["/detail", book.id]);
+  }
+
+  goToDetail(bookId: number) {
+    this.router.navigate(["/detail", bookId]);
   }
 }
