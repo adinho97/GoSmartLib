@@ -26,6 +26,15 @@ export interface BulkImportResult {
   results: BulkImportRowResult[];
 }
 
+export interface WishlistItem {
+  id: number;
+  bookId: number;
+  titel: string;
+  auteur: string;
+  cover: string | null;
+  addedAt: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -220,8 +229,8 @@ export class BookService {
     );
   }
 
-  async getUserWishlist(): Promise<Book[]> {
-    const res = await axios.get<Book[]>(
+  async getUserWishlist(): Promise<WishlistItem[]> {
+    const res = await axios.get<WishlistItem[]>(
       "/api/verlanglijst",
       this.getUserSubHeaders(),
     );

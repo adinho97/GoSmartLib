@@ -137,6 +137,7 @@ export class BookListComponent implements OnInit {
     });
     await this.loadSchools();
     await this.loadBooks();
+    await this.loadWishlistState();
     this.applyFilters();
   }
 
@@ -401,17 +402,32 @@ export class BookListComponent implements OnInit {
     await this.loadBooks();
   }
 
-  toggleWishlist(event: MouseEvent, bookId?: number) {
+  private async loadWishlistState() {
+    try {
+      const wishlist = await this.bookService.getUserWishlist();
+      this.wishlistedBookIds = new Set(wishlist.map((item) => item.bookId));
+    } catch {
+      this.wishlistedBookIds = new Set<number>();
+    }
+  }
+
+  async toggleWishlist(event: MouseEvent, bookId?: number) {
     event.stopPropagation();
     event.preventDefault();
     if (!bookId) return;
 
-    if (this.wishlistedBookIds.has(bookId)) {
-      this.wishlistedBookIds.delete(bookId);
-      return;
-    }
+    try {
+      if (this.wishlistedBookIds.has(bookId)) {
+        await this.bookService.removeFromWishlist(bookId);
+        this.wishlistedBookIds.delete(bookId);
+        return;
+      }
 
-    this.wishlistedBookIds.add(bookId);
+      await this.bookService.addToWishlist(bookId);
+      this.wishlistedBookIds.add(bookId);
+    } catch {
+      this.error = "Verlanglijst bijwerken mislukt. Probeer later opnieuw.";
+    }
   }
 
   isWishlisted(bookId?: number): boolean {
