@@ -1,41 +1,41 @@
-body {
-  background: linear-gradient(135deg, #f6f3ff 0%, #fdf0f5 50%, #eef9ff 100%);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
 .add-book-page {
   max-width: 650px;
   margin: 50px auto;
-  padding: 35px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  font-family: Arial, sans-serif;
 }
 
-h1 {
+.page-header {
   text-align: center;
-  color: #871f42;
   margin-bottom: 30px;
+}
+
+.page-header h1 {
+  color: #1a1a1a;
+  margin-bottom: 30px;
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.main-card {
+  padding: 35px;
+  background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
+  border: 1px solid #f0dde5;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
 .form-row {
   display: flex;
   flex-direction: column;
   margin-bottom: 18px;
-  padding: 15px;
-  border-radius: 12px;
-}
-
-.form-row:nth-child(odd) {
-  background: #fff8fb;
-}
-.form-row:nth-child(even) {
-  background: #f8fbff;
+  padding: 0;
+  border-radius: 0;
 }
 
 label {
   font-weight: 600;
-  color: #5c2b3c;
+  color: #1a1a1a;
   margin-bottom: 8px;
 }
 
@@ -68,13 +68,18 @@ textarea {
 .cover-upload-button {
   display: inline-block;
   padding: 10px 20px;
-  background: #fdf0f5;
-  border: 2px solid #871f42;
+  background: #fff;
+  border: 1.5px solid #871f42;
   color: #871f42;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.cover-upload-button:hover {
+  background: #fff0f4;
 }
 
 .cover-file-name {
@@ -146,7 +151,7 @@ textarea {
 }
 
 .helper-text {
-  color: #e67e22;
+  color: #666;
   font-size: 13px;
   margin-top: 5px;
   font-weight: 600;
@@ -158,7 +163,7 @@ textarea {
   align-items: center;
   gap: 10px;
   font-weight: 600;
-  color: #5c2b3c;
+  color: #1a1a1a;
   cursor: pointer;
   margin-bottom: 0;
 }
@@ -214,7 +219,7 @@ select:disabled {
 .submit-btn {
   width: 100%;
   padding: 15px;
-  background: #871f42;
+  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
   color: white;
   border: none;
   border-radius: 10px;
@@ -222,6 +227,16 @@ select:disabled {
   font-size: 18px;
   cursor: pointer;
   margin-top: 10px;
+  transition: box-shadow 0.2s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 16px rgba(135, 31, 66, 0.25);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .success-message {

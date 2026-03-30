@@ -10,6 +10,8 @@ import { DetailComponent } from "./detail/detail.component";
 import { BookListComponent } from "./book-list/book-list.component";
 import { ProfileComponent } from "./profile/profile.component";
 import { EditBookComponent } from "./edit-book/edit-book.component";
+import { AddBarcodeComponent } from "./add-barcode/add-barcode.component";
+import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
 
 export const appRoutes: Routes = [
@@ -41,6 +43,18 @@ export const appRoutes: Routes = [
     data: { roles: ["bibbeheerder"] },
   },
   {
+    path: "add-general",
+    component: GeneralAddComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
+    path: "add-barcode",
+    component: AddBarcodeComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
     path: "edit/:id",
     component: EditBookComponent,
     canActivate: [AuthGuard],
@@ -56,12 +70,6 @@ export const appRoutes: Routes = [
   {
     path: "books",
     component: BookListComponent,
-    canActivate: [AuthGuard],
-    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
-  },
-  {
-    path: "profile",
-    component: ProfileComponent,
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },

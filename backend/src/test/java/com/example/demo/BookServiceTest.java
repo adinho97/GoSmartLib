@@ -3,8 +3,10 @@ package com.example.demo;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.services.BulkImportService;
 import com.example.demo.services.BookService;
 import com.example.demo.services.ImportCoreService;
@@ -34,6 +36,9 @@ class BookServiceTest {
 
     @Mock
     private BookRepository bookRepository;
+
+    @Mock
+    private BookCopyRepository bookCopyRepository;
 
     @Mock
     private OpenLibraryService openLibraryService;
@@ -198,7 +203,10 @@ class BookServiceTest {
                         "Ongeldig ISBN-formaat", null));
 
         BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
-                List.of("9780553808049", "9780156012195", "0000000000000"),
+                List.of(
+                        new BulkImportService.IsbnQuantityPair("9780553808049", 1),
+                        new BulkImportService.IsbnQuantityPair("9780156012195", 2),
+                        new BulkImportService.IsbnQuantityPair("0000000000000", 1)),
                 invalidRows,
                 4,
                 0);
@@ -229,7 +237,7 @@ class BookServiceTest {
                 List.of(
                         ImportResultDto.Status.INVALID_ISBN,
                         ImportResultDto.Status.ADDED,
-                        ImportResultDto.Status.ALREADY_EXISTS,
+                        ImportResultDto.Status.ADDED,
                         ImportResultDto.Status.NOT_FOUND),
                 statuses);
     }
@@ -240,7 +248,7 @@ class BookServiceTest {
         School school = makeSchool();
 
         BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
-                List.of("9780553808049"),
+                List.of(new BulkImportService.IsbnQuantityPair("9780553808049", 1)),
                 List.of(),
                 1,
                 0);
@@ -256,5 +264,150 @@ class BookServiceTest {
         ImportResultDto.RowResult row = result.getResults().get(0);
         assertEquals(ImportResultDto.Status.ERROR, row.status());
         assertEquals("Fout bij verwerken van ISBN.", row.message());
+    }
+
+    // ---- Copy Creation Tests ------------------------------------------------
+
+    @Test
+    void importBulkByIsbnShouldCreateMultipleCopiesForNewBooks() {
+        MultipartFile file = mock(MultipartFile.class);
+        School school = makeSchool();
+        Book savedBook = makeBook();
+
+        BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
+                List.of(new BulkImportService.IsbnQuantityPair("9780553808049", 3)),
+                List.of(),
+                1,
+                0);
+
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
+        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(importCoreService.importByNormalizedIsbn("9780553808049", school))
+                .thenReturn(new ImportCoreService.ImportOutcome(
+                        ImportCoreService.ImportStatus.ADDED, makeBookDto()));
+        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
+                .thenReturn(Optional.of(savedBook));
+
+        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+
+        // Verify 3 copies were created
+        verify(bookCopyRepository, times(3)).save(any(BookCopy.class));
+        
+        // Verify totalCopiesAdded is 3
+        assertEquals(3, result.getTotalCopiesAdded());
+        
+        // Verify message contains quantity
+        ImportResultDto.RowResult row = result.getResults().get(0);
+        assertEquals(ImportResultDto.Status.ADDED, row.status());
+        assertTrue(row.message().contains("3 exemplaar(en)"));
+    }
+
+    @Test
+    void importBulkByIsbnShouldCreateMultipleCopiesForExistingBooks() {
+        MultipartFile file = mock(MultipartFile.class);
+        School school = makeSchool();
+        Book existingBook = makeBook();
+
+        BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
+                List.of(new BulkImportService.IsbnQuantityPair("9780553808049", 5)),
+                List.of(),
+                1,
+                0);
+
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
+        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(importCoreService.importByNormalizedIsbn("9780553808049", school))
+                .thenReturn(new ImportCoreService.ImportOutcome(
+                        ImportCoreService.ImportStatus.ALREADY_EXISTS, makeBookDto()));
+        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
+                .thenReturn(Optional.of(existingBook));
+
+        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+
+        // Verify 5 copies were created
+        verify(bookCopyRepository, times(5)).save(any(BookCopy.class));
+        
+        // Verify totalCopiesAdded is 5
+        assertEquals(5, result.getTotalCopiesAdded());
+        
+        // Verify message for existing book
+        ImportResultDto.RowResult row = result.getResults().get(0);
+        assertEquals(ImportResultDto.Status.ADDED, row.status());
+        assertTrue(row.message().contains("Boek al in bibliotheek"));
+        assertTrue(row.message().contains("5 exemplaren"));
+    }
+
+    @Test
+    void importBulkByIsbnShouldAccumulateTotalCopiesAcrossMultipleBooks() {
+        MultipartFile file = mock(MultipartFile.class);
+        School school = makeSchool();
+        Book book1 = makeBook();
+        Book book2 = makeBook();
+        book2.setIsbn("9780156012195");
+        book2.setId(2L);
+
+        BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
+                List.of(
+                        new BulkImportService.IsbnQuantityPair("9780553808049", 2),
+                        new BulkImportService.IsbnQuantityPair("9780156012195", 3)),
+                List.of(),
+                2,
+                0);
+
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
+        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(importCoreService.importByNormalizedIsbn("9780553808049", school))
+                .thenReturn(new ImportCoreService.ImportOutcome(
+                        ImportCoreService.ImportStatus.ADDED, makeBookDto()));
+        when(importCoreService.importByNormalizedIsbn("9780156012195", school))
+                .thenReturn(new ImportCoreService.ImportOutcome(
+                        ImportCoreService.ImportStatus.ALREADY_EXISTS, makeBookDto()));
+        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
+                .thenReturn(Optional.of(book1));
+        when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
+                .thenReturn(Optional.of(book2));
+
+        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+
+        // Verify total is 2 + 3 = 5 copies
+        assertEquals(5, result.getTotalCopiesAdded());
+        
+        // Verify copies were saved (2 + 3 = 5 times)
+        verify(bookCopyRepository, times(5)).save(any(BookCopy.class));
+    }
+
+    @Test
+    void importBulkByIsbnShouldSetAllCopiesStatusToAvailable() {
+        MultipartFile file = mock(MultipartFile.class);
+        School school = makeSchool();
+        Book savedBook = makeBook();
+
+        BulkImportService.ParsedBulkIsbn parsed = new BulkImportService.ParsedBulkIsbn(
+                List.of(new BulkImportService.IsbnQuantityPair("9780553808049", 2)),
+                List.of(),
+                1,
+                0);
+
+        when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
+        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(importCoreService.importByNormalizedIsbn("9780553808049", school))
+                .thenReturn(new ImportCoreService.ImportOutcome(
+                        ImportCoreService.ImportStatus.ADDED, makeBookDto()));
+        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
+                .thenReturn(Optional.of(savedBook));
+
+        bookService.importBulkByIsbn(file, 1L);
+
+        // Verify each saved copy has AVAILABLE status
+        verify(bookCopyRepository, times(2)).save(any(BookCopy.class));
+        
+        List<BookCopy> capturedCopies = new ArrayList<>();
+        var captor = org.mockito.ArgumentCaptor.forClass(BookCopy.class);
+        verify(bookCopyRepository, times(2)).save(captor.capture());
+        
+        for (BookCopy copy : captor.getAllValues()) {
+            assertEquals(BookCopy.CopyStatus.AVAILABLE, copy.getStatus());
+            assertEquals(savedBook.getId(), copy.getBook().getId());
+        }
     }
 }

@@ -10,6 +10,7 @@ type BookItem = {
   auteur: string;
   cover: string;
   beschrijving: string;
+  lestip?: string;
   genre: string;
   uitgaveDatum: string;
   paginas: number | null;
@@ -208,6 +209,9 @@ export class BookListComponent implements OnInit {
           sensitivity: "base",
         }),
       );
+      if (this.isTeacher) {
+        await this.loadLestipsForTeacher();
+      }
       this.currentPage = 1;
     } catch (err) {
       this.error = "Boeken laden mislukt.";
@@ -398,5 +402,22 @@ export class BookListComponent implements OnInit {
     }
 
     await this.loadBooks();
+  }
+
+  private async loadLestipsForTeacher(): Promise<void> {
+    const lestipPromises = this.books.map(async (book) => {
+      if (!book.id) {
+        return;
+      }
+
+      try {
+        const lestip = await this.bookService.getBookLestip(book.id);
+        book.lestip = lestip;
+      } catch {
+        book.lestip = "";
+      }
+    });
+
+    await Promise.all(lestipPromises);
   }
 }

@@ -8,7 +8,7 @@ public class LoanDto {
     private Long bookId;
     private String bookTitel;
     private String bookCover;
-    private String username;
+    private String userSub;
     private LocalDate loanedAt;
     private LocalDate dueDate;
     private LocalDate returnedAt;
@@ -23,8 +23,8 @@ public class LoanDto {
     public void setBookTitel(String t) { this.bookTitel = t; }
     public String getBookCover() { return bookCover; }
     public void setBookCover(String c) { this.bookCover = c; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public String getUserSub() { return userSub; }
+    public void setUserSub(String userSub) { this.userSub = userSub; }
     public LocalDate getLoanedAt() { return loanedAt; }
     public void setLoanedAt(LocalDate d) { this.loanedAt = d; }
     public LocalDate getDueDate() { return dueDate; }

@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
     if (this.isLoading) {
       return;
     }
-    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=[userinfo fulluserinfo sendmessage]`;
+    const authUrl = `https://oauth.smartschool.be/OAuth?client_id=${this.clientId}&response_type=code&redirect_uri=${encodeURIComponent(this.redirectUri)}&scope=userinfo fulluserinfo sendmessage`;
     window.location.href = authUrl;
   }
 
@@ -45,8 +45,15 @@ export class LoginComponent implements OnInit {
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: (userInfo) => {
         console.log("Logged in user:", userInfo);
-        localStorage.setItem("userName", `${userInfo.name} ${userInfo.family_name}`);
-        localStorage.setItem("smartschoolToken", userInfo.accessToken);
+        const firstName =
+          userInfo.givenName || userInfo.username || userInfo.name || "";
+        const lastName = userInfo.familyName || userInfo.family_name || "";
+        localStorage.setItem("userName", `${firstName} ${lastName}`.trim());
+
+        if (userInfo.accessToken) {
+          localStorage.setItem("smartschoolToken", userInfo.accessToken);
+        }
+
         this.setRole(userInfo.role);
         if (userInfo.sub) {
           localStorage.setItem("userId", userInfo.sub);
@@ -70,6 +77,8 @@ export class LoginComponent implements OnInit {
 
   setRole(role: string): void {
     localStorage.setItem("role", role);
+    // For development: set a dev token that the guard will recognize
+    localStorage.setItem("smartschoolToken", "dev-token-" + role);
     if (!localStorage.getItem("selectedSchoolId")) {
       localStorage.setItem("selectedSchoolId", "1");
     }

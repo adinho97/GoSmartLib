@@ -1,5 +1,6 @@
-import { Component } from "@angular/core";
+import { Component, HostListener } from "@angular/core";
 import { Router } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
 
 @Component({
   selector: "app-root",
@@ -8,7 +9,9 @@ import { Router } from "@angular/router";
   standalone: false,
 })
 export class AppComponent {
-  constructor(private router: Router) {}
+  profileMenuOpen = false;
+
+  constructor(private router: Router, private http: HttpClient) {}
 
   private get currentUrl(): string {
     return (this.router.url || "").toLowerCase();
@@ -24,6 +27,10 @@ export class AppComponent {
 
   get isLibrarian(): boolean {
     return this.userRole === "bibbeheerder";
+  }
+
+  get canAccessLoans(): boolean {
+    return this.isTeacher || this.isLibrarian;
   }
 
   get showNavbar(): boolean {
@@ -48,9 +55,55 @@ export class AppComponent {
     );
   }
 
-  get isAddBookActive(): boolean {
-    return (
-      this.currentUrl.startsWith("/add") || this.currentUrl.startsWith("/isbn")
-    );
+  get userName(): string {
+    return localStorage.getItem("userName") || "Gebruiker";
+  }
+
+  get userRoleLabel(): string {
+    const role = this.userRole.toLowerCase();
+    if (role === "leerkracht") return "Leerkracht";
+    if (role === "bibbeheerder") return "Bibliotheekbeheerder";
+    return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Onbekende rol";
+  }
+
+  toggleProfileMenu(event: Event): void {
+    event.stopPropagation();
+    this.profileMenuOpen = !this.profileMenuOpen;
+  }
+
+  closeProfileMenu(): void {
+    this.profileMenuOpen = false;
+  }
+
+  logout(): void {
+    const accessToken = localStorage.getItem("smartschoolToken");
+    this.profileMenuOpen = false;
+
+    if (accessToken) {
+      this.http.post("/api/auth/logout", { accessToken }).subscribe({
+        next: () => {
+          console.log("Logged out successfully");
+          this.completeLogout();
+        },
+        error: (err) => {
+          console.warn("Error revoking token, but proceeding with logout", err);
+          this.completeLogout();
+        },
+      });
+    } else {
+      this.completeLogout();
+    }
+  }
+
+  private completeLogout(): void {
+    localStorage.clear();
+    // Prevent back button access
+    window.history.replaceState(null, "", "/login");
+    this.router.navigate(["/login"]);
+  }
+
+  @HostListener("document:click")
+  onDocumentClick(): void {
+    this.profileMenuOpen = false;
   }
 }

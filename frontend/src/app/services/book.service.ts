@@ -7,7 +7,6 @@ import axios from "axios";
 
 export type BulkImportStatus =
   | "ADDED"
-  | "ALREADY_EXISTS"
   | "NOT_FOUND"
   | "INVALID_ISBN"
   | "ERROR";
@@ -23,7 +22,14 @@ export interface BulkImportResult {
   totalRows: number;
   uniqueIsbnsProcessed: number;
   duplicateRowsSkipped: number;
+  totalCopiesAdded: number;
   results: BulkImportRowResult[];
+}
+
+export interface LestipResponse {
+  lestip: string;
+  auteurNaam: string;
+  magVerwijderen: boolean;
 }
 
 @Injectable({
@@ -60,9 +66,11 @@ export class BookService {
 
   private getRoleHeaders() {
     const role = localStorage.getItem("role") || "";
+    const userName = localStorage.getItem("userName") || "";
     return {
       headers: {
         "X-User-Role": role,
+        "X-User-Name": userName,
       },
     };
   }
@@ -138,6 +146,38 @@ export class BookService {
     );
   }
 
+  async getBookLestip(bookId: number): Promise<string> {
+    const data = await this.getBookLestipDetails(bookId);
+    return data.lestip || "";
+  }
+
+  async getBookLestipDetails(bookId: number): Promise<LestipResponse> {
+    const res = await axios.get<LestipResponse>(
+      `${this.apiUrl}/${bookId}/lestip`,
+      this.getRoleHeaders(),
+    );
+    return res.data;
+  }
+
+  async updateBookLestip(
+    bookId: number,
+    lestip: string,
+  ): Promise<LestipResponse> {
+    const res = await axios.put<LestipResponse>(
+      `${this.apiUrl}/${bookId}/lestip`,
+      { lestip },
+      this.getRoleHeaders(),
+    );
+    return res.data;
+  }
+
+  async deleteBookLestip(bookId: number): Promise<void> {
+    await axios.delete(
+      `${this.apiUrl}/${bookId}/lestip`,
+      this.getRoleHeaders(),
+    );
+  }
+
   async fetchBookByIsbn(isbn: string) {
     const res = await axios.get(`${this.apiUrl}/preview/${isbn}`);
     return res.data;
@@ -173,6 +213,20 @@ export class BookService {
     } catch (err: any) {
       if (err?.response?.status === 404) {
         return false;
+      }
+      throw err;
+    }
+  }
+  
+  async getBookByIsbnFromLibrary(isbn: string, schoolId?: number): Promise<Book | null> {
+    try {
+      const res = await axios.get<Book>(
+        this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
+      );
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return null;
       }
       throw err;
     }

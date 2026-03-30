@@ -16,6 +16,9 @@ public class SmartschoolTokenResponse {
 
     private String scope;
 
+    @JsonProperty("refresh_token")
+    private String refreshToken;
+
     public String getAccessToken() {
         return accessToken;
     }
@@ -46,5 +49,13 @@ public class SmartschoolTokenResponse {
 
     public void setScope(String scope) {
         this.scope = scope;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }

@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -525,5 +526,205 @@ class BookControllerTest {
                                 .andExpect(status().isNoContent());
 
                 verify(reviewRepository).delete(review);
+        }
+
+        @Test
+        void getLestipShouldReturnForbiddenForNonTeacher() throws Exception {
+                mockMvc.perform(get("/api/boeken/1/lestip"))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void getLestipShouldReturnNotFoundForTeacherWhenBookMissing() throws Exception {
+                when(bookRepository.findById(1L)).thenReturn(Optional.empty());
+
+                mockMvc.perform(get("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht"))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void getLestipShouldReturnLestipForTeacher() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+                book.setLestip("Lees hoofdstuk 3 klassikaal.");
+                book.setLestipAuteur("Janssens Emma");
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                mockMvc.perform(get("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Name", "Janssens Emma"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.lestip").value("Lees hoofdstuk 3 klassikaal."))
+                                .andExpect(jsonPath("$.auteurNaam").value("Janssens Emma"))
+                                .andExpect(jsonPath("$.magVerwijderen").value(true));
+        }
+
+        @Test
+        void updateLestipShouldReturnForbiddenForNonTeacher() throws Exception {
+                String json = """
+                                {
+                                  "lestip": "Herhalingsoefening op pagina 40."
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/lestip")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void updateLestipShouldPersistTrimmedTipForTeacher() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Book saved = new Book();
+                saved.setId(1L);
+                saved.setLestip("Klassikaal bespreken na hoofdstuk 2.");
+                saved.setLestipAuteur("Janssens Emma");
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(bookRepository.save(any(Book.class))).thenReturn(saved);
+
+                String json = """
+                                {
+                                  "lestip": "  Klassikaal bespreken na hoofdstuk 2.  "
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Name", "Janssens Emma")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.lestip").value("Klassikaal bespreken na hoofdstuk 2."))
+                                .andExpect(jsonPath("$.auteurNaam").value("Janssens Emma"));
+
+                ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+                verify(bookRepository).save(captor.capture());
+                Book persisted = captor.getValue();
+                assertEquals("Klassikaal bespreken na hoofdstuk 2.", persisted.getLestip());
+                assertEquals("Janssens Emma", persisted.getLestipAuteur());
+        }
+
+        @Test
+        void updateLestipShouldReturnConflictWhenLestipAlreadyExists() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+                book.setLestip("Bestaande lestip");
+                book.setLestipAuteur("Janssens Emma");
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                String json = """
+                                {
+                                  "lestip": "Nieuwe lestip"
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Name", "De Smet Lotte")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isConflict());
+
+                verify(bookRepository, never()).save(any(Book.class));
+        }
+
+        @Test
+        void updateLestipShouldAllowTeacherWhenUserNameHeaderMissing() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Book saved = new Book();
+                saved.setId(1L);
+                saved.setLestip("Werk met een klassikaal debat.");
+                saved.setLestipAuteur(null);
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(bookRepository.save(any(Book.class))).thenReturn(saved);
+
+                String json = """
+                                {
+                                  "lestip": "Werk met een klassikaal debat."
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.lestip").value("Werk met een klassikaal debat."));
+        }
+
+        @Test
+        void deleteLestipShouldReturnForbiddenWhenTeacherIsNotOwner() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+                book.setLestip("Lestip");
+                book.setLestipAuteur("Janssens Emma");
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                mockMvc.perform(delete("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Name", "De Smet Lotte"))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void deleteLestipShouldClearLestipWhenTeacherIsOwner() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+                book.setLestip("Lestip");
+                book.setLestipAuteur("Janssens Emma");
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                mockMvc.perform(delete("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Name", "Janssens Emma"))
+                                .andExpect(status().isNoContent());
+
+                ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+                verify(bookRepository).save(captor.capture());
+                Book saved = captor.getValue();
+                assertEquals(null, saved.getLestip());
+                assertEquals(null, saved.getLestipAuteur());
+        }
+
+        @Test
+        void deleteLestipShouldAllowTeacherWhenLegacyLestipHasNoOwner() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+                book.setLestip("Legacy lestip");
+                book.setLestipAuteur(null);
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                mockMvc.perform(delete("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Name", "Janssens Emma"))
+                                .andExpect(status().isNoContent());
+
+                ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+                verify(bookRepository).save(captor.capture());
+                Book saved = captor.getValue();
+                assertEquals(null, saved.getLestip());
+                assertEquals(null, saved.getLestipAuteur());
+        }
+
+        @Test
+        void deleteLestipShouldAllowOwnerWhenUserNameFormattingDiffers() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+                book.setLestip("Lestip");
+                book.setLestipAuteur("Janssens Emma");
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                mockMvc.perform(delete("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Name", "  JANSSENS   emma  "))
+                                .andExpect(status().isNoContent());
         }
 }

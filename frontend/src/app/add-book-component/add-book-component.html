@@ -1,98 +1,105 @@
 <div class="add-book-page">
-  <h1>Voeg manueel een boek toe</h1>
-  <form (ngSubmit)="onSubmit(bookForm)" #bookForm="ngForm" class="book-form">
+  <div class="page-header">
+    <h1>Voeg manueel een boek toe</h1>
+  </div>
 
-    <div class="form-row">
-      <label for="school">School</label>
-      <select
-        id="school"
-        name="school"
-        #school="ngModel"
-        [(ngModel)]="selectedSchoolId"
-        required
-        [class.field-invalid]="school.invalid && (school.touched || isSubmitted)"
-      >
-        <option [ngValue]="null">Kies een school</option>
-        @for (school of schools; track school) {
+  <div class="main-card">
+    <form (ngSubmit)="onSubmit(bookForm)" #bookForm="ngForm" class="book-form">
+      <div class="form-row">
+        <label for="school">School</label>
+        <select
+          id="school"
+          name="school"
+          #school="ngModel"
+          [(ngModel)]="selectedSchoolId"
+          required
+          [class.field-invalid]="school.invalid && (school.touched || isSubmitted)"
+        >
+          <option [ngValue]="null">Kies een school</option>
+          @for (school of schools; track school) {
           <option [ngValue]="school.id">{{ school.naam }}</option>
-        }
-      </select>
-      @if (school.errors?.['required'] && (school.touched || isSubmitted)) {
+          }
+        </select>
+        @if (school.errors?.['required'] && (school.touched || isSubmitted)) {
         <small class="field-error">School is verplicht.</small>
-      }
-    </div>
-
-    <div class="form-row">
-      <label for="titel">Titel</label>
-      <input
-        id="titel"
-        name="titel"
-        #titel="ngModel"
-        [(ngModel)]="book.titel"
-        required
-        maxlength="255"
-      />
-    </div>
-
-    <div class="form-row">
-      <label for="auteur">Auteur</label>
-      <input
-        id="auteur"
-        name="auteur"
-        #auteur="ngModel"
-        [(ngModel)]="book.auteur"
-        required
-        maxlength="255"
-      />
-    </div>
-
-    <div class="form-row">
-      <label for="cover">Cover</label>
-      <input
-        id="cover"
-        name="cover"
-        class="cover-file-input"
-        type="file"
-        accept="image/*"
-        (change)="onCoverSelected($event)"
-      />
-      <div class="cover-upload-row">
-        <label for="cover" class="cover-upload-button">Kies afbeelding</label>
-        <span class="cover-file-name">
-          {{ selectedCoverFile?.name || "Geen bestand geselecteerd" }}
-        </span>
+        }
       </div>
-      @if (coverPreviewUrl) {
-        <div class="cover-preview-wrapper">
-          <img [src]="coverPreviewUrl" alt="Cover preview" class="cover-preview" />
-        </div>
-      }
-    </div>
 
-    <div class="form-row">
-      <label for="beschrijving">Beschrijving</label>
-      <textarea
-        id="beschrijving"
-        name="beschrijving"
-        [(ngModel)]="book.beschrijving"
-      ></textarea>
-    </div>
-
-    <div class="form-row">
-      <label class="checkbox-label">
+      <div class="form-row">
+        <label for="titel">Titel</label>
         <input
-          type="checkbox"
-          name="isDidactic"
-          [(ngModel)]="isDidactic"
-          (change)="toggleDidactic(isDidactic)"
+          id="titel"
+          name="titel"
+          #titel="ngModel"
+          [(ngModel)]="book.titel"
+          required
+          maxlength="255"
         />
-        Didactisch boek
-      </label>
-    </div>
+      </div>
 
-    <div class="form-row">
-      <label for="genre">Genre</label>
-      @if (!isDidactic) {
+      <div class="form-row">
+        <label for="auteur">Auteur</label>
+        <input
+          id="auteur"
+          name="auteur"
+          #auteur="ngModel"
+          [(ngModel)]="book.auteur"
+          required
+          maxlength="255"
+        />
+      </div>
+
+      <div class="form-row">
+        <label for="cover">Cover</label>
+        <input
+          id="cover"
+          name="cover"
+          class="cover-file-input"
+          type="file"
+          accept="image/*"
+          (change)="onCoverSelected($event)"
+        />
+        <div class="cover-upload-row">
+          <label for="cover" class="cover-upload-button">Kies afbeelding</label>
+          <span class="cover-file-name">
+            {{ selectedCoverFile?.name || "Geen bestand geselecteerd" }}
+          </span>
+        </div>
+        @if (coverPreviewUrl) {
+        <div class="cover-preview-wrapper">
+          <img
+            [src]="coverPreviewUrl"
+            alt="Cover preview"
+            class="cover-preview"
+          />
+        </div>
+        }
+      </div>
+
+      <div class="form-row">
+        <label for="beschrijving">Beschrijving</label>
+        <textarea
+          id="beschrijving"
+          name="beschrijving"
+          [(ngModel)]="book.beschrijving"
+        ></textarea>
+      </div>
+
+      <div class="form-row">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="isDidactic"
+            [(ngModel)]="isDidactic"
+            (change)="toggleDidactic(isDidactic)"
+          />
+          Didactisch boek
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label for="genre">Genre</label>
+        @if (!isDidactic) {
         <select
           id="genre"
           name="genre"
@@ -101,19 +108,20 @@
         >
           <option value="">Kies een genre</option>
           @for (g of genres; track g) {
-            <option [value]="g">{{ g }}</option>
+          <option [value]="g">{{ g }}</option>
           }
         </select>
-      }
-      @if (isDidactic) {
+        } @if (isDidactic) {
         <select id="genre" name="genre" disabled>
           <option [value]="book.genre">{{ book.genre }}</option>
         </select>
-        <small class="helper-text">Dit genre staat vast voor de lerarencollectie.</small>
-      }
-    </div>
+        <small class="helper-text"
+          >Dit genre staat vast voor de lerarencollectie.</small
+        >
+        }
+      </div>
 
-    @if (isDidactic) {
+      @if (isDidactic) {
       <div class="form-row">
         <label for="didacticSubgenre">Subgenre (didactiek)</label>
         <select
@@ -123,93 +131,98 @@
         >
           <option value="">Kies een subgenre</option>
           @for (sg of didacticSubgenres; track sg) {
-            <option [value]="sg">{{ sg }}</option>
+          <option [value]="sg">{{ sg }}</option>
           }
         </select>
       </div>
-    }
-
-    @if (!isDidactic && book.genre === "Non-fictie algemeen") {
+      } @if (!isDidactic && book.genre === "Non-fictie algemeen") {
       <div class="form-row">
         <label>Subgenres</label>
         <div class="subgenres-checkboxes">
           @for (sg of nonFictionSubgenres; track sg) {
-            <label class="checkbox-item">
-              <input
-                type="checkbox"
-                [checked]="isSubgenreSelected(sg)"
-                (change)="toggleSubgenre(sg)"
-              />
-              {{ sg }}
-            </label>
+          <label class="checkbox-item">
+            <input
+              type="checkbox"
+              [checked]="isSubgenreSelected(sg)"
+              (change)="toggleSubgenre(sg)"
+            />
+            {{ sg }}
+          </label>
           }
         </div>
       </div>
-    }
+      }
 
-    <div class="form-row">
-      <label for="uitgaveDatum">Uitgave datum</label>
-      <input
-        id="uitgaveDatum"
-        name="uitgaveDatum"
-        type="date"
-        [(ngModel)]="book.uitgaveDatum"
-      />
-    </div>
+      <div class="form-row">
+        <label for="uitgaveDatum">Uitgave datum</label>
+        <input
+          id="uitgaveDatum"
+          name="uitgaveDatum"
+          type="date"
+          [(ngModel)]="book.uitgaveDatum"
+        />
+      </div>
 
-    <div class="form-row">
-      <label for="paginas">Pagina's</label>
-      <input
-        id="paginas"
-        name="paginas"
-        type="number"
-        [(ngModel)]="book.paginas"
-      />
-    </div>
+      <div class="form-row">
+        <label for="paginas">Pagina's</label>
+        <input
+          id="paginas"
+          name="paginas"
+          type="number"
+          [(ngModel)]="book.paginas"
+        />
+      </div>
 
-    <div class="form-row">
-      <label for="taal">Taal</label>
-      <select id="taal" name="taal" [(ngModel)]="book.taal">
-        <option value="">Kies een taal</option>
-        @for (language of languages; track language) {
+      <div class="form-row">
+        <label for="taal">Taal</label>
+        <select id="taal" name="taal" [(ngModel)]="book.taal">
+          <option value="">Kies een taal</option>
+          @for (language of languages; track language) {
           <option [value]="language">{{ language }}</option>
-        }
-      </select>
-    </div>
+          }
+        </select>
+      </div>
 
-    <div class="form-row">
-      <label for="uitgeverij">Uitgeverij</label>
-      <input id="uitgeverij" name="uitgeverij" [(ngModel)]="book.uitgeverij" />
-    </div>
+      <div class="form-row">
+        <label for="uitgeverij">Uitgeverij</label>
+        <input
+          id="uitgeverij"
+          name="uitgeverij"
+          [(ngModel)]="book.uitgeverij"
+        />
+      </div>
 
-    <div class="form-row">
-      <label for="aantalExemplaren">Aantal exemplaren</label>
-      <input
-        id="aantalExemplaren"
-        name="aantalExemplaren"
-        type="number"
-        min="0"
-        max="99"
-        [(ngModel)]="aantalExemplaren"
-      />
-      <small class="helper-text">Hoeveel fysieke exemplaren voeg je toe?</small>
-    </div>
+      <div class="form-row">
+        <label for="aantalExemplaren">Aantal exemplaren</label>
+        <input
+          id="aantalExemplaren"
+          name="aantalExemplaren"
+          type="number"
+          min="0"
+          max="99"
+          [(ngModel)]="aantalExemplaren"
+        />
+        <small class="helper-text"
+          >Hoeveel fysieke exemplaren voeg je toe?</small
+        >
+      </div>
 
-    <button
-      type="submit"
-      class="submit-btn"
-      [disabled]="isSaving || bookForm.invalid || selectedSchoolId === null"
-    >
-      {{ isSaving ? "Opslaan..." : "Boek Toevoegen" }}
-    </button>
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="isSaving || bookForm.invalid || selectedSchoolId === null"
+      >
+        {{ isSaving ? "Opslaan..." : "Boek toevoegen" }}
+      </button>
 
-    @if (submitMessage) {
+      @if (submitMessage) {
       <p
         [class.success-message]="submitState === 'success'"
         [class.error-message]="submitState === 'error'"
       >
         {{ submitMessage }}
       </p>
-    }
-  </form>
+      }
+    </form>
+  </div>
 </div>

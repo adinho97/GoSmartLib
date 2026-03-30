@@ -16,15 +16,60 @@ public class AppUser {
     @Column(nullable = false)
     private String role; // leerling, leerkracht, bibbeheerder
 
-    @Column(nullable = false)
-    private String username; // Smartschool username (bv. petersp)
+    @Column(columnDefinition = "TEXT")
+    private String smartschoolRefreshToken;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getSub() { return sub; }
-    public void setSub(String sub) { this.sub = sub; }
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    @Column(columnDefinition = "TEXT")
+    private String accessToken;
+
+    @Column(nullable = true)
+    private String platform;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getSub() {
+        return sub;
+    }
+
+    public void setSub(String sub) {
+        this.sub = sub;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getSmartschoolRefreshToken() {
+        return smartschoolRefreshToken;
+    }
+
+    public void setSmartschoolRefreshToken(String smartschoolRefreshToken) {
+        this.smartschoolRefreshToken = smartschoolRefreshToken;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
 }

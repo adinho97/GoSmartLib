@@ -1,6 +1,7 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, Input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { SmartschoolService } from '../services/smartschool.service';
 
 @Component({
@@ -10,6 +11,10 @@ import { SmartschoolService } from '../services/smartschool.service';
     standalone: false
 })
 export class ProfileComponent {
+
+  @Input() embedded = false;
+  @Input() showHero = true;
+  @Input() showSections = true;
 
 
   role = localStorage.getItem('role') || 'gebruiker';
@@ -31,7 +36,12 @@ export class ProfileComponent {
   borrowedBooks = [{ title: 'Book Four', deadline: new Date(), cover: '', id: 4 }];
   readingList = [{ title: 'Book Five', author: 'Author C', cover: '', id: 5 }];
 
-  constructor(private location: Location, private router: Router, private smartschoolService: SmartschoolService) {
+  constructor(
+    private location: Location,
+    private router: Router,
+    private smartschoolService: SmartschoolService,
+    private http: HttpClient
+  ) {
   }
 
   ngOnInit() {
@@ -67,14 +77,8 @@ export class ProfileComponent {
   }
 
   testSmartschoolMessage(): void {
-  const userId = localStorage.getItem('userId');
-  if (!userId) {
-    alert('Gebruikers-ID niet gevonden. Log opnieuw in.');
-    return;
-  }
-
+    
   this.smartschoolService.sendMessage(
-    userId, 
     'Testbericht van GoSmartLib', 
     'Dit is een testbericht verstuurd vanuit je profielpagina.'
   ).subscribe({
@@ -85,4 +89,5 @@ export class ProfileComponent {
     }
   });
 }
+
 }

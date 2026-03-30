@@ -6,13 +6,13 @@ import java.time.LocalDate;
 
 public class CreateLoanRequest {
     @NotNull  private Long bookId;
-    @NotBlank private String username;
+    @NotBlank private String userSub;
     @NotNull  private LocalDate dueDate;
 
     public Long getBookId() { return bookId; }
     public void setBookId(Long bookId) { this.bookId = bookId; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public String getUserSub() { return userSub; }
+    public void setUserSub(String userSub) { this.userSub = userSub; }
     public LocalDate getDueDate() { return dueDate; }
     public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
 }

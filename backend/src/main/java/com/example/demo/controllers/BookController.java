@@ -3,7 +3,9 @@ package com.example.demo.controllers;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
 import com.example.demo.dto.CreateReviewRequest;
+import com.example.demo.dto.LestipDto;
 import com.example.demo.dto.ReviewDto;
+import com.example.demo.dto.UpdateLestipRequest;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
@@ -19,10 +21,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,6 +34,7 @@ import java.util.stream.Collectors;
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
+    private static final String TEACHER_ROLE = "leerkracht";
     private static final String ANONYMOUS_REVIEWER_NAME = "Anoniem";
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
@@ -174,36 +179,116 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-   @PutMapping("/{id}")
-public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
-    Book existing = repo.findById(id).orElse(null);
-    if (existing == null) {
-        return ResponseEntity.notFound().build();
+    @PutMapping("/{id}")
+    public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
+        Book existing = repo.findById(id).orElse(null);
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        existing.setTitel(bookDto.getTitel());
+        existing.setAuteur(bookDto.getAuteur());
+        existing.setIsbn(bookDto.getIsbn());
+        existing.setCover(bookDto.getCover());
+        existing.setBeschrijving(bookDto.getBeschrijving());
+        existing.setGenre(bookDto.getGenre());
+        existing.setUitgaveDatum(bookDto.getUitgaveDatum());
+        existing.setPaginas(bookDto.getPaginas());
+        existing.setTaal(bookDto.getTaal());
+        existing.setUitgeverij(bookDto.getUitgeverij());
+
+        if (bookDto.getSchoolId() != null) {
+            School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
+            existing.setSchool(school);
+        }
+
+        repo.save(existing);
+
+        return repo.findById(id)
+                .map(BookMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    existing.setTitel(bookDto.getTitel());
-    existing.setAuteur(bookDto.getAuteur());
-    existing.setIsbn(bookDto.getIsbn());
-    existing.setCover(bookDto.getCover());
-    existing.setBeschrijving(bookDto.getBeschrijving());
-    existing.setGenre(bookDto.getGenre());
-    existing.setUitgaveDatum(bookDto.getUitgaveDatum());
-    existing.setPaginas(bookDto.getPaginas());
-    existing.setTaal(bookDto.getTaal());
-    existing.setUitgeverij(bookDto.getUitgeverij());
+    @GetMapping("/{id}/lestip")
+    public ResponseEntity<LestipDto> getLestip(@PathVariable @NonNull Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+        if (!isTeacher(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
-    if (bookDto.getSchoolId() != null) {
-        School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
-        existing.setSchool(school);
+        Book book = repo.findById(id).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(toLestipDto(book, normalizeUserName(userName)));
     }
 
-    repo.save(existing);
+    @PutMapping("/{id}/lestip")
+    public ResponseEntity<LestipDto> updateLestip(@PathVariable @NonNull Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Name", required = false) String userName,
+            @Valid @RequestBody UpdateLestipRequest request) {
+        if (!isTeacher(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
-    return repo.findById(id)
-            .map(BookMapper::toDto)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-}
+        String normalizedUserName = normalizeUserName(userName);
+
+        Book book = repo.findById(id).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (hasLestip(book.getLestip())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        String normalizedLestip = normalizeLestip(request.getLestip());
+        if (normalizedLestip == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        book.setLestip(normalizedLestip);
+        book.setLestipAuteur(normalizedUserName);
+
+        Book savedBook = repo.save(book);
+        return ResponseEntity.ok(toLestipDto(savedBook, normalizedUserName));
+    }
+
+    @DeleteMapping("/{id}/lestip")
+    public ResponseEntity<Void> deleteLestip(@PathVariable @NonNull Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+        if (!isTeacher(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String normalizedUserName = normalizeUserName(userName);
+
+        Book book = repo.findById(id).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!hasLestip(book.getLestip())) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String lestipAuteur = book.getLestipAuteur();
+        boolean hasStoredAuteur = StringUtils.hasText(lestipAuteur);
+        if (hasStoredAuteur && (normalizedUserName == null || !isSameUser(normalizedUserName, lestipAuteur))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        book.setLestip(null);
+        book.setLestipAuteur(null);
+        repo.save(book);
+        return ResponseEntity.noContent().build();
+    }
+
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id) {
@@ -280,7 +365,72 @@ public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @Re
         return reviewerName;
     }
 
+    private LestipDto toLestipDto(Book book, String currentUserName) {
+        LestipDto dto = new LestipDto();
+        String lestipText = book.getLestip();
+        String lestipAuteur = book.getLestipAuteur();
+
+        dto.setLestip(lestipText == null ? "" : lestipText);
+        dto.setAuteurNaam(lestipAuteur == null ? "" : lestipAuteur);
+        boolean magVerwijderen = hasLestip(lestipText)
+                && (!StringUtils.hasText(lestipAuteur) || (currentUserName != null && isSameUser(currentUserName, lestipAuteur)));
+        dto.setMagVerwijderen(magVerwijderen);
+        return dto;
+    }
+
+    private String normalizeLestip(String lestip) {
+        if (lestip == null) {
+            return null;
+        }
+
+        String trimmedLestip = lestip.trim();
+        if (trimmedLestip.isEmpty()) {
+            return null;
+        }
+
+        return trimmedLestip;
+    }
+
+    private String normalizeUserName(String userName) {
+        if (!StringUtils.hasText(userName)) {
+            return null;
+        }
+
+        String trimmedUserName = userName.trim();
+        if (trimmedUserName.isEmpty()) {
+            return null;
+        }
+
+        return trimmedUserName;
+    }
+
+    private boolean isSameUser(String firstUserName, String secondUserName) {
+        String normalizedFirst = canonicalUserName(firstUserName);
+        String normalizedSecond = canonicalUserName(secondUserName);
+
+        return normalizedFirst != null && normalizedFirst.equals(normalizedSecond);
+    }
+
+    private String canonicalUserName(String userName) {
+        if (!StringUtils.hasText(userName)) {
+            return null;
+        }
+
+        return userName
+                .trim()
+                .replaceAll("\\s+", " ")
+                .toLowerCase(Locale.ROOT);
+    }
+
+    private boolean hasLestip(String lestip) {
+        return StringUtils.hasText(lestip);
+    }
+
     private boolean isLibrarian(String userRole) {
         return LIBRARIAN_ROLE.equalsIgnoreCase(userRole);
+    }
+
+    private boolean isTeacher(String userRole) {
+        return TEACHER_ROLE.equalsIgnoreCase(userRole);
     }
 }

@@ -37,7 +37,7 @@ public class LoanService {
 
         Loan loan = new Loan();
         loan.setCopy(copy);
-        loan.setUsername(request.getUsername());
+        loan.setUserSub(request.getUserSub());
         loan.setLoanedAt(LocalDate.now());
         loan.setDueDate(request.getDueDate());
 
@@ -60,13 +60,13 @@ public class LoanService {
         return toDto(loanRepo.save(loan));
     }
 
-    public List<LoanDto> getActiveLoansForUser(String username) {
-        return loanRepo.findByUsernameAndReturnedAtIsNull(username)
+    public List<LoanDto> getActiveLoansForUser(String userSub) {
+        return loanRepo.findByUserSubAndReturnedAtIsNull(userSub)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    public List<LoanDto> getLoanHistoryForUser(String username) {
-        return loanRepo.findByUsernameAndReturnedAtIsNotNull(username)
+    public List<LoanDto> getLoanHistoryForUser(String userSub) {
+        return loanRepo.findByUserSubAndReturnedAtIsNotNull(userSub)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
@@ -82,7 +82,7 @@ public class LoanService {
         dto.setBookId(loan.getCopy().getBook().getId());
         dto.setBookTitel(loan.getCopy().getBook().getTitel());
         dto.setBookCover(loan.getCopy().getBook().getCover());
-        dto.setUsername(loan.getUsername());
+        dto.setUserSub(loan.getUserSub());
         dto.setLoanedAt(loan.getLoanedAt());
         dto.setDueDate(loan.getDueDate());
         dto.setReturnedAt(loan.getReturnedAt());
