@@ -284,36 +284,48 @@
 
 .wishlist-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 180px);
   gap: 0.7rem;
+  justify-content: start;
+  align-items: start;
+  padding: 0.1rem 0.1rem 0.35rem;
 }
 
 .wishlist-grid .profile-book-card {
   position: relative;
 }
 
-.wishlist-remove-btn {
+.remove-button {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 5;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  color: #5f6570;
-  font-size: 1rem;
-  line-height: 1;
+  background: transparent;
+  color: #8a8a8a;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform 0.1s ease;
 }
 
-.wishlist-remove-btn:hover {
-  background: #ffffff;
-  color: #9a2748;
+.remove-button:hover {
+  transform: scale(1.1);
+}
+
+.remove-button svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  transition: stroke 0.15s ease;
+}
+
+.remove-button:hover svg {
+  stroke: #d4537e;
 }
 
 .wishlist-pagination {
@@ -469,7 +481,7 @@
   }
 
   .wishlist-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, 180px);
   }
 }
 
@@ -487,7 +499,7 @@
   }
 
   .wishlist-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 180px;
   }
 
   .book-cover,
