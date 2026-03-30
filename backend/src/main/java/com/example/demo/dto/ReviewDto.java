@@ -7,6 +7,7 @@ public class ReviewDto {
     private Integer rating;
     private String comment;
     private String reviewerName;
+    private boolean canManage;
     private LocalDateTime createdAt;
 
     public Long getId() {
@@ -39,6 +40,14 @@ public class ReviewDto {
 
     public void setReviewerName(String reviewerName) {
         this.reviewerName = reviewerName;
+    }
+
+    public boolean isCanManage() {
+        return canManage;
+    }
+
+    public void setCanManage(boolean canManage) {
+        this.canManage = canManage;
     }
 
     public LocalDateTime getCreatedAt() {
