@@ -283,16 +283,54 @@
 }
 
 .wishlist-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 180px);
+  display: flex;
+  flex-wrap: nowrap;
   gap: 0.7rem;
   justify-content: start;
   align-items: start;
   padding: 0.1rem 0.1rem 0.35rem;
+  overflow: hidden;
 }
 
 .wishlist-grid .profile-book-card {
   position: relative;
+}
+
+.wishlist-card {
+  flex: 0 0 180px;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  height: 278px;
+  min-height: 278px;
+  max-height: 278px;
+  overflow: hidden;
+}
+
+.wishlist-card .book-cover,
+.wishlist-card .cover-placeholder {
+  height: 165px;
+}
+
+.wishlist-card .book-content {
+  min-height: 82px;
+}
+
+.wishlist-card .book-content h4 {
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.5em;
+}
+
+.wishlist-card .book-meta {
+  display: -webkit-box;
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .remove-button {
@@ -300,32 +338,31 @@
   top: 8px;
   right: 8px;
   z-index: 5;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
   background: transparent;
-  color: #8a8a8a;
+  color: #5b1730;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: transform 0.1s ease;
+  transition:
+    transform 0.1s ease,
+    color 0.15s ease;
 }
 
 .remove-button:hover {
   transform: scale(1.1);
+  color: #d4537e;
 }
 
 .remove-button svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   stroke: currentColor;
-  transition: stroke 0.15s ease;
-}
-
-.remove-button:hover svg {
-  stroke: #d4537e;
+  stroke-width: 2.6;
 }
 
 .wishlist-pagination {
@@ -481,7 +518,7 @@
   }
 
   .wishlist-grid {
-    grid-template-columns: repeat(2, 180px);
+    gap: 0.6rem;
   }
 }
 
@@ -499,7 +536,7 @@
   }
 
   .wishlist-grid {
-    grid-template-columns: 180px;
+    gap: 0.55rem;
   }
 
   .book-cover,
