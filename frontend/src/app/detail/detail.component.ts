@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Location } from "@angular/common";
 import { ActivatedRoute, Router, NavigationEnd } from "@angular/router";
 import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
@@ -16,6 +17,8 @@ import axios from "axios";
 })
 export class DetailComponent implements OnInit, OnDestroy {
   book!: Book;
+  isWishlistedBook = false;
+  wishlistBusy = false;
 
   // Rol-gebaseerde logica
   readonly userRole = localStorage.getItem("role");
@@ -56,6 +59,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   private routerSub!: Subscription;
 
   constructor(
+    private location: Location,
     private route: ActivatedRoute,
     private router: Router,
     private bookService: BookService,
@@ -70,6 +74,8 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.bookService.getBookById(this.currentBookId).subscribe((data) => {
         this.book = data;
       });
+
+      this.loadWishlistState(this.currentBookId);
 
       // Laad de reviews
       this.loadReviews(this.currentBookId);
@@ -94,8 +100,38 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.routerSub?.unsubscribe();
   }
 
+  private async loadWishlistState(bookId: number): Promise<void> {
+    try {
+      this.isWishlistedBook = await this.bookService.isWishlisted(bookId);
+    } catch {
+      this.isWishlistedBook = false;
+    }
+  }
+
+  async toggleWishlist(): Promise<void> {
+    if (!this.currentBookId || this.wishlistBusy) return;
+
+    this.wishlistBusy = true;
+    try {
+      if (this.isWishlistedBook) {
+        await this.bookService.removeFromWishlist(this.currentBookId);
+        this.isWishlistedBook = false;
+      } else {
+        await this.bookService.addToWishlist(this.currentBookId);
+        this.isWishlistedBook = true;
+      }
+    } finally {
+      this.wishlistBusy = false;
+    }
+  }
+
   goBack(): void {
-    this.router.navigate(["/books"]);
+    if (window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+
+    this.router.navigate(["/dashboard"]);
   }
 
   async loadCopySummary(bookId: number) {

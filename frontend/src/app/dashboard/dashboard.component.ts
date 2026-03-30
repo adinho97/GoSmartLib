@@ -35,6 +35,7 @@ export class DashboardComponent implements OnInit {
   featuredBooks: DashboardBook[] = [];
   didacticBooks: DashboardBook[] = [];
   myLoans: Loan[] = [];
+  wishlistedBookIds = new Set<number>();
   loading = true;
   loansLoading = true;
 
@@ -57,7 +58,42 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await Promise.all([this.fetchBooks(), this.fetchMyLoans()]);
+    await Promise.all([
+      this.fetchBooks(),
+      this.fetchMyLoans(),
+      this.loadWishlistState(),
+    ]);
+  }
+
+  private async loadWishlistState() {
+    try {
+      const wishlist = await this.bookService.getUserWishlist();
+      this.wishlistedBookIds = new Set(wishlist.map((item) => item.bookId));
+    } catch {
+      this.wishlistedBookIds = new Set<number>();
+    }
+  }
+
+  isWishlisted(bookId: number): boolean {
+    return this.wishlistedBookIds.has(bookId);
+  }
+
+  async toggleWishlist(event: MouseEvent, bookId: number) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    try {
+      if (this.wishlistedBookIds.has(bookId)) {
+        await this.bookService.removeFromWishlist(bookId);
+        this.wishlistedBookIds.delete(bookId);
+        return;
+      }
+
+      await this.bookService.addToWishlist(bookId);
+      this.wishlistedBookIds.add(bookId);
+    } catch {
+      // Keep interaction silent on dashboard.
+    }
   }
 
   async fetchBooks() {
