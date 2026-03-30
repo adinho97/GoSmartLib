@@ -711,6 +711,27 @@
   fill: #d4537e;
 }
 
+.favorite-button {
+  position: absolute;
+  right: 50px; /* Offset to the left of the wishlist button */
+  bottom: 10px;
+  z-index: 12;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.favorite-button:hover {
+  transform: scale(1.12);
+}
+
 @media (max-width: 1024px) {
   .book-list-layout {
     grid-template-columns: 1fr;

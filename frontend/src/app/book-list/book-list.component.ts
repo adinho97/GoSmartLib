@@ -124,6 +124,7 @@ export class BookListComponent implements OnInit {
   minAvailablePages = this.minPageFilterLimit;
   maxAvailablePages = this.maxPageFilterLimit;
   wishlistedBookIds = new Set<number>();
+  favoritedBookIds = new Set<number>();
 
   constructor(
     private route: ActivatedRoute,
@@ -139,6 +140,7 @@ export class BookListComponent implements OnInit {
     await this.loadSchools();
     await this.loadBooks();
     await this.loadWishlistState();
+    await this.loadFavoriteState();
     this.applyFilters();
   }
 
@@ -415,6 +417,15 @@ export class BookListComponent implements OnInit {
     }
   }
 
+  private async loadFavoriteState() {
+    try {
+      const favorites = await this.bookService.getUserFavorites();
+      this.favoritedBookIds = new Set(favorites.map((item) => item.bookId));
+    } catch {
+      this.favoritedBookIds = new Set<number>();
+    }
+  }
+
   async toggleWishlist(event: MouseEvent, bookId?: number) {
     event.stopPropagation();
     event.preventDefault();
@@ -434,8 +445,31 @@ export class BookListComponent implements OnInit {
     }
   }
 
+  async toggleFavorite(event: MouseEvent, bookId?: number) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!bookId) return;
+
+    try {
+      if (this.favoritedBookIds.has(bookId)) {
+        await this.bookService.removeFromFavorites(bookId);
+        this.favoritedBookIds.delete(bookId);
+        return;
+      }
+
+      await this.bookService.addToFavorites(bookId);
+      this.favoritedBookIds.add(bookId);
+    } catch {
+      this.error = "Favorieten bijwerken mislukt. Probeer later opnieuw.";
+    }
+  }
+
   isWishlisted(bookId?: number): boolean {
     return !!bookId && this.wishlistedBookIds.has(bookId);
+  }
+
+  isFavorited(bookId?: number): boolean {
+    return !!bookId && this.favoritedBookIds.has(bookId);
   }
 
   private async loadLestipsForTeacher(): Promise<void> {

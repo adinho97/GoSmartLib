@@ -765,3 +765,47 @@
     justify-self: center;
   }
 }
+
+/* Favorite Button Styles */
+.favorite-button {
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+  padding: 0;
+  z-index: 5;
+}
+
+.favorite-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.favorite-button svg {
+  transition: all 0.2s ease;
+}
+
+.favorite-button.active svg {
+  filter: drop-shadow(0 0 2px rgba(255, 193, 7, 0.4));
+}
+
+/* Detail Page Specific Alignment */
+.title-and-favorite {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.detail-favorite {
+  position: static;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}

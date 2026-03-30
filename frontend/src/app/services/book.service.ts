@@ -313,4 +313,30 @@ export class BookService {
       throw err;
     }
   }
+
+  async getUserFavorites(): Promise<any[]> {
+  const response = await axios.get('/api/favorites');
+  return response.data;
+}
+
+async addToFavorites(bookId: number): Promise<void> {
+  await axios.post(`/api/favorites/${bookId}`);
+}
+
+async removeFromFavorites(bookId: number): Promise<void> {
+  await axios.delete(`/api/favorites/${bookId}`);
+}
+
+async isFavorite(bookId: number): Promise<boolean> {
+  try {
+    const response = await axios.get(`/api/favorites/${bookId}/check`);
+    return response.data;
+  }
+  catch (err: any) {
+  if (err?.response?.status === 404) {
+    return false;
+  }
+  throw err;
+}
+} 
 }

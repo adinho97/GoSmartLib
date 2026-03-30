@@ -37,6 +37,8 @@ export class DashboardComponent implements OnInit {
   myLoans: Loan[] = [];
   loading = true;
   loansLoading = true;
+  favoritedBookIds = new Set<number>();
+  error = "";
 
   today = new Date().toISOString().split("T")[0];
 
@@ -57,7 +59,11 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await Promise.all([this.fetchBooks(), this.fetchMyLoans()]);
+    await Promise.all([
+      this.fetchBooks(),
+      this.fetchMyLoans(),
+      this.loadFavoriteState(),
+    ]);
   }
 
   async fetchBooks() {
@@ -98,7 +104,9 @@ export class DashboardComponent implements OnInit {
   }
 
   private isDidacticGenre(genre: unknown): boolean {
-    return String(genre || "").toLowerCase().startsWith("didactiek");
+    return String(genre || "")
+      .toLowerCase()
+      .startsWith("didactiek");
   }
 
   private formatGenreForDisplay(genre: unknown): string {
@@ -148,5 +156,36 @@ export class DashboardComponent implements OnInit {
       next: () => alert("Testbericht verzonden!"),
       error: (err) => console.error("Fout bij verzenden:", err),
     });
+  }
+
+  private async loadFavoriteState() {
+    try {
+      const favorites = await this.bookService.getUserFavorites();
+      this.favoritedBookIds = new Set(
+        favorites.map((item: any) => item.bookId),
+      );
+    } catch (err) {
+      console.error("Fout bij laden favorieten:", err);
+    }
+  }
+
+  async toggleFavorite(event: MouseEvent, bookId: number) {
+    event.stopPropagation();
+    event.preventDefault();
+    try {
+      if (this.isFavorited(bookId)) {
+        await this.bookService.removeFromFavorites(bookId);
+        this.favoritedBookIds.delete(bookId);
+      } else {
+        await this.bookService.addToFavorites(bookId);
+        this.favoritedBookIds.add(bookId);
+      }
+    } catch (err) {
+      this.error = "Favorieten bijwerken mislukt.";
+    }
+  }
+
+  isFavorited(bookId: number): boolean {
+    return this.favoritedBookIds.has(bookId);
   }
 }
