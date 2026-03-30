@@ -21,8 +21,8 @@ public class Review {
     private Integer rating;
 
     @NotBlank
-    @Size(max = 500)
-    @Column(nullable = false, length = 500)
+    @Size(max = 1000)
+    @Column(nullable = false, length = 1000)
     private String comment;
 
     @Size(max = 120)
