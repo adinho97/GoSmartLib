@@ -154,6 +154,74 @@
   background: #fff;
 }
 
+.filters-sidebar select:focus,
+.filters-sidebar input[type="date"]:focus {
+  outline: none;
+  border-color: #871f42;
+  box-shadow: 0 0 0 3px rgba(135, 31, 66, 0.16);
+}
+
+.lestip-toggle-row {
+  margin-top: 0.2rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(96, 22, 47, 0.14);
+  background: linear-gradient(135deg, #fff 0%, #fbf4f7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.lestip-toggle-row label {
+  margin: 0;
+  color: #5a3a45;
+  font-size: 0.84rem;
+}
+
+.lestip-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(96, 22, 47, 0.3);
+  background: #e8d7de;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.lestip-toggle::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(40, 18, 27, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.lestip-toggle:checked {
+  background: #871f42;
+  border-color: #871f42;
+}
+
+.lestip-toggle:checked::before {
+  transform: translateX(20px);
+}
+
+.lestip-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(135, 31, 66, 0.22);
+}
+
 .page-slider-group {
   display: flex;
   flex-direction: column;

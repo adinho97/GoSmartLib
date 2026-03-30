@@ -107,6 +107,7 @@ export class BookListComponent implements OnInit {
 
   selectedGenre = "";
   selectedLanguage = "";
+  selectedHasLestip = false;
   selectedMinAverageRating = "";
   selectedNonFictionSubgenre = "";
   selectedDidacticSubgenre = "";
@@ -115,6 +116,7 @@ export class BookListComponent implements OnInit {
 
   appliedGenre = "";
   appliedLanguage = "";
+  appliedHasLestip = false;
   appliedMinAverageRating = "";
   appliedNonFictionSubgenre = "";
   appliedDidacticSubgenre = "";
@@ -265,6 +267,8 @@ export class BookListComponent implements OnInit {
       const languageMatches =
         !this.appliedLanguage ||
         (book.taal || "").toLowerCase() === this.appliedLanguage.toLowerCase();
+      const lestipMatches =
+        !this.appliedHasLestip || !!(book.lestip || "").trim();
 
       const minAverage = Number(this.appliedMinAverageRating);
       const averageMatches =
@@ -280,6 +284,7 @@ export class BookListComponent implements OnInit {
         titleOrAuthorMatches &&
         genreMatches &&
         languageMatches &&
+        lestipMatches &&
         averageMatches &&
         pageMatches
       );
@@ -304,6 +309,7 @@ export class BookListComponent implements OnInit {
   applyFilters() {
     this.appliedGenre = this.selectedGenre;
     this.appliedLanguage = this.selectedLanguage;
+    this.appliedHasLestip = this.isTeacher ? this.selectedHasLestip : false;
     this.appliedMinAverageRating = this.selectedMinAverageRating;
     this.appliedNonFictionSubgenre = this.selectedNonFictionSubgenre;
     this.appliedDidacticSubgenre = this.selectedDidacticSubgenre;
@@ -327,6 +333,7 @@ export class BookListComponent implements OnInit {
     this.searchQuery = "";
     this.selectedGenre = "";
     this.selectedLanguage = "";
+    this.selectedHasLestip = false;
     this.selectedMinAverageRating = "";
     this.selectedNonFictionSubgenre = "";
     this.selectedDidacticSubgenre = "";
