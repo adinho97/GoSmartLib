@@ -124,12 +124,18 @@ export class BookListComponent implements OnInit {
   minAvailablePages = this.minPageFilterLimit;
   maxAvailablePages = this.maxPageFilterLimit;
   wishlistedBookIds = new Set<number>();
+  openMenuId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private bookService: BookService,
     private schoolService: SchoolService,
-  ) {}
+  ) {
+    // Close menu when clicking outside
+    document.addEventListener('click', () => {
+      this.closeKebabMenu();
+    });
+  }
 
   async ngOnInit() {
     this.initializeFiltersFromQueryParams();
@@ -436,6 +442,16 @@ export class BookListComponent implements OnInit {
 
   isWishlisted(bookId?: number): boolean {
     return !!bookId && this.wishlistedBookIds.has(bookId);
+  }
+
+  toggleKebabMenu(event: MouseEvent, bookId?: number) {
+    event.stopPropagation();
+    if (!bookId) return;
+    this.openMenuId = this.openMenuId === bookId ? null : bookId;
+  }
+
+  closeKebabMenu() {
+    this.openMenuId = null;
   }
 
   private async loadLestipsForTeacher(): Promise<void> {
