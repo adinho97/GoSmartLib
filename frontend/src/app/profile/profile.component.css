@@ -264,6 +264,24 @@
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
 }
 
+.wishlist-section {
+  border-color: #efced9;
+  background: linear-gradient(180deg, #fff9fc 0%, #ffffff 65%);
+}
+
+.wishlist-section .section-title {
+  color: #7c1d47;
+}
+
+.inline-empty {
+  border: 1px dashed #dcb8c6;
+  border-radius: 10px;
+  background: #fff8fb;
+  color: #7c4a5f;
+  font-size: 0.88rem;
+  padding: 0.7rem 0.8rem;
+}
+
 .section-head {
   display: flex;
   align-items: center;
