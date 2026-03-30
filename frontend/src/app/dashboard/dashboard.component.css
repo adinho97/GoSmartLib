@@ -247,3 +247,98 @@
     max-width: 400px;
   }
 }
+.loans-scroll-wrapper {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 4px 20px;
+  scroll-behavior: smooth;
+  margin-bottom: 20px;
+}
+
+.loans-scroll-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.loans-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #871f42;
+  border-radius: 10px;
+}
+
+.loan-card {
+  flex: 0 0 220px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.loan-card:hover {
+  border-color: #871f42;
+  box-shadow: 0 4px 14px rgba(135, 31, 66, 0.1);
+  transform: translateY(-2px);
+}
+
+.loan-card.overdue {
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+
+.loan-cover {
+  width: 40px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.loan-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.loan-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 1rem;
+  border-radius: 6px;
+}
+
+.loan-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.loan-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loan-due {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.loan-due.overdue-text {
+  color: #c62828;
+  font-weight: 600;
+}
