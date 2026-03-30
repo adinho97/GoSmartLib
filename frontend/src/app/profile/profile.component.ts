@@ -2,6 +2,7 @@ import { Component, HostListener, Input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { SmartschoolService } from '../services/smartschool.service';
 import { BookService } from '../services/book.service';
 
@@ -50,6 +51,7 @@ export class ProfileComponent {
   wishlistLoading = false;
   readonly wishlistPageSize = 6;
   currentWishlistPage = 1;
+  private wishlistChangedSub?: Subscription;
 
   constructor(
     private location: Location,
@@ -65,7 +67,17 @@ export class ProfileComponent {
     if (saved) {
       this.dashboardSettings = JSON.parse(saved);
     }
-    await this.loadWishlistBooks();
+
+    if (this.showSections) {
+      await this.loadWishlistBooks();
+      this.wishlistChangedSub = this.bookService.wishlistChanged$.subscribe(() => {
+        this.loadWishlistBooks();
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    this.wishlistChangedSub?.unsubscribe();
   }
 
   private async loadWishlistBooks() {
