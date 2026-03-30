@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { Observable, Subject } from "rxjs";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import axios from "axios";
@@ -45,6 +45,8 @@ export interface LestipResponse {
 })
 export class BookService {
   private apiUrl = "/api/boeken";
+  private wishlistChangedSource = new Subject<void>();
+  wishlistChanged$ = this.wishlistChangedSource.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -262,6 +264,7 @@ export class BookService {
       { bookId },
       this.getUserSubHeaders(),
     );
+    this.wishlistChangedSource.next();
   }
 
   async removeFromWishlist(bookId: number): Promise<void> {
@@ -269,6 +272,7 @@ export class BookService {
       `/api/verlanglijst/${bookId}`,
       this.getUserSubHeaders(),
     );
+    this.wishlistChangedSource.next();
   }
 
   async getUserWishlist(): Promise<WishlistItem[]> {
