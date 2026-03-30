@@ -15,7 +15,7 @@ input {
 button {
   padding: 8px 16px;
   margin: 5px;
-  background-color: #871F42;
+  background-color: #871f42;
   color: white;
   border: none;
   border-radius: 4px;
@@ -35,4 +35,24 @@ ul {
 li {
   padding: 8px;
   border-bottom: 1px solid #ddd;
+}
+
+.book-list-page .lestip-preview {
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border-left: 3px solid #1e5631;
+  border-radius: 8px;
+  background: #f2f8f3;
+}
+
+.book-list-page .lestip-preview strong {
+  color: #1e5631;
+  font-size: 0.82rem;
+}
+
+.book-list-page .lestip-preview p {
+  margin: 0.22rem 0 0;
+  font-size: 0.83rem;
+  color: #2f4735;
+  line-height: 1.35;
 }

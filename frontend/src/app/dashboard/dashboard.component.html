@@ -5,7 +5,7 @@
   </header>
 
   <button (click)="sendTestReminder()" class="btn btn-secondary">
-        Test Herinnering Verzenden
+    Test Herinnering Verzenden
   </button>
 
   <main class="container">
@@ -17,15 +17,49 @@
       ></app-profile>
     </section>
 
-    <h2 class="section-title">Uitgelichte boeken</h2>
+    <!-- Mijn uitgeleende boeken -->
+    @if (currentUsername && !loansLoading && myLoans.length > 0) {
+      <h2 class="section-title">Mijn uitgeleende boeken</h2>
+      <div class="loans-scroll-wrapper">
+        @for (loan of myLoans; track loan.id) {
+          <div
+            class="loan-card"
+            [class.overdue]="isOverdue(loan.dueDate)"
+            (click)="goToDetail(loan.bookId)"
+          >
+            <div class="loan-cover">
+              @if (loan.bookCover) {
+                <img [src]="loan.bookCover" [alt]="loan.bookTitel" />
+              } @else {
+                <div class="loan-cover-placeholder">?</div>
+              }
+            </div>
+            <div class="loan-info">
+              <span class="loan-title">{{ loan.bookTitel }}</span>
+              <span
+                class="loan-due"
+                [class.overdue-text]="isOverdue(loan.dueDate)"
+              >
+                @if (isOverdue(loan.dueDate)) {
+                  ⚠ Te laat — {{ loan.dueDate | date:'dd/MM/yyyy' }}
+                } @else {
+                  Terug voor {{ loan.dueDate | date:'dd/MM/yyyy' }}
+                }
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    }
 
+    <!-- Uitgelichte boeken -->
+    <h2 class="section-title">Uitgelichte boeken</h2>
     @if (loading) {
       <div class="loader-container">
         <div class="spinner"></div>
         <p>Boeken ophalen...</p>
       </div>
     }
-
     @if (!loading && featuredBooks.length > 0) {
       <div class="horizontal-scroll-wrapper">
         @for (book of featuredBooks; track book.id) {

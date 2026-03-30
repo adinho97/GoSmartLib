@@ -148,6 +148,27 @@
   background: #ffffff;
 }
 
+.filters-sidebar select:focus,
+.filters-sidebar input[type="date"]:focus {
+  outline: none;
+  border-color: #871f42;
+  box-shadow: 0 0 0 3px rgba(135, 31, 66, 0.16);
+}
+
+.lestip-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff4f7;
+  border: 1px solid #d4c1c9;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #60162f;
+  width: fit-content;
+  margin-top: 4px;
+}
+
 .page-slider-group {
   display: flex;
   flex-direction: column;

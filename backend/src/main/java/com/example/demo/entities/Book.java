@@ -55,6 +55,13 @@ public class Book {
     @Size(max = 255)
     private String uitgeverij;
 
+    @Column(columnDefinition = "TEXT")
+    @Size(max = 500)
+    private String lestip;
+
+    @Size(max = 255)
+    private String lestipAuteur;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id")
     private School school;
@@ -159,6 +166,22 @@ public class Book {
 
     public void setUitgeverij(String uitgeverij) {
         this.uitgeverij = uitgeverij;
+    }
+
+    public String getLestip() {
+        return lestip;
+    }
+
+    public void setLestip(String lestip) {
+        this.lestip = lestip;
+    }
+
+    public String getLestipAuteur() {
+        return lestipAuteur;
+    }
+
+    public void setLestipAuteur(String lestipAuteur) {
+        this.lestipAuteur = lestipAuteur;
     }
 
     public School getSchool() {
