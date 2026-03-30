@@ -29,7 +29,6 @@ public class UserProxyController {
         return authService.getUserInfoBySub(sub);
     }
 
-
     // TODO: remove after testing
     @PostMapping("/{sub}/test-reminder")
     public Mono<String> sendTestReminder(@PathVariable String sub) {
@@ -38,8 +37,17 @@ public class UserProxyController {
                     SmartschoolMessageRequest request = new SmartschoolMessageRequest();
                     request.setPlatformUrl(smartschoolProperties.getApiBaseUrl());
                     request.setSubject("Test Herinnering");
+
+                    String recipientName = userInfo.getGivenName();
+                    if (recipientName == null || recipientName.isBlank()) {
+                        recipientName = userInfo.getName();
+                    }
+                    if (recipientName == null || recipientName.isBlank()) {
+                        recipientName = "Gebruiker";
+                    }
+
                     request.setBody(
-                            "Beste " + (userInfo.getGivenName() != null ? userInfo.getGivenName() : "Gebruiker") +
+                            "Beste " + recipientName +
                                     ",\n\nDit is een handmatige test van het herinneringssysteem.");
 
                     return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), request);
