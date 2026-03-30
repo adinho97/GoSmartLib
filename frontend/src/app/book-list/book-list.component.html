@@ -87,18 +87,6 @@
             </option>
           }
         </select>
-        @if (isTeacher) {
-          <div class="lestip-toggle-row">
-            <label for="hasLestipFilter">Lestip beschikbaar</label>
-            <input
-              id="hasLestipFilter"
-              class="lestip-toggle"
-              type="checkbox"
-              [(ngModel)]="selectedHasLestip"
-              aria-label="Filter op boeken met lestip"
-            />
-          </div>
-        }
         <label for="averageFilter">Gemiddelde score (min.)</label>
         <select id="averageFilter" [(ngModel)]="selectedMinAverageRating">
           <option value="">Alle scores</option>
@@ -245,11 +233,6 @@
                       <strong>Taal:</strong> {{ book.taal || "Onbekend" }}
                     </p>
                   </div>
-                  @if (isTeacher && (book.lestip || "").trim()) {
-                    <div class="lestip-preview">
-                      <strong>Lestip beschikbaar</strong>
-                    </div>
-                  }
                   @if (isLibrarian) {
                     <div class="admin-actions">
                       <button
