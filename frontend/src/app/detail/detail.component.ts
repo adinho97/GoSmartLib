@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Location } from "@angular/common";
 import { ActivatedRoute, Router, NavigationEnd } from "@angular/router";
 import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
@@ -48,6 +49,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   private routerSub!: Subscription;
 
   constructor(
+    private location: Location,
     private route: ActivatedRoute,
     private router: Router,
     private bookService: BookService,
@@ -114,7 +116,12 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(["/books"]);
+    if (window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+
+    this.router.navigate(["/dashboard"]);
   }
 
   async loadCopySummary(bookId: number) {
