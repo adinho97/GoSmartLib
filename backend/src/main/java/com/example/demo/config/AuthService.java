@@ -40,14 +40,22 @@ public class AuthService {
                                                 return Mono.error(new RuntimeException(
                                                                 "No refresh token available for user: " + sub));
                                         }
-                                        return refreshAccessToken(user.getSmartschoolRefreshToken());
-                                })
-                                .flatMap(this::getUserInfo);
+                                        return refreshAccessToken(user.getSmartschoolRefreshToken())
+                                                        .flatMap(tokenResponse -> {
+                                                                user.setAccessToken(tokenResponse.getAccessToken());
+                                                                if (tokenResponse.getRefreshToken() != null) {
+                                                                        user.setSmartschoolRefreshToken(tokenResponse
+                                                                                        .getRefreshToken());
+                                                                }
+                                                                appUserRepository.save(user);
+                                                                return getUserInfo(tokenResponse, user.getPlatform());
+                                                        });
+                                });
         }
 
         public Mono<AuthLoginResponse> processSmartschoolCallback(String code) {
                 return getAccessToken(code)
-                                .flatMap(this::getUserInfo)
+                                .flatMap(tokenResponse -> getUserInfo(tokenResponse, null))
                                 .map(this::saveUserAndBuildResponse);
         }
 
@@ -101,6 +109,7 @@ public class AuthService {
                 user.setRole(role);
                 user.setSmartschoolRefreshToken(userInfo.getRefreshToken());
                 user.setAccessToken(userInfo.getAccessToken());
+                user.setPlatform(userInfo.getPlatform());
                 appUserRepository.save(user);
 
                 AuthLoginResponse response = new AuthLoginResponse(
@@ -239,9 +248,13 @@ public class AuthService {
                                                 "Failed to retrieve new access token using refresh token.", error));
         }
 
-        public Mono<SmartschoolUserInfo> getUserInfo(SmartschoolTokenResponse tokenResponse) {
+        public Mono<SmartschoolUserInfo> getUserInfo(SmartschoolTokenResponse tokenResponse, String platformUrl) {
+                String baseUrl = (platformUrl != null && !platformUrl.isBlank())
+                                ? platformUrl
+                                : smartschoolProperties.getApiBaseUrl();
+
                 return this.webClient.get()
-                                .uri(smartschoolProperties.getApiBaseUrl() + "/Api/V1/userinfo")
+                                .uri(baseUrl + "/Api/V1/userinfo")
                                 .headers(headers -> headers.setBearerAuth(tokenResponse.getAccessToken()))
                                 .exchangeToMono(response -> {
                                         if (response.statusCode().is2xxSuccessful()) {

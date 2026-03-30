@@ -22,6 +22,9 @@ public class AppUser {
     @Column(columnDefinition = "TEXT")
     private String accessToken;
 
+    @Column(nullable = true)
+    private String platform;
+
     public Long getId() {
         return id;
     }
@@ -60,5 +63,13 @@ public class AppUser {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
     }
 }
