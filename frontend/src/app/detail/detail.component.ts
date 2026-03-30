@@ -25,11 +25,21 @@ export class DetailComponent implements OnInit, OnDestroy {
   // Review-gerelateerde variabelen
   currentBookId: number | null = null;
   reviewRatings = [1, 2, 3, 4, 5];
+  reviewDisplayStars = [0, 1, 2, 3, 4];
   reviews: Review[] = [];
   newReviewRating = 0;
   newReviewComment = "";
   newReviewAnonymous = false;
+  publishReviewDialogOpen = false;
+  pendingReviewComment = "";
+  pendingReviewRating = 0;
   reviewError = "";
+  reviewSuccess = "";
+  editReviewId: number | null = null;
+  editReviewRating = 0;
+  editReviewComment = "";
+  readonly maxCollapsedReviewChars = 220;
+  private expandedReviewIds = new Set<number>();
   readonly smartschoolUserName =
     localStorage.getItem("userName") || "Gebruiker";
 
@@ -119,55 +129,213 @@ export class DetailComponent implements OnInit, OnDestroy {
   setReviewRating(rating: number): void {
     this.newReviewRating = rating;
     this.reviewError = "";
+    this.reviewSuccess = "";
   }
 
   async submitReview(): Promise<void> {
     if (this.currentBookId === null) {
       this.reviewError = "Boek kon niet worden gevonden.";
+      this.reviewSuccess = "";
       return;
     }
     const comment = this.newReviewComment.trim();
     if (this.newReviewRating < 1 || this.newReviewRating > 5) {
       this.reviewError = "Kies een score van 1 tot 5 sterren.";
+      this.reviewSuccess = "";
       return;
     }
     if (!comment) {
       this.reviewError = "Voeg een korte comment toe.";
+      this.reviewSuccess = "";
       return;
     }
+
+    if (!this.newReviewAnonymous) {
+      this.pendingReviewComment = comment;
+      this.pendingReviewRating = this.newReviewRating;
+      this.publishReviewDialogOpen = true;
+      return;
+    }
+
+    await this.postReview(comment, true);
+  }
+
+  async confirmPostReviewWithName(): Promise<void> {
+    this.publishReviewDialogOpen = false;
+    await this.postReview(this.pendingReviewComment, false);
+  }
+
+  async confirmPostReviewAnonymously(): Promise<void> {
+    this.newReviewAnonymous = true;
+    this.publishReviewDialogOpen = false;
+    await this.postReview(this.pendingReviewComment, true);
+  }
+
+  cancelPostReviewDialog(): void {
+    this.publishReviewDialogOpen = false;
+    this.pendingReviewComment = "";
+    this.pendingReviewRating = 0;
+  }
+
+  private async postReview(comment: string, anonymous: boolean): Promise<void> {
+    if (this.currentBookId === null) {
+      return;
+    }
+
+    const ratingToSubmit = anonymous
+      ? this.pendingReviewRating || this.newReviewRating
+      : this.pendingReviewRating || this.newReviewRating;
+
+    this.pendingReviewComment = "";
+    this.pendingReviewRating = 0;
+
     try {
       const review = await this.bookService.addBookReview(this.currentBookId, {
-        rating: this.newReviewRating,
+        rating: ratingToSubmit,
         comment,
         reviewerName: this.smartschoolUserName,
-        anonymous: this.newReviewAnonymous,
+        anonymous,
       });
       this.reviews = [review, ...this.reviews];
       this.newReviewRating = 0;
       this.newReviewComment = "";
-      this.newReviewAnonymous = false;
+      this.newReviewAnonymous = anonymous;
       this.reviewError = "";
+      this.reviewSuccess = "Review opgeslagen.";
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
         if (typeof apiMessage === "string" && apiMessage.trim()) {
           this.reviewError = apiMessage;
+          this.reviewSuccess = "";
           return;
         }
       }
       this.reviewError = "Review opslaan mislukt. Probeer opnieuw.";
+      this.reviewSuccess = "";
     }
   }
 
   async deleteReview(reviewId: number): Promise<void> {
-    if (!this.isLibrarian) return;
     if (this.currentBookId === null) return;
+    const review = this.reviews.find((r) => r.id === reviewId);
+    if (!review || !this.canManageReview(review)) return;
     if (!confirm("Review verwijderen?")) return;
     try {
       await this.bookService.deleteBookReview(this.currentBookId, reviewId);
       this.reviews = this.reviews.filter((r) => r.id !== reviewId);
+      this.reviewError = "";
+      this.reviewSuccess = "Review verwijderd.";
+      if (this.editReviewId === reviewId) {
+        this.cancelReviewEdit();
+      }
     } catch {
       this.reviewError = "Review verwijderen mislukt. Probeer opnieuw.";
+      this.reviewSuccess = "";
+    }
+  }
+
+  canManageReview(review: Review): boolean {
+    if (this.isLibrarian) {
+      return true;
+    }
+
+    return !!review.canManage;
+  }
+
+  startReviewEdit(review: Review): void {
+    if (!this.canManageReview(review)) {
+      return;
+    }
+
+    this.editReviewId = review.id;
+    this.editReviewRating = review.rating;
+    this.editReviewComment = review.comment;
+    this.reviewError = "";
+    this.reviewSuccess = "";
+  }
+
+  cancelReviewEdit(): void {
+    this.editReviewId = null;
+    this.editReviewRating = 0;
+    this.editReviewComment = "";
+    this.reviewError = "";
+  }
+
+  setEditReviewRating(rating: number): void {
+    this.editReviewRating = rating;
+    this.reviewError = "";
+    this.reviewSuccess = "";
+  }
+
+  isReviewExpanded(reviewId: number): boolean {
+    return this.expandedReviewIds.has(reviewId);
+  }
+
+  toggleReviewExpansion(reviewId: number): void {
+    if (this.expandedReviewIds.has(reviewId)) {
+      this.expandedReviewIds.delete(reviewId);
+      return;
+    }
+
+    this.expandedReviewIds.add(reviewId);
+  }
+
+  isReviewTruncatable(comment: string | null | undefined): boolean {
+    return (comment || "").trim().length > this.maxCollapsedReviewChars;
+  }
+
+  getReviewStarFillPercentage(review: Review, starIndex: number): number {
+    const rating = Math.min(5, Math.max(0, review.rating || 0));
+    const fillForStar = rating - starIndex;
+    return Math.min(100, Math.max(0, fillForStar * 100));
+  }
+
+  async saveReviewEdit(reviewId: number): Promise<void> {
+    if (this.currentBookId === null || this.editReviewId !== reviewId) {
+      return;
+    }
+
+    const updatedComment = this.editReviewComment.trim();
+    if (this.editReviewRating < 1 || this.editReviewRating > 5) {
+      this.reviewError = "Kies een score van 1 tot 5 sterren.";
+      this.reviewSuccess = "";
+      return;
+    }
+
+    if (!updatedComment) {
+      this.reviewError = "Voeg een korte comment toe.";
+      this.reviewSuccess = "";
+      return;
+    }
+
+    try {
+      const updatedReview = await this.bookService.updateBookReview(
+        this.currentBookId,
+        reviewId,
+        {
+          rating: this.editReviewRating,
+          comment: updatedComment,
+        },
+      );
+
+      this.reviews = this.reviews.map((review) =>
+        review.id === reviewId ? updatedReview : review,
+      );
+      this.cancelReviewEdit();
+      this.reviewSuccess = "Review bijgewerkt.";
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        if (typeof apiMessage === "string" && apiMessage.trim()) {
+          this.reviewError = apiMessage;
+          this.reviewSuccess = "";
+          return;
+        }
+      }
+
+      this.reviewError = "Review bewerken mislukt. Probeer opnieuw.";
+      this.reviewSuccess = "";
     }
   }
 
@@ -179,8 +347,11 @@ export class DetailComponent implements OnInit, OnDestroy {
   private async loadReviews(bookId: number): Promise<void> {
     try {
       this.reviews = await this.bookService.getBookReviews(bookId);
+      this.expandedReviewIds.clear();
+      this.reviewError = "";
     } catch {
       this.reviews = [];
+      this.expandedReviewIds.clear();
     }
   }
 

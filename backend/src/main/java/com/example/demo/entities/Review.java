@@ -29,6 +29,10 @@ public class Review {
     @Column(length = 120)
     private String reviewerName;
 
+    @Size(max = 120)
+    @Column(length = 120)
+    private String reviewerUserName;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -73,6 +77,14 @@ public class Review {
 
     public void setReviewerName(String reviewerName) {
         this.reviewerName = reviewerName;
+    }
+
+    public String getReviewerUserName() {
+        return reviewerUserName;
+    }
+
+    public void setReviewerUserName(String reviewerUserName) {
+        this.reviewerUserName = reviewerUserName;
     }
 
     public LocalDateTime getCreatedAt() {

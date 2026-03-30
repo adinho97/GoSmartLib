@@ -3,5 +3,6 @@ export interface Review {
   rating: number;
   comment: string;
   reviewerName: string;
+  canManage?: boolean;
   createdAt: string;
 }

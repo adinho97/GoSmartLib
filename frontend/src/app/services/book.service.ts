@@ -5,11 +5,7 @@ import { Book } from "../models/book";
 import { Review } from "../models/review";
 import axios from "axios";
 
-export type BulkImportStatus =
-  | "ADDED"
-  | "NOT_FOUND"
-  | "INVALID_ISBN"
-  | "ERROR";
+export type BulkImportStatus = "ADDED" | "NOT_FOUND" | "INVALID_ISBN" | "ERROR";
 
 export interface BulkImportRowResult {
   isbn: string;
@@ -74,7 +70,11 @@ export class BookService {
 
   private getRoleHeaders() {
     const role = localStorage.getItem("role") || "";
-    const userName = localStorage.getItem("userName") || "";
+    const userName =
+      localStorage.getItem("userName") ||
+      localStorage.getItem("username") ||
+      localStorage.getItem("name") ||
+      "Gebruiker";
     return {
       headers: {
         "X-User-Role": role,
@@ -127,7 +127,10 @@ export class BookService {
   }
 
   async getBookReviews(bookId: number): Promise<Review[]> {
-    const res = await axios.get<Review[]>(`${this.apiUrl}/${bookId}/reviews`);
+    const res = await axios.get<Review[]>(
+      `${this.apiUrl}/${bookId}/reviews`,
+      this.getRoleHeaders(),
+    );
     return res.data;
   }
 
@@ -143,6 +146,7 @@ export class BookService {
     const res = await axios.post<Review>(
       `${this.apiUrl}/${bookId}/reviews`,
       payload,
+      this.getRoleHeaders(),
     );
     return res.data;
   }
@@ -152,6 +156,19 @@ export class BookService {
       `${this.apiUrl}/${bookId}/reviews/${reviewId}`,
       this.getRoleHeaders(),
     );
+  }
+
+  async updateBookReview(
+    bookId: number,
+    reviewId: number,
+    payload: { rating: number; comment: string },
+  ): Promise<Review> {
+    const res = await axios.put<Review>(
+      `${this.apiUrl}/${bookId}/reviews/${reviewId}`,
+      payload,
+      this.getRoleHeaders(),
+    );
+    return res.data;
   }
 
   async getBookLestip(bookId: number): Promise<string> {
@@ -225,8 +242,11 @@ export class BookService {
       throw err;
     }
   }
-  
-  async getBookByIsbnFromLibrary(isbn: string, schoolId?: number): Promise<Book | null> {
+
+  async getBookByIsbnFromLibrary(
+    isbn: string,
+    schoolId?: number,
+  ): Promise<Book | null> {
     try {
       const res = await axios.get<Book>(
         this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
