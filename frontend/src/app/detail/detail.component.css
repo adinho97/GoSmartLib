@@ -117,6 +117,7 @@
 .preview-btn {
   display: block;
   width: 100%;
+  min-height: 42px;
   margin-top: 0.8rem;
   padding: 0.65rem 1rem;
   background-color: #871f42;
@@ -139,6 +140,33 @@
 .preview-btn:active {
   background-color: #5c132d;
   transform: scale(0.98);
+}
+
+.preview-btn:disabled {
+  cursor: wait;
+  opacity: 0.9;
+}
+
+.preview-btn-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.preview-spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: previewSpin 0.8s linear infinite;
+}
+
+@keyframes previewSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .book-info {
@@ -748,7 +776,8 @@
   align-items: center;
   justify-content: center;
   z-index: 1100;
-  padding: 1rem;
+  box-sizing: border-box;
+  padding: clamp(5rem, 10vh, 6.5rem) 1.25rem 1.25rem;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -762,8 +791,8 @@
 }
 
 .preview-modal-container {
-  width: min(90vw, 1000px);
-  height: min(90vh, 800px);
+  width: min(100%, 1000px);
+  height: min(100%, 800px);
   background: #ffffff;
   border-radius: 12px;
   display: flex;

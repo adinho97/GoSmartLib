@@ -50,9 +50,15 @@
           <button
             class="preview-btn"
             (click)="openPreview()"
+            [disabled]="previewLoading"
             title="Open een voorbeeld in Open Library"
           >
-            Voorbeeld
+            <span class="preview-btn-content">
+              @if (previewLoading) {
+                <span class="preview-spinner" aria-hidden="true"></span>
+              }
+              {{ previewLoading ? "Voorbeeld laden..." : "Voorbeeld" }}
+            </span>
           </button>
         </div>
         <div class="book-info">
