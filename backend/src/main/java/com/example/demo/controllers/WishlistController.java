@@ -3,7 +3,11 @@ package com.example.demo.controllers;
 import com.example.demo.dto.WishlistAddRequest;
 import com.example.demo.dto.WishlistDto;
 import com.example.demo.entities.AppUser;
+import com.example.demo.entities.BookCopy;
+import com.example.demo.entities.Wishlist;
 import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.BookCopyRepository;
+import com.example.demo.repositories.WishlistRepository;
 import com.example.demo.services.WishlistService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -11,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/verlanglijst")
@@ -18,10 +23,15 @@ public class WishlistController {
 
     private final WishlistService wishlistService;
     private final AppUserRepository appUserRepository;
+    private final WishlistRepository wishlistRepository;
+    private final BookCopyRepository bookCopyRepository;
 
-    public WishlistController(WishlistService wishlistService, AppUserRepository appUserRepository) {
+    public WishlistController(WishlistService wishlistService, AppUserRepository appUserRepository,
+            WishlistRepository wishlistRepository, BookCopyRepository bookCopyRepository) {
         this.wishlistService = wishlistService;
         this.appUserRepository = appUserRepository;
+        this.wishlistRepository = wishlistRepository;
+        this.bookCopyRepository = bookCopyRepository;
     }
 
     private AppUser getUserFromHeader(String userSub) {
@@ -87,6 +97,38 @@ public class WishlistController {
             AppUser user = getUserFromHeader(userSub);
             boolean isWishlisted = wishlistService.isWishlisted(bookId, user);
             return ResponseEntity.ok(isWishlisted);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateWishlist(
+            @PathVariable Long id,
+            @RequestBody WishlistDto dto,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+        if (userSub == null || userSub.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            Wishlist wishlist = wishlistRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Wishlist not found"));
+
+            // Validation: Can only enable notifications if book is unavailable
+            if (dto.isNotificationEnabled()) {
+                long availableCopies = bookCopyRepository.countByBook_IdAndStatus(
+                        wishlist.getBook().getId(),
+                        BookCopy.CopyStatus.AVAILABLE);
+
+                if (availableCopies > 0) {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("error", "Cannot enable notifications for available book"));
+                }
+            }
+
+            wishlist.setNotificationEnabled(dto.isNotificationEnabled());
+            Wishlist updated = wishlistRepository.save(wishlist);
+            return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
