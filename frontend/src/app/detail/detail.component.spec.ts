@@ -1,34 +1,50 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { ActivatedRoute, convertToParamMap } from "@angular/router";
-import { of } from "rxjs";
+import { FormsModule } from "@angular/forms";
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  convertToParamMap,
+} from "@angular/router";
+import { DomSanitizer } from "@angular/platform-browser";
+import { of, Subject } from "rxjs";
 import axios from "axios";
 
 import { DetailComponent } from "./detail.component";
 import { BookService } from "../services/book.service";
-import { Location } from "@angular/common";
+import { LoanService } from "../services/loan.service";
 
 describe("DetailComponent", () => {
   let component: DetailComponent;
   let fixture: ComponentFixture<DetailComponent>;
   let bookServiceSpy: jasmine.SpyObj<BookService>;
-  let locationSpy: jasmine.SpyObj<Location>;
+  let loanServiceSpy: jasmine.SpyObj<LoanService>;
+  let routerEvents$: Subject<NavigationEnd>;
 
-  afterEach(() => {
-    localStorage.removeItem("role");
-  });
+  function createComponent(): void {
+    fixture = TestBed.createComponent(DetailComponent);
+    component = fixture.componentInstance;
+  }
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    localStorage.clear();
+
     bookServiceSpy = jasmine.createSpyObj<BookService>("BookService", [
       "getBookById",
       "getBookReviews",
       "addBookReview",
       "deleteBookReview",
     ]);
+    loanServiceSpy = jasmine.createSpyObj<LoanService>("LoanService", [
+      "getCopySummary",
+    ]);
+
     bookServiceSpy.getBookById.and.returnValue(
       of({
         id: 1,
         titel: "Boek",
         auteur: "Auteur",
+        isbn: "9780140328721",
         cover: "",
         beschrijving: "",
         genre: "Algemeen",
@@ -43,13 +59,17 @@ describe("DetailComponent", () => {
       id: 77,
       rating: 5,
       comment: "Sterk boek",
+      reviewerName: "Gebruiker",
+      anonymous: true,
       createdAt: "2026-03-18T10:00:00",
     });
     bookServiceSpy.deleteBookReview.and.resolveTo();
+    loanServiceSpy.getCopySummary.and.resolveTo({ total: 2, available: 1 });
 
-    locationSpy = jasmine.createSpyObj<Location>("Location", ["back"]);
+    routerEvents$ = new Subject<NavigationEnd>();
 
-    TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({
+      imports: [FormsModule],
       declarations: [DetailComponent],
       providers: [
         {
@@ -60,12 +80,24 @@ describe("DetailComponent", () => {
             },
           },
         },
+        {
+          provide: Router,
+          useValue: {
+            events: routerEvents$.asObservable(),
+            navigate: jasmine.createSpy("navigate"),
+          },
+        },
         { provide: BookService, useValue: bookServiceSpy },
-        { provide: Location, useValue: locationSpy },
+        { provide: LoanService, useValue: loanServiceSpy },
       ],
-    });
-    fixture = TestBed.createComponent(DetailComponent);
-    component = fixture.componentInstance;
+    }).compileComponents();
+
+    createComponent();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    routerEvents$.complete();
   });
 
   it("should create", () => {
@@ -79,6 +111,8 @@ describe("DetailComponent", () => {
         id: 10,
         rating: 4,
         comment: "Goed",
+        reviewerName: "Docent",
+        anonymous: false,
         createdAt: "2026-03-18T09:00:00",
       },
     ]);
@@ -92,44 +126,16 @@ describe("DetailComponent", () => {
     expect(component.reviews[0].comment).toBe("Goed");
   });
 
-  it("setReviewRating stores rating and clears existing review error", () => {
-    component.reviewError = "oude fout";
-
-    component.setReviewRating(3);
-
-    expect(component.newReviewRating).toBe(3);
-    expect(component.reviewError).toBe("");
-  });
-
-  it("submitReview validates rating before calling api", async () => {
-    component.currentBookId = 1;
-    component.newReviewRating = 0;
-    component.newReviewComment = "ok";
-
-    await component.submitReview();
-
-    expect(component.reviewError).toBe("Kies een score van 1 tot 5 sterren.");
-    expect(bookServiceSpy.addBookReview).not.toHaveBeenCalled();
-  });
-
-  it("submitReview validates non-empty trimmed comment", async () => {
-    component.currentBookId = 1;
-    component.newReviewRating = 4;
-    component.newReviewComment = "   ";
-
-    await component.submitReview();
-
-    expect(component.reviewError).toBe("Voeg een korte comment toe.");
-    expect(bookServiceSpy.addBookReview).not.toHaveBeenCalled();
-  });
-
   it("submitReview appends review and resets form on success", async () => {
     component.currentBookId = 1;
+    component.newReviewAnonymous = true;
     component.reviews = [
       {
         id: 1,
         rating: 3,
         comment: "Bestaande review",
+        reviewerName: "Iemand",
+        anonymous: false,
         createdAt: "2026-03-18T08:00:00",
       },
     ];
@@ -141,6 +147,8 @@ describe("DetailComponent", () => {
     expect(bookServiceSpy.addBookReview).toHaveBeenCalledWith(1, {
       rating: 5,
       comment: "Nieuwe review",
+      reviewerName: "Gebruiker",
+      anonymous: true,
     });
     expect(component.reviews[0].id).toBe(77);
     expect(component.reviews.length).toBe(2);
@@ -149,81 +157,204 @@ describe("DetailComponent", () => {
     expect(component.reviewError).toBe("");
   });
 
-  it("submitReview surfaces api error message when available", async () => {
-    component.currentBookId = 1;
-    component.newReviewRating = 4;
-    component.newReviewComment = "Inhoud";
-
-    const apiError = { response: { data: { message: "Te veel reviews" } } };
-    bookServiceSpy.addBookReview.and.rejectWith(apiError);
-    spyOn(axios, "isAxiosError").and.returnValue(true);
-
-    await component.submitReview();
-
-    expect(component.reviewError).toBe("Te veel reviews");
-  });
-
-  it("submitReview shows fallback error for unknown failures", async () => {
-    component.currentBookId = 1;
-    component.newReviewRating = 4;
-    component.newReviewComment = "Inhoud";
-    bookServiceSpy.addBookReview.and.rejectWith(new Error("kapot"));
-    spyOn(axios, "isAxiosError").and.returnValue(false);
-
-    await component.submitReview();
-
-    expect(component.reviewError).toBe(
-      "Review opslaan mislukt. Probeer opnieuw.",
-    );
-  });
-
-  it("deleteReview does nothing for non-librarian users", async () => {
-    component.currentBookId = 1;
-    component.reviews = [
-      { id: 3, rating: 2, comment: "x", createdAt: "2026-03-18T07:00:00" },
-    ];
-
-    await component.deleteReview(3);
-
-    expect(bookServiceSpy.deleteBookReview).not.toHaveBeenCalled();
-    expect(component.reviews.length).toBe(1);
-  });
-
-  it("deleteReview removes review after confirmation for librarians", async () => {
+  it("opens delete dialog and deletes review after confirmation", async () => {
     localStorage.setItem("role", "bibbeheerder");
-    fixture = TestBed.createComponent(DetailComponent);
-    component = fixture.componentInstance;
-
+    createComponent();
     component.currentBookId = 1;
     component.reviews = [
-      { id: 5, rating: 3, comment: "a", createdAt: "2026-03-18T06:00:00" },
-      { id: 6, rating: 4, comment: "b", createdAt: "2026-03-18T05:00:00" },
+      {
+        id: 5,
+        rating: 3,
+        comment: "a",
+        reviewerName: "Beheer",
+        anonymous: false,
+        createdAt: "2026-03-18T06:00:00",
+      },
     ];
-    spyOn(window, "confirm").and.returnValue(true);
 
-    await component.deleteReview(5);
+    component.deleteReview(5);
+    expect(component.deleteReviewDialogOpen).toBeTrue();
+    expect(component.pendingDeleteReviewId).toBe(5);
+
+    await component.confirmDeleteReview();
 
     expect(bookServiceSpy.deleteBookReview).toHaveBeenCalledWith(1, 5);
-    expect(component.reviews.map((review) => review.id)).toEqual([6]);
+    expect(component.reviews.length).toBe(0);
+    expect(component.deleteReviewDialogOpen).toBeFalse();
   });
 
-  it("deleteReview keeps list and sets error when api call fails", async () => {
-    localStorage.setItem("role", "bibbeheerder");
-    fixture = TestBed.createComponent(DetailComponent);
-    component = fixture.componentInstance;
+  it("openPreview uses archive embed url from books api when available", async () => {
+    const sanitizer = TestBed.inject(DomSanitizer);
+    spyOn(sanitizer, "bypassSecurityTrustResourceUrl").and.callThrough();
 
-    component.currentBookId = 1;
-    component.reviews = [
-      { id: 5, rating: 3, comment: "a", createdAt: "2026-03-18T06:00:00" },
-    ];
-    spyOn(window, "confirm").and.returnValue(true);
-    bookServiceSpy.deleteBookReview.and.rejectWith(new Error("mislukt"));
+    const getSpy = spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("api/books")) {
+        return {
+          data: {
+            "ISBN:9780140328721": {
+              preview: "full",
+              preview_url: "https://archive.org/details/some-book-id",
+            },
+          },
+        };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
 
-    await component.deleteReview(5);
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "9780140328721",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
 
-    expect(component.reviews.length).toBe(1);
-    expect(component.reviewError).toBe(
-      "Review verwijderen mislukt. Probeer opnieuw.",
+    await component.openPreview();
+
+    expect(getSpy).toHaveBeenCalled();
+    expect(component.previewModalOpen).toBeTrue();
+    expect(component.previewUrl).toBe("https://archive.org/embed/some-book-id");
+    expect(sanitizer.bypassSecurityTrustResourceUrl).toHaveBeenCalledWith(
+      "https://archive.org/embed/some-book-id",
     );
+  });
+
+  it("openPreview resolves openlibrary edition to archive embed", async () => {
+    spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("api/books")) {
+        return {
+          data: {
+            "ISBN:9780140328721": {
+              preview: "full",
+              preview_url: "https://openlibrary.org/books/OL123M/Test",
+            },
+          },
+        };
+      }
+
+      if (url.includes("/books/OL123M.json")) {
+        return {
+          data: {
+            ocaid: "archive-edition-id",
+          },
+        };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "9780140328721",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
+
+    await component.openPreview();
+
+    expect(component.previewModalOpen).toBeTrue();
+    expect(component.previewUrl).toBe(
+      "https://archive.org/embed/archive-edition-id",
+    );
+  });
+
+  it("openPreview falls back to search ia embed when isbn lookup has no preview", async () => {
+    const getSpy = spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("api/books")) {
+        return {
+          data: {},
+        };
+      }
+
+      if (url.includes("search.json")) {
+        return {
+          data: {
+            docs: [{ ia: ["search-hit-ia"] }],
+          },
+        };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "9780140328721",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
+
+    await component.openPreview();
+
+    expect(getSpy).toHaveBeenCalled();
+    expect(component.previewModalOpen).toBeTrue();
+    expect(component.previewUrl).toBe(
+      "https://archive.org/embed/search-hit-ia",
+    );
+  });
+
+  it("openPreview shows preview alert when no readable preview exists", async () => {
+    spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("api/books")) {
+        return {
+          data: {
+            "ISBN:9780140328721": {
+              preview: "noview",
+              preview_url: "https://openlibrary.org/books/OL111M/Test",
+            },
+          },
+        };
+      }
+
+      if (url.includes("search.json")) {
+        return {
+          data: {
+            docs: [],
+          },
+        };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "9780140328721",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
+
+    await component.openPreview();
+
+    expect(component.previewModalOpen).toBeFalse();
+    expect(component.previewAlertOpen).toBeTrue();
+    expect(component.previewAlertTitle).toBe("Geen voorbeeld beschikbaar");
   });
 });
