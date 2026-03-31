@@ -22,6 +22,12 @@ public class Wishlist {
     @Column(nullable = false)
     private LocalDateTime addedAt;
 
+    @Column(nullable = false)
+    private boolean notificationEnabled = true;
+
+    @Column(name = "last_notified_at")
+    private LocalDateTime lastNotifiedAt;
+
     @PrePersist
     public void onCreate() {
         if (addedAt == null) {
@@ -59,5 +65,21 @@ public class Wishlist {
 
     public void setAddedAt(LocalDateTime addedAt) {
         this.addedAt = addedAt;
+    }
+
+    public boolean isNotificationEnabled() {
+        return notificationEnabled;
+    }
+
+    public void setNotificationEnabled(boolean notificationEnabled) {
+        this.notificationEnabled = notificationEnabled;
+    }
+
+    public LocalDateTime getLastNotifiedAt() {
+        return lastNotifiedAt;
+    }
+
+    public void setLastNotifiedAt(LocalDateTime lastNotifiedAt) {
+        this.lastNotifiedAt = lastNotifiedAt;
     }
 }
