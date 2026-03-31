@@ -33,6 +33,7 @@ describe("DetailComponent", () => {
       "getBookById",
       "getBookReviews",
       "addBookReview",
+      "updateBookReview",
       "deleteBookReview",
     ]);
     loanServiceSpy = jasmine.createSpyObj<LoanService>("LoanService", [
@@ -61,6 +62,14 @@ describe("DetailComponent", () => {
       comment: "Sterk boek",
       reviewerName: "Gebruiker",
       anonymous: true,
+      createdAt: "2026-03-18T10:00:00",
+    });
+    bookServiceSpy.updateBookReview.and.resolveTo({
+      id: 5,
+      rating: 4,
+      comment: "Bijgewerkt",
+      reviewerName: "Gebruiker",
+      anonymous: false,
       createdAt: "2026-03-18T10:00:00",
     });
     bookServiceSpy.deleteBookReview.and.resolveTo();
@@ -181,6 +190,129 @@ describe("DetailComponent", () => {
     expect(bookServiceSpy.deleteBookReview).toHaveBeenCalledWith(1, 5);
     expect(component.reviews.length).toBe(0);
     expect(component.deleteReviewDialogOpen).toBeFalse();
+  });
+
+  it("startReviewEdit fills edit form when review is manageable", () => {
+    const review = {
+      id: 8,
+      rating: 3,
+      comment: "Origineel",
+      reviewerName: "Gebruiker",
+      anonymous: false,
+      canManage: true,
+      createdAt: "2026-03-18T06:00:00",
+    };
+
+    component.startReviewEdit(review);
+
+    expect(component.editReviewId).toBe(8);
+    expect(component.editReviewRating).toBe(3);
+    expect(component.editReviewComment).toBe("Origineel");
+  });
+
+  it("saveReviewEdit validates rating", async () => {
+    component.currentBookId = 1;
+    component.editReviewId = 5;
+    component.editReviewRating = 0;
+    component.editReviewComment = "ok";
+
+    await component.saveReviewEdit(5);
+
+    expect(bookServiceSpy.updateBookReview).not.toHaveBeenCalled();
+    expect(component.reviewError).toBe("Kies een score van 1 tot 5 sterren.");
+  });
+
+  it("saveReviewEdit validates non-empty trimmed comment", async () => {
+    component.currentBookId = 1;
+    component.editReviewId = 5;
+    component.editReviewRating = 4;
+    component.editReviewComment = "   ";
+
+    await component.saveReviewEdit(5);
+
+    expect(bookServiceSpy.updateBookReview).not.toHaveBeenCalled();
+    expect(component.reviewError).toBe("Voeg een korte comment toe.");
+  });
+
+  it("saveReviewEdit updates review and exits edit mode", async () => {
+    component.currentBookId = 1;
+    component.reviews = [
+      {
+        id: 5,
+        rating: 2,
+        comment: "Oud",
+        reviewerName: "Gebruiker",
+        anonymous: false,
+        canManage: true,
+        createdAt: "2026-03-18T06:00:00",
+      },
+    ];
+    component.editReviewId = 5;
+    component.editReviewRating = 4;
+    component.editReviewComment = "  Bijgewerkt  ";
+
+    await component.saveReviewEdit(5);
+
+    expect(bookServiceSpy.updateBookReview).toHaveBeenCalledWith(1, 5, {
+      rating: 4,
+      comment: "Bijgewerkt",
+    });
+    expect(component.reviews[0].comment).toBe("Bijgewerkt");
+    expect(component.editReviewId).toBeNull();
+    expect(component.reviewSuccess).toBe("Review bijgewerkt.");
+  });
+
+  it("saveReviewEdit surfaces api validation message", async () => {
+    component.currentBookId = 1;
+    component.editReviewId = 5;
+    component.editReviewRating = 4;
+    component.editReviewComment = "Inhoud";
+    const apiError = { response: { data: { message: "Niet toegestaan" } } };
+    bookServiceSpy.updateBookReview.and.rejectWith(apiError);
+    spyOn(axios, "isAxiosError").and.returnValue(true);
+
+    await component.saveReviewEdit(5);
+
+    expect(component.reviewError).toBe("Niet toegestaan");
+    expect(component.reviewSuccess).toBe("");
+  });
+
+  it("cancelDeleteReviewDialog closes dialog and clears pending id", () => {
+    component.deleteReviewDialogOpen = true;
+    component.pendingDeleteReviewId = 11;
+
+    component.cancelDeleteReviewDialog();
+
+    expect(component.deleteReviewDialogOpen).toBeFalse();
+    expect(component.pendingDeleteReviewId).toBeNull();
+  });
+
+  it("confirmDeleteReview keeps review and sets error when delete fails", async () => {
+    localStorage.setItem("role", "bibbeheerder");
+    createComponent();
+    component.currentBookId = 1;
+    component.reviews = [
+      {
+        id: 5,
+        rating: 3,
+        comment: "a",
+        reviewerName: "Beheer",
+        anonymous: false,
+        createdAt: "2026-03-18T06:00:00",
+      },
+    ];
+    component.pendingDeleteReviewId = 5;
+    component.deleteReviewDialogOpen = true;
+    bookServiceSpy.deleteBookReview.and.rejectWith(new Error("mislukt"));
+
+    await component.confirmDeleteReview();
+
+    expect(component.reviews.length).toBe(1);
+    expect(component.reviewError).toBe(
+      "Review verwijderen mislukt. Probeer opnieuw.",
+    );
+    expect(component.deleteReviewDialogOpen).toBeFalse();
+    expect(component.pendingDeleteReviewId).toBeNull();
   });
 
   it("openPreview uses archive embed url from books api when available", async () => {
