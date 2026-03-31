@@ -196,7 +196,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       return "";
     }
 
-    return previewUrl;
+    return this.normalizePreviewUrl(previewUrl);
   }
 
   private async getPreviewUrlFromSearch(
@@ -248,6 +248,97 @@ export class DetailComponent implements OnInit, OnDestroy {
           return previewUrl;
         }
       }
+
+      // Last fallback: use search metadata to open reader directly when available.
+      const hasReadablePreview =
+        !!doc.has_preview ||
+        !!doc.has_fulltext ||
+        ["borrowable", "public"].includes(String(doc.ebook_access || ""));
+
+      if (hasReadablePreview) {
+        const fallbackEditionKey =
+          (typeof doc.cover_edition_key === "string" &&
+            doc.cover_edition_key) ||
+          (Array.isArray(doc.edition_key)
+            ? (doc.edition_key.find(
+                (key: unknown) => typeof key === "string" && !!key,
+              ) as string | undefined)
+            : undefined);
+
+        if (fallbackEditionKey) {
+          return this.normalizePreviewUrl(
+            `https://openlibrary.org/read/${encodeURIComponent(fallbackEditionKey)}`,
+          );
+        }
+      }
+    }
+
+    return "";
+  }
+
+  private async normalizePreviewUrl(url: string): Promise<string> {
+    const trimmedUrl = (url || "").trim();
+    if (!trimmedUrl) {
+      return "";
+    }
+
+    // Keep archive embed URLs as-is.
+    const archiveEmbedMatch = trimmedUrl.match(
+      /archive\.org\/embed\/([^/?#]+)/i,
+    );
+    if (archiveEmbedMatch?.[1]) {
+      return `https://archive.org/embed/${encodeURIComponent(archiveEmbedMatch[1])}`;
+    }
+
+    // Convert archive details URLs to embed URLs.
+    const archiveDetailsMatch = trimmedUrl.match(
+      /archive\.org\/details\/([^/?#]+)/i,
+    );
+    if (archiveDetailsMatch?.[1]) {
+      return `https://archive.org/embed/${encodeURIComponent(archiveDetailsMatch[1])}`;
+    }
+
+    // For Open Library edition/read URLs, resolve archive id when possible.
+    const editionMatch = trimmedUrl.match(
+      /\/(?:books|read)\/(OL[0-9A-Z]+M)(?:\/|$)/i,
+    );
+    if (editionMatch?.[1]) {
+      const archiveEmbedUrl = await this.resolveArchiveEmbedFromEdition(
+        editionMatch[1].toUpperCase(),
+      );
+      if (archiveEmbedUrl) {
+        return archiveEmbedUrl;
+      }
+
+      // Fallback to reader URL when archive id is unavailable.
+      return `https://openlibrary.org/read/${editionMatch[1].toUpperCase()}`;
+    }
+
+    return trimmedUrl;
+  }
+
+  private async resolveArchiveEmbedFromEdition(
+    editionKey: string,
+  ): Promise<string> {
+    try {
+      const editionUrl = `https://openlibrary.org/books/${encodeURIComponent(editionKey)}.json`;
+      const response = await axios.get(editionUrl);
+      const data = response.data || {};
+
+      const archiveId =
+        (typeof data.ocaid === "string" && data.ocaid) ||
+        (typeof data.ia === "string" && data.ia) ||
+        (Array.isArray(data.ia)
+          ? (data.ia.find((id: unknown) => typeof id === "string" && !!id) as
+              | string
+              | undefined)
+          : undefined);
+
+      if (archiveId) {
+        return `https://archive.org/embed/${encodeURIComponent(archiveId)}`;
+      }
+    } catch {
+      // Best effort only; caller will use fallback URL.
     }
 
     return "";
