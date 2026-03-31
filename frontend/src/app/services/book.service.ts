@@ -29,6 +29,10 @@ export interface WishlistItem {
   auteur: string;
   cover: string | null;
   addedAt: string;
+  notificationEnabled?: boolean;
+  lastNotifiedAt?: string | null;
+  availableCopies?: number;
+  totalCopies?: number;
 }
 export interface LestipResponse {
   lestip: string;
@@ -300,6 +304,16 @@ export class BookService {
       "/api/verlanglijst",
       this.getUserSubHeaders(),
     );
+    return res.data;
+  }
+
+  async updateWishlistNotification(wishlistId: number, notificationEnabled: boolean): Promise<WishlistItem> {
+    const res = await axios.patch<WishlistItem>(
+      `/api/verlanglijst/${wishlistId}`,
+      { notificationEnabled },
+      this.getUserSubHeaders(),
+    );
+    this.wishlistChangedSource.next();
     return res.data;
   }
 

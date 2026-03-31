@@ -206,6 +206,53 @@
                           <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                       </button>
+
+                      <!-- Notification Bell Toggle -->
+                      @if (isBookUnavailable(book)) {
+                        <button
+                          type="button"
+                          class="notification-bell-btn"
+                          [class.active]="book.notificationEnabled"
+                          [attr.aria-label]="
+                            book.notificationEnabled
+                              ? 'Meldingen uitschakelen'
+                              : 'Meldingen inschakelen'
+                          "
+                          (click)="toggleNotification($event, book)"
+                        >
+                          <svg
+                            class="bell-icon"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                          >
+                            <!-- Bell outline (red when off, white when on) -->
+                            <path
+                              d="M18.8 4C18.3 2.2 16.8 1 15 1c-1.8 0-3.3 1.2-3.8 3H12c-1.8 0-3.3 1.2-3.8 3H4c-.6 0-1 .4-1 1s.4 1 1 1h1.2c-.1.3-.2.7-.2 1v7c0 1.1.9 2 2 2v2c0 .6.4 1 1 1s1-.4 1-1v-2h6v2c0 .6.4 1 1 1s1-.4 1-1v-2c1.1 0 2-.9 2-2v-7c0-.3-.1-.7-.2-1H20c.6 0 1-.4 1-1s-.4-1-1-1z"
+                              class="bell-outline"
+                            />
+                            <!-- Yellow fill that rises (hidden by default via CSS) -->
+                            <path
+                              d="M18.8 4C18.3 2.2 16.8 1 15 1c-1.8 0-3.3 1.2-3.8 3H12c-1.8 0-3.3 1.2-3.8 3H4c-.6 0-1 .4-1 1s.4 1 1 1h1.2c-.1.3-.2.7-.2 1v7c0 1.1.9 2 2 2v2c0 .6.4 1 1 1s1-.4 1-1v-2h6v2c0 .6.4 1 1 1s1-.4 1-1v-2c1.1 0 2-.9 2-2v-7c0-.3-.1-.7-.2-1H20c.6 0 1-.4 1-1s-.4-1-1-1z"
+                              class="bell-fill"
+                            />
+                          </svg>
+                        </button>
+                      } @else if (getAvailableCopiesCount(book) > 0) {
+                        <div class="availability-indicator available">
+                          <svg
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                            />
+                          </svg>
+                        </div>
+                      }
+
                       @if (book.cover) {
                         <div class="book-cover">
                           <img [src]="book.cover" alt="{{ book.title }}" />

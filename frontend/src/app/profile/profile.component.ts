@@ -13,6 +13,10 @@ type ProfileBookCard = {
   id: number;
   deadline?: Date;
   loanedDate?: Date;
+  wishlistId?: number;
+  notificationEnabled?: boolean;
+  availableCopies?: number;
+  totalCopies?: number;
 };
 
 @Component({
@@ -89,6 +93,10 @@ export class ProfileComponent {
         title: item.titel,
         author: item.auteur,
         cover: item.cover || '',
+        wishlistId: item.id,
+        notificationEnabled: item.notificationEnabled ?? true,
+        availableCopies: item.availableCopies ?? 0,
+        totalCopies: item.totalCopies ?? 0,
       }));
       this.currentWishlistPage = 1;
     } catch {
@@ -128,6 +136,40 @@ export class ProfileComponent {
       }
     } catch {
       // Keep silent here to avoid noisy alerts on dashboard profile cards.
+    }
+  }
+
+  getAvailableCopiesCount(book: ProfileBookCard): number {
+    return book.availableCopies ?? 0;
+  }
+
+  getTotalCopiesCount(book: ProfileBookCard): number {
+    return book.totalCopies ?? 0;
+  }
+
+  isBookUnavailable(book: ProfileBookCard): boolean {
+    return this.getAvailableCopiesCount(book) === 0 && this.getTotalCopiesCount(book) > 0;
+  }
+
+  async toggleNotification(event: MouseEvent, book: ProfileBookCard) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (!book.wishlistId) return;
+
+    try {
+      const updatedWishlist = await this.bookService.updateWishlistNotification(
+        book.wishlistId,
+        !book.notificationEnabled
+      );
+
+      // Update local book object
+      const bookIndex = this.wishlistBooks.findIndex(b => b.id === book.id);
+      if (bookIndex !== -1) {
+        this.wishlistBooks[bookIndex].notificationEnabled = updatedWishlist.notificationEnabled ?? true;
+      }
+    } catch (error) {
+      console.error('Failed to toggle notification:', error);
     }
   }
 
