@@ -59,6 +59,9 @@ export class DetailComponent implements OnInit, OnDestroy {
   previewUrl = "";
   previewUrlSafe: SafeResourceUrl | null = null;
   previewLoading = false;
+  previewAlertOpen = false;
+  previewAlertTitle = "";
+  previewAlertMessage = "";
 
   copySummary = { total: 0, available: 0 };
 
@@ -132,7 +135,10 @@ export class DetailComponent implements OnInit, OnDestroy {
       }
 
       if (!resolvedPreviewUrl) {
-        alert("Geen voorbeeld beschikbaar voor dit boek op Open Library.");
+        this.showPreviewAlert(
+          "Geen voorbeeld beschikbaar",
+          "Voor dit boek is er momenteel geen leesbaar voorbeeld beschikbaar op Open Library.",
+        );
         return;
       }
 
@@ -142,10 +148,25 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.previewModalOpen = true;
     } catch (error) {
       console.error("Error fetching preview:", error);
-      alert("Fout bij het ophalen van het boek voorbeeld.");
+      this.showPreviewAlert(
+        "Voorbeeld kon niet geladen worden",
+        "Er ging iets mis bij het ophalen van het boekvoorbeeld. Probeer opnieuw.",
+      );
     } finally {
       this.previewLoading = false;
     }
+  }
+
+  private showPreviewAlert(title: string, message: string): void {
+    this.previewAlertTitle = title;
+    this.previewAlertMessage = message;
+    this.previewAlertOpen = true;
+  }
+
+  closePreviewAlert(): void {
+    this.previewAlertOpen = false;
+    this.previewAlertTitle = "";
+    this.previewAlertMessage = "";
   }
 
   private normalizeIsbn(isbn: string): string {

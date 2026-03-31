@@ -428,6 +428,24 @@
     </div>
   }
 
+  @if (previewAlertOpen) {
+    <div class="publish-review-overlay" role="dialog" aria-modal="true">
+      <div class="publish-review-card">
+        <h3>{{ previewAlertTitle }}</h3>
+        <p>{{ previewAlertMessage }}</p>
+        <div class="publish-review-actions">
+          <button
+            type="button"
+            class="publish-cancel-btn"
+            (click)="closePreviewAlert()"
+          >
+            Sluiten
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   @if (previewModalOpen && previewUrl) {
     <div class="preview-modal-overlay" role="dialog" aria-modal="true">
       <div class="preview-modal-container">
