@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router, NavigationEnd } from "@angular/router";
+import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
 import { BookService } from "../services/book.service";
@@ -31,8 +32,10 @@ export class DetailComponent implements OnInit, OnDestroy {
   newReviewComment = "";
   newReviewAnonymous = false;
   publishReviewDialogOpen = false;
+  deleteReviewDialogOpen = false;
   pendingReviewComment = "";
   pendingReviewRating = 0;
+  pendingDeleteReviewId: number | null = null;
   reviewError = "";
   reviewSuccess = "";
   editReviewId: number | null = null;
@@ -51,6 +54,12 @@ export class DetailComponent implements OnInit, OnDestroy {
   lestipError = "";
   lestipSuccess = "";
 
+  // Preview modal variabelen
+  previewModalOpen = false;
+  previewUrl = "";
+  previewUrlSafe: SafeResourceUrl | null = null;
+  previewLoading = false;
+
   copySummary = { total: 0, available: 0 };
 
   private routerSub!: Subscription;
@@ -60,6 +69,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private bookService: BookService,
     private loanService: LoanService,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit(): void {
@@ -96,6 +106,72 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     this.router.navigate(["/books"]);
+  }
+
+  openPreview(): void {
+    if (!this.book) return;
+
+    this.previewLoading = true;
+    this.previewUrl = "";
+
+    let apiUrl = "";
+
+    // Always prefer ISBN search, then fall back to title+author
+    if (this.book.isbn) {
+      // Search using ISBN via the search API
+      const isbn = encodeURIComponent(this.book.isbn.trim());
+      apiUrl = `https://openlibrary.org/search.json?isbn=${isbn}`;
+    } else {
+      // Search by title and author
+      const title = encodeURIComponent(this.book.titel);
+      const author = encodeURIComponent(this.book.auteur);
+      apiUrl = `https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1`;
+    }
+
+    axios
+      .get(apiUrl)
+      .then((response) => {
+        let previewUrl = "";
+
+        // Extract the first document from the search results
+        if (response.data.docs && response.data.docs.length > 0) {
+          const doc = response.data.docs[0];
+          console.log("Open Library response:", doc);
+
+          // Check if book has a readable preview
+          if (doc.has_preview || doc.has_fulltext) {
+            // Use the cover_edition_key or key to construct the preview URL
+            const editionKey = doc.cover_edition_key || doc.key;
+            if (editionKey) {
+              previewUrl = `https://openlibrary.org/read/${editionKey}`;
+            }
+          }
+        }
+
+        console.log("Final previewUrl:", previewUrl);
+
+        if (previewUrl) {
+          this.previewUrl = previewUrl;
+          this.previewUrlSafe =
+            this.sanitizer.bypassSecurityTrustResourceUrl(previewUrl);
+          this.previewModalOpen = true;
+        } else {
+          alert("Geen voorbeeld beschikbaar voor dit boek op Open Library.");
+        }
+
+        this.previewLoading = false;
+      })
+      .catch((error) => {
+        console.error("Error fetching preview:", error);
+        alert("Fout bij het ophalen van het boek voorbeeld.");
+        this.previewLoading = false;
+      });
+  }
+
+  closePreviewModal(): void {
+    this.previewModalOpen = false;
+    this.previewUrl = "";
+    this.previewUrlSafe = null;
   }
 
   async loadCopySummary(bookId: number) {
@@ -216,11 +292,27 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  async deleteReview(reviewId: number): Promise<void> {
+  deleteReview(reviewId: number): void {
     if (this.currentBookId === null) return;
     const review = this.reviews.find((r) => r.id === reviewId);
     if (!review || !this.canManageReview(review)) return;
-    if (!confirm("Review verwijderen?")) return;
+
+    this.pendingDeleteReviewId = reviewId;
+    this.deleteReviewDialogOpen = true;
+  }
+
+  async confirmDeleteReview(): Promise<void> {
+    if (this.currentBookId === null || this.pendingDeleteReviewId === null) {
+      return;
+    }
+
+    const reviewId = this.pendingDeleteReviewId;
+    const review = this.reviews.find((r) => r.id === reviewId);
+    if (!review || !this.canManageReview(review)) {
+      this.cancelDeleteReviewDialog();
+      return;
+    }
+
     try {
       await this.bookService.deleteBookReview(this.currentBookId, reviewId);
       this.reviews = this.reviews.filter((r) => r.id !== reviewId);
@@ -232,7 +324,14 @@ export class DetailComponent implements OnInit, OnDestroy {
     } catch {
       this.reviewError = "Review verwijderen mislukt. Probeer opnieuw.";
       this.reviewSuccess = "";
+    } finally {
+      this.cancelDeleteReviewDialog();
     }
+  }
+
+  cancelDeleteReviewDialog(): void {
+    this.deleteReviewDialogOpen = false;
+    this.pendingDeleteReviewId = null;
   }
 
   canManageReview(review: Review): boolean {
