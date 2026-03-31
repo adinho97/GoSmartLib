@@ -108,64 +108,128 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.router.navigate(["/books"]);
   }
 
-  openPreview(): void {
+  async openPreview(): Promise<void> {
     if (!this.book) return;
 
     this.previewLoading = true;
     this.previewUrl = "";
+    this.previewUrlSafe = null;
 
-    let apiUrl = "";
+    try {
+      let resolvedPreviewUrl = "";
+      const normalizedIsbn = this.normalizeIsbn(this.book.isbn || "");
 
-    // Always prefer ISBN search, then fall back to title+author
-    if (this.book.isbn) {
-      // Search using ISBN via the search API
-      const isbn = encodeURIComponent(this.book.isbn.trim());
-      apiUrl = `https://openlibrary.org/search.json?isbn=${isbn}`;
-    } else {
-      // Search by title and author
-      const title = encodeURIComponent(this.book.titel);
-      const author = encodeURIComponent(this.book.auteur);
-      apiUrl = `https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1`;
+      // First try the dedicated Books API for this ISBN.
+      if (normalizedIsbn) {
+        resolvedPreviewUrl = await this.getPreviewUrlFromBibKey(
+          `ISBN:${normalizedIsbn}`,
+        );
+      }
+
+      // Fallback to search and resolve best readable candidate.
+      if (!resolvedPreviewUrl) {
+        resolvedPreviewUrl = await this.getPreviewUrlFromSearch(normalizedIsbn);
+      }
+
+      if (!resolvedPreviewUrl) {
+        alert("Geen voorbeeld beschikbaar voor dit boek op Open Library.");
+        return;
+      }
+
+      this.previewUrl = resolvedPreviewUrl;
+      this.previewUrlSafe =
+        this.sanitizer.bypassSecurityTrustResourceUrl(resolvedPreviewUrl);
+      this.previewModalOpen = true;
+    } catch (error) {
+      console.error("Error fetching preview:", error);
+      alert("Fout bij het ophalen van het boek voorbeeld.");
+    } finally {
+      this.previewLoading = false;
+    }
+  }
+
+  private normalizeIsbn(isbn: string): string {
+    return isbn.replace(/[^0-9Xx]/g, "").toUpperCase();
+  }
+
+  private async getPreviewUrlFromBibKey(bibKey: string): Promise<string> {
+    const booksApiUrl =
+      "https://openlibrary.org/api/books" +
+      `?bibkeys=${encodeURIComponent(bibKey)}` +
+      "&format=json&jscmd=viewapi";
+
+    const response = await axios.get(booksApiUrl);
+    const payload = response.data || {};
+    const entry = payload[bibKey] as
+      | { preview?: string; preview_url?: string }
+      | undefined;
+
+    if (!entry) {
+      return "";
     }
 
-    axios
-      .get(apiUrl)
-      .then((response) => {
-        let previewUrl = "";
+    const previewState = (entry.preview || "").toLowerCase();
+    const previewUrl = (entry.preview_url || "").trim();
 
-        // Extract the first document from the search results
-        if (response.data.docs && response.data.docs.length > 0) {
-          const doc = response.data.docs[0];
-          console.log("Open Library response:", doc);
+    if (!previewUrl || previewState === "noview") {
+      return "";
+    }
 
-          // Check if book has a readable preview
-          if (doc.has_preview || doc.has_fulltext) {
-            // Use the cover_edition_key or key to construct the preview URL
-            const editionKey = doc.cover_edition_key || doc.key;
-            if (editionKey) {
-              previewUrl = `https://openlibrary.org/read/${editionKey}`;
-            }
+    return previewUrl;
+  }
+
+  private async getPreviewUrlFromSearch(
+    normalizedIsbn: string,
+  ): Promise<string> {
+    const params = new URLSearchParams();
+
+    if (normalizedIsbn) {
+      params.set("isbn", normalizedIsbn);
+    } else {
+      params.set("title", this.book.titel || "");
+      params.set("author", this.book.auteur || "");
+    }
+    params.set("limit", "5");
+
+    const searchUrl = `https://openlibrary.org/search.json?${params.toString()}`;
+    const response = await axios.get(searchUrl);
+    const docs = Array.isArray(response.data?.docs) ? response.data.docs : [];
+
+    for (const doc of docs) {
+      const archiveId =
+        typeof doc.ia === "string"
+          ? doc.ia
+          : Array.isArray(doc.ia)
+            ? doc.ia.find((id: unknown) => typeof id === "string" && !!id)
+            : "";
+
+      if (typeof archiveId === "string" && archiveId.trim()) {
+        return `https://archive.org/embed/${encodeURIComponent(archiveId)}`;
+      }
+
+      const editionKeys = new Set<string>();
+      if (typeof doc.cover_edition_key === "string" && doc.cover_edition_key) {
+        editionKeys.add(doc.cover_edition_key);
+      }
+      if (Array.isArray(doc.edition_key)) {
+        for (const key of doc.edition_key) {
+          if (typeof key === "string" && key) {
+            editionKeys.add(key);
           }
         }
+      }
 
-        console.log("Final previewUrl:", previewUrl);
-
+      for (const editionKey of Array.from(editionKeys).slice(0, 3)) {
+        const previewUrl = await this.getPreviewUrlFromBibKey(
+          `OLID:${editionKey}`,
+        );
         if (previewUrl) {
-          this.previewUrl = previewUrl;
-          this.previewUrlSafe =
-            this.sanitizer.bypassSecurityTrustResourceUrl(previewUrl);
-          this.previewModalOpen = true;
-        } else {
-          alert("Geen voorbeeld beschikbaar voor dit boek op Open Library.");
+          return previewUrl;
         }
+      }
+    }
 
-        this.previewLoading = false;
-      })
-      .catch((error) => {
-        console.error("Error fetching preview:", error);
-        alert("Fout bij het ophalen van het boek voorbeeld.");
-        this.previewLoading = false;
-      });
+    return "";
   }
 
   closePreviewModal(): void {
