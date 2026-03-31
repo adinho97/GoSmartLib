@@ -9,6 +9,8 @@ public class WishlistDto {
     private String auteur;
     private String cover;
     private LocalDateTime addedAt;
+    private boolean notificationEnabled;
+    private LocalDateTime lastNotifiedAt;
 
     public WishlistDto() {
     }
@@ -20,6 +22,20 @@ public class WishlistDto {
         this.auteur = auteur;
         this.cover = cover;
         this.addedAt = addedAt;
+        this.notificationEnabled = true;
+        this.lastNotifiedAt = null;
+    }
+
+    public WishlistDto(Long id, Long bookId, String titel, String auteur, String cover, LocalDateTime addedAt,
+            boolean notificationEnabled, LocalDateTime lastNotifiedAt) {
+        this.id = id;
+        this.bookId = bookId;
+        this.titel = titel;
+        this.auteur = auteur;
+        this.cover = cover;
+        this.addedAt = addedAt;
+        this.notificationEnabled = notificationEnabled;
+        this.lastNotifiedAt = lastNotifiedAt;
     }
 
     public Long getId() {
@@ -68,5 +84,21 @@ public class WishlistDto {
 
     public void setAddedAt(LocalDateTime addedAt) {
         this.addedAt = addedAt;
+    }
+
+    public boolean isNotificationEnabled() {
+        return notificationEnabled;
+    }
+
+    public void setNotificationEnabled(boolean notificationEnabled) {
+        this.notificationEnabled = notificationEnabled;
+    }
+
+    public LocalDateTime getLastNotifiedAt() {
+        return lastNotifiedAt;
+    }
+
+    public void setLastNotifiedAt(LocalDateTime lastNotifiedAt) {
+        this.lastNotifiedAt = lastNotifiedAt;
     }
 }
