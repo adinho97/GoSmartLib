@@ -11,6 +11,8 @@ public class WishlistDto {
     private LocalDateTime addedAt;
     private boolean notificationEnabled;
     private LocalDateTime lastNotifiedAt;
+    private int availableCopies;
+    private int totalCopies;
 
     public WishlistDto() {
     }
@@ -24,6 +26,8 @@ public class WishlistDto {
         this.addedAt = addedAt;
         this.notificationEnabled = true;
         this.lastNotifiedAt = null;
+        this.availableCopies = 0;
+        this.totalCopies = 0;
     }
 
     public WishlistDto(Long id, Long bookId, String titel, String auteur, String cover, LocalDateTime addedAt,
@@ -36,6 +40,22 @@ public class WishlistDto {
         this.addedAt = addedAt;
         this.notificationEnabled = notificationEnabled;
         this.lastNotifiedAt = lastNotifiedAt;
+        this.availableCopies = 0;
+        this.totalCopies = 0;
+    }
+
+    public WishlistDto(Long id, Long bookId, String titel, String auteur, String cover, LocalDateTime addedAt,
+            boolean notificationEnabled, LocalDateTime lastNotifiedAt, int availableCopies, int totalCopies) {
+        this.id = id;
+        this.bookId = bookId;
+        this.titel = titel;
+        this.auteur = auteur;
+        this.cover = cover;
+        this.addedAt = addedAt;
+        this.notificationEnabled = notificationEnabled;
+        this.lastNotifiedAt = lastNotifiedAt;
+        this.availableCopies = availableCopies;
+        this.totalCopies = totalCopies;
     }
 
     public Long getId() {
@@ -100,5 +120,21 @@ public class WishlistDto {
 
     public void setLastNotifiedAt(LocalDateTime lastNotifiedAt) {
         this.lastNotifiedAt = lastNotifiedAt;
+    }
+
+    public int getAvailableCopies() {
+        return availableCopies;
+    }
+
+    public void setAvailableCopies(int availableCopies) {
+        this.availableCopies = availableCopies;
+    }
+
+    public int getTotalCopies() {
+        return totalCopies;
+    }
+
+    public void setTotalCopies(int totalCopies) {
+        this.totalCopies = totalCopies;
     }
 }
