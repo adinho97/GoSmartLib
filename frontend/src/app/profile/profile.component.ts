@@ -53,6 +53,7 @@ export class ProfileComponent {
   borrowedBooks: ProfileBookCard[] = [{ title: 'Book Four', deadline: new Date(), cover: '', id: 4 }];
   readingList: ProfileBookCard[] = [{ title: 'Book Five', author: 'Author C', cover: '', id: 5 }];
   wishlistLoading = false;
+  notificationToggleErrors: Record<number, string> = {};
   readonly wishlistPageSize = 6;
   currentWishlistPage = 1;
   private wishlistChangedSub?: Subscription;
@@ -157,19 +158,30 @@ export class ProfileComponent {
 
     if (!book.wishlistId) return;
 
+    this.notificationToggleErrors[book.id] = '';
+
+    const previousValue = book.notificationEnabled ?? true;
+    const nextValue = !previousValue;
+    book.notificationEnabled = nextValue;
+
     try {
       const updatedWishlist = await this.bookService.updateWishlistNotification(
         book.wishlistId,
-        !book.notificationEnabled
+        nextValue
       );
-
-      // Update local book object
-      const bookIndex = this.wishlistBooks.findIndex(b => b.id === book.id);
-      if (bookIndex !== -1) {
-        this.wishlistBooks[bookIndex].notificationEnabled = updatedWishlist.notificationEnabled ?? true;
-      }
+      book.notificationEnabled = updatedWishlist.notificationEnabled ?? nextValue;
+      this.notificationToggleErrors[book.id] = '';
     } catch (error) {
+      book.notificationEnabled = previousValue;
       console.error('Failed to toggle notification:', error);
+      const status = (error as any)?.response?.status;
+      if (status === 400) {
+        this.notificationToggleErrors[book.id] = 'Kan niet aanzetten: boek is momenteel beschikbaar.';
+      } else if (status === 401) {
+        this.notificationToggleErrors[book.id] = 'Niet ingelogd. Herlaad en probeer opnieuw.';
+      } else {
+        this.notificationToggleErrors[book.id] = 'Melding aanpassen mislukt. Probeer opnieuw.';
+      }
     }
   }
 
