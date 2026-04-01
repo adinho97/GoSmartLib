@@ -119,20 +119,10 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.previewUrlSafe = null;
 
     try {
-      let resolvedPreviewUrl = "";
       const normalizedIsbn = this.normalizeIsbn(this.book.isbn || "");
 
-      // First try the dedicated Books API for this ISBN.
-      if (normalizedIsbn) {
-        resolvedPreviewUrl = await this.getPreviewUrlFromBibKey(
-          `ISBN:${normalizedIsbn}`,
-        );
-      }
-
-      // Fallback to search and resolve best readable candidate.
-      if (!resolvedPreviewUrl) {
-        resolvedPreviewUrl = await this.getPreviewUrlFromSearch(normalizedIsbn);
-      }
+      const resolvedPreviewUrl =
+        await this.resolvePreviewUrlWithRetries(normalizedIsbn);
 
       if (!resolvedPreviewUrl) {
         this.showPreviewAlert(
@@ -155,6 +145,69 @@ export class DetailComponent implements OnInit, OnDestroy {
     } finally {
       this.previewLoading = false;
     }
+  }
+
+  private async resolvePreviewUrlWithRetries(
+    normalizedIsbn: string,
+  ): Promise<string> {
+    const maxAttempts = 4;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      let resolvedPreviewUrl = "";
+
+      // Prefer ISBN-specific lookup first.
+      if (normalizedIsbn) {
+        try {
+          resolvedPreviewUrl = await this.getPreviewUrlFromBibKey(
+            `ISBN:${normalizedIsbn}`,
+          );
+        } catch {
+          resolvedPreviewUrl = "";
+        }
+      }
+
+      // Then try ISBN-based search fallback.
+      if (!resolvedPreviewUrl) {
+        try {
+          resolvedPreviewUrl =
+            await this.getPreviewUrlFromIsbnSearch(normalizedIsbn);
+        } catch {
+          resolvedPreviewUrl = "";
+        }
+      }
+
+      // If ISBN exists but failed, also try title/author search in same attempt.
+      if (!resolvedPreviewUrl && normalizedIsbn) {
+        try {
+          resolvedPreviewUrl = await this.getPreviewUrlFromTitleAuthorSearch();
+        } catch {
+          resolvedPreviewUrl = "";
+        }
+      }
+
+      // No ISBN present: still try title/author search path.
+      if (!resolvedPreviewUrl && !normalizedIsbn) {
+        try {
+          resolvedPreviewUrl = await this.getPreviewUrlFromTitleAuthorSearch();
+        } catch {
+          resolvedPreviewUrl = "";
+        }
+      }
+
+      if (resolvedPreviewUrl) {
+        return resolvedPreviewUrl;
+      }
+
+      if (attempt < maxAttempts) {
+        await this.delay(attempt * 350);
+      }
+    }
+
+    return "";
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private showPreviewAlert(title: string, message: string): void {
@@ -199,20 +252,70 @@ export class DetailComponent implements OnInit, OnDestroy {
     return this.normalizePreviewUrl(previewUrl);
   }
 
-  private async getPreviewUrlFromSearch(
+  private async getPreviewUrlFromIsbnSearch(
     normalizedIsbn: string,
   ): Promise<string> {
-    const params = new URLSearchParams();
-
-    if (normalizedIsbn) {
-      params.set("isbn", normalizedIsbn);
-    } else {
-      params.set("title", this.book.titel || "");
-      params.set("author", this.book.auteur || "");
+    if (!normalizedIsbn) {
+      return "";
     }
-    params.set("limit", "5");
+
+    const params = new URLSearchParams();
+    params.set("isbn", normalizedIsbn);
+    params.set("limit", "15");
 
     const searchUrl = `https://openlibrary.org/search.json?${params.toString()}`;
+    return this.findPreviewInSearchUrl(searchUrl);
+  }
+
+  private async getPreviewUrlFromTitleAuthorSearch(): Promise<string> {
+    const title = (this.book.titel || "").trim();
+    const author = (this.book.auteur || "").trim();
+
+    if (!title && !author) {
+      return "";
+    }
+
+    const queryVariants: URLSearchParams[] = [];
+
+    if (title && author) {
+      const exactParams = new URLSearchParams();
+      exactParams.set("title", title);
+      exactParams.set("author", author);
+      exactParams.set("limit", "20");
+      queryVariants.push(exactParams);
+
+      const qParams = new URLSearchParams();
+      qParams.set("q", `${title} ${author}`);
+      qParams.set("limit", "20");
+      queryVariants.push(qParams);
+    }
+
+    if (title) {
+      const titleOnlyParams = new URLSearchParams();
+      titleOnlyParams.set("title", title);
+      titleOnlyParams.set("limit", "20");
+      queryVariants.push(titleOnlyParams);
+    }
+
+    if (author) {
+      const authorOnlyParams = new URLSearchParams();
+      authorOnlyParams.set("author", author);
+      authorOnlyParams.set("limit", "20");
+      queryVariants.push(authorOnlyParams);
+    }
+
+    for (const params of queryVariants) {
+      const searchUrl = `https://openlibrary.org/search.json?${params.toString()}`;
+      const previewUrl = await this.findPreviewInSearchUrl(searchUrl);
+      if (previewUrl) {
+        return previewUrl;
+      }
+    }
+
+    return "";
+  }
+
+  private async findPreviewInSearchUrl(searchUrl: string): Promise<string> {
     const response = await axios.get(searchUrl);
     const docs = Array.isArray(response.data?.docs) ? response.data.docs : [];
 
