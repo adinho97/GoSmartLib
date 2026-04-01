@@ -262,7 +262,11 @@ export class ProfileComponent {
     }
   }
 
-  goToDetail(bookId: number) {
+  goToDetail(bookId: number, event?: MouseEvent) {
+    const target = event?.target as HTMLElement | null;
+    if (target?.closest("button")) {
+      return;
+    }
     this.router.navigate(["/detail", bookId]);
   }
 

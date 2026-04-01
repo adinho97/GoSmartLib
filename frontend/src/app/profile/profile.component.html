@@ -184,7 +184,7 @@
                   @for (book of pagedWishlistBooks; track book.id) {
                     <article
                       class="profile-book-card wishlist-card"
-                      (click)="goToDetail(book.id)"
+                      (click)="goToDetail(book.id, $event)"
                     >
                       <button
                         type="button"
@@ -245,9 +245,37 @@
                       @if (book.cover) {
                         <div class="book-cover">
                           <img [src]="book.cover" alt="{{ book.title }}" />
+                          @if (isBookUnavailable(book)) {
+                            <div class="unavailable-overlay">
+                              <div class="unavailable-header">
+                                <span class="unavailable-dot">•</span>
+                                <span class="unavailable-text"
+                                  >Niet beschikbaar</span
+                                >
+                              </div>
+                              <div class="unavailable-message">
+                                Boek is uitgeleend. Zet meldingen aan.
+                              </div>
+                            </div>
+                          }
                         </div>
                       } @else {
-                        <div class="cover-placeholder">Geen cover</div>
+                        <div class="cover-placeholder">
+                          Geen cover
+                          @if (isBookUnavailable(book)) {
+                            <div class="unavailable-overlay">
+                              <div class="unavailable-header">
+                                <span class="unavailable-dot">•</span>
+                                <span class="unavailable-text"
+                                  >Niet beschikbaar</span
+                                >
+                              </div>
+                              <div class="unavailable-message">
+                                Boek is uitgeleend. Zet meldingen aan.
+                              </div>
+                            </div>
+                          }
+                        </div>
                       }
                       <div class="book-content">
                         <h4>{{ book.title }}</h4>
@@ -258,22 +286,6 @@
                           </div>
                         }
                       </div>
-
-                      <!-- Unavailability Status -->
-                      @if (isBookUnavailable(book)) {
-                        <div class="unavailable-status">
-                          <div class="unavailable-header">
-                            <span class="unavailable-dot">•</span>
-                            <span class="unavailable-text"
-                              >Niet beschikbaar</span
-                            >
-                          </div>
-                          <div class="unavailable-message">
-                            Boek is uitgeleend. Zet meldingen aan en ontvang een
-                            bericht wanneer het weer beschikbaar is.
-                          </div>
-                        </div>
-                      }
                     </article>
                   }
                 </div>

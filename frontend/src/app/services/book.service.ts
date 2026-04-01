@@ -319,7 +319,6 @@ export class BookService {
       { notificationEnabled },
       this.getUserSubHeaders(),
     );
-    this.wishlistChangedSource.next();
     return res.data;
   }
 

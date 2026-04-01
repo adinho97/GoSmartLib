@@ -352,20 +352,11 @@
   stroke-width: 2.6;
 }
 
-/* Unavailability Status */
-.unavailable-status {
-  padding: 0.7rem 0.6rem;
-  background: #f3f1f2;
-  border-top: 1px solid #e8e2e6;
-  margin: 0.7rem -0.6rem -0.6rem;
-  border-radius: 0 0 12px 12px;
-}
-
 .unavailable-header {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 
 .unavailable-dot {
@@ -375,18 +366,18 @@
 }
 
 .unavailable-text {
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: #666666;
+  color: #f4f4f5;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .unavailable-message {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   line-height: 1.3;
-  color: #888888;
-  opacity: 0.85;
+  color: #f3f4f6;
+  opacity: 0.95;
 }
 
 /* Notification Bell Button */
@@ -395,33 +386,41 @@
   top: 8px;
   left: 8px;
   z-index: 5;
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   border: none;
   background: transparent;
+  color: #111111;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  transition:
+    transform 0.1s ease,
+    color 0.15s ease;
+}
+
+.bell-button:hover {
+  transform: scale(1.1);
 }
 
 /* Bell SVG Icon */
 .bell-icon {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke-width: 14;
 }
 
-/* Bell outline path - dark red in app style */
+/* Bell outline path */
 .bell-outline {
-  stroke: #d4537e;
+  stroke: #111111;
   transition: stroke 0.3s ease;
 }
 
 .bell-button.active .bell-outline {
-  stroke: #d4537e;
+  stroke: #111111;
 }
 
 /* Bell fill path - hidden by default, animates upward when active */
@@ -538,6 +537,7 @@
 
 .book-cover,
 .cover-placeholder {
+  position: relative;
   width: 100%;
   height: 180px;
   border-radius: 10px;
@@ -563,6 +563,21 @@
   font-size: 0.78rem;
   display: grid;
   place-items: center;
+}
+
+.unavailable-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.45rem 0.5rem;
+  background: linear-gradient(
+    to top,
+    rgba(17, 17, 17, 0.9) 0%,
+    rgba(17, 17, 17, 0.8) 60%,
+    rgba(17, 17, 17, 0.25) 100%
+  );
+  pointer-events: none;
 }
 
 .book-content h4 {
@@ -630,5 +645,39 @@
   .book-cover,
   .cover-placeholder {
     height: 160px;
+  }
+
+  .unavailable-overlay {
+    padding: 0.35rem 0.42rem;
+    background: linear-gradient(
+      to top,
+      rgba(17, 17, 17, 0.86) 0%,
+      rgba(17, 17, 17, 0.72) 58%,
+      rgba(17, 17, 17, 0.16) 100%
+    );
+  }
+
+  .unavailable-header {
+    margin-bottom: 0.2rem;
+    gap: 0.3rem;
+  }
+
+  .unavailable-dot {
+    font-size: 1rem;
+  }
+
+  .unavailable-text {
+    font-size: 0.65rem;
+    letter-spacing: 0.35px;
+  }
+
+  .unavailable-message {
+    font-size: 0.62rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
