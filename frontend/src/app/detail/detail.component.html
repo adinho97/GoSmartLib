@@ -103,6 +103,19 @@
           @if (book.cover) {
             <img [src]="book.cover" alt="{{ book.titel }}" />
           }
+          <button
+            class="preview-btn"
+            (click)="openPreview()"
+            [disabled]="previewLoading"
+            title="Open een voorbeeld in Open Library"
+          >
+            <span class="preview-btn-content">
+              @if (previewLoading) {
+                <span class="preview-spinner" aria-hidden="true"></span>
+              }
+              {{ previewLoading ? "Voorbeeld laden..." : "Voorbeeld" }}
+            </span>
+          </button>
         </div>
         <div class="book-info">
           <div class="info-grid">
@@ -441,6 +454,75 @@
           >
             Annuleren
           </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (deleteReviewDialogOpen) {
+    <div class="publish-review-overlay" role="dialog" aria-modal="true">
+      <div class="publish-review-card">
+        <h3>Review verwijderen</h3>
+        <p>Ben je zeker dat je deze review wilt verwijderen?</p>
+        <div class="publish-review-actions">
+          <button
+            type="button"
+            class="publish-name-btn"
+            (click)="confirmDeleteReview()"
+          >
+            Verwijderen
+          </button>
+          <button
+            type="button"
+            class="publish-cancel-btn"
+            (click)="cancelDeleteReviewDialog()"
+          >
+            Annuleren
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (previewAlertOpen) {
+    <div class="publish-review-overlay" role="dialog" aria-modal="true">
+      <div class="publish-review-card">
+        <h3>{{ previewAlertTitle }}</h3>
+        <p>{{ previewAlertMessage }}</p>
+        <div class="publish-review-actions">
+          <button
+            type="button"
+            class="publish-cancel-btn"
+            (click)="closePreviewAlert()"
+          >
+            Sluiten
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (previewModalOpen && previewUrl) {
+    <div class="preview-modal-overlay" role="dialog" aria-modal="true">
+      <div class="preview-modal-container">
+        <div class="preview-modal-header">
+          <h2>Boek Voorbeeld</h2>
+          <button
+            type="button"
+            class="preview-modal-close"
+            (click)="closePreviewModal()"
+            aria-label="Sluit voorbeeld"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="preview-modal-content">
+          <iframe
+            [src]="previewUrlSafe"
+            class="preview-frame"
+            frameborder="0"
+            allowfullscreen="true"
+          ></iframe>
         </div>
       </div>
     </div>

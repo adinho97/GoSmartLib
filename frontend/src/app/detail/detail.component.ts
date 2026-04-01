@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Location } from "@angular/common";
 import { ActivatedRoute, Router, NavigationEnd } from "@angular/router";
+import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
 import { BookService } from "../services/book.service";
@@ -36,8 +37,10 @@ export class DetailComponent implements OnInit, OnDestroy {
   newReviewComment = "";
   newReviewAnonymous = false;
   publishReviewDialogOpen = false;
+  deleteReviewDialogOpen = false;
   pendingReviewComment = "";
   pendingReviewRating = 0;
+  pendingDeleteReviewId: number | null = null;
   reviewError = "";
   reviewSuccess = "";
   editReviewId: number | null = null;
@@ -56,6 +59,15 @@ export class DetailComponent implements OnInit, OnDestroy {
   lestipError = "";
   lestipSuccess = "";
 
+  // Preview modal variabelen
+  previewModalOpen = false;
+  previewUrl = "";
+  previewUrlSafe: SafeResourceUrl | null = null;
+  previewLoading = false;
+  previewAlertOpen = false;
+  previewAlertTitle = "";
+  previewAlertMessage = "";
+
   copySummary = { total: 0, available: 0 };
 
   private routerSub!: Subscription;
@@ -66,6 +78,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private bookService: BookService,
     private loanService: LoanService,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit(): void {
@@ -160,6 +173,348 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
 
     this.router.navigate(["/dashboard"]);
+  }
+
+  async openPreview(): Promise<void> {
+    if (!this.book) return;
+
+    this.previewLoading = true;
+    this.previewUrl = "";
+    this.previewUrlSafe = null;
+
+    try {
+      const normalizedIsbn = this.normalizeIsbn(this.book.isbn || "");
+
+      const resolvedPreviewUrl =
+        await this.resolvePreviewUrlWithRetries(normalizedIsbn);
+
+      if (!resolvedPreviewUrl) {
+        this.showPreviewAlert(
+          "Geen voorbeeld beschikbaar",
+          "Voor dit boek is er momenteel geen leesbaar voorbeeld beschikbaar op Open Library.",
+        );
+        return;
+      }
+
+      this.previewUrl = resolvedPreviewUrl;
+      this.previewUrlSafe =
+        this.sanitizer.bypassSecurityTrustResourceUrl(resolvedPreviewUrl);
+      this.previewModalOpen = true;
+    } catch (error) {
+      console.error("Error fetching preview:", error);
+      this.showPreviewAlert(
+        "Voorbeeld kon niet geladen worden",
+        "Er ging iets mis bij het ophalen van het boekvoorbeeld. Probeer opnieuw.",
+      );
+    } finally {
+      this.previewLoading = false;
+    }
+  }
+
+  private async resolvePreviewUrlWithRetries(
+    normalizedIsbn: string,
+  ): Promise<string> {
+    const maxAttempts = 4;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      let resolvedPreviewUrl = "";
+
+      // Prefer ISBN-specific lookup first.
+      if (normalizedIsbn) {
+        try {
+          resolvedPreviewUrl = await this.getPreviewUrlFromBibKey(
+            `ISBN:${normalizedIsbn}`,
+          );
+        } catch {
+          resolvedPreviewUrl = "";
+        }
+      }
+
+      // Then try ISBN-based search fallback.
+      if (!resolvedPreviewUrl) {
+        try {
+          resolvedPreviewUrl =
+            await this.getPreviewUrlFromIsbnSearch(normalizedIsbn);
+        } catch {
+          resolvedPreviewUrl = "";
+        }
+      }
+
+      // If ISBN exists but failed, also try title/author search in same attempt.
+      if (!resolvedPreviewUrl && normalizedIsbn) {
+        try {
+          resolvedPreviewUrl = await this.getPreviewUrlFromTitleAuthorSearch();
+        } catch {
+          resolvedPreviewUrl = "";
+        }
+      }
+
+      // No ISBN present: still try title/author search path.
+      if (!resolvedPreviewUrl && !normalizedIsbn) {
+        try {
+          resolvedPreviewUrl = await this.getPreviewUrlFromTitleAuthorSearch();
+        } catch {
+          resolvedPreviewUrl = "";
+        }
+      }
+
+      if (resolvedPreviewUrl) {
+        return resolvedPreviewUrl;
+      }
+
+      if (attempt < maxAttempts) {
+        await this.delay(attempt * 350);
+      }
+    }
+
+    return "";
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private showPreviewAlert(title: string, message: string): void {
+    this.previewAlertTitle = title;
+    this.previewAlertMessage = message;
+    this.previewAlertOpen = true;
+  }
+
+  closePreviewAlert(): void {
+    this.previewAlertOpen = false;
+    this.previewAlertTitle = "";
+    this.previewAlertMessage = "";
+  }
+
+  private normalizeIsbn(isbn: string): string {
+    return isbn.replace(/[^0-9Xx]/g, "").toUpperCase();
+  }
+
+  private async getPreviewUrlFromBibKey(bibKey: string): Promise<string> {
+    const booksApiUrl =
+      "https://openlibrary.org/api/books" +
+      `?bibkeys=${encodeURIComponent(bibKey)}` +
+      "&format=json&jscmd=viewapi";
+
+    const response = await axios.get(booksApiUrl);
+    const payload = response.data || {};
+    const entry = payload[bibKey] as
+      | { preview?: string; preview_url?: string }
+      | undefined;
+
+    if (!entry) {
+      return "";
+    }
+
+    const previewState = (entry.preview || "").toLowerCase();
+    const previewUrl = (entry.preview_url || "").trim();
+
+    if (!previewUrl || previewState === "noview") {
+      return "";
+    }
+
+    return this.normalizePreviewUrl(previewUrl);
+  }
+
+  private async getPreviewUrlFromIsbnSearch(
+    normalizedIsbn: string,
+  ): Promise<string> {
+    if (!normalizedIsbn) {
+      return "";
+    }
+
+    const params = new URLSearchParams();
+    params.set("isbn", normalizedIsbn);
+    params.set("limit", "15");
+
+    const searchUrl = `https://openlibrary.org/search.json?${params.toString()}`;
+    return this.findPreviewInSearchUrl(searchUrl);
+  }
+
+  private async getPreviewUrlFromTitleAuthorSearch(): Promise<string> {
+    const title = (this.book.titel || "").trim();
+    const author = (this.book.auteur || "").trim();
+
+    if (!title && !author) {
+      return "";
+    }
+
+    const queryVariants: URLSearchParams[] = [];
+
+    if (title && author) {
+      const exactParams = new URLSearchParams();
+      exactParams.set("title", title);
+      exactParams.set("author", author);
+      exactParams.set("limit", "20");
+      queryVariants.push(exactParams);
+
+      const qParams = new URLSearchParams();
+      qParams.set("q", `${title} ${author}`);
+      qParams.set("limit", "20");
+      queryVariants.push(qParams);
+    }
+
+    if (title) {
+      const titleOnlyParams = new URLSearchParams();
+      titleOnlyParams.set("title", title);
+      titleOnlyParams.set("limit", "20");
+      queryVariants.push(titleOnlyParams);
+    }
+
+    if (author) {
+      const authorOnlyParams = new URLSearchParams();
+      authorOnlyParams.set("author", author);
+      authorOnlyParams.set("limit", "20");
+      queryVariants.push(authorOnlyParams);
+    }
+
+    for (const params of queryVariants) {
+      const searchUrl = `https://openlibrary.org/search.json?${params.toString()}`;
+      const previewUrl = await this.findPreviewInSearchUrl(searchUrl);
+      if (previewUrl) {
+        return previewUrl;
+      }
+    }
+
+    return "";
+  }
+
+  private async findPreviewInSearchUrl(searchUrl: string): Promise<string> {
+    const response = await axios.get(searchUrl);
+    const docs = Array.isArray(response.data?.docs) ? response.data.docs : [];
+
+    for (const doc of docs) {
+      const archiveId =
+        typeof doc.ia === "string"
+          ? doc.ia
+          : Array.isArray(doc.ia)
+            ? doc.ia.find((id: unknown) => typeof id === "string" && !!id)
+            : "";
+
+      if (typeof archiveId === "string" && archiveId.trim()) {
+        return `https://archive.org/embed/${encodeURIComponent(archiveId)}`;
+      }
+
+      const editionKeys = new Set<string>();
+      if (typeof doc.cover_edition_key === "string" && doc.cover_edition_key) {
+        editionKeys.add(doc.cover_edition_key);
+      }
+      if (Array.isArray(doc.edition_key)) {
+        for (const key of doc.edition_key) {
+          if (typeof key === "string" && key) {
+            editionKeys.add(key);
+          }
+        }
+      }
+
+      for (const editionKey of Array.from(editionKeys).slice(0, 3)) {
+        const previewUrl = await this.getPreviewUrlFromBibKey(
+          `OLID:${editionKey}`,
+        );
+        if (previewUrl) {
+          return previewUrl;
+        }
+      }
+
+      // Last fallback: use search metadata to open reader directly when available.
+      const hasReadablePreview =
+        !!doc.has_preview ||
+        !!doc.has_fulltext ||
+        ["borrowable", "public"].includes(String(doc.ebook_access || ""));
+
+      if (hasReadablePreview) {
+        const fallbackEditionKey =
+          (typeof doc.cover_edition_key === "string" &&
+            doc.cover_edition_key) ||
+          (Array.isArray(doc.edition_key)
+            ? (doc.edition_key.find(
+                (key: unknown) => typeof key === "string" && !!key,
+              ) as string | undefined)
+            : undefined);
+
+        if (fallbackEditionKey) {
+          return this.normalizePreviewUrl(
+            `https://openlibrary.org/read/${encodeURIComponent(fallbackEditionKey)}`,
+          );
+        }
+      }
+    }
+
+    return "";
+  }
+
+  private async normalizePreviewUrl(url: string): Promise<string> {
+    const trimmedUrl = (url || "").trim();
+    if (!trimmedUrl) {
+      return "";
+    }
+
+    // Keep archive embed URLs as-is.
+    const archiveEmbedMatch = trimmedUrl.match(
+      /archive\.org\/embed\/([^/?#]+)/i,
+    );
+    if (archiveEmbedMatch?.[1]) {
+      return `https://archive.org/embed/${encodeURIComponent(archiveEmbedMatch[1])}`;
+    }
+
+    // Convert archive details URLs to embed URLs.
+    const archiveDetailsMatch = trimmedUrl.match(
+      /archive\.org\/details\/([^/?#]+)/i,
+    );
+    if (archiveDetailsMatch?.[1]) {
+      return `https://archive.org/embed/${encodeURIComponent(archiveDetailsMatch[1])}`;
+    }
+
+    // For Open Library edition/read URLs, resolve archive id when possible.
+    const editionMatch = trimmedUrl.match(
+      /\/(?:books|read)\/(OL[0-9A-Z]+M)(?:\/|$)/i,
+    );
+    if (editionMatch?.[1]) {
+      const archiveEmbedUrl = await this.resolveArchiveEmbedFromEdition(
+        editionMatch[1].toUpperCase(),
+      );
+      if (archiveEmbedUrl) {
+        return archiveEmbedUrl;
+      }
+
+      // Fallback to reader URL when archive id is unavailable.
+      return `https://openlibrary.org/read/${editionMatch[1].toUpperCase()}`;
+    }
+
+    return trimmedUrl;
+  }
+
+  private async resolveArchiveEmbedFromEdition(
+    editionKey: string,
+  ): Promise<string> {
+    try {
+      const editionUrl = `https://openlibrary.org/books/${encodeURIComponent(editionKey)}.json`;
+      const response = await axios.get(editionUrl);
+      const data = response.data || {};
+
+      const archiveId =
+        (typeof data.ocaid === "string" && data.ocaid) ||
+        (typeof data.ia === "string" && data.ia) ||
+        (Array.isArray(data.ia)
+          ? (data.ia.find((id: unknown) => typeof id === "string" && !!id) as
+              | string
+              | undefined)
+          : undefined);
+
+      if (archiveId) {
+        return `https://archive.org/embed/${encodeURIComponent(archiveId)}`;
+      }
+    } catch {
+      // Best effort only; caller will use fallback URL.
+    }
+
+    return "";
+  }
+
+  closePreviewModal(): void {
+    this.previewModalOpen = false;
+    this.previewUrl = "";
+    this.previewUrlSafe = null;
   }
 
   async loadCopySummary(bookId: number) {
@@ -280,11 +635,27 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  async deleteReview(reviewId: number): Promise<void> {
+  deleteReview(reviewId: number): void {
     if (this.currentBookId === null) return;
     const review = this.reviews.find((r) => r.id === reviewId);
     if (!review || !this.canManageReview(review)) return;
-    if (!confirm("Review verwijderen?")) return;
+
+    this.pendingDeleteReviewId = reviewId;
+    this.deleteReviewDialogOpen = true;
+  }
+
+  async confirmDeleteReview(): Promise<void> {
+    if (this.currentBookId === null || this.pendingDeleteReviewId === null) {
+      return;
+    }
+
+    const reviewId = this.pendingDeleteReviewId;
+    const review = this.reviews.find((r) => r.id === reviewId);
+    if (!review || !this.canManageReview(review)) {
+      this.cancelDeleteReviewDialog();
+      return;
+    }
+
     try {
       await this.bookService.deleteBookReview(this.currentBookId, reviewId);
       this.reviews = this.reviews.filter((r) => r.id !== reviewId);
@@ -296,7 +667,14 @@ export class DetailComponent implements OnInit, OnDestroy {
     } catch {
       this.reviewError = "Review verwijderen mislukt. Probeer opnieuw.";
       this.reviewSuccess = "";
+    } finally {
+      this.cancelDeleteReviewDialog();
     }
+  }
+
+  cancelDeleteReviewDialog(): void {
+    this.deleteReviewDialogOpen = false;
+    this.pendingDeleteReviewId = null;
   }
 
   canManageReview(review: Review): boolean {
