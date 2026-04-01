@@ -19,6 +19,8 @@ export class DetailComponent implements OnInit, OnDestroy {
   book!: Book;
   isWishlistedBook = false;
   wishlistBusy = false;
+  isFavoritedBook = false;
+  favoriteBusy = false;
 
   // Rol-gebaseerde logica
   readonly userRole = localStorage.getItem("role");
@@ -76,6 +78,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       });
 
       this.loadWishlistState(this.currentBookId);
+      this.loadFavoritesState(this.currentBookId);
 
       // Laad de reviews
       this.loadReviews(this.currentBookId);
@@ -108,6 +111,14 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async loadFavoritesState(bookId: number): Promise<void> {
+    try {
+      this.isFavoritedBook = await this.bookService.isFavorited(bookId);
+    } catch {
+      this.isFavoritedBook = false;
+    }
+  }
+
   async toggleWishlist(): Promise<void> {
     if (!this.currentBookId || this.wishlistBusy) return;
 
@@ -122,6 +133,23 @@ export class DetailComponent implements OnInit, OnDestroy {
       }
     } finally {
       this.wishlistBusy = false;
+    }
+  }
+
+  async toggleFavorite(): Promise<void> {
+    if (!this.currentBookId || this.favoriteBusy) return;
+
+    this.favoriteBusy = true;
+    try {
+      if (this.isFavoritedBook) {
+        await this.bookService.removeFromFavorites(this.currentBookId);
+        this.isFavoritedBook = false;
+      } else {
+        await this.bookService.addToFavorites(this.currentBookId);
+        this.isFavoritedBook = true;
+      }
+    } finally {
+      this.favoriteBusy = false;
     }
   }
 

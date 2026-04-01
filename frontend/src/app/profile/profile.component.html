@@ -302,26 +302,53 @@
                 <h3 class="section-title">Favoriete boeken</h3>
                 <span class="section-count">{{ favoriteBooks.length }}</span>
               </div>
-              <div class="horizontal-scroll-wrapper">
-                @for (book of favoriteBooks; track book) {
-                  <article
-                    class="profile-book-card"
-                    (click)="goToDetail(book.id)"
-                  >
-                    @if (book.cover) {
-                      <div class="book-cover">
-                        <img [src]="book.cover" alt="{{ book.title }}" />
+
+              @if (favoriteBooks.length === 0) {
+                <div class="inline-empty">
+                  Nog geen boeken in je favorieten.
+                </div>
+              } @else {
+                <div class="horizontal-scroll-wrapper">
+                  @for (book of favoriteBooks; track book) {
+                    <article
+                      class="profile-book-card"
+                      (click)="goToDetail(book.id)"
+                    >
+                      <button
+                        type="button"
+                        class="remove-button"
+                        aria-label="Verwijder uit favorieten"
+                        (click)="removeFromFavorites($event, book.id)"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                      @if (book.cover) {
+                        <div class="book-cover">
+                          <img [src]="book.cover" alt="{{ book.title }}" />
+                        </div>
+                      } @else {
+                        <div class="cover-placeholder">Geen cover</div>
+                      }
+                      <div class="book-content">
+                        <h4>{{ book.title }}</h4>
+                        <div class="book-meta">{{ book.author }}</div>
                       </div>
-                    } @else {
-                      <div class="cover-placeholder">Geen cover</div>
-                    }
-                    <div class="book-content">
-                      <h4>{{ book.title }}</h4>
-                      <div class="book-meta">{{ book.author }}</div>
-                    </div>
-                  </article>
-                }
-              </div>
+                    </article>
+                  }
+                </div>
+              }
             </section>
           }
 

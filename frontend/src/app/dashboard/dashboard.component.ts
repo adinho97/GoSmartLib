@@ -36,6 +36,7 @@ export class DashboardComponent implements OnInit {
   didacticBooks: DashboardBook[] = [];
   myLoans: Loan[] = [];
   wishlistedBookIds = new Set<number>();
+  favoritedBookIds = new Set<number>();
   loading = true;
   loansLoading = true;
 
@@ -62,6 +63,7 @@ export class DashboardComponent implements OnInit {
       this.fetchBooks(),
       this.fetchMyLoans(),
       this.loadWishlistState(),
+      this.loadFavoritesState(),
     ]);
   }
 
@@ -74,8 +76,21 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  private async loadFavoritesState() {
+    try {
+      const favorites = await this.bookService.getUserFavorites();
+      this.favoritedBookIds = new Set(favorites.map((item) => item.bookId));
+    } catch {
+      this.favoritedBookIds = new Set<number>();
+    }
+  }
+
   isWishlisted(bookId: number): boolean {
     return this.wishlistedBookIds.has(bookId);
+  }
+
+  isFavorited(bookId: number): boolean {
+    return this.favoritedBookIds.has(bookId);
   }
 
   async toggleWishlist(event: MouseEvent, bookId: number) {
@@ -91,6 +106,24 @@ export class DashboardComponent implements OnInit {
 
       await this.bookService.addToWishlist(bookId);
       this.wishlistedBookIds.add(bookId);
+    } catch {
+      // Keep interaction silent on dashboard.
+    }
+  }
+
+  async toggleFavorite(event: MouseEvent, bookId: number) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    try {
+      if (this.favoritedBookIds.has(bookId)) {
+        await this.bookService.removeFromFavorites(bookId);
+        this.favoritedBookIds.delete(bookId);
+        return;
+      }
+
+      await this.bookService.addToFavorites(bookId);
+      this.favoritedBookIds.add(bookId);
     } catch {
       // Keep interaction silent on dashboard.
     }
@@ -134,7 +167,9 @@ export class DashboardComponent implements OnInit {
   }
 
   private isDidacticGenre(genre: unknown): boolean {
-    return String(genre || "").toLowerCase().startsWith("didactiek");
+    return String(genre || "")
+      .toLowerCase()
+      .startsWith("didactiek");
   }
 
   private formatGenreForDisplay(genre: unknown): string {
