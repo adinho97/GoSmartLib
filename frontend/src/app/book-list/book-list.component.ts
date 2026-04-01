@@ -124,12 +124,19 @@ export class BookListComponent implements OnInit {
   minAvailablePages = this.minPageFilterLimit;
   maxAvailablePages = this.maxPageFilterLimit;
   wishlistedBookIds = new Set<number>();
+  favoritedBookIds = new Set<number>();
+  openMenuId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private bookService: BookService,
     private schoolService: SchoolService,
-  ) {}
+  ) {
+    // Close menu when clicking outside
+    document.addEventListener("click", () => {
+      this.closeKebabMenu();
+    });
+  }
 
   async ngOnInit() {
     this.initializeFiltersFromQueryParams();
@@ -139,6 +146,7 @@ export class BookListComponent implements OnInit {
     await this.loadSchools();
     await this.loadBooks();
     await this.loadWishlistState();
+    await this.loadFavoritesState();
     this.applyFilters();
   }
 
@@ -415,6 +423,15 @@ export class BookListComponent implements OnInit {
     }
   }
 
+  private async loadFavoritesState() {
+    try {
+      const favorites = await this.bookService.getUserFavorites();
+      this.favoritedBookIds = new Set(favorites.map((item) => item.bookId));
+    } catch {
+      this.favoritedBookIds = new Set<number>();
+    }
+  }
+
   async toggleWishlist(event: MouseEvent, bookId?: number) {
     event.stopPropagation();
     event.preventDefault();
@@ -436,6 +453,39 @@ export class BookListComponent implements OnInit {
 
   isWishlisted(bookId?: number): boolean {
     return !!bookId && this.wishlistedBookIds.has(bookId);
+  }
+
+  async toggleFavorite(event: MouseEvent, bookId?: number) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!bookId) return;
+
+    try {
+      if (this.favoritedBookIds.has(bookId)) {
+        await this.bookService.removeFromFavorites(bookId);
+        this.favoritedBookIds.delete(bookId);
+        return;
+      }
+
+      await this.bookService.addToFavorites(bookId);
+      this.favoritedBookIds.add(bookId);
+    } catch {
+      this.error = "Favorieten bijwerken mislukt. Probeer later opnieuw.";
+    }
+  }
+
+  isFavorited(bookId?: number): boolean {
+    return !!bookId && this.favoritedBookIds.has(bookId);
+  }
+
+  toggleKebabMenu(event: MouseEvent, bookId?: number) {
+    event.stopPropagation();
+    if (!bookId) return;
+    this.openMenuId = this.openMenuId === bookId ? null : bookId;
+  }
+
+  closeKebabMenu() {
+    this.openMenuId = null;
   }
 
   private async loadLestipsForTeacher(): Promise<void> {

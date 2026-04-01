@@ -3,8 +3,10 @@ package com.example.demo.services;
 import com.example.demo.dto.WishlistDto;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Wishlist;
 import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.WishlistRepository;
 import org.springframework.stereotype.Service;
@@ -19,11 +21,13 @@ public class WishlistService {
     private final WishlistRepository wishlistRepo;
     private final BookRepository bookRepo;
     private final AppUserRepository appUserRepo;
+    private final BookCopyRepository bookCopyRepo;
 
-    public WishlistService(WishlistRepository wishlistRepo, BookRepository bookRepo, AppUserRepository appUserRepo) {
+    public WishlistService(WishlistRepository wishlistRepo, BookRepository bookRepo, AppUserRepository appUserRepo, BookCopyRepository bookCopyRepo) {
         this.wishlistRepo = wishlistRepo;
         this.bookRepo = bookRepo;
         this.appUserRepo = appUserRepo;
+        this.bookCopyRepo = bookCopyRepo;
     }
 
     @Transactional
@@ -67,12 +71,22 @@ public class WishlistService {
     }
 
     private WishlistDto toWishlistDto(Wishlist wishlist) {
+        Book book = wishlist.getBook();
+        
+        // Count available and total copies
+        long totalCopies = bookCopyRepo.countByBook_Id(book.getId());
+        long availableCopies = bookCopyRepo.countByBook_IdAndStatus(book.getId(), BookCopy.CopyStatus.AVAILABLE);
+        
         return new WishlistDto(
                 wishlist.getId(),
-                wishlist.getBook().getId(),
-                wishlist.getBook().getTitel(),
-                wishlist.getBook().getAuteur(),
-                wishlist.getBook().getCover(),
-                wishlist.getAddedAt());
+                book.getId(),
+                book.getTitel(),
+                book.getAuteur(),
+                book.getCover(),
+                wishlist.getAddedAt(),
+                wishlist.isNotificationEnabled(),
+                wishlist.getLastNotifiedAt(),
+                (int) availableCopies,
+                (int) totalCopies);
     }
 }

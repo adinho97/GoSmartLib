@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "wishlists")
-public class Wishlist {
+@Table(name = "favorites")
+public class Favorite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,12 +21,6 @@ public class Wishlist {
 
     @Column(nullable = false)
     private LocalDateTime addedAt;
-
-    @Column(nullable = false)
-    private boolean notificationEnabled = false;
-
-    @Column(name = "last_notified_at")
-    private LocalDateTime lastNotifiedAt;
 
     @PrePersist
     public void onCreate() {
@@ -65,21 +59,5 @@ public class Wishlist {
 
     public void setAddedAt(LocalDateTime addedAt) {
         this.addedAt = addedAt;
-    }
-
-    public boolean isNotificationEnabled() {
-        return notificationEnabled;
-    }
-
-    public void setNotificationEnabled(boolean notificationEnabled) {
-        this.notificationEnabled = notificationEnabled;
-    }
-
-    public LocalDateTime getLastNotifiedAt() {
-        return lastNotifiedAt;
-    }
-
-    public void setLastNotifiedAt(LocalDateTime lastNotifiedAt) {
-        this.lastNotifiedAt = lastNotifiedAt;
     }
 }

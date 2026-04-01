@@ -18,10 +18,13 @@ public class LoanService {
 
     private final LoanRepository loanRepo;
     private final BookCopyRepository copyRepo;
+    private final BookAvailabilityNotificationService bookAvailabilityNotificationService;
 
-    public LoanService(LoanRepository loanRepo, BookCopyRepository copyRepo) {
+    public LoanService(LoanRepository loanRepo, BookCopyRepository copyRepo,
+            BookAvailabilityNotificationService bookAvailabilityNotificationService) {
         this.loanRepo = loanRepo;
         this.copyRepo = copyRepo;
+        this.bookAvailabilityNotificationService = bookAvailabilityNotificationService;
     }
 
     @Transactional
@@ -53,9 +56,20 @@ public class LoanService {
             throw new IllegalStateException("Boek al teruggegeven");
         }
 
+        // Count available copies BEFORE marking this one available aka a kind of
+        // snapshot to check if the book just became available after this return
+        long availableCopiesBefore = copyRepo.countByBook_IdAndStatus(
+                loan.getCopy().getBook().getId(),
+                BookCopy.CopyStatus.AVAILABLE);
+
         loan.setReturnedAt(LocalDate.now());
         loan.getCopy().setStatus(BookCopy.CopyStatus.AVAILABLE);
         copyRepo.save(loan.getCopy());
+
+        // Check if book just became available (was 0, now 1+)
+        if (availableCopiesBefore == 0) {
+            bookAvailabilityNotificationService.notifyWishlistersThatBookIsAvailable(loan.getCopy().getBook());
+        }
 
         return toDto(loanRepo.save(loan));
     }

@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Location } from "@angular/common";
 import { ActivatedRoute, Router, NavigationEnd } from "@angular/router";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { Subscription } from "rxjs";
@@ -18,6 +19,10 @@ import axios from "axios";
 export class DetailComponent implements OnInit, OnDestroy {
   book!: Book;
   private previewRequestNonce = 0;
+  isWishlistedBook = false;
+  wishlistBusy = false;
+  isFavoritedBook = false;
+  favoriteBusy = false;
 
   // Role-based logic
   readonly userRole = localStorage.getItem("role");
@@ -69,6 +74,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   private routerSub!: Subscription;
 
   constructor(
+    private location: Location,
     private route: ActivatedRoute,
     private router: Router,
     private bookService: BookService,
@@ -84,6 +90,9 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.bookService.getBookById(this.currentBookId).subscribe((data) => {
         this.book = data;
       });
+
+      this.loadWishlistState(this.currentBookId);
+      this.loadFavoritesState(this.currentBookId);
 
       // Load reviews
       this.loadReviews(this.currentBookId);
@@ -108,8 +117,63 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.routerSub?.unsubscribe();
   }
 
+  private async loadWishlistState(bookId: number): Promise<void> {
+    try {
+      this.isWishlistedBook = await this.bookService.isWishlisted(bookId);
+    } catch {
+      this.isWishlistedBook = false;
+    }
+  }
+
+  private async loadFavoritesState(bookId: number): Promise<void> {
+    try {
+      this.isFavoritedBook = await this.bookService.isFavorited(bookId);
+    } catch {
+      this.isFavoritedBook = false;
+    }
+  }
+
+  async toggleWishlist(): Promise<void> {
+    if (!this.currentBookId || this.wishlistBusy) return;
+
+    this.wishlistBusy = true;
+    try {
+      if (this.isWishlistedBook) {
+        await this.bookService.removeFromWishlist(this.currentBookId);
+        this.isWishlistedBook = false;
+      } else {
+        await this.bookService.addToWishlist(this.currentBookId);
+        this.isWishlistedBook = true;
+      }
+    } finally {
+      this.wishlistBusy = false;
+    }
+  }
+
+  async toggleFavorite(): Promise<void> {
+    if (!this.currentBookId || this.favoriteBusy) return;
+
+    this.favoriteBusy = true;
+    try {
+      if (this.isFavoritedBook) {
+        await this.bookService.removeFromFavorites(this.currentBookId);
+        this.isFavoritedBook = false;
+      } else {
+        await this.bookService.addToFavorites(this.currentBookId);
+        this.isFavoritedBook = true;
+      }
+    } finally {
+      this.favoriteBusy = false;
+    }
+  }
+
   goBack(): void {
-    this.router.navigate(["/books"]);
+    if (window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+
+    this.router.navigate(["/dashboard"]);
   }
 
   async openPreview(): Promise<void> {

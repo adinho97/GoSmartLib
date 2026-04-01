@@ -41,9 +41,9 @@
                 [class.overdue-text]="isOverdue(loan.dueDate)"
               >
                 @if (isOverdue(loan.dueDate)) {
-                  ⚠ Te laat — {{ loan.dueDate | date:'dd/MM/yyyy' }}
+                  ⚠ Te laat — {{ loan.dueDate | date: "dd/MM/yyyy" }}
                 } @else {
-                  Terug voor {{ loan.dueDate | date:'dd/MM/yyyy' }}
+                  Terug voor {{ loan.dueDate | date: "dd/MM/yyyy" }}
                 }
               </span>
             </div>
@@ -64,6 +64,58 @@
       <div class="horizontal-scroll-wrapper">
         @for (book of featuredBooks; track book.id) {
           <div class="book-card">
+            <button
+              type="button"
+              class="wishlist-toggle-btn"
+              [class.active]="isWishlisted(book.id)"
+              [attr.aria-label]="
+                isWishlisted(book.id)
+                  ? 'Verwijder uit verlanglijst'
+                  : 'Voeg toe aan verlanglijst'
+              "
+              (click)="toggleWishlist($event, book.id)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="favorite-toggle-btn"
+              [class.active]="isFavorited(book.id)"
+              [attr.aria-label]="
+                isFavorited(book.id)
+                  ? 'Verwijder uit favorieten'
+                  : 'Voeg toe aan favorieten'
+              "
+              (click)="toggleFavorite($event, book.id)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polygon
+                  points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                />
+              </svg>
+            </button>
             <div class="genre-tag">{{ book.genre }}</div>
             <div class="book-cover">
               @if (book.coverUrl) {

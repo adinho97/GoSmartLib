@@ -90,18 +90,50 @@
           </div>
 
           <div class="stats-row">
-            <div class="stat-card">
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('borrowed-section')"
+            >
               <span class="stat-label">Geleend</span>
               <strong>{{ borrowedBooks.length }}</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Favorieten</span>
-              <strong>{{ favoriteBooks.length }}</strong>
-            </div>
-            <div class="stat-card">
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('highlighted-section')"
+            >
+              <span class="stat-label">Klasleeslijst</span>
+              <strong>{{ readingList.length }}</strong>
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('history-section')"
+            >
               <span class="stat-label">Historiek</span>
               <strong>{{ readingHistory.length }}</strong>
-            </div>
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('wishlist-section')"
+            >
+              <span class="stat-label">Verlanglijst</span>
+              <strong>{{ wishlistCount }}</strong>
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('favorites-section')"
+            >
+              <span class="stat-label">Favorieten</span>
+              <strong>{{ favoritesCount }}</strong>
+            </button>
+            <button type="button" class="stat-card stat-card-link">
+              <span class="stat-label">Uitgelichte boeken</span>
+              <strong>{{ highlightedBooksCount }}</strong>
+            </button>
           </div>
         </header>
       }
@@ -109,7 +141,7 @@
       @if (showSections) {
         <div class="profile-sections">
           @if (dashboardSettings.showBorrowed) {
-            <section class="profile-section">
+            <section id="borrowed-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Geleende boeken</h3>
                 <span class="section-count">{{ borrowedBooks.length }}</span>
@@ -140,7 +172,7 @@
           }
 
           @if (dashboardSettings.showHighlighted) {
-            <section class="profile-section">
+            <section id="highlighted-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Klasleeslijst</h3>
                 <span class="section-count">{{ readingList.length }}</span>
@@ -167,10 +199,13 @@
           }
 
           @if (dashboardSettings.showWishlist) {
-            <section class="profile-section wishlist-section">
+            <section
+              id="wishlist-section"
+              class="profile-section wishlist-section"
+            >
               <div class="section-head">
                 <h3 class="section-title">Verlanglijst</h3>
-                <span class="section-count">{{ wishlistBooks.length }}</span>
+                <span class="section-count">{{ wishlistCount }}</span>
               </div>
 
               @if (wishlistLoading) {
@@ -183,27 +218,108 @@
                 <div class="wishlist-grid">
                   @for (book of pagedWishlistBooks; track book.id) {
                     <article
-                      class="profile-book-card"
-                      (click)="goToDetail(book.id)"
+                      class="profile-book-card wishlist-card"
+                      (click)="goToDetail(book.id, $event)"
                     >
                       <button
                         type="button"
-                        class="wishlist-remove-btn"
+                        class="remove-button"
                         aria-label="Verwijder uit verlanglijst"
                         (click)="removeFromWishlist($event, book.id)"
                       >
-                        ×
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
                       </button>
+
+                      <!-- Notification Bell Toggle -->
+                      @if (isBookUnavailable(book)) {
+                        <button
+                          type="button"
+                          class="bell-button"
+                          [class.active]="book.notificationEnabled"
+                          [attr.aria-label]="
+                            book.notificationEnabled
+                              ? 'Meldingen uitschakelen'
+                              : 'Meldingen inschakelen'
+                          "
+                          (click)="toggleNotification($event, book)"
+                        >
+                          <svg
+                            class="bell-icon"
+                            viewBox="0 0 256 256"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M221.8 175.94C216.25 166.38 208 139.33 208 104a80 80 0 1 0-160 0c0 35.34-8.26 62.38-13.81 71.94A16 16 0 0 0 48 200h160a16 16 0 0 0 13.8-24.06ZM128 232a24 24 0 0 0 24-24H104a24 24 0 0 0 24 24Z"
+                              class="bell-outline"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M221.8 175.94C216.25 166.38 208 139.33 208 104a80 80 0 1 0-160 0c0 35.34-8.26 62.38-13.81 71.94A16 16 0 0 0 48 200h160a16 16 0 0 0 13.8-24.06ZM128 232a24 24 0 0 0 24-24H104a24 24 0 0 0 24 24Z"
+                              class="bell-fill"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      }
+
                       @if (book.cover) {
                         <div class="book-cover">
                           <img [src]="book.cover" alt="{{ book.title }}" />
+                          @if (isBookUnavailable(book)) {
+                            <div class="unavailable-overlay">
+                              <div class="unavailable-header">
+                                <span class="unavailable-dot">•</span>
+                                <span class="unavailable-text"
+                                  >Niet beschikbaar</span
+                                >
+                              </div>
+                              <div class="unavailable-message">
+                                Boek is uitgeleend. Zet meldingen aan.
+                              </div>
+                            </div>
+                          }
                         </div>
                       } @else {
-                        <div class="cover-placeholder">Geen cover</div>
+                        <div class="cover-placeholder">
+                          Geen cover
+                          @if (isBookUnavailable(book)) {
+                            <div class="unavailable-overlay">
+                              <div class="unavailable-header">
+                                <span class="unavailable-dot">•</span>
+                                <span class="unavailable-text"
+                                  >Niet beschikbaar</span
+                                >
+                              </div>
+                              <div class="unavailable-message">
+                                Boek is uitgeleend. Zet meldingen aan.
+                              </div>
+                            </div>
+                          }
+                        </div>
                       }
                       <div class="book-content">
                         <h4>{{ book.title }}</h4>
                         <div class="book-meta">{{ book.author }}</div>
+                        @if (notificationToggleErrors[book.id]) {
+                          <div class="bell-error-text">
+                            {{ notificationToggleErrors[book.id] }}
+                          </div>
+                        }
                       </div>
                     </article>
                   }
@@ -228,36 +344,78 @@
           }
 
           @if (dashboardSettings.showFavorites) {
-            <section class="profile-section">
+            <section id="favorites-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Favoriete boeken</h3>
-                <span class="section-count">{{ favoriteBooks.length }}</span>
+                <span class="section-count">{{ favoritesCount }}</span>
               </div>
-              <div class="horizontal-scroll-wrapper">
-                @for (book of favoriteBooks; track book) {
-                  <article
-                    class="profile-book-card"
-                    (click)="goToDetail(book.id)"
-                  >
-                    @if (book.cover) {
-                      <div class="book-cover">
-                        <img [src]="book.cover" alt="{{ book.title }}" />
+
+              @if (favoriteBooks.length === 0) {
+                <div class="inline-empty">
+                  Nog geen boeken in je favorieten.
+                </div>
+              } @else {
+                <div class="wishlist-grid">
+                  @for (book of pagedFavoriteBooks; track book) {
+                    <article
+                      class="profile-book-card wishlist-card"
+                      (click)="goToDetail(book.id, $event)"
+                    >
+                      <button
+                        type="button"
+                        class="remove-button"
+                        aria-label="Verwijder uit favorieten"
+                        (click)="removeFromFavorites($event, book.id)"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                      @if (book.cover) {
+                        <div class="book-cover">
+                          <img [src]="book.cover" alt="{{ book.title }}" />
+                        </div>
+                      } @else {
+                        <div class="cover-placeholder">Geen cover</div>
+                      }
+                      <div class="book-content">
+                        <h4>{{ book.title }}</h4>
+                        <div class="book-meta">{{ book.author }}</div>
                       </div>
-                    } @else {
-                      <div class="cover-placeholder">Geen cover</div>
+                    </article>
+                  }
+                </div>
+
+                @if (totalFavoritePages > 1) {
+                  <div class="wishlist-pagination">
+                    @for (page of favoritePageNumbers; track page) {
+                      <button
+                        type="button"
+                        class="wishlist-page-btn"
+                        [class.active]="page === currentFavoritePage"
+                        (click)="goToFavoritePage(page)"
+                      >
+                        {{ page }}
+                      </button>
                     }
-                    <div class="book-content">
-                      <h4>{{ book.title }}</h4>
-                      <div class="book-meta">{{ book.author }}</div>
-                    </div>
-                  </article>
+                  </div>
                 }
-              </div>
+              }
             </section>
           }
 
           @if (dashboardSettings.showReadingHistory) {
-            <section class="profile-section">
+            <section id="history-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Ontleenhistoriek</h3>
                 <span class="section-count">{{ readingHistory.length }}</span>

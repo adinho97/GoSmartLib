@@ -233,55 +233,132 @@
                       <strong>Taal:</strong> {{ book.taal || "Onbekend" }}
                     </p>
                   </div>
+                </div>
+
+                <div class="card-footer-actions">
                   @if (isLibrarian) {
-                    <div class="admin-actions">
+                    <div class="kebab-menu-container">
                       <button
                         type="button"
-                        class="delete-button"
-                        (click)="
-                          $event.stopPropagation();
-                          $event.preventDefault();
-                          deleteBook($event, book)
-                        "
+                        class="kebab-btn"
+                        [class.open]="openMenuId === book.id"
+                        (click)="toggleKebabMenu($event, book.id)"
+                        aria-label="Acties"
                       >
-                        Verwijder
+                        <span>⋮</span>
                       </button>
-                      <a
-                        class="edit-button"
-                        [routerLink]="['/edit', book.id]"
-                        (click)="$event.stopPropagation()"
-                      >
-                        Aanpassen
-                      </a>
+                      @if (openMenuId === book.id) {
+                        <div
+                          class="kebab-menu"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <a
+                            class="kebab-item kebab-edit"
+                            [routerLink]="['/edit', book.id]"
+                            (click)="closeKebabMenu(); $event.stopPropagation()"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                              />
+                              <path
+                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                              />
+                            </svg>
+                            Aanpassen
+                          </a>
+                          <button
+                            type="button"
+                            class="kebab-item kebab-delete"
+                            (click)="deleteBook($event, book); closeKebabMenu()"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <polyline points="3 6 5 6 21 6" />
+                              <path
+                                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                              />
+                              <line x1="10" y1="11" x2="10" y2="17" />
+                              <line x1="14" y1="11" x2="14" y2="17" />
+                            </svg>
+                            Verwijder
+                          </button>
+                        </div>
+                      }
                     </div>
                   }
-                </div>
-                <button
-                  type="button"
-                  class="wishlist-button"
-                  [class.active]="isWishlisted(book.id)"
-                  [attr.aria-label]="
-                    isWishlisted(book.id)
-                      ? 'Verwijderen uit verlanglijst'
-                      : 'Toevoegen aan verlanglijst'
-                  "
-                  (click)="toggleWishlist($event, book.id)"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#d4537e"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
+
+                  <button
+                    type="button"
+                    class="wishlist-button"
+                    [class.active]="isWishlisted(book.id)"
+                    [attr.aria-label]="
+                      isWishlisted(book.id)
+                        ? 'Verwijderen uit verlanglijst'
+                        : 'Toevoegen aan verlanglijst'
+                    "
+                    (click)="toggleWishlist($event, book.id)"
                   >
-                    <path
-                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                      />
+                    </svg>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="favorite-button"
+                    [class.active]="isFavorited(book.id)"
+                    [attr.aria-label]="
+                      isFavorited(book.id)
+                        ? 'Verwijderen uit favorieten'
+                        : 'Toevoegen aan favorieten'
+                    "
+                    (click)="toggleFavorite($event, book.id)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <polygon
+                        points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </article>
             }
           </div>

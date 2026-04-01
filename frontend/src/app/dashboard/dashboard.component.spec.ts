@@ -14,6 +14,8 @@ describe("DashboardComponent", () => {
   beforeEach(() => {
     bookServiceSpy = jasmine.createSpyObj<BookService>("BookService", [
       "getBooks",
+      "addToFavorites",
+      "removeFromFavorites",
     ]);
     bookServiceSpy.getBooks.and.resolveTo([]);
     routerSpy = jasmine.createSpyObj<Router>("Router", ["navigate"]);
@@ -33,5 +35,50 @@ describe("DashboardComponent", () => {
 
   it("should create", () => {
     expect(component).toBeTruthy();
+  });
+
+  describe("toggleFavorite", () => {
+    it("should add to favorites if not favorited", async () => {
+      const event = new MouseEvent("click");
+      spyOn(event, "stopPropagation");
+      spyOn(event, "preventDefault");
+
+      component.favoritedBookIds.clear(); // not favorited
+
+      await component.toggleFavorite(event, 123);
+
+      expect(event.stopPropagation).toHaveBeenCalled();
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(bookServiceSpy.addToFavorites).toHaveBeenCalledWith(123);
+      expect(component.favoritedBookIds.has(123)).toBe(true);
+    });
+
+    it("should remove from favorites if already favorited", async () => {
+      const event = new MouseEvent("click");
+      spyOn(event, "stopPropagation");
+      spyOn(event, "preventDefault");
+
+      component.favoritedBookIds.add(123); // already favorited
+
+      await component.toggleFavorite(event, 123);
+
+      expect(event.stopPropagation).toHaveBeenCalled();
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(bookServiceSpy.removeFromFavorites).toHaveBeenCalledWith(123);
+      expect(component.favoritedBookIds.has(123)).toBe(false);
+    });
+
+    it("should handle errors silently", async () => {
+      bookServiceSpy.addToFavorites.and.rejectWith(new Error("Test error"));
+
+      const event = new MouseEvent("click");
+      spyOn(event, "stopPropagation");
+      spyOn(event, "preventDefault");
+
+      component.favoritedBookIds.clear();
+
+      await expectAsync(component.toggleFavorite(event, 123)).toBeResolved();
+      expect(component.favoritedBookIds.has(123)).toBe(false); // not added due to error
+    });
   });
 });
