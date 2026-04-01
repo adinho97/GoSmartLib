@@ -59,7 +59,9 @@ export class ProfileComponent {
   wishlistLoading = false;
   notificationToggleErrors: Record<number, string> = {};
   readonly wishlistPageSize = 6;
+  readonly favoritePageSize = 6;
   currentWishlistPage = 1;
+  currentFavoritePage = 1;
   private wishlistChangedSub?: Subscription;
   private favoriteChangedSub?: Subscription;
 
@@ -140,6 +142,26 @@ export class ProfileComponent {
     this.currentWishlistPage = page;
   }
 
+  get totalFavoritePages(): number {
+    return Math.max(
+      1,
+      Math.ceil(this.favoriteBooks.length / this.favoritePageSize),
+    );
+  }
+
+  get favoritePageNumbers(): number[] {
+    return Array.from({ length: this.totalFavoritePages }, (_, i) => i + 1);
+  }
+
+  get pagedFavoriteBooks(): ProfileBookCard[] {
+    const start = (this.currentFavoritePage - 1) * this.favoritePageSize;
+    return this.favoriteBooks.slice(start, start + this.favoritePageSize);
+  }
+
+  goToFavoritePage(page: number) {
+    this.currentFavoritePage = page;
+  }
+
   async removeFromWishlist(event: MouseEvent, bookId: number) {
     event.stopPropagation();
     event.preventDefault();
@@ -183,6 +205,8 @@ export class ProfileComponent {
       }));
     } catch {
       this.favoriteBooks = [];
+    } finally {
+      this.currentFavoritePage = 1;
     }
   }
 
