@@ -158,6 +158,20 @@ export class ProfileComponent {
     }
   }
 
+  async removeFromFavorites(event: MouseEvent, bookId: number) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    try {
+      await this.bookService.removeFromFavorites(bookId);
+      this.favoriteBooks = this.favoriteBooks.filter(
+        (book) => book.id !== bookId,
+      );
+    } catch {
+      // Keep silent here as well.
+    }
+  }
+
   private async loadFavoriteBooks() {
     try {
       const favorites = await this.bookService.getUserFavorites();
