@@ -3,11 +3,14 @@ package com.example.demo.controllers;
 import com.example.demo.dto.WishlistAddRequest;
 import com.example.demo.dto.WishlistDto;
 import com.example.demo.entities.AppUser;
+import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Wishlist;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
+import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.WishlistRepository;
+import com.example.demo.services.BookAvailabilityNotificationService;
 import com.example.demo.services.WishlistService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -25,13 +28,23 @@ public class WishlistController {
     private final AppUserRepository appUserRepository;
     private final WishlistRepository wishlistRepository;
     private final BookCopyRepository bookCopyRepository;
+    // Manual testing due to broken feature, delete after
+    private final BookRepository bookRepository;
+    // Manual testing due to broken feature, delete after
+    private final BookAvailabilityNotificationService bookAvailabilityNotificationService;
 
     public WishlistController(WishlistService wishlistService, AppUserRepository appUserRepository,
-            WishlistRepository wishlistRepository, BookCopyRepository bookCopyRepository) {
+            WishlistRepository wishlistRepository, BookCopyRepository bookCopyRepository,
+            // Manual testing due to broken feature, delete after
+            BookRepository bookRepository,
+            // Manual testing due to broken feature, delete after
+            BookAvailabilityNotificationService bookAvailabilityNotificationService) {
         this.wishlistService = wishlistService;
         this.appUserRepository = appUserRepository;
         this.wishlistRepository = wishlistRepository;
         this.bookCopyRepository = bookCopyRepository;
+        this.bookRepository = bookRepository;
+        this.bookAvailabilityNotificationService = bookAvailabilityNotificationService;
     }
 
     private AppUser getUserFromHeader(String userSub) {
@@ -148,6 +161,31 @@ public class WishlistController {
             return ResponseEntity.ok(responseDto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    // Manual testing due to broken feature, delete after
+    @PostMapping("/notify-availability/{bookId}")
+    public ResponseEntity<?> notifyAvailabilityForBook(
+            @PathVariable Long bookId,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+        if (userSub == null || userSub.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            getUserFromHeader(userSub);
+            Book book = bookRepository.findById(bookId)
+                    .orElseThrow(() -> new IllegalArgumentException("Boek niet gevonden"));
+
+            bookAvailabilityNotificationService.notifyWishlistersThatBookIsAvailable(book);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Handmatige notificatie-trigger uitgevoerd",
+                    "bookId", bookId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 }
