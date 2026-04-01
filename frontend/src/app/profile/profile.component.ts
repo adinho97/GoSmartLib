@@ -1,4 +1,4 @@
-import { Component, HostListener, Input } from "@angular/core";
+import { Component, HostListener, Input, ChangeDetectorRef } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
@@ -71,6 +71,7 @@ export class ProfileComponent {
     private smartschoolService: SmartschoolService,
     private http: HttpClient,
     private bookService: BookService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   async ngOnInit() {
@@ -82,6 +83,7 @@ export class ProfileComponent {
     if (this.showSections) {
       await this.loadWishlistBooks();
       await this.loadFavoriteBooks();
+      this.cdr.detectChanges();
       this.wishlistChangedSub = this.bookService.wishlistChanged$.subscribe(
         () => {
           this.loadWishlistBooks();
@@ -312,7 +314,7 @@ export class ProfileComponent {
       return;
     }
 
-    section.scrollIntoView({ behavior: "smooth", block: "start" });
+    section.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   testSmartschoolMessage(): void {
