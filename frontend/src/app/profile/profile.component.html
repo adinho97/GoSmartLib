@@ -253,7 +253,9 @@
                         <h4>{{ book.title }}</h4>
                         <div class="book-meta">{{ book.author }}</div>
                         @if (notificationToggleErrors[book.id]) {
-                          <div class="bell-error-text">{{ notificationToggleErrors[book.id] }}</div>
+                          <div class="bell-error-text">
+                            {{ notificationToggleErrors[book.id] }}
+                          </div>
                         }
                       </div>
                     </article>

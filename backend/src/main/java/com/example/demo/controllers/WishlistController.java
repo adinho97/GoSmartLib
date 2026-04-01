@@ -128,7 +128,24 @@ public class WishlistController {
 
             wishlist.setNotificationEnabled(dto.isNotificationEnabled());
             Wishlist updated = wishlistRepository.save(wishlist);
-            return ResponseEntity.ok(updated);
+            long totalCopies = bookCopyRepository.countByBook_Id(updated.getBook().getId());
+            long availableCopies = bookCopyRepository.countByBook_IdAndStatus(
+                    updated.getBook().getId(),
+                    BookCopy.CopyStatus.AVAILABLE);
+
+            WishlistDto responseDto = new WishlistDto(
+                    updated.getId(),
+                    updated.getBook().getId(),
+                    updated.getBook().getTitel(),
+                    updated.getBook().getAuteur(),
+                    updated.getBook().getCover(),
+                    updated.getAddedAt(),
+                    updated.isNotificationEnabled(),
+                    updated.getLastNotifiedAt(),
+                    (int) availableCopies,
+                    (int) totalCopies);
+
+            return ResponseEntity.ok(responseDto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
