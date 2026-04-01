@@ -34,6 +34,16 @@ export interface WishlistItem {
   availableCopies?: number;
   totalCopies?: number;
 }
+
+export interface FavoriteItem {
+  id: number;
+  bookId: number;
+  titel: string;
+  auteur: string;
+  cover: string | null;
+  addedAt: string;
+}
+
 export interface LestipResponse {
   lestip: string;
   auteurNaam: string;
@@ -47,6 +57,8 @@ export class BookService {
   private apiUrl = "/api/boeken";
   private wishlistChangedSource = new Subject<void>();
   wishlistChanged$ = this.wishlistChangedSource.asObservable();
+  private favoriteChangedSource = new Subject<void>();
+  favoriteChanged$ = this.favoriteChangedSource.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -272,9 +284,7 @@ export class BookService {
 
   private getUserSubHeaders() {
     const userSub =
-      localStorage.getItem("sub") ||
-      localStorage.getItem("userId") ||
-      "";
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
     return {
       headers: {
         "X-User-Sub": userSub,
@@ -283,19 +293,12 @@ export class BookService {
   }
 
   async addToWishlist(bookId: number): Promise<void> {
-    await axios.post(
-      "/api/verlanglijst",
-      { bookId },
-      this.getUserSubHeaders(),
-    );
+    await axios.post("/api/verlanglijst", { bookId }, this.getUserSubHeaders());
     this.wishlistChangedSource.next();
   }
 
   async removeFromWishlist(bookId: number): Promise<void> {
-    await axios.delete(
-      `/api/verlanglijst/${bookId}`,
-      this.getUserSubHeaders(),
-    );
+    await axios.delete(`/api/verlanglijst/${bookId}`, this.getUserSubHeaders());
     this.wishlistChangedSource.next();
   }
 
@@ -307,7 +310,10 @@ export class BookService {
     return res.data;
   }
 
-  async updateWishlistNotification(wishlistId: number, notificationEnabled: boolean): Promise<WishlistItem> {
+  async updateWishlistNotification(
+    wishlistId: number,
+    notificationEnabled: boolean,
+  ): Promise<WishlistItem> {
     const res = await axios.patch<WishlistItem>(
       `/api/verlanglijst/${wishlistId}`,
       { notificationEnabled },
@@ -321,6 +327,39 @@ export class BookService {
     try {
       const res = await axios.get<boolean>(
         `/api/verlanglijst/${bookId}/check`,
+        this.getUserSubHeaders(),
+      );
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return false;
+      }
+      throw err;
+    }
+  }
+
+  async addToFavorites(bookId: number): Promise<void> {
+    await axios.post("/api/favorieten", { bookId }, this.getUserSubHeaders());
+    this.favoriteChangedSource.next();
+  }
+
+  async removeFromFavorites(bookId: number): Promise<void> {
+    await axios.delete(`/api/favorieten/${bookId}`, this.getUserSubHeaders());
+    this.favoriteChangedSource.next();
+  }
+
+  async getUserFavorites(): Promise<FavoriteItem[]> {
+    const res = await axios.get<FavoriteItem[]>(
+      "/api/favorieten",
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async isFavorited(bookId: number): Promise<boolean> {
+    try {
+      const res = await axios.get<boolean>(
+        `/api/favorieten/${bookId}/check`,
         this.getUserSubHeaders(),
       );
       return res.data;

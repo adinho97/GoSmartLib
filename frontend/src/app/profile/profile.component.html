@@ -286,26 +286,33 @@
                 <h3 class="section-title">Favoriete boeken</h3>
                 <span class="section-count">{{ favoriteBooks.length }}</span>
               </div>
-              <div class="horizontal-scroll-wrapper">
-                @for (book of favoriteBooks; track book) {
-                  <article
-                    class="profile-book-card"
-                    (click)="goToDetail(book.id)"
-                  >
-                    @if (book.cover) {
-                      <div class="book-cover">
-                        <img [src]="book.cover" alt="{{ book.title }}" />
+
+              @if (favoriteBooks.length === 0) {
+                <div class="inline-empty">
+                  Nog geen boeken in je favorieten.
+                </div>
+              } @else {
+                <div class="horizontal-scroll-wrapper">
+                  @for (book of favoriteBooks; track book) {
+                    <article
+                      class="profile-book-card"
+                      (click)="goToDetail(book.id)"
+                    >
+                      @if (book.cover) {
+                        <div class="book-cover">
+                          <img [src]="book.cover" alt="{{ book.title }}" />
+                        </div>
+                      } @else {
+                        <div class="cover-placeholder">Geen cover</div>
+                      }
+                      <div class="book-content">
+                        <h4>{{ book.title }}</h4>
+                        <div class="book-meta">{{ book.author }}</div>
                       </div>
-                    } @else {
-                      <div class="cover-placeholder">Geen cover</div>
-                    }
-                    <div class="book-content">
-                      <h4>{{ book.title }}</h4>
-                      <div class="book-meta">{{ book.author }}</div>
-                    </div>
-                  </article>
-                }
-              </div>
+                    </article>
+                  }
+                </div>
+              }
             </section>
           }
 
