@@ -258,6 +258,22 @@
                           </div>
                         }
                       </div>
+
+                      <!-- Unavailability Status -->
+                      @if (isBookUnavailable(book)) {
+                        <div class="unavailable-status">
+                          <div class="unavailable-header">
+                            <span class="unavailable-dot">•</span>
+                            <span class="unavailable-text"
+                              >Niet beschikbaar</span
+                            >
+                          </div>
+                          <div class="unavailable-message">
+                            Boek is uitgeleend. Zet meldingen aan en ontvang een
+                            bericht wanneer het weer beschikbaar is.
+                          </div>
+                        </div>
+                      }
                     </article>
                   }
                 </div>

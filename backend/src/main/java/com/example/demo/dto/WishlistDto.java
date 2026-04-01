@@ -24,7 +24,7 @@ public class WishlistDto {
         this.auteur = auteur;
         this.cover = cover;
         this.addedAt = addedAt;
-        this.notificationEnabled = true;
+        this.notificationEnabled = false;
         this.lastNotifiedAt = null;
         this.availableCopies = 0;
         this.totalCopies = 0;

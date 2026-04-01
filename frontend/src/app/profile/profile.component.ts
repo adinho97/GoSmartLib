@@ -95,7 +95,7 @@ export class ProfileComponent {
         author: item.auteur,
         cover: item.cover || '',
         wishlistId: item.id,
-        notificationEnabled: item.notificationEnabled ?? true,
+        notificationEnabled: item.notificationEnabled ?? false,
         availableCopies: item.availableCopies ?? 0,
         totalCopies: item.totalCopies ?? 0,
       }));
@@ -160,7 +160,7 @@ export class ProfileComponent {
 
     this.notificationToggleErrors[book.id] = '';
 
-    const previousValue = book.notificationEnabled ?? true;
+    const previousValue = book.notificationEnabled ?? false;
     const nextValue = !previousValue;
     book.notificationEnabled = nextValue;
 

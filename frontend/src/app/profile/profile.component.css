@@ -352,6 +352,43 @@
   stroke-width: 2.6;
 }
 
+/* Unavailability Status */
+.unavailable-status {
+  padding: 0.7rem 0.6rem;
+  background: #f3f1f2;
+  border-top: 1px solid #e8e2e6;
+  margin: 0.7rem -0.6rem -0.6rem;
+  border-radius: 0 0 12px 12px;
+}
+
+.unavailable-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.unavailable-dot {
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #a0a0a0;
+}
+
+.unavailable-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.unavailable-message {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: #888888;
+  opacity: 0.85;
+}
+
 /* Notification Bell Button */
 .bell-button {
   position: absolute;
@@ -379,12 +416,12 @@
 
 /* Bell outline path - dark red in app style */
 .bell-outline {
-  stroke: #871f42;
+  stroke: #d4537e;
   transition: stroke 0.3s ease;
 }
 
 .bell-button.active .bell-outline {
-  stroke: #871f42;
+  stroke: #d4537e;
 }
 
 /* Bell fill path - hidden by default, animates upward when active */

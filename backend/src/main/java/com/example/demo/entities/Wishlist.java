@@ -23,7 +23,7 @@ public class Wishlist {
     private LocalDateTime addedAt;
 
     @Column(nullable = false)
-    private boolean notificationEnabled = true;
+    private boolean notificationEnabled = false;
 
     @Column(name = "last_notified_at")
     private LocalDateTime lastNotifiedAt;
