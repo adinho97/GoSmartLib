@@ -231,7 +231,7 @@ describe("DetailComponent", () => {
     await component.saveReviewEdit(5);
 
     expect(bookServiceSpy.updateBookReview).not.toHaveBeenCalled();
-    expect(component.reviewError).toBe("Voeg een korte comment toe.");
+    expect(component.reviewError).toBe("Voeg een korte opmerking toe.");
   });
 
   it("saveReviewEdit updates review and exits edit mode", async () => {
@@ -309,7 +309,7 @@ describe("DetailComponent", () => {
 
     expect(component.reviews.length).toBe(1);
     expect(component.reviewError).toBe(
-      "Review verwijderen mislukt. Probeer opnieuw.",
+      "Review verwijderen mislukt. Probeer het opnieuw.",
     );
     expect(component.deleteReviewDialogOpen).toBeFalse();
     expect(component.pendingDeleteReviewId).toBeNull();
@@ -414,7 +414,7 @@ describe("DetailComponent", () => {
       if (url.includes("search.json")) {
         return {
           data: {
-            docs: [{ ia: ["search-hit-ia"] }],
+            docs: [{ ia: ["search-hit-ia"], isbn: ["9780140328721"] }],
           },
         };
       }
@@ -443,6 +443,212 @@ describe("DetailComponent", () => {
     expect(component.previewUrl).toBe(
       "https://archive.org/embed/search-hit-ia",
     );
+  });
+
+  it("openPreview rejects isbn-mismatched search hits and shows alert", async () => {
+    spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("api/books")) {
+        return {
+          data: {},
+        };
+      }
+
+      if (url.includes("search.json")) {
+        return {
+          data: {
+            docs: [{ ia: ["wrong-book-id"], isbn: ["9780000000000"] }],
+          },
+        };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "9780140328721",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
+
+    await component.openPreview();
+
+    expect(component.previewModalOpen).toBeFalse();
+    expect(component.previewAlertOpen).toBeTrue();
+    expect(component.previewAlertTitle).toBe("Geen voorbeeld beschikbaar");
+  });
+
+  it("openPreview ignores wrong title/author matches and returns no preview", async () => {
+    spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("search.json")) {
+        return {
+          data: {
+            docs: [
+              {
+                ia: ["wrong-book-id"],
+                title: "Completely Different Book",
+                author_name: ["Another Author"],
+              },
+            ],
+          },
+        };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
+
+    await component.openPreview();
+
+    expect(component.previewModalOpen).toBeFalse();
+    expect(component.previewAlertOpen).toBeTrue();
+    expect(component.previewAlertTitle).toBe("Geen voorbeeld beschikbaar");
+  });
+
+  it("openPreview skips wrong search doc and uses later matching title/author doc", async () => {
+    spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("search.json")) {
+        return {
+          data: {
+            docs: [
+              {
+                ia: ["wrong-book-id"],
+                title: "Completely Different Book",
+                author_name: ["Another Author"],
+              },
+              {
+                ia: ["correct-book-id"],
+                title: "Boek",
+                author_name: ["Auteur"],
+              },
+            ],
+          },
+        };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
+
+    await component.openPreview();
+
+    expect(component.previewModalOpen).toBeTrue();
+    expect(component.previewUrl).toBe(
+      "https://archive.org/embed/correct-book-id",
+    );
+  });
+
+  it("openPreview rejects search doc when only title matches", async () => {
+    spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("search.json")) {
+        return {
+          data: {
+            docs: [
+              {
+                ia: ["title-only-id"],
+                title: "Boek",
+                author_name: ["Andere Auteur"],
+              },
+            ],
+          },
+        };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
+
+    await component.openPreview();
+
+    expect(component.previewModalOpen).toBeFalse();
+    expect(component.previewAlertOpen).toBeTrue();
+    expect(component.previewAlertTitle).toBe("Geen voorbeeld beschikbaar");
+  });
+
+  it("openPreview rejects search doc when only author matches", async () => {
+    spyOn(axios, "get").and.callFake(async (url: string) => {
+      if (url.includes("search.json")) {
+        return {
+          data: {
+            docs: [
+              {
+                ia: ["author-only-id"],
+                title: "Ander Boek",
+                author_name: ["Auteur"],
+              },
+            ],
+          },
+        };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    component.book = {
+      id: 1,
+      titel: "Boek",
+      auteur: "Auteur",
+      isbn: "",
+      cover: "",
+      beschrijving: "",
+      genre: "Algemeen",
+      uitgaveDatum: "2020-01-01",
+      paginas: 100,
+      taal: "Nederlands",
+      uitgeverij: "Uitgever",
+    };
+
+    await component.openPreview();
+
+    expect(component.previewModalOpen).toBeFalse();
+    expect(component.previewAlertOpen).toBeTrue();
+    expect(component.previewAlertTitle).toBe("Geen voorbeeld beschikbaar");
   });
 
   it("openPreview shows preview alert when no readable preview exists", async () => {
