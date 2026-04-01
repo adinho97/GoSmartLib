@@ -158,6 +158,14 @@ export class ProfileComponent {
     return this.favoriteBooks.slice(start, start + this.favoritePageSize);
   }
 
+  get favoritesCount(): number {
+    return this.favoriteBooks.length;
+  }
+
+  get wishlistCount(): number {
+    return this.wishlistBooks.length;
+  }
+
   get highlightedBooksCount(): number {
     return this.readingList.length;
   }
@@ -296,6 +304,15 @@ export class ProfileComponent {
       return;
     }
     this.router.navigate(["/detail", bookId]);
+  }
+
+  scrollToSection(sectionId: string) {
+    const section = document.getElementById(sectionId);
+    if (!section) {
+      return;
+    }
+
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   testSmartschoolMessage(): void {

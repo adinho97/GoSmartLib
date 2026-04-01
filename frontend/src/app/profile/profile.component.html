@@ -90,30 +90,54 @@
           </div>
 
           <div class="stats-row">
-            <div class="stat-card">
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('borrowed-section')"
+            >
               <span class="stat-label">Geleend</span>
               <strong>{{ borrowedBooks.length }}</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Favorieten</span>
-              <strong>{{ favoriteBooks.length }}</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Historiek</span>
-              <strong>{{ readingHistory.length }}</strong>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Verlanglijst</span>
-              <strong>{{ wishlistBooks.length }}</strong>
-            </div>
-            <div class="stat-card">
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('highlighted-section')"
+            >
               <span class="stat-label">Klasleeslijst</span>
               <strong>{{ readingList.length }}</strong>
-            </div>
-            <div class="stat-card">
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('history-section')"
+            >
+              <span class="stat-label">Historiek</span>
+              <strong>{{ readingHistory.length }}</strong>
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('wishlist-section')"
+            >
+              <span class="stat-label">Verlanglijst</span>
+              <strong>{{ wishlistCount }}</strong>
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('favorites-section')"
+            >
+              <span class="stat-label">Favorieten</span>
+              <strong>{{ favoritesCount }}</strong>
+            </button>
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('highlighted-section')"
+            >
               <span class="stat-label">Uitgelichte boeken</span>
               <strong>{{ highlightedBooksCount }}</strong>
-            </div>
+            </button>
           </div>
         </header>
       }
@@ -121,7 +145,7 @@
       @if (showSections) {
         <div class="profile-sections">
           @if (dashboardSettings.showBorrowed) {
-            <section class="profile-section">
+            <section id="borrowed-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Geleende boeken</h3>
                 <span class="section-count">{{ borrowedBooks.length }}</span>
@@ -152,7 +176,7 @@
           }
 
           @if (dashboardSettings.showHighlighted) {
-            <section class="profile-section">
+            <section id="highlighted-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Klasleeslijst</h3>
                 <span class="section-count">{{ readingList.length }}</span>
@@ -179,10 +203,13 @@
           }
 
           @if (dashboardSettings.showWishlist) {
-            <section class="profile-section wishlist-section">
+            <section
+              id="wishlist-section"
+              class="profile-section wishlist-section"
+            >
               <div class="section-head">
                 <h3 class="section-title">Verlanglijst</h3>
-                <span class="section-count">{{ wishlistBooks.length }}</span>
+                <span class="section-count">{{ wishlistCount }}</span>
               </div>
 
               @if (wishlistLoading) {
@@ -321,10 +348,10 @@
           }
 
           @if (dashboardSettings.showFavorites) {
-            <section class="profile-section">
+            <section id="favorites-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Favoriete boeken</h3>
-                <span class="section-count">{{ favoriteBooks.length }}</span>
+                <span class="section-count">{{ favoritesCount }}</span>
               </div>
 
               @if (favoriteBooks.length === 0) {
@@ -332,7 +359,7 @@
                   Nog geen boeken in je favorieten.
                 </div>
               } @else {
-                <div class="horizontal-scroll-wrapper">
+                <div class="wishlist-grid">
                   @for (book of pagedFavoriteBooks; track book) {
                     <article
                       class="profile-book-card wishlist-card"
@@ -392,7 +419,7 @@
           }
 
           @if (dashboardSettings.showReadingHistory) {
-            <section class="profile-section">
+            <section id="history-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Ontleenhistoriek</h3>
                 <span class="section-count">{{ readingHistory.length }}</span>

@@ -170,6 +170,28 @@
   padding: 0.65rem 0.8rem;
 }
 
+.stat-card-link {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.stat-card-link:hover {
+  transform: translateY(-1px);
+  border-color: #d4c1c9;
+  box-shadow: 0 6px 14px rgba(96, 22, 47, 0.08);
+}
+
+.stat-card-link:focus-visible {
+  outline: 2px solid #871f42;
+  outline-offset: 2px;
+}
+
 .stat-label {
   display: block;
   color: #6b7280;
