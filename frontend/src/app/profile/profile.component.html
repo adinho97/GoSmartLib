@@ -102,6 +102,18 @@
               <span class="stat-label">Historiek</span>
               <strong>{{ readingHistory.length }}</strong>
             </div>
+            <div class="stat-card">
+              <span class="stat-label">Verlanglijst</span>
+              <strong>{{ wishlistBooks.length }}</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Klasleeslijst</span>
+              <strong>{{ readingList.length }}</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Uitgelichte boeken</span>
+              <strong>{{ highlightedBooksCount }}</strong>
+            </div>
           </div>
         </header>
       }
@@ -323,8 +335,8 @@
                 <div class="horizontal-scroll-wrapper">
                   @for (book of pagedFavoriteBooks; track book) {
                     <article
-                      class="profile-book-card"
-                      (click)="goToDetail(book.id)"
+                      class="profile-book-card wishlist-card"
+                      (click)="goToDetail(book.id, $event)"
                     >
                       <button
                         type="button"

@@ -158,6 +158,10 @@ export class ProfileComponent {
     return this.favoriteBooks.slice(start, start + this.favoritePageSize);
   }
 
+  get highlightedBooksCount(): number {
+    return this.readingList.length;
+  }
+
   goToFavoritePage(page: number) {
     this.currentFavoritePage = page;
   }
