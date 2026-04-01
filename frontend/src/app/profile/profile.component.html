@@ -293,7 +293,7 @@
                 </div>
               } @else {
                 <div class="horizontal-scroll-wrapper">
-                  @for (book of favoriteBooks; track book) {
+                  @for (book of pagedFavoriteBooks; track book) {
                     <article
                       class="profile-book-card"
                       (click)="goToDetail(book.id)"
@@ -332,6 +332,21 @@
                     </article>
                   }
                 </div>
+
+                @if (totalFavoritePages > 1) {
+                  <div class="wishlist-pagination">
+                    @for (page of favoritePageNumbers; track page) {
+                      <button
+                        type="button"
+                        class="wishlist-page-btn"
+                        [class.active]="page === currentFavoritePage"
+                        (click)="goToFavoritePage(page)"
+                      >
+                        {{ page }}
+                      </button>
+                    }
+                  </div>
+                }
               }
             </section>
           }
