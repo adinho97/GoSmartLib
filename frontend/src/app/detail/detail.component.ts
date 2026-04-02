@@ -612,7 +612,6 @@ export class DetailComponent implements OnInit, OnDestroy {
       const review = await this.bookService.addBookReview(this.currentBookId, {
         rating: ratingToSubmit,
         comment,
-        reviewerName: this.smartschoolUserName,
         anonymous,
       });
       this.reviews = [review, ...this.reviews];
@@ -683,6 +682,16 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
 
     return !!review.canManage;
+  }
+
+  getReviewAuthor(review: Review): string {
+    if (review.reviewerUserName && review.reviewerUserName.trim()) {
+      return review.reviewerUserName;
+    }
+    if (review.reviewerUserId != null) {
+      return String(review.reviewerUserId);
+    }
+    return "Anoniem";
   }
 
   startReviewEdit(review: Review): void {

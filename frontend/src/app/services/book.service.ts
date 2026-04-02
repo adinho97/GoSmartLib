@@ -157,7 +157,6 @@ export class BookService {
     payload: {
       rating: number;
       comment: string;
-      reviewerName: string;
       anonymous: boolean;
     },
   ): Promise<Review> {

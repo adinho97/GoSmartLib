@@ -2,9 +2,13 @@ package com.example.demo;
 
 import com.example.demo.dto.BookDto;
 import com.example.demo.controllers.BookController;
+import com.example.demo.config.AuthService;
+import com.example.demo.config.SmartschoolUserInfo;
+import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
+import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.services.ReviewModerationService;
@@ -25,7 +29,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import reactor.core.publisher.Mono;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -51,10 +58,16 @@ class BookControllerTest {
         private BookRepository bookRepository;
 
         @MockBean
-        private BookService bookService;
+        private AppUserRepository appUserRepository;
+
+        @MockBean
+        private AuthService authService;
 
         @MockBean
         private SchoolService schoolService;
+
+        @MockBean
+        private BookService bookService;
 
         @MockBean
         private ReviewRepository reviewRepository;
@@ -339,25 +352,38 @@ class BookControllerTest {
                 first.setId(3L);
                 first.setRating(5);
                 first.setComment("Topboek");
-                first.setReviewerName("Janssens Emma");
+                first.setReviewerUserId(1L);
                 first.setCreatedAt(LocalDateTime.of(2026, 3, 18, 12, 30));
 
                 Review second = new Review();
                 second.setId(2L);
                 second.setRating(4);
                 second.setComment("Goed");
+                second.setReviewerUserId(null);
                 second.setCreatedAt(LocalDateTime.of(2026, 3, 17, 11, 15));
 
                 when(bookRepository.existsById(1L)).thenReturn(true);
                 when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(1L)).thenReturn(List.of(first, second));
+
+                AppUser author = new AppUser();
+                author.setId(1L);
+                author.setSub("1");
+                when(appUserRepository.findById(1L)).thenReturn(Optional.of(author));
+
+                SmartschoolUserInfo userInfo = new SmartschoolUserInfo();
+                userInfo.setSub("1");
+                userInfo.setFullName("Janssens Emma");
+                when(authService.getUserInfoBySub("1")).thenReturn(Mono.just(userInfo));
 
                 mockMvc.perform(get("/api/boeken/1/reviews"))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[0].id").value(3))
                                 .andExpect(jsonPath("$[0].rating").value(5))
                                 .andExpect(jsonPath("$[0].comment").value("Topboek"))
-                                .andExpect(jsonPath("$[0].reviewerName").value("Janssens Emma"))
-                                .andExpect(jsonPath("$[1].reviewerName").value("Anoniem"))
+                                .andExpect(jsonPath("$[0].reviewerUserId").value(1))
+                                .andExpect(jsonPath("$[0].reviewerUserName").value("Janssens Emma"))
+                                .andExpect(jsonPath("$[1].reviewerUserId").doesNotExist())
+                                .andExpect(jsonPath("$[1].reviewerUserName").value("Anoniem"))
                                 .andExpect(jsonPath("$[1].id").value(2));
         }
 
@@ -388,29 +414,40 @@ class BookControllerTest {
                 saved.setBook(book);
                 saved.setRating(5);
                 saved.setComment("Heel goed boek");
-                saved.setReviewerName("Janssens Emma");
+                saved.setReviewerUserId(1L);
                 saved.setCreatedAt(LocalDateTime.of(2026, 3, 18, 14, 0));
 
                 when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
                 when(reviewRepository.save(any(Review.class))).thenReturn(saved);
 
+                AppUser author = new AppUser();
+                author.setId(1L);
+                author.setSub("1");
+                when(appUserRepository.findById(1L)).thenReturn(Optional.of(author));
+
+                SmartschoolUserInfo userInfo = new SmartschoolUserInfo();
+                userInfo.setSub("1");
+                userInfo.setFullName("Janssens Emma");
+                when(authService.getUserInfoBySub("1")).thenReturn(Mono.just(userInfo));
+
                 String json = """
                                 {
                                   "rating": 5,
-                                                                                                                                        "comment": "  Heel goed boek  ",
-                                                                                                                                        "reviewerName": "  Janssens Emma  ",
-                                                                                                                                        "anonymous": false
+                                  "comment": "  Heel goed boek  ",
+                                  "anonymous": false
                                 }
                                 """;
 
                 mockMvc.perform(post("/api/boeken/1/reviews")
+                                .header("X-User-Sub", "1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json))
                                 .andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.id").value(9))
                                 .andExpect(jsonPath("$.rating").value(5))
                                 .andExpect(jsonPath("$.comment").value("Heel goed boek"))
-                                .andExpect(jsonPath("$.reviewerName").value("Janssens Emma"));
+                                .andExpect(jsonPath("$.reviewerUserId").value(1))
+                                .andExpect(jsonPath("$.reviewerUserName").value("Janssens Emma"));
 
                 ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
                 verify(reviewRepository).save(captor.capture());
@@ -420,11 +457,11 @@ class BookControllerTest {
                 assertSame(book, persisted.getBook());
                 assertEquals(5, persisted.getRating());
                 assertEquals("Heel goed boek", persisted.getComment());
-                assertEquals("Janssens Emma", persisted.getReviewerName());
+                assertEquals(1L, persisted.getReviewerUserId());
         }
 
         @Test
-        void createReviewShouldPersistAnonymousReviewerNameWhenRequested() throws Exception {
+        void createReviewShouldPersistAnonymousReviewerUserIdWhenRequested() throws Exception {
                 Book book = new Book();
                 book.setId(1L);
 
@@ -433,7 +470,7 @@ class BookControllerTest {
                 saved.setBook(book);
                 saved.setRating(4);
                 saved.setComment("Leuk boek");
-                saved.setReviewerName("Anoniem");
+                saved.setReviewerUserId(null);
                 saved.setCreatedAt(LocalDateTime.of(2026, 3, 18, 15, 0));
 
                 when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
@@ -443,7 +480,6 @@ class BookControllerTest {
                                 {
                                   "rating": 4,
                                   "comment": "Leuk boek",
-                                  "reviewerName": "Janssens Emma",
                                   "anonymous": true
                                 }
                                 """;
@@ -452,12 +488,12 @@ class BookControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json))
                                 .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.reviewerName").value("Anoniem"));
+                                .andExpect(jsonPath("$.reviewerUserId").doesNotExist());
 
                 ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
                 verify(reviewRepository).save(captor.capture());
                 Review persisted = captor.getValue();
-                assertEquals("Anoniem", persisted.getReviewerName());
+                assertNull(persisted.getReviewerUserId());
         }
 
         @Test

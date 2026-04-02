@@ -7,13 +7,16 @@ import com.example.demo.dto.LestipDto;
 import com.example.demo.dto.ReviewDto;
 import com.example.demo.dto.UpdateLestipRequest;
 import com.example.demo.dto.UpdateReviewRequest;
+import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
 import com.example.demo.mappers.BookMapper;
+import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.services.BookService;
+import com.example.demo.config.AuthService;
 import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;
@@ -26,9 +29,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
+import reactor.core.publisher.Mono;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/boeken")
@@ -36,20 +42,25 @@ public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
     private static final String TEACHER_ROLE = "leerkracht";
-    private static final String ANONYMOUS_REVIEWER_NAME = "Anoniem";
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
+    private final AppUserRepository appUserRepository;
     private final BookService bookService;
     private final SchoolService schoolService;
     private final ReviewModerationService reviewModerationService;
+    private final AuthService authService;
 
-    public BookController(BookRepository repo, ReviewRepository reviewRepository, BookService bookService,
-            SchoolService schoolService, ReviewModerationService reviewModerationService) {
+    public BookController(BookRepository repo, ReviewRepository reviewRepository,
+            AppUserRepository appUserRepository, BookService bookService,
+            SchoolService schoolService, ReviewModerationService reviewModerationService,
+            AuthService authService) {
         this.repo = repo;
         this.reviewRepository = reviewRepository;
+        this.appUserRepository = appUserRepository;
         this.bookService = bookService;
         this.schoolService = schoolService;
         this.reviewModerationService = reviewModerationService;
+        this.authService = authService;
     }
 
     @GetMapping
@@ -331,13 +342,13 @@ public class BookController {
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
         boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
-        String reviewerName = isAnonymous ? ANONYMOUS_REVIEWER_NAME : request.getReviewerName().trim();
-        String reviewerUserSub = resolveUserSub(userSub, userName);
-        if (reviewerUserSub == null) {
-            reviewerUserSub = normalizeUserName(request.getReviewerName());
+
+        if (isAnonymous) {
+            review.setReviewerUserId(null);
+        } else {
+            Long reviewerUserId = resolveReviewerUserId(userSub, userName);
+            review.setReviewerUserId(reviewerUserId);
         }
-        review.setReviewerName(reviewerName);
-        review.setReviewerUserName(reviewerUserSub);
 
         Review saved = reviewRepository.save(review);
         String normalizedUserSub = resolveUserSub(userSub, userName);
@@ -404,18 +415,11 @@ public class BookController {
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
-        dto.setReviewerName(resolveReviewerName(review));
+        dto.setReviewerUserId(review.getReviewerUserId());
+        dto.setReviewerUserName(resolveReviewerUserName(review));
         dto.setCanManage(canManageReview(review, userRole, normalizedUserSub));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
-    }
-
-    private String resolveReviewerName(Review review) {
-        String reviewerName = review.getReviewerName();
-        if (reviewerName == null || reviewerName.isBlank()) {
-            return ANONYMOUS_REVIEWER_NAME;
-        }
-        return reviewerName;
     }
 
     private LestipDto toLestipDto(Book book, String currentUserSub) {
@@ -483,6 +487,43 @@ public class BookController {
         return normalizeUserName(userName);
     }
 
+    private Long resolveReviewerUserId(String userSub, String userName) {
+        if (StringUtils.hasText(userSub)) {
+            String trimmed = userSub.trim();
+            try {
+                return Long.parseLong(trimmed);
+            } catch (NumberFormatException ignored) {
+                // If it's not a numeric ID, try to resolve by sub into AppUser ID
+                return appUserRepository.findBySub(trimmed)
+                        .map(AppUser::getId)
+                        .orElse(null);
+            }
+        }
+
+        if (StringUtils.hasText(userName)) {
+            try {
+                return Long.parseLong(userName.trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private Long resolveCurrentUserId(String userSub) {
+        if (StringUtils.hasText(userSub)) {
+            String trimmed = userSub.trim();
+            try {
+                return Long.parseLong(trimmed);
+            } catch (NumberFormatException ignored) {
+                // If it's not a numeric ID, try to resolve by sub into AppUser ID
+                return appUserRepository.findBySub(trimmed)
+                        .map(AppUser::getId)
+                        .orElse(null);
+            }
+        }
+        return null;
+    }
+
     private boolean hasLestip(String lestip) {
         return StringUtils.hasText(lestip);
     }
@@ -492,17 +533,12 @@ public class BookController {
             return true;
         }
 
-        String reviewerUserName = normalizeUserName(review.getReviewerUserName());
-        if (reviewerUserName != null) {
-            return normalizedUserSub != null && isSameUser(normalizedUserSub, reviewerUserName);
+        if (review.getReviewerUserId() != null && normalizedUserSub != null) {
+            Long currentUserId = resolveCurrentUserId(normalizedUserSub);
+            return currentUserId != null && currentUserId.equals(review.getReviewerUserId());
         }
 
-        String reviewerName = normalizeUserName(review.getReviewerName());
-        if (reviewerName == null || ANONYMOUS_REVIEWER_NAME.equalsIgnoreCase(reviewerName)) {
-            return false;
-        }
-
-        return normalizedUserSub != null && isSameUser(normalizedUserSub, reviewerName);
+        return false;
     }
 
     private boolean isLibrarian(String userRole) {
@@ -511,5 +547,32 @@ public class BookController {
 
     private boolean isTeacher(String userRole) {
         return TEACHER_ROLE.equalsIgnoreCase(userRole);
+    }
+
+    private String resolveReviewerUserName(Review review) {
+        if (review.getReviewerUserId() == null) {
+            return "Anoniem";
+        }
+
+        try {
+            return appUserRepository.findById(review.getReviewerUserId())
+                    .map(AppUser::getSub)
+                    .flatMap(sub -> authService.getUserInfoBySub(sub)
+                            .onErrorResume(err -> Mono.empty())
+                            .blockOptional())
+                    .map(userInfo -> {
+                        var fullName = userInfo.getFullName();
+                        if (fullName != null && !fullName.isBlank()) {
+                            return fullName;
+                        }
+                        var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
+                                .filter(part -> part != null && !part.isBlank())
+                                .collect(Collectors.joining(" ")).trim();
+                        return candidate.isEmpty() ? userInfo.getSub() : candidate;
+                    })
+                    .orElse(String.valueOf(review.getReviewerUserId()));
+        } catch (Exception e) {
+            return String.valueOf(review.getReviewerUserId());
+        }
     }
 }

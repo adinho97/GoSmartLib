@@ -262,7 +262,9 @@
                   <article class="review-item">
                     <div class="review-item-top">
                       <div>
-                        <p class="review-author">{{ review.reviewerName }}</p>
+                        <p class="review-author">
+                          {{ getReviewAuthor(review) }}
+                        </p>
                         <span
                           class="review-rating-stars"
                           [attr.aria-label]="review.rating + ' op 5 sterren'"
