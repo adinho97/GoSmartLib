@@ -2,7 +2,8 @@ export interface Review {
   id: number;
   rating: number;
   comment: string;
-  reviewerName: string;
+  reviewerUserId?: number;
+  reviewerUserName?: string;
   canManage?: boolean;
   createdAt: string;
 }

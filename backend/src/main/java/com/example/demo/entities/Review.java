@@ -25,13 +25,8 @@ public class Review {
     @Column(nullable = false, length = 1000)
     private String comment;
 
-    @Size(max = 120)
-    @Column(length = 120)
-    private String reviewerName;
-
-    @Size(max = 120)
-    @Column(length = 120)
-    private String reviewerUserName;
+    @Column(nullable = true)
+    private Long reviewerUserId;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -71,20 +66,12 @@ public class Review {
         this.comment = comment;
     }
 
-    public String getReviewerName() {
-        return reviewerName;
+    public Long getReviewerUserId() {
+        return reviewerUserId;
     }
 
-    public void setReviewerName(String reviewerName) {
-        this.reviewerName = reviewerName;
-    }
-
-    public String getReviewerUserName() {
-        return reviewerUserName;
-    }
-
-    public void setReviewerUserName(String reviewerUserName) {
-        this.reviewerUserName = reviewerUserName;
+    public void setReviewerUserId(Long reviewerUserId) {
+        this.reviewerUserId = reviewerUserId;
     }
 
     public LocalDateTime getCreatedAt() {
