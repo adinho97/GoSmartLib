@@ -33,13 +33,18 @@ public class AuthService {
         }
 
         public Mono<SmartschoolUserInfo> getUserInfoBySub(String sub) {
+                logger.info("Looking up user by sub: {}", sub);
                 return Mono.justOrEmpty(appUserRepository.findBySub(sub))
                                 .switchIfEmpty(Mono.error(new RuntimeException("User not found for sub: " + sub)))
                                 .flatMap(user -> {
+                                        logger.info("User found. ID: {}, has refresh token: {}",
+                                                        user.getId(), user.getSmartschoolRefreshToken() != null);
                                         if (user.getSmartschoolRefreshToken() == null) {
+                                                logger.error("No refresh token available for user: {}", sub);
                                                 return Mono.error(new RuntimeException(
                                                                 "No refresh token available for user: " + sub));
                                         }
+                                        logger.debug("Refreshing access token for user: {}", sub);
                                         return refreshAccessToken(user.getSmartschoolRefreshToken())
                                                         .flatMap(tokenResponse -> {
                                                                 user.setAccessToken(tokenResponse.getAccessToken());
@@ -48,6 +53,8 @@ public class AuthService {
                                                                                         .getRefreshToken());
                                                                 }
                                                                 appUserRepository.save(user);
+                                                                logger.info("Token refreshed successfully for user: {}",
+                                                                                sub);
                                                                 return getUserInfo(tokenResponse, user.getPlatform());
                                                         });
                                 });

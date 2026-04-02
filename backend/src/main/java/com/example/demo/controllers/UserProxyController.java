@@ -5,12 +5,16 @@ import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.config.SmartschoolMessageRequest;
 import com.example.demo.config.SmartschoolMessageService;
 import com.example.demo.config.SmartschoolProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserProxyController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserProxyController.class);
 
     private final AuthService authService;
     private final SmartschoolMessageService smartschoolMessageService;
@@ -26,7 +30,14 @@ public class UserProxyController {
 
     @GetMapping("/{sub}/profile")
     public Mono<SmartschoolUserInfo> getUserProfile(@PathVariable String sub) {
-        return authService.getUserInfoBySub(sub);
+        logger.info("Fetching profile for user: {}", sub);
+        return authService.getUserInfoBySub(sub)
+                .onErrorResume(error -> {
+                    logger.warn(
+                            "Could not fetch full user info for sub: {}. Error: {}.",
+                            sub, error.getMessage());
+                    return Mono.empty();
+                });
     }
 
     // TODO: remove after testing
