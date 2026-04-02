@@ -1,6 +1,6 @@
 // src/app/services/loan.service.ts
-import { Injectable } from '@angular/core';
-import axios from 'axios';
+import { Injectable } from "@angular/core";
+import axios from "axios";
 
 export interface Loan {
   id: number;
@@ -8,38 +8,50 @@ export interface Loan {
   bookId: number;
   bookTitel: string;
   bookCover: string;
-  username: string;
+  userSub: string;
   loanedAt: string;
   dueDate: string;
   returnedAt: string | null;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class LoanService {
-  private api = '/api/uitleningen';
-  private copyApi = '/api/exemplaren';
+  private api = "/api/uitleningen";
+  private copyApi = "/api/exemplaren";
 
   private headers() {
-    return { headers: { 'X-User-Role': localStorage.getItem('role') || '' } };
+    return { headers: { "X-User-Role": localStorage.getItem("role") || "" } };
   }
 
-  async createLoan(bookId: number, username: string, dueDate: string): Promise<Loan> {
-    const res = await axios.post(this.api, { bookId, username, dueDate }, this.headers());
+  async createLoan(
+    bookId: number,
+    userSub: string,
+    dueDate: string,
+  ): Promise<Loan> {
+    const res = await axios.post(
+      this.api,
+      { bookId, userSub, dueDate },
+      this.headers(),
+    );
     return res.data;
   }
 
   async returnLoan(loanId: number): Promise<Loan> {
-    const res = await axios.put(`${this.api}/${loanId}/teruggeven`, {}, this.headers());
+    const res = await axios.put(
+      `${this.api}/${loanId}/teruggeven`,
+      {},
+      this.headers(),
+    );
     return res.data;
   }
 
-  async getActiveLoans(username: string): Promise<Loan[]> {
-    const res = await axios.get(`${this.api}/gebruiker/${username}`);
+  async getActiveLoans(userSub: string): Promise<Loan[]> {
+    const res = await axios.get(`${this.api}/gebruiker/${userSub}`);
     return res.data;
   }
 
-  async getLoanHistory(username: string): Promise<Loan[]> {
-    const res = await axios.get(`${this.api}/gebruiker/${username}/historiek`);
+  async getLoanHistory(userSub: string): Promise<Loan[]> {
+    const res = await axios.get(`${this.api}/gebruiker/${userSub}/historiek`);
     return res.data;
   }
 
@@ -48,16 +60,18 @@ export class LoanService {
     return res.data;
   }
 
-async getCopySummary(bookId: number): Promise<{ total: number; available: number }> {
-  try {
-    const res = await axios.get(`${this.copyApi}/boek/${bookId}/summary`);
-    console.log('copySummary response:', res.data); // tijdelijk
-    return res.data;
-  } catch (err) {
-    console.error('getCopySummary fout:', err); // tijdelijk
-    return { total: 0, available: 0 };
+  async getCopySummary(
+    bookId: number,
+  ): Promise<{ total: number; available: number }> {
+    try {
+      const res = await axios.get(`${this.copyApi}/boek/${bookId}/summary`);
+      console.log("copySummary response:", res.data); // tijdelijk
+      return res.data;
+    } catch (err) {
+      console.error("getCopySummary fout:", err); // tijdelijk
+      return { total: 0, available: 0 };
+    }
   }
-}
   async addCopy(bookId: number): Promise<void> {
     await axios.post(`${this.copyApi}/boek/${bookId}`, {}, this.headers());
   }
@@ -65,20 +79,22 @@ async getCopySummary(bookId: number): Promise<{ total: number; available: number
   async deleteCopy(copyId: number): Promise<void> {
     await axios.delete(`${this.copyApi}/${copyId}`, this.headers());
   }
-async removeAvailableCopy(bookId: number): Promise<void> {
-  const res = await axios.get(`${this.copyApi}/boek/${bookId}`);
-  const copies: any[] = res.data;
+  async removeAvailableCopy(bookId: number): Promise<void> {
+    const res = await axios.get(`${this.copyApi}/boek/${bookId}`);
+    const copies: any[] = res.data;
 
-  const available = copies.find(c => c.status === 'AVAILABLE');
-  if (!available) throw new Error('Geen beschikbaar exemplaar');
+    const available = copies.find((c) => c.status === "AVAILABLE");
+    if (!available) throw new Error("Geen beschikbaar exemplaar");
 
-  try {
-    await axios.delete(`${this.copyApi}/${available.id}`, this.headers());
-  } catch (err: any) {
-    if (err?.response?.status === 409) {
-      throw new Error('Dit exemplaar heeft een uitleenhistoriek en kan niet verwijderd worden.');
+    try {
+      await axios.delete(`${this.copyApi}/${available.id}`, this.headers());
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        throw new Error(
+          "Dit exemplaar heeft een uitleenhistoriek en kan niet verwijderd worden.",
+        );
+      }
+      throw err;
     }
-    throw err;
   }
-}
 }

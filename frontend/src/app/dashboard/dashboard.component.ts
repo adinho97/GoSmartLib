@@ -51,6 +51,12 @@ export class DashboardComponent implements OnInit {
     return localStorage.getItem("username") || "";
   }
 
+  get currentUserSub(): string {
+    return (
+      localStorage.getItem("sub") || ""
+    );
+  }
+
   constructor(
     private router: Router,
     private bookService: BookService,
@@ -148,13 +154,13 @@ export class DashboardComponent implements OnInit {
 
   async fetchMyLoans() {
     this.loansLoading = true;
-    const username = this.currentUsername;
-    if (!username) {
+    const userSub = this.currentUserSub;
+    if (!userSub) {
       this.loansLoading = false;
       return;
     }
     try {
-      this.myLoans = await this.loanService.getActiveLoans(username);
+      this.myLoans = await this.loanService.getActiveLoans(userSub);
     } catch {
       this.myLoans = [];
     } finally {

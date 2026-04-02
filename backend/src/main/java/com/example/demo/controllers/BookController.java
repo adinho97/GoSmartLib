@@ -214,6 +214,7 @@ public class BookController {
     @GetMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> getLestip(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
         if (!isTeacher(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -224,19 +225,21 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(toLestipDto(book, normalizeUserName(userName)));
+        String currentUserSub = resolveUserSub(userSub, userName);
+        return ResponseEntity.ok(toLestipDto(book, currentUserSub));
     }
 
     @PutMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> updateLestip(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody UpdateLestipRequest request) {
         if (!isTeacher(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        String normalizedUserName = normalizeUserName(userName);
+        String normalizedUserSub = resolveUserSub(userSub, userName);
 
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
@@ -253,21 +256,22 @@ public class BookController {
         }
 
         book.setLestip(normalizedLestip);
-        book.setLestipAuteur(normalizedUserName);
+        book.setLestipAuteur(normalizedUserSub);
 
         Book savedBook = repo.save(book);
-        return ResponseEntity.ok(toLestipDto(savedBook, normalizedUserName));
+        return ResponseEntity.ok(toLestipDto(savedBook, normalizedUserSub));
     }
 
     @DeleteMapping("/{id}/lestip")
     public ResponseEntity<Void> deleteLestip(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
         if (!isTeacher(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        String normalizedUserName = normalizeUserName(userName);
+        String normalizedUserSub = resolveUserSub(userSub, userName);
 
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
@@ -280,7 +284,7 @@ public class BookController {
 
         String lestipAuteur = book.getLestipAuteur();
         boolean hasStoredAuteur = StringUtils.hasText(lestipAuteur);
-        if (hasStoredAuteur && (normalizedUserName == null || !isSameUser(normalizedUserName, lestipAuteur))) {
+        if (hasStoredAuteur && (normalizedUserSub == null || !isSameUser(normalizedUserSub, lestipAuteur))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -290,20 +294,20 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
         if (!repo.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserName = normalizeUserName(userName);
+        String normalizedUserSub = resolveUserSub(userSub, userName);
 
         List<ReviewDto> reviews = reviewRepository.findByBook_IdOrderByCreatedAtDesc(id)
                 .stream()
-                .map(review -> toReviewDto(review, userRole, normalizedUserName))
+                .map(review -> toReviewDto(review, userRole, normalizedUserSub))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(reviews);
@@ -312,6 +316,7 @@ public class BookController {
     @PostMapping("/{id}/reviews")
     public ResponseEntity<ReviewDto> createReview(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody CreateReviewRequest request) {
         Book book = repo.findById(id).orElse(null);
@@ -327,21 +332,23 @@ public class BookController {
         review.setComment(trimmedComment);
         boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
         String reviewerName = isAnonymous ? ANONYMOUS_REVIEWER_NAME : request.getReviewerName().trim();
-        String reviewerUserName = normalizeUserName(userName);
-        if (reviewerUserName == null) {
-            reviewerUserName = normalizeUserName(request.getReviewerName());
+        String reviewerUserSub = resolveUserSub(userSub, userName);
+        if (reviewerUserSub == null) {
+            reviewerUserSub = normalizeUserName(request.getReviewerName());
         }
         review.setReviewerName(reviewerName);
-        review.setReviewerUserName(reviewerUserName);
+        review.setReviewerUserName(reviewerUserSub);
 
         Review saved = reviewRepository.save(review);
+        String normalizedUserSub = resolveUserSub(userSub, userName);
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(toReviewDto(saved, userRole, normalizeUserName(userName)));
+                .body(toReviewDto(saved, userRole, normalizedUserSub));
     }
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @PathVariable @NonNull Long reviewId) {
         if (!repo.existsById(bookId)) {
@@ -353,8 +360,8 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserName = normalizeUserName(userName);
-        if (!canManageReview(review, userRole, normalizedUserName)) {
+        String normalizedUserSub = resolveUserSub(userSub, userName);
+        if (!canManageReview(review, userRole, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -366,6 +373,7 @@ public class BookController {
     public ResponseEntity<ReviewDto> updateReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody UpdateReviewRequest request) {
         if (!repo.existsById(bookId)) {
@@ -377,8 +385,8 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserName = normalizeUserName(userName);
-        if (!canManageReview(review, userRole, normalizedUserName)) {
+        String normalizedUserSub = resolveUserSub(userSub, userName);
+        if (!canManageReview(review, userRole, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -388,16 +396,16 @@ public class BookController {
         review.setComment(trimmedComment);
 
         Review savedReview = reviewRepository.save(review);
-        return ResponseEntity.ok(toReviewDto(savedReview, userRole, normalizedUserName));
+        return ResponseEntity.ok(toReviewDto(savedReview, userRole, normalizedUserSub));
     }
 
-    private ReviewDto toReviewDto(Review review, String userRole, String normalizedUserName) {
+    private ReviewDto toReviewDto(Review review, String userRole, String normalizedUserSub) {
         ReviewDto dto = new ReviewDto();
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
         dto.setReviewerName(resolveReviewerName(review));
-        dto.setCanManage(canManageReview(review, userRole, normalizedUserName));
+        dto.setCanManage(canManageReview(review, userRole, normalizedUserSub));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
     }
@@ -410,7 +418,7 @@ public class BookController {
         return reviewerName;
     }
 
-    private LestipDto toLestipDto(Book book, String currentUserName) {
+    private LestipDto toLestipDto(Book book, String currentUserSub) {
         LestipDto dto = new LestipDto();
         String lestipText = book.getLestip();
         String lestipAuteur = book.getLestipAuteur();
@@ -418,7 +426,8 @@ public class BookController {
         dto.setLestip(lestipText == null ? "" : lestipText);
         dto.setAuteurNaam(lestipAuteur == null ? "" : lestipAuteur);
         boolean magVerwijderen = hasLestip(lestipText)
-                && (!StringUtils.hasText(lestipAuteur) || (currentUserName != null && isSameUser(currentUserName, lestipAuteur)));
+                && (!StringUtils.hasText(lestipAuteur)
+                        || (currentUserSub != null && isSameUser(currentUserSub, lestipAuteur)));
         dto.setMagVerwijderen(magVerwijderen);
         return dto;
     }
@@ -467,18 +476,25 @@ public class BookController {
                 .toLowerCase(Locale.ROOT);
     }
 
+    private String resolveUserSub(String userSub, String userName) {
+        if (StringUtils.hasText(userSub)) {
+            return userSub.trim();
+        }
+        return normalizeUserName(userName);
+    }
+
     private boolean hasLestip(String lestip) {
         return StringUtils.hasText(lestip);
     }
 
-    private boolean canManageReview(Review review, String userRole, String normalizedUserName) {
+    private boolean canManageReview(Review review, String userRole, String normalizedUserSub) {
         if (isLibrarian(userRole)) {
             return true;
         }
 
         String reviewerUserName = normalizeUserName(review.getReviewerUserName());
         if (reviewerUserName != null) {
-            return normalizedUserName != null && isSameUser(normalizedUserName, reviewerUserName);
+            return normalizedUserSub != null && isSameUser(normalizedUserSub, reviewerUserName);
         }
 
         String reviewerName = normalizeUserName(review.getReviewerName());
@@ -486,7 +502,7 @@ public class BookController {
             return false;
         }
 
-        return normalizedUserName != null && isSameUser(normalizedUserName, reviewerName);
+        return normalizedUserSub != null && isSameUser(normalizedUserSub, reviewerName);
     }
 
     private boolean isLibrarian(String userRole) {
