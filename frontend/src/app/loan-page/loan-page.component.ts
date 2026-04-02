@@ -15,7 +15,7 @@ type BookOption = {
 
 type Leerling = {
   sub: string;
-  username: string;
+  displayName: string;
 };
 
 type Step = "leerling" | "boeken" | "bevestiging";
@@ -71,13 +71,48 @@ export class LoanPageComponent implements OnInit {
     this.dueDate = this.defaultDueDate;
   }
 
+  private async getDisplayNameForSub(sub: string): Promise<string> {
+    try {
+      const profile = await axios.get(
+        `/api/users/${encodeURIComponent(sub)}/profile`,
+      );
+      const userInfo = profile.data as any;
+
+      const fullname =
+        userInfo.fullname ||
+        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim();
+      return (
+        (
+          fullname ||
+          userInfo.name ||
+          userInfo.givenName ||
+          userInfo.given_name ||
+          userInfo.familyName ||
+          userInfo.sub ||
+          ""
+        ).trim() || sub
+      );
+    } catch {
+      return sub;
+    }
+  }
+
   async loadLeerlingen() {
     this.leerlingenLoading = true;
     try {
       const res = await axios.get("/api/gebruikers/leerlingen");
-      this.leerlingen = res.data;
+      const students = (res.data || []) as Array<{ sub: string }>;
+      const enriched = await Promise.all(
+        students.map(async (l) => ({
+          sub: l.sub,
+          displayName: await this.getDisplayNameForSub(l.sub),
+        })),
+      );
+
+      this.leerlingen = enriched;
       this.filteredLeerlingen = [...this.leerlingen];
-    } catch {
+    } catch (err) {
+      console.error("loadLeerlingen error", err);
       this.leerlingError = "Leerlingen laden mislukt.";
     } finally {
       this.leerlingenLoading = false;
@@ -87,8 +122,10 @@ export class LoanPageComponent implements OnInit {
   onLeerlingSearch() {
     const q = this.leerlingSearch.trim().toLowerCase();
     this.filteredLeerlingen = q
-      ? this.leerlingen.filter((l) =>
-          l.username.toLowerCase().includes(q)
+      ? this.leerlingen.filter(
+          (l) =>
+            l.displayName.toLowerCase().includes(q) ||
+            l.sub.toLowerCase().includes(q),
         )
       : [...this.leerlingen];
   }
@@ -110,7 +147,7 @@ export class LoanPageComponent implements OnInit {
   async loadActiveLoansForUser() {
     try {
       this.activeLoans = await this.loanService.getActiveLoans(
-        this.selectedLeerling!.username
+        this.selectedLeerling!.sub,
       );
     } catch {
       this.activeLoans = [];
@@ -126,7 +163,7 @@ export class LoanPageComponent implements OnInit {
         .filter(
           (b: any) =>
             (b.genre || "").toLowerCase() !== "didactiek" ||
-            this.role !== "leerling"
+            this.role !== "leerling",
         )
         .map((b: any) => ({
           id: b.id,
@@ -150,7 +187,7 @@ export class LoanPageComponent implements OnInit {
       ? this.books.filter(
           (b) =>
             b.titel.toLowerCase().includes(q) ||
-            b.auteur.toLowerCase().includes(q)
+            b.auteur.toLowerCase().includes(q),
         )
       : [...this.books];
   }
@@ -186,11 +223,11 @@ export class LoanPageComponent implements OnInit {
       for (const book of this.selectedBooks) {
         await this.loanService.createLoan(
           book.id,
-          this.selectedLeerling.username,
-          this.dueDate
+          this.selectedLeerling.sub,
+          this.dueDate,
         );
       }
-      this.successMessage = `${this.selectedBooks.length} boek(en) uitgeleend aan ${this.selectedLeerling.username}.`;
+      this.successMessage = `${this.selectedBooks.length} boek(en) uitgeleend aan ${this.selectedLeerling.displayName}.`;
       this.selectedBooks = [];
       this.step = "leerling";
       this.selectedLeerling = null;
@@ -233,5 +270,4 @@ export class LoanPageComponent implements OnInit {
       this.errorMessage = "";
     }
   }
-
 }

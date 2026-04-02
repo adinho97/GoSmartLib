@@ -7,7 +7,7 @@
           Stap 1 — Selecteer een leerling
         }
         @if (step === "boeken") {
-          Stap 2 — Selecteer boeken voor {{ selectedLeerling?.username }}
+          Stap 2 — Selecteer boeken voor {{ selectedLeerling?.displayName }}
         }
         @if (step === "bevestiging") {
           Stap 3 — Bevestig de uitlening
@@ -83,9 +83,9 @@
               (click)="selectLeerling(leerling)"
             >
               <div class="leerling-avatar">
-                {{ leerling.username.charAt(0).toUpperCase() }}
+                {{ leerling.displayName.charAt(0).toUpperCase() }}
               </div>
-              <span class="leerling-username">{{ leerling.username }}</span>
+              <span class="leerling-username">{{ leerling.displayName }}</span>
               @if (selectedLeerling?.sub === leerling.sub) {
                 <span class="selected-check">✓</span>
               }
@@ -100,7 +100,7 @@
           (click)="confirmLeerling()"
           [disabled]="!selectedLeerling"
         >
-          Verder met {{ selectedLeerling?.username || "..." }} →
+          Verder met {{ selectedLeerling?.displayName || "..." }} →
         </button>
       </div>
     </div>
@@ -112,7 +112,7 @@
       <div class="step-card-header">
         <button class="ghost-btn" (click)="goBack()">← Terug</button>
         <h2>
-          Boeken voor <strong>{{ selectedLeerling?.username }}</strong>
+          Boeken voor <strong>{{ selectedLeerling?.displayName }}</strong>
         </h2>
         <button
           class="primary-btn"
@@ -130,7 +130,7 @@
       <!-- Actieve uitleningen van deze leerling -->
       @if (activeLoans.length > 0) {
         <div class="active-loans-section">
-          <h3>Momenteel uitgeleend aan {{ selectedLeerling?.username }}</h3>
+          <h3>Momenteel uitgeleend aan {{ selectedLeerling?.displayName }}</h3>
           <ul class="loans-list">
             @for (loan of activeLoans; track loan.id) {
               <li class="loan-row">
@@ -225,7 +225,7 @@
       <div class="confirm-info">
         <div class="confirm-row">
           <span class="confirm-label">Leerling</span>
-          <span class="confirm-value">{{ selectedLeerling?.username }}</span>
+          <span class="confirm-value">{{ selectedLeerling?.displayName }}</span>
         </div>
         <div class="confirm-row">
           <span class="confirm-label">Terugbrengdatum</span>

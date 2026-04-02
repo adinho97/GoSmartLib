@@ -57,14 +57,14 @@ public class LoanController {
         }
     }
 
-    @GetMapping("/gebruiker/{username}")
-    public List<LoanDto> getActiveLoans(@PathVariable String username) {
-        return loanService.getActiveLoansForUser(username);
+    @GetMapping("/gebruiker/{sub}")
+    public List<LoanDto> getActiveLoans(@PathVariable("sub") String userSub) {
+        return loanService.getActiveLoansForUser(userSub);
     }
 
-    @GetMapping("/gebruiker/{username}/historiek")
-    public List<LoanDto> getLoanHistory(@PathVariable String username) {
-        return loanService.getLoanHistoryForUser(username);
+    @GetMapping("/gebruiker/{sub}/historiek")
+    public List<LoanDto> getLoanHistory(@PathVariable("sub") String userSub) {
+        return loanService.getLoanHistoryForUser(userSub);
     }
 
     @GetMapping("/boek/{bookId}")
