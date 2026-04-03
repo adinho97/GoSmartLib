@@ -76,6 +76,16 @@ public class LoanController {
         return loanService.getLoanHistoryForUser(userSub);
     }
 
+    @GetMapping("/mijn/historiek")
+    public List<LoanDto> getMyLoanHistory(
+            @RequestHeader(value = "X-User-Sub", required = false) String userSubHeader) {
+        String userSub = userSubHeader != null ? userSubHeader.trim() : "";
+        if (userSub.isEmpty()) {
+            return List.of();
+        }
+        return loanService.getLoanHistoryForUser(userSub);
+    }
+
     @GetMapping("/boek/{bookId}")
     public ResponseEntity<List<LoanDto>> getLoansForBook(
             @PathVariable Long bookId,
