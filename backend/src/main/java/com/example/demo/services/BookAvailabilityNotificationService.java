@@ -74,6 +74,7 @@ public class BookAvailabilityNotificationService {
                 })
                 .doOnSuccess(response -> {
                     wishlist.setLastNotifiedAt(LocalDateTime.now());
+                    wishlist.setNotificationEnabled(false);
                     wishlistRepository.save(wishlist);
                     logger.info("Notification sent successfully to user: {} for book: {}",
                             wishlist.getUser().getId(), wishlist.getBook().getTitel());

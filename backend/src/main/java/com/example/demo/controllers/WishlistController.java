@@ -127,6 +127,9 @@ public class WishlistController {
             }
 
             wishlist.setNotificationEnabled(dto.isNotificationEnabled());
+            if (dto.isNotificationEnabled()) {
+                wishlist.setLastNotifiedAt(null);
+            }
             Wishlist updated = wishlistRepository.save(wishlist);
             long totalCopies = bookCopyRepository.countByBook_Id(updated.getBook().getId());
             long availableCopies = bookCopyRepository.countByBook_IdAndStatus(
