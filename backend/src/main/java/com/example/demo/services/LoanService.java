@@ -4,7 +4,9 @@ import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
+import com.example.demo.entities.LoanHistory;
 import com.example.demo.repositories.BookCopyRepository;
+import com.example.demo.repositories.LoanHistoryRepository;
 import com.example.demo.repositories.LoanRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,12 +24,14 @@ public class LoanService {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanService.class);
     private final LoanRepository loanRepo;
+    private final LoanHistoryRepository loanHistoryRepo;
     private final BookCopyRepository copyRepo;
     private final BookAvailabilityNotificationService bookAvailabilityNotificationService;
 
-    public LoanService(LoanRepository loanRepo, BookCopyRepository copyRepo,
+    public LoanService(LoanRepository loanRepo, LoanHistoryRepository loanHistoryRepo, BookCopyRepository copyRepo,
             BookAvailabilityNotificationService bookAvailabilityNotificationService) {
         this.loanRepo = loanRepo;
+        this.loanHistoryRepo = loanHistoryRepo;
         this.copyRepo = copyRepo;
         this.bookAvailabilityNotificationService = bookAvailabilityNotificationService;
     }
@@ -84,13 +90,15 @@ public class LoanService {
             throw new IllegalStateException("Boek al teruggegeven");
         }
 
+        LocalDate returnedAt = LocalDate.now();
+
         // Count available copies BEFORE marking this one available aka a kind of
         // snapshot to check if the book just became available after this return
         long availableCopiesBefore = copyRepo.countByBook_IdAndStatus(
                 loan.getCopy().getBook().getId(),
                 BookCopy.CopyStatus.AVAILABLE);
 
-        loan.setReturnedAt(LocalDate.now());
+        loan.setReturnedAt(returnedAt);
         loan.getCopy().setStatus(BookCopy.CopyStatus.AVAILABLE);
         copyRepo.save(loan.getCopy());
 
@@ -99,7 +107,21 @@ public class LoanService {
             bookAvailabilityNotificationService.notifyWishlistersThatBookIsAvailable(loan.getCopy().getBook());
         }
 
-        return toDto(loanRepo.save(loan));
+        LoanHistory history = new LoanHistory();
+        history.setLoanId(loan.getId());
+        history.setCopyId(loan.getCopy().getId());
+        history.setBookId(loan.getCopy().getBook().getId());
+        history.setBookTitel(loan.getCopy().getBook().getTitel());
+        history.setBookCover(loan.getCopy().getBook().getCover());
+        history.setUserSub(loan.getUserSub());
+        history.setLoanedAt(loan.getLoanedAt());
+        history.setDueDate(loan.getDueDate());
+        history.setReturnedAt(returnedAt);
+
+        LoanHistory savedHistory = loanHistoryRepo.save(history);
+        loanRepo.delete(loan);
+
+        return toDto(savedHistory);
     }
 
     public List<LoanDto> getActiveLoansForUser(String userSub) {
@@ -108,8 +130,18 @@ public class LoanService {
     }
 
     public List<LoanDto> getLoanHistoryForUser(String userSub) {
-        return loanRepo.findByUserSubAndReturnedAtIsNotNull(userSub)
-                .stream().map(this::toDto).collect(Collectors.toList());
+        List<LoanDto> history = new ArrayList<>(loanHistoryRepo.findByUserSubOrderByReturnedAtDesc(userSub)
+            .stream().map(this::toDto).collect(Collectors.toList()));
+
+        // Keep older returned rows from loans visible during transition.
+        history.addAll(loanRepo.findByUserSubAndReturnedAtIsNotNull(userSub)
+            .stream().map(this::toDto).collect(Collectors.toList()));
+
+        history.sort(
+            Comparator.comparing(LoanDto::getReturnedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(LoanDto::getLoanedAt, Comparator.nullsLast(Comparator.reverseOrder())));
+
+        return history;
     }
 
     public List<LoanDto> getActiveLoansForBook(Long bookId) {
@@ -128,6 +160,20 @@ public class LoanService {
         dto.setLoanedAt(loan.getLoanedAt());
         dto.setDueDate(loan.getDueDate());
         dto.setReturnedAt(loan.getReturnedAt());
+        return dto;
+    }
+
+    private LoanDto toDto(LoanHistory history) {
+        LoanDto dto = new LoanDto();
+        dto.setId(history.getLoanId() != null ? history.getLoanId() : history.getId());
+        dto.setCopyId(history.getCopyId());
+        dto.setBookId(history.getBookId());
+        dto.setBookTitel(history.getBookTitel());
+        dto.setBookCover(history.getBookCover());
+        dto.setUserSub(history.getUserSub());
+        dto.setLoanedAt(history.getLoanedAt());
+        dto.setDueDate(history.getDueDate());
+        dto.setReturnedAt(history.getReturnedAt());
         return dto;
     }
 }
