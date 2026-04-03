@@ -265,7 +265,9 @@ export class LoanPageComponent implements OnInit {
     }
   }
 
-  async returnLoan(loan: Loan) {
+  async returnLoan(loan: Loan, event?: MouseEvent) {
+    event?.stopPropagation();
+    event?.preventDefault();
     try {
       await this.loanService.returnLoan(loan.id);
       this.activeLoans = this.activeLoans.filter((l) => l.id !== loan.id);

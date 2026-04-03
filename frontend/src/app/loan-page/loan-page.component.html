@@ -153,7 +153,11 @@
                     <span class="overdue-tag">Te laat</span>
                   }
                 </span>
-                <button class="return-btn" (click)="returnLoan(loan)">
+                <button
+                  type="button"
+                  class="return-btn"
+                  (click)="returnLoan(loan, $event)"
+                >
                   ✓ Teruggebracht
                 </button>
               </li>
