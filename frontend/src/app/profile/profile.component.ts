@@ -5,6 +5,7 @@ import { HttpClient } from "@angular/common/http";
 import { Subscription } from "rxjs";
 import { SmartschoolService } from "../services/smartschool.service";
 import { BookService } from "../services/book.service";
+import { LoanService } from "../services/loan.service";
 
 type ProfileBookCard = {
   title: string;
@@ -47,9 +48,8 @@ export class ProfileComponent {
 
   wishlistBooks: ProfileBookCard[] = [];
   favoriteBooks: ProfileBookCard[] = [];
-  readingHistory: ProfileBookCard[] = [
-    { title: "Book Three", loanedDate: new Date(), cover: "", id: 3 },
-  ];
+  readingHistory: ProfileBookCard[] = [];
+  readingHistoryLoading = false;
   borrowedBooks: ProfileBookCard[] = [
     { title: "Book Four", deadline: new Date(), cover: "", id: 4 },
   ];
@@ -71,6 +71,7 @@ export class ProfileComponent {
     private smartschoolService: SmartschoolService,
     private http: HttpClient,
     private bookService: BookService,
+    private loanService: LoanService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -81,8 +82,11 @@ export class ProfileComponent {
     }
 
     if (this.showSections) {
-      await this.loadWishlistBooks();
-      await this.loadFavoriteBooks();
+      await Promise.all([
+        this.loadWishlistBooks(),
+        this.loadFavoriteBooks(),
+        this.loadReadingHistory(),
+      ]);
       this.cdr.detectChanges();
       this.wishlistChangedSub = this.bookService.wishlistChanged$.subscribe(
         () => {
@@ -94,6 +98,23 @@ export class ProfileComponent {
           this.loadFavoriteBooks();
         },
       );
+    }
+  }
+
+  private async loadReadingHistory() {
+    this.readingHistoryLoading = true;
+    try {
+      const history = await this.loanService.getMyLoanHistory();
+      this.readingHistory = history.map((loan) => ({
+        id: loan.bookId,
+        title: loan.bookTitel,
+        cover: loan.bookCover || "",
+        loanedDate: loan.loanedAt ? new Date(loan.loanedAt) : undefined,
+      }));
+    } catch {
+      this.readingHistory = [];
+    } finally {
+      this.readingHistoryLoading = false;
     }
   }
 
