@@ -37,10 +37,6 @@ public class LoanController {
         return value == null ? "" : value.trim();
     }
 
-    private boolean isSelf(String requestedSub, String currentSub) {
-        return !requestedSub.isEmpty() && requestedSub.equals(currentSub);
-    }
-
     @PostMapping
     public ResponseEntity<LoanDto> createLoan(
             @Valid @RequestBody CreateLoanRequest request,
@@ -79,35 +75,17 @@ public class LoanController {
     }
 
     @GetMapping("/gebruiker/{sub}")
-    public ResponseEntity<List<LoanDto>> getActiveLoans(
-            @PathVariable("sub") String userSub,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
-            @RequestHeader(value = "X-User-Sub", required = false) String currentUserSubHeader) {
-        String requestedSub = normalize(userSub);
-        String currentUserSub = normalize(currentUserSubHeader);
-
-        if (currentUserSub.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        if (!canLoan(userRole) && !isSelf(requestedSub, currentUserSub)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        return ResponseEntity.ok(loanService.getActiveLoansForUser(requestedSub));
+    public List<LoanDto> getActiveLoans(@PathVariable("sub") String userSub) {
+        return loanService.getActiveLoansForUser(userSub);
     }
 
     @GetMapping("/gebruiker/{sub}/historiek")
     public ResponseEntity<List<LoanDto>> getLoanHistory(
             @PathVariable("sub") String userSub,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
-            @RequestHeader(value = "X-User-Sub", required = false) String currentUserSubHeader) {
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
         String requestedSub = normalize(userSub);
-        String currentUserSub = normalize(currentUserSubHeader);
 
-        if (currentUserSub.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        if (!isAdmin(userRole) && !isSelf(requestedSub, currentUserSub)) {
+        if (!isAdmin(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

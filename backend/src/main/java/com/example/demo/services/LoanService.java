@@ -131,15 +131,15 @@ public class LoanService {
 
     public List<LoanDto> getLoanHistoryForUser(String userSub) {
         List<LoanDto> history = new ArrayList<>(loanHistoryRepo.findByUserSubOrderByReturnedAtDesc(userSub)
-            .stream().map(this::toDto).collect(Collectors.toList()));
+                .stream().map(this::toDto).collect(Collectors.toList()));
 
         // Keep older returned rows from loans visible during transition.
         history.addAll(loanRepo.findByUserSubAndReturnedAtIsNotNull(userSub)
-            .stream().map(this::toDto).collect(Collectors.toList()));
+                .stream().map(this::toDto).collect(Collectors.toList()));
 
         history.sort(
-            Comparator.comparing(LoanDto::getReturnedAt, Comparator.nullsLast(Comparator.reverseOrder()))
-                .thenComparing(LoanDto::getLoanedAt, Comparator.nullsLast(Comparator.reverseOrder())));
+                Comparator.comparing(LoanDto::getReturnedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(LoanDto::getLoanedAt, Comparator.nullsLast(Comparator.reverseOrder())));
 
         return history;
     }
