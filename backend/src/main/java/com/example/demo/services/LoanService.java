@@ -6,6 +6,8 @@ import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 @Service
 public class LoanService {
 
+    private static final Logger logger = LoggerFactory.getLogger(LoanService.class);
     private final LoanRepository loanRepo;
     private final BookCopyRepository copyRepo;
     private final BookAvailabilityNotificationService bookAvailabilityNotificationService;
@@ -29,14 +32,36 @@ public class LoanService {
 
     @Transactional
     public LoanDto createLoan(CreateLoanRequest request) {
-        BookCopy copy = copyRepo.findByBook_Id(request.getBookId())
+        logger.info("Creating loan: bookId={}, userSub={}, dueDate={}",
+                request.getBookId(), request.getUserSub(), request.getDueDate());
+
+        if (request.getBookId() == null) {
+            logger.error("Invalid loan request: bookId is null");
+            throw new IllegalArgumentException("Book ID is required");
+        }
+        if (request.getUserSub() == null || request.getUserSub().isBlank()) {
+            logger.error("Invalid loan request: userSub is empty");
+            throw new IllegalArgumentException("User sub is required");
+        }
+        if (request.getDueDate() == null) {
+            logger.error("Invalid loan request: dueDate is null");
+            throw new IllegalArgumentException("Due date is required");
+        }
+
+        List<BookCopy> availableCopies = copyRepo.findByBook_Id(request.getBookId())
                 .stream()
                 .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Geen beschikbare exemplaren"));
+                .collect(Collectors.toList());
 
+        if (availableCopies.isEmpty()) {
+            logger.warn("No available copies for bookId={}", request.getBookId());
+            throw new IllegalStateException("Geen beschikbare exemplaren");
+        }
+
+        BookCopy copy = availableCopies.get(0);
         copy.setStatus(BookCopy.CopyStatus.LOANED);
         copyRepo.save(copy);
+        logger.info("Marked copy {} as LOANED", copy.getId());
 
         Loan loan = new Loan();
         loan.setCopy(copy);
@@ -44,7 +69,10 @@ public class LoanService {
         loan.setLoanedAt(LocalDate.now());
         loan.setDueDate(request.getDueDate());
 
-        return toDto(loanRepo.save(loan));
+        Loan savedLoan = loanRepo.save(loan);
+        logger.info("Loan created: id={}, bookId={}, userSub={}", savedLoan.getId(), request.getBookId(),
+                request.getUserSub());
+        return toDto(savedLoan);
     }
 
     @Transactional
