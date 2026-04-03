@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -82,6 +83,20 @@ public class GlobalExceptionHandler {
                                 request.getRequestURI(),
                                 "BUSINESS_RULE_VIOLATION");
                 return ResponseEntity.badRequest().body(body);
+        }
+
+        @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+        public ResponseEntity<ErrorResponse> handleMethodNotSupported(
+                        HttpRequestMethodNotSupportedException ex,
+                        HttpServletRequest request) {
+                String message = ex.getMessage() != null ? ex.getMessage() : "Request method is not supported.";
+                ErrorResponse body = ErrorResponse.of(
+                                message,
+                                HttpStatus.METHOD_NOT_ALLOWED.value(),
+                                HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase(),
+                                request.getRequestURI(),
+                                "METHOD_NOT_ALLOWED");
+                return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(body);
         }
 
         @ExceptionHandler(Exception.class)
