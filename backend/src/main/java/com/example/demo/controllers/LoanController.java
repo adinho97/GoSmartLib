@@ -62,6 +62,17 @@ public class LoanController {
     public ResponseEntity<LoanDto> returnLoan(
             @PathVariable Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        return processReturnLoan(id, userRole);
+    }
+
+    @PostMapping("/{id}/teruggeven")
+    public ResponseEntity<LoanDto> returnLoanPost(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        return processReturnLoan(id, userRole);
+    }
+
+    private ResponseEntity<LoanDto> processReturnLoan(Long id, String userRole) {
         if (!canLoan(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

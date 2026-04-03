@@ -44,12 +44,17 @@ export class LoanService {
   }
 
   async returnLoan(loanId: number): Promise<Loan> {
-    const res = await axios.put(
-      `${this.api}/${loanId}/teruggeven`,
-      {},
-      this.headers(),
-    );
-    return res.data;
+    const url = `${this.api}/${loanId}/teruggeven`;
+    try {
+      const res = await axios.put(url, {}, this.headers());
+      return res.data;
+    } catch (error: any) {
+      if (error?.response?.status === 405) {
+        const res = await axios.post(url, {}, this.headers());
+        return res.data;
+      }
+      throw error;
+    }
   }
 
   async getActiveLoans(userSub: string): Promise<Loan[]> {
