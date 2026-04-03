@@ -65,6 +65,11 @@ export class LoanService {
     return res.data;
   }
 
+  async getMyLoanHistory(): Promise<Loan[]> {
+    const res = await axios.get(`${this.api}/mijn/historiek`, this.headers());
+    return res.data;
+  }
+
   async getLoansForBook(bookId: number): Promise<Loan[]> {
     const res = await axios.get(`${this.api}/boek/${bookId}`, this.headers());
     return res.data;

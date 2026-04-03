@@ -114,6 +114,16 @@ public class LoanController {
         return ResponseEntity.ok(loanService.getLoanHistoryForUser(requestedSub));
     }
 
+    @GetMapping("/mijn/historiek")
+    public ResponseEntity<List<LoanDto>> getMyLoanHistory(
+            @RequestHeader(value = "X-User-Sub", required = false) String currentUserSubHeader) {
+        String currentUserSub = normalize(currentUserSubHeader);
+        if (currentUserSub.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(loanService.getLoanHistoryForUser(currentUserSub));
+    }
+
     @GetMapping("/boek/{bookId}")
     public ResponseEntity<List<LoanDto>> getLoansForBook(
             @PathVariable Long bookId,
