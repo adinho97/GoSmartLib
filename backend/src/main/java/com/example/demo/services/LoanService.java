@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -130,18 +128,8 @@ public class LoanService {
     }
 
     public List<LoanDto> getLoanHistoryForUser(String userSub) {
-        List<LoanDto> history = new ArrayList<>(loanHistoryRepo.findByUserSubOrderByReturnedAtDesc(userSub)
-                .stream().map(this::toDto).collect(Collectors.toList()));
-
-        // Keep older returned rows from loans visible during transition.
-        history.addAll(loanRepo.findByUserSubAndReturnedAtIsNotNull(userSub)
-                .stream().map(this::toDto).collect(Collectors.toList()));
-
-        history.sort(
-                Comparator.comparing(LoanDto::getReturnedAt, Comparator.nullsLast(Comparator.reverseOrder()))
-                        .thenComparing(LoanDto::getLoanedAt, Comparator.nullsLast(Comparator.reverseOrder())));
-
-        return history;
+        return loanHistoryRepo.findByUserSubOrderByReturnedAtDesc(userSub)
+            .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     public List<LoanDto> getActiveLoansForBook(Long bookId) {
