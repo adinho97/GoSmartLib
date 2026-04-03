@@ -5,6 +5,7 @@ import com.example.demo.dto.WishlistDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Wishlist;
+import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.WishlistRepository;
@@ -19,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -84,7 +84,7 @@ class WishlistControllerTest {
     }
 
     @Test
-    void updateWishlist_ShouldReturnBadRequest_WhenEnablingAndBookIsAvailable() {
+    void updateWishlist_ShouldThrowIllegalState_WhenEnablingAndBookIsAvailable() {
         Book book = new Book();
         book.setId(12L);
 
@@ -98,21 +98,25 @@ class WishlistControllerTest {
         when(wishlistRepository.findById(7L)).thenReturn(Optional.of(wishlist));
         when(bookCopyRepository.countByBook_IdAndStatus(12L, BookCopy.CopyStatus.AVAILABLE)).thenReturn(2L);
 
-        ResponseEntity<?> response = wishlistController.updateWishlist(7L, dto, "test-sub");
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> wishlistController.updateWishlist(7L, dto, "test-sub"));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertInstanceOf(Map.class, response.getBody());
+        assertEquals("Cannot enable notifications for available book", ex.getMessage());
         verify(wishlistRepository, never()).save(any());
     }
 
     @Test
-    void updateWishlist_ShouldReturnUnauthorized_WhenUserSubMissing() {
+    void updateWishlist_ShouldThrowApiException_WhenUserSubMissing() {
         WishlistDto dto = new WishlistDto();
         dto.setNotificationEnabled(true);
 
-        ResponseEntity<?> response = wishlistController.updateWishlist(1L, dto, "");
+        ApiException ex = assertThrows(
+                ApiException.class,
+                () -> wishlistController.updateWishlist(1L, dto, ""));
 
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatus());
+        assertEquals("UNAUTHORIZED", ex.getCode());
         verifyNoInteractions(wishlistRepository, bookCopyRepository);
     }
 }

@@ -58,6 +58,32 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.badRequest().body(body);
         }
 
+        @ExceptionHandler(IllegalArgumentException.class)
+        public ResponseEntity<ErrorResponse> handleIllegalArgument(
+                        IllegalArgumentException ex,
+                        HttpServletRequest request) {
+                ErrorResponse body = ErrorResponse.of(
+                                ex.getMessage(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                                request.getRequestURI(),
+                                "BAD_REQUEST");
+                return ResponseEntity.badRequest().body(body);
+        }
+
+        @ExceptionHandler(IllegalStateException.class)
+        public ResponseEntity<ErrorResponse> handleIllegalState(
+                        IllegalStateException ex,
+                        HttpServletRequest request) {
+                ErrorResponse body = ErrorResponse.of(
+                                ex.getMessage(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                                request.getRequestURI(),
+                                "BUSINESS_RULE_VIOLATION");
+                return ResponseEntity.badRequest().body(body);
+        }
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErrorResponse> handleGeneric(
                         Exception ex,
