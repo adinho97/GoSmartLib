@@ -420,26 +420,32 @@
                 <h3 class="section-title">Ontleenhistoriek</h3>
                 <span class="section-count">{{ readingHistory.length }}</span>
               </div>
-              <div class="horizontal-scroll-wrapper">
-                @for (book of readingHistory; track book) {
-                  <article
-                    class="profile-book-card"
-                    (click)="goToDetail(book.id)"
-                  >
-                    @if (book.cover) {
-                      <div class="book-cover"><img [src]="book.cover" /></div>
-                    } @else {
-                      <div class="cover-placeholder">Geen cover</div>
-                    }
-                    <div class="book-content">
-                      <h4>{{ book.title }}</h4>
-                      <div class="book-meta">
-                        Ontleend op {{ book.loanedDate | date }}
+              @if (readingHistoryLoading) {
+                <div class="inline-empty">Historiek laden...</div>
+              } @else if (readingHistory.length === 0) {
+                <div class="inline-empty">Nog geen ontleenhistoriek.</div>
+              } @else {
+                <div class="horizontal-scroll-wrapper">
+                  @for (book of readingHistory; track book) {
+                    <article
+                      class="profile-book-card"
+                      (click)="goToDetail(book.id)"
+                    >
+                      @if (book.cover) {
+                        <div class="book-cover"><img [src]="book.cover" /></div>
+                      } @else {
+                        <div class="cover-placeholder">Geen cover</div>
+                      }
+                      <div class="book-content">
+                        <h4>{{ book.title }}</h4>
+                        <div class="book-meta">
+                          Ontleend op {{ book.loanedDate | date }}
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                }
-              </div>
+                    </article>
+                  }
+                </div>
+              }
             </section>
           }
         </div>
