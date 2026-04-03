@@ -29,6 +29,18 @@ public class LoanController {
                 .anyMatch(r -> r.equalsIgnoreCase(userRole));
     }
 
+    private boolean isAdmin(String userRole) {
+        return userRole != null && "bibbeheerder".equalsIgnoreCase(userRole);
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private boolean isSelf(String requestedSub, String currentSub) {
+        return !requestedSub.isEmpty() && requestedSub.equals(currentSub);
+    }
+
     @PostMapping
     public ResponseEntity<LoanDto> createLoan(
             @Valid @RequestBody CreateLoanRequest request,
@@ -67,13 +79,39 @@ public class LoanController {
     }
 
     @GetMapping("/gebruiker/{sub}")
-    public List<LoanDto> getActiveLoans(@PathVariable("sub") String userSub) {
-        return loanService.getActiveLoansForUser(userSub);
+    public ResponseEntity<List<LoanDto>> getActiveLoans(
+            @PathVariable("sub") String userSub,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String currentUserSubHeader) {
+        String requestedSub = normalize(userSub);
+        String currentUserSub = normalize(currentUserSubHeader);
+
+        if (currentUserSub.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (!canLoan(userRole) && !isSelf(requestedSub, currentUserSub)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(loanService.getActiveLoansForUser(requestedSub));
     }
 
     @GetMapping("/gebruiker/{sub}/historiek")
-    public List<LoanDto> getLoanHistory(@PathVariable("sub") String userSub) {
-        return loanService.getLoanHistoryForUser(userSub);
+    public ResponseEntity<List<LoanDto>> getLoanHistory(
+            @PathVariable("sub") String userSub,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String currentUserSubHeader) {
+        String requestedSub = normalize(userSub);
+        String currentUserSub = normalize(currentUserSubHeader);
+
+        if (currentUserSub.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (!isAdmin(userRole) && !isSelf(requestedSub, currentUserSub)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(loanService.getLoanHistoryForUser(requestedSub));
     }
 
     @GetMapping("/boek/{bookId}")

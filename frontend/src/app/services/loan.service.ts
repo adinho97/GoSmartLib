@@ -20,7 +20,14 @@ export class LoanService {
   private copyApi = "/api/exemplaren";
 
   private headers() {
-    return { headers: { "X-User-Role": localStorage.getItem("role") || "" } };
+    const userSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    return {
+      headers: {
+        "X-User-Role": localStorage.getItem("role") || "",
+        "X-User-Sub": userSub,
+      },
+    };
   }
 
   async createLoan(
@@ -46,12 +53,15 @@ export class LoanService {
   }
 
   async getActiveLoans(userSub: string): Promise<Loan[]> {
-    const res = await axios.get(`${this.api}/gebruiker/${userSub}`);
+    const res = await axios.get(`${this.api}/gebruiker/${userSub}`, this.headers());
     return res.data;
   }
 
   async getLoanHistory(userSub: string): Promise<Loan[]> {
-    const res = await axios.get(`${this.api}/gebruiker/${userSub}/historiek`);
+    const res = await axios.get(
+      `${this.api}/gebruiker/${userSub}/historiek`,
+      this.headers(),
+    );
     return res.data;
   }
 
