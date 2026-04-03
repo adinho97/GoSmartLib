@@ -43,6 +43,7 @@ export class LoanPageComponent implements OnInit {
   searchQuery = "";
   selectedBooks: BookOption[] = [];
   activeLoans: Loan[] = [];
+  loanHistory: Loan[] = [];
 
   // Stap 3
   dueDate = "";
@@ -142,15 +143,34 @@ export class LoanPageComponent implements OnInit {
     }
     this.step = "boeken";
     this.loadActiveLoansForUser();
+    this.loadLoanHistoryForUser();
   }
 
   async loadActiveLoansForUser() {
+    if (!this.selectedLeerling) {
+      this.activeLoans = [];
+      return;
+    }
     try {
       this.activeLoans = await this.loanService.getActiveLoans(
-        this.selectedLeerling!.sub,
+        this.selectedLeerling.sub,
       );
     } catch {
       this.activeLoans = [];
+    }
+  }
+
+  async loadLoanHistoryForUser() {
+    if (!this.selectedLeerling) {
+      this.loanHistory = [];
+      return;
+    }
+    try {
+      this.loanHistory = await this.loanService.getLoanHistory(
+        this.selectedLeerling.sub,
+      );
+    } catch {
+      this.loanHistory = [];
     }
   }
 
@@ -250,6 +270,7 @@ export class LoanPageComponent implements OnInit {
       await this.loanService.returnLoan(loan.id);
       this.activeLoans = this.activeLoans.filter((l) => l.id !== loan.id);
       this.successMessage = `Boek "${loan.bookTitel}" teruggebracht.`;
+      await this.loadLoanHistoryForUser();
       await this.loadBooks();
     } catch {
       this.errorMessage = "Terugbrengen mislukt.";
@@ -264,6 +285,8 @@ export class LoanPageComponent implements OnInit {
     if (this.step === "boeken") {
       this.step = "leerling";
       this.selectedBooks = [];
+      this.loanHistory = [];
+      this.activeLoans = [];
       this.errorMessage = "";
     } else if (this.step === "bevestiging") {
       this.step = "boeken";

@@ -162,6 +162,32 @@
         </div>
       }
 
+      <!-- Historiek van deze leerling -->
+      @if (loanHistory.length > 0) {
+        <div class="active-loans-section">
+          <h3>Ontleenhistoriek van {{ selectedLeerling?.displayName }}</h3>
+          <ul class="loans-list">
+            @for (loan of loanHistory; track loan.id) {
+              <li class="loan-row">
+                <div class="loan-book-info">
+                  @if (loan.bookCover) {
+                    <img
+                      [src]="loan.bookCover"
+                      [alt]="loan.bookTitel"
+                      class="loan-cover"
+                    />
+                  }
+                  <span class="loan-title">{{ loan.bookTitel }}</span>
+                </div>
+                <span class="loan-due">
+                  terug op {{ loan.returnedAt | date: "dd/MM/yyyy" }}
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
       <!-- Zoekbalk -->
       <div class="search-bar">
         <input
