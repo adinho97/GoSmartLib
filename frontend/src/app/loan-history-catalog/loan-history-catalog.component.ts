@@ -4,6 +4,11 @@ import { LoanService, Loan } from "../services/loan.service";
 
 type Tab = "students" | "books";
 
+interface StudentOption {
+  sub: string;
+  displayName: string;
+}
+
 @Component({
   selector: "app-loan-history-catalog",
   templateUrl: "./loan-history-catalog.component.html",
@@ -15,10 +20,12 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   // Students tab
   studentSearch = "";
-  selectedStudentSub = "";
-  selectedStudentName = "";
+  allStudents: StudentOption[] = [];
+  filteredStudents: StudentOption[] = [];
+  selectedStudent: StudentOption | null = null;
   studentHistory: Loan[] = [];
   studentLoading = false;
+  studentsLoadingError = "";
   studentError = "";
   readonly historyPageSize = 5;
   currentHistoryPage = 1;
@@ -28,7 +35,9 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   constructor(private loanService: LoanService) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.loadAllStudents();
+  }
 
   switchTab(tab: Tab) {
     this.currentTab = tab;
@@ -38,35 +47,62 @@ export class LoanHistoryCatalogComponent implements OnInit {
   resetSearches() {
     this.studentSearch = "";
     this.bookSearch = "";
-    this.selectedStudentSub = "";
-    this.selectedStudentName = "";
+    this.selectedStudent = null;
     this.studentHistory = [];
     this.studentError = "";
     this.currentHistoryPage = 1;
+    this.filteredStudents = [...this.allStudents];
   }
 
-  async searchStudent() {
-    if (!this.studentSearch.trim()) {
-      this.studentError = "Voer alstublieft een student sub in.";
-      return;
+  private async loadAllStudents() {
+    try {
+      const res = await axios.get("/api/gebruikers/leerlingen");
+      const students = (res.data || []) as Array<{ sub: string }>;
+      const enriched = await Promise.all(
+        students.map(async (student) => ({
+          sub: student.sub,
+          displayName: await this.getDisplayNameForSub(student.sub),
+        })),
+      );
+      this.allStudents = enriched;
+      this.filteredStudents = [...this.allStudents];
+    } catch (err) {
+      console.error("Error loading students", err);
+      this.studentsLoadingError = "Fout bij ophalen van leerlingen.";
     }
+  }
+
+  onStudentSearchInput() {
+    const query = this.studentSearch.trim().toLowerCase();
+    this.filteredStudents = query
+      ? this.allStudents.filter(
+          (s) =>
+            s.displayName.toLowerCase().includes(query) ||
+            s.sub.toLowerCase().includes(query),
+        )
+      : [...this.allStudents];
+  }
+
+  async selectStudent(student: StudentOption) {
+    this.selectedStudent = student;
+    this.studentSearch = student.displayName;
+    this.studentHistory = [];
+    this.studentError = "";
+    this.currentHistoryPage = 1;
+    this.filteredStudents = [];
+    await this.loadStudentHistory();
+  }
+
+  private async loadStudentHistory() {
+    if (!this.selectedStudent) return;
 
     this.studentLoading = true;
     this.studentError = "";
-    this.studentHistory = [];
 
     try {
-      this.selectedStudentSub = this.studentSearch.trim();
-      
-      // Fetch history and name in parallel for efficiency
-      const [history, name] = await Promise.all([
-        this.loanService.getLoanHistory(this.selectedStudentSub),
-        this.getDisplayNameForSub(this.selectedStudentSub),
-      ]);
-      
-      this.studentHistory = history;
-      this.selectedStudentName = name;
-      
+      this.studentHistory = await this.loanService.getLoanHistory(
+        this.selectedStudent.sub,
+      );
       if (this.studentHistory.length === 0) {
         this.studentError = "Geen uitleenhistoriek gevonden voor deze student.";
       }
@@ -75,9 +111,10 @@ export class LoanHistoryCatalogComponent implements OnInit {
       this.studentHistory = [];
     } finally {
       this.studentLoading = false;
-      this.currentHistoryPage = 1;
     }
   }
+
+
 
   get totalHistoryPages(): number {
     return Math.max(
@@ -93,6 +130,10 @@ export class LoanHistoryCatalogComponent implements OnInit {
   get pagedStudentHistory(): Loan[] {
     const start = (this.currentHistoryPage - 1) * this.historyPageSize;
     return this.studentHistory.slice(start, start + this.historyPageSize);
+  }
+
+  get showStudentDropdown(): boolean {
+    return this.studentSearch.length > 0 && this.filteredStudents.length > 0;
   }
 
   private async getDisplayNameForSub(sub: string): Promise<string> {

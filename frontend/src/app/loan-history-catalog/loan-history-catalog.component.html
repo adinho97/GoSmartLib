@@ -29,31 +29,52 @@
     <div class="tab-content">
       <div class="search-section">
         <h2>Zoek leerling</h2>
-        <div class="search-row">
-          <input
-            type="text"
-            placeholder="Voer student sub in..."
-            [(ngModel)]="studentSearch"
-            (keyup.enter)="searchStudent()"
-            class="search-input"
-          />
-          <button type="button" class="search-btn" (click)="searchStudent()">
-            Zoeken
-          </button>
-        </div>
-        @if (studentError) {
-          <div class="error-message">{{ studentError }}</div>
+        @if (studentsLoadingError) {
+          <div class="error-message">{{ studentsLoadingError }}</div>
         }
+        <div class="search-row">
+          <div class="search-input-wrapper">
+            <input
+              type="text"
+              placeholder="Voer naam of student ID in..."
+              [(ngModel)]="studentSearch"
+              (input)="onStudentSearchInput()"
+              class="search-input"
+            />
+            @if (showStudentDropdown) {
+              <div class="student-dropdown">
+                @for (student of filteredStudents.slice(0, 10); track student.sub) {
+                  <button
+                    type="button"
+                    class="dropdown-item"
+                    (click)="selectStudent(student)"
+                  >
+                    {{ student.displayName }}
+                  </button>
+                }
+                @if (filteredStudents.length > 10) {
+                  <div class="dropdown-more">
+                    +{{ filteredStudents.length - 10 }} meer resultaten
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
       </div>
 
-      @if (selectedStudentSub) {
+      @if (selectedStudent) {
         <div class="results-section">
           <div class="result-header">
-            <h3>Historiek van {{ selectedStudentName }}</h3>
+            <h3>Historiek van {{ selectedStudent.displayName }}</h3>
             @if (studentLoading) {
               <span class="loading-text">Laden...</span>
             }
           </div>
+
+          @if (studentError && studentHistory.length === 0) {
+            <div class="error-message">{{ studentError }}</div>
+          }
 
           @if (studentHistory.length > 0) {
             <div>
