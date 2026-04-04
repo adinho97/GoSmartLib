@@ -13,6 +13,7 @@ import { EditBookComponent } from "./edit-book/edit-book.component";
 import { AddBarcodeComponent } from "./add-barcode/add-barcode.component";
 import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
+import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
@@ -76,6 +77,12 @@ export const appRoutes: Routes = [
   {
   path: 'uitleen',
   component: LoanPageComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ['leerkracht', 'bibbeheerder'] },
+},
+{
+  path: 'uitleen-catalogus',
+  component: LoanHistoryCatalogComponent,
   canActivate: [AuthGuard],
   data: { roles: ['leerkracht', 'bibbeheerder'] },
 },

@@ -16,6 +16,7 @@ import { DetailComponent } from './detail/detail.component';
 import { ProfileComponent } from './profile/profile.component';
 import { GeneralAddComponent } from './general-add/general-add.component';
 import { LoanPageComponent } from "./loan-page/loan-page.component";
+import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import { LoanPageComponent } from "./loan-page/loan-page.component";
     DetailComponent,
     BookListComponent,
     ProfileComponent,
-    LoanPageComponent
+    LoanPageComponent,
+    LoanHistoryCatalogComponent
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule, AddBarcodeComponent],
   providers: [provideHttpClient()],
