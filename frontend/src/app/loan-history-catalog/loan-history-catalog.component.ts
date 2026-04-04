@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import axios from "axios";
 import { LoanService, Loan } from "../services/loan.service";
 
 type Tab = "students" | "books";
@@ -56,12 +57,15 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
     try {
       this.selectedStudentSub = this.studentSearch.trim();
-      this.studentHistory = await this.loanService.getLoanHistory(
-        this.selectedStudentSub,
-      );
       
-      // Try to get student name from logged in users or use sub as fallback
-      this.selectedStudentName = this.selectedStudentSub;
+      // Fetch history and name in parallel for efficiency
+      const [history, name] = await Promise.all([
+        this.loanService.getLoanHistory(this.selectedStudentSub),
+        this.getDisplayNameForSub(this.selectedStudentSub),
+      ]);
+      
+      this.studentHistory = history;
+      this.selectedStudentName = name;
       
       if (this.studentHistory.length === 0) {
         this.studentError = "Geen uitleenhistoriek gevonden voor deze student.";
@@ -89,6 +93,23 @@ export class LoanHistoryCatalogComponent implements OnInit {
   get pagedStudentHistory(): Loan[] {
     const start = (this.currentHistoryPage - 1) * this.historyPageSize;
     return this.studentHistory.slice(start, start + this.historyPageSize);
+  }
+
+  private async getDisplayNameForSub(sub: string): Promise<string> {
+    try {
+      const response = await axios.get(`/api/users/${encodeURIComponent(sub)}/profile`);
+      const userInfo = response.data as any;
+      
+      // Try multiple field combinations for maximum compatibility
+      const fullname = userInfo.fullname || 
+        `${userInfo.name || ''} ${userInfo.surname || ''}`.trim();
+      
+      return (fullname || userInfo.name || userInfo.givenName || userInfo.given_name || 
+              userInfo.familyName || userInfo.sub || '').trim() || sub;
+    } catch {
+      // Gracefully fallback to sub if API fails
+      return sub;
+    }
   }
 
   goToHistoryPage(page: number) {
