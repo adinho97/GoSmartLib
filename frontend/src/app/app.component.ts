@@ -1,6 +1,7 @@
-import { Component, HostListener } from "@angular/core";
-import { Router } from "@angular/router";
+import { Component, HostListener, ChangeDetectorRef, OnInit } from "@angular/core";
+import { Router, NavigationEnd } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
+import { filter } from "rxjs/operators";
 
 @Component({
   selector: "app-root",
@@ -8,10 +9,22 @@ import { HttpClient } from "@angular/common/http";
   styleUrls: ["./app.component.css"],
   standalone: false,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   profileMenuOpen = false;
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+    private changeDetectorRef: ChangeDetectorRef,
+  ) {}
+
+  ngOnInit(): void {
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.changeDetectorRef.markForCheck();
+      });
+  }
 
   private get currentUrl(): string {
     return (this.router.url || "").toLowerCase();
