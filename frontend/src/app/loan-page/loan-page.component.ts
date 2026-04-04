@@ -45,6 +45,8 @@ export class LoanPageComponent implements OnInit {
   activeLoans: Loan[] = [];
   loanHistory: Loan[] = [];
   showHistory = false;
+  readonly historyPageSize = 5;
+  currentHistoryPage = 1;
 
   // Stap 3
   dueDate = "";
@@ -144,6 +146,7 @@ export class LoanPageComponent implements OnInit {
     }
     this.step = "boeken";
     this.showHistory = false;
+    this.currentHistoryPage = 1;
     this.loadActiveLoansForUser();
     this.loadLoanHistoryForUser();
   }
@@ -171,9 +174,27 @@ export class LoanPageComponent implements OnInit {
       this.loanHistory = await this.loanService.getLoanHistory(
         this.selectedLeerling.sub,
       );
+      this.currentHistoryPage = 1;
     } catch {
       this.loanHistory = [];
     }
+  }
+
+  get totalHistoryPages(): number {
+    return Math.max(1, Math.ceil(this.loanHistory.length / this.historyPageSize));
+  }
+
+  get historyPageNumbers(): number[] {
+    return Array.from({ length: this.totalHistoryPages }, (_, i) => i + 1);
+  }
+
+  get pagedLoanHistory(): Loan[] {
+    const start = (this.currentHistoryPage - 1) * this.historyPageSize;
+    return this.loanHistory.slice(start, start + this.historyPageSize);
+  }
+
+  goToHistoryPage(page: number) {
+    this.currentHistoryPage = page;
   }
 
   async loadBooks() {

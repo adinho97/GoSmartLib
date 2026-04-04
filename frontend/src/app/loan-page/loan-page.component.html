@@ -190,7 +190,7 @@
             Verbergen
           </button>
           <ul class="loans-list">
-            @for (loan of loanHistory; track loan.id) {
+            @for (loan of pagedLoanHistory; track loan.id) {
               <li class="loan-row">
                 <div class="loan-book-info">
                   @if (loan.bookCover) {
@@ -208,6 +208,21 @@
               </li>
             }
           </ul>
+
+          @if (totalHistoryPages > 1) {
+            <div class="history-pagination">
+              @for (page of historyPageNumbers; track page) {
+                <button
+                  type="button"
+                  class="history-page-btn"
+                  [class.active]="page === currentHistoryPage"
+                  (click)="goToHistoryPage(page)"
+                >
+                  {{ page }}
+                </button>
+              }
+            </div>
+          }
         </div>
       }
 

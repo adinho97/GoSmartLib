@@ -645,3 +645,34 @@
   justify-content: flex-end;
   margin-top: 16px;
 }
+
+/* History Pagination */
+.history-pagination {
+  margin-top: 1.2rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.history-page-btn {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #d4c1c9;
+  background: #ffffff;
+  color: #5a6472;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  transition: all 0.2s;
+}
+
+.history-page-btn:hover {
+  background: #f8f1f5;
+}
+
+.history-page-btn.active {
+  background: #871f42;
+  border-color: #871f42;
+  color: #ffffff;
+}
