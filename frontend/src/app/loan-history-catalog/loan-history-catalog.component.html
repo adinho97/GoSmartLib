@@ -43,7 +43,10 @@
             />
             @if (showStudentDropdown) {
               <div class="student-dropdown">
-                @for (student of filteredStudents.slice(0, 10); track student.sub) {
+                @for (
+                  student of filteredStudents.slice(0, 10);
+                  track student.sub
+                ) {
                   <button
                     type="button"
                     class="dropdown-item"

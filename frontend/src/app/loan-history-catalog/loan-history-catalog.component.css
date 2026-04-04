@@ -142,7 +142,9 @@
   background: white;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background 0.2s;
+  font-weight: 500;
+  color: #1a1a1a;
+  transition: all 0.2s;
   border-bottom: 1px solid #f0f0f0;
   font-family: Arial, sans-serif;
   white-space: nowrap;
@@ -151,7 +153,8 @@
 }
 
 .dropdown-item:hover {
-  background: #f5f5f5;
+  background: #f0dde5;
+  color: #871f42;
 }
 
 .dropdown-item:last-of-type {

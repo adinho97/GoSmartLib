@@ -74,13 +74,11 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   onStudentSearchInput() {
     const query = this.studentSearch.trim().toLowerCase();
-    this.filteredStudents = query
-      ? this.allStudents.filter(
-          (s) =>
-            s.displayName.toLowerCase().includes(query) ||
-            s.sub.toLowerCase().includes(query),
-        )
-      : [...this.allStudents];
+    this.filteredStudents = this.allStudents.filter((s) =>
+      query === '' ? true : 
+      s.displayName.toLowerCase().includes(query) ||
+      s.sub.toLowerCase().includes(query)
+    );
   }
 
   async selectStudent(student: StudentOption) {
