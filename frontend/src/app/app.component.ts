@@ -22,7 +22,7 @@ export class AppComponent implements OnInit {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
-        this.changeDetectorRef.markForCheck();
+        this.changeDetectorRef.detectChanges();
       });
   }
 
