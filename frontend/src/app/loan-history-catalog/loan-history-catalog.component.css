@@ -1,0 +1,267 @@
+.history-catalog-page {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0 1.5rem;
+  border-bottom: 1px solid #f0dde5;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  color: #1a1a1a;
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.page-header p {
+  margin: 0;
+  color: #5a6472;
+  font-size: 0.9rem;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  font-family: Arial, sans-serif;
+  position: relative;
+  bottom: -1px;
+}
+
+.tab-btn:hover {
+  color: #1a1a1a;
+}
+
+.tab-btn.active {
+  color: #871f42;
+  border-bottom-color: #871f42;
+}
+
+/* Tab Content */
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Search Section */
+.search-section {
+  background: #fff8fb;
+  border: 1px solid #f0dde5;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.search-section h2 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  color: #1a1a1a;
+}
+
+.search-row {
+  display: flex;
+  gap: 12px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #871f42;
+  box-shadow: 0 2px 8px rgba(135, 31, 66, 0.1);
+}
+
+.search-input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.search-btn {
+  padding: 10px 24px;
+  background: #871f42;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+  font-family: Arial, sans-serif;
+}
+
+.search-btn:hover:not(:disabled) {
+  background: #60162f;
+}
+
+.search-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #c62828;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.skeleton-message {
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 16px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Results Section */
+.results-section {
+  background: white;
+  border: 1px solid #f0dde5;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.result-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1a1a1a;
+}
+
+.loading-text {
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* History List */
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: #fff8fb;
+  border: 1px solid #f0dde5;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  border-color: #e5c1d0;
+  background: #fffbfd;
+}
+
+.item-book-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex: 1;
+}
+
+.book-cover {
+  width: 40px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-dates {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Pagination */
+.history-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1.5rem;
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #d4c1c9;
+  background: #ffffff;
+  color: #5a6472;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  transition: all 0.2s;
+}
+
+.page-btn:hover {
+  background: #f8f1f5;
+}
+
+.page-btn.active {
+  background: #871f42;
+  border-color: #871f42;
+  color: #ffffff;
+}

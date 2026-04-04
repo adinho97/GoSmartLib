@@ -1,0 +1,130 @@
+<div class="history-catalog-page">
+  <div class="page-header">
+    <h1>Uitleenhistoriek Catalogus</h1>
+    <p>Zoek en bekijk uitleenhistoriek per student of boek</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="currentTab === 'students'"
+      (click)="switchTab('students')"
+    >
+      Leerlingen
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="currentTab === 'books'"
+      (click)="switchTab('books')"
+    >
+      Boeken
+    </button>
+  </div>
+
+  <!-- Students Tab -->
+  @if (currentTab === 'students') {
+    <div class="tab-content">
+      <div class="search-section">
+        <h2>Zoek Leerling</h2>
+        <div class="search-row">
+          <input
+            type="text"
+            placeholder="Voer student sub in..."
+            [(ngModel)]="studentSearch"
+            (keyup.enter)="searchStudent()"
+            class="search-input"
+          />
+          <button type="button" class="search-btn" (click)="searchStudent()">
+            Zoeken
+          </button>
+        </div>
+        @if (studentError) {
+          <div class="error-message">{{ studentError }}</div>
+        }
+      </div>
+
+      @if (selectedStudentSub) {
+        <div class="results-section">
+          <div class="result-header">
+            <h3>Historiek van {{ selectedStudentName }}</h3>
+            @if (studentLoading) {
+              <span class="loading-text">Laden...</span>
+            }
+          </div>
+
+          @if (studentHistory.length > 0) {
+            <div>
+              <ul class="history-list">
+                @for (loan of pagedStudentHistory; track loan.id) {
+                  <li class="history-item">
+                    <div class="item-book-info">
+                      @if (loan.bookCover) {
+                        <img
+                          [src]="loan.bookCover"
+                          [alt]="loan.bookTitel"
+                          class="book-cover"
+                        />
+                      }
+                      <div class="item-details">
+                        <div class="item-title">{{ loan.bookTitel }}</div>
+                        <div class="item-dates">
+                          Uitgeleend: {{ loan.loanedAt | date: "dd/MM/yyyy" }}
+                        </div>
+                        <div class="item-dates">
+                          Teruggegeven:
+                          {{ loan.returnedAt | date: "dd/MM/yyyy" }}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                }
+              </ul>
+
+              @if (totalHistoryPages > 1) {
+                <div class="history-pagination">
+                  @for (page of historyPageNumbers; track page) {
+                    <button
+                      type="button"
+                      class="page-btn"
+                      [class.active]="page === currentHistoryPage"
+                      (click)="goToHistoryPage(page)"
+                    >
+                      {{ page }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Books Tab (Skeleton) -->
+  @if (currentTab === 'books') {
+    <div class="tab-content">
+      <div class="search-section">
+        <h2>Zoek Boek</h2>
+        <div class="search-row">
+          <input
+            type="text"
+            placeholder="Voer boektitel in..."
+            [(ngModel)]="bookSearch"
+            class="search-input"
+            disabled
+          />
+          <button type="button" class="search-btn" disabled>
+            Zoeken
+          </button>
+        </div>
+        <div class="skeleton-message">
+          Deze functie is nog in ontwikkeling.
+        </div>
+      </div>
+    </div>
+  }
+</div>
