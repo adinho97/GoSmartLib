@@ -44,6 +44,7 @@ export class LoanPageComponent implements OnInit {
   selectedBooks: BookOption[] = [];
   activeLoans: Loan[] = [];
   loanHistory: Loan[] = [];
+  showHistory = false;
 
   // Stap 3
   dueDate = "";
@@ -142,6 +143,7 @@ export class LoanPageComponent implements OnInit {
       return;
     }
     this.step = "boeken";
+    this.showHistory = false;
     this.loadActiveLoansForUser();
     this.loadLoanHistoryForUser();
   }

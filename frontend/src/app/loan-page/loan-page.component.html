@@ -167,9 +167,28 @@
       }
 
       <!-- Historiek van deze leerling -->
-      @if (loanHistory.length > 0) {
+      @if (loanHistory.length > 0 && !showHistory) {
+        <div class="active-loans-section">
+          <button
+            type="button"
+            class="show-history-btn"
+            (click)="showHistory = true"
+          >
+            → Zie ontleenhistoriek van {{ selectedLeerling?.displayName }}
+          </button>
+        </div>
+      }
+
+      @if (loanHistory.length > 0 && showHistory) {
         <div class="active-loans-section">
           <h3>Ontleenhistoriek van {{ selectedLeerling?.displayName }}</h3>
+          <button
+            type="button"
+            class="hide-history-btn"
+            (click)="showHistory = false"
+          >
+            ↓ Verbergen
+          </button>
           <ul class="loans-list">
             @for (loan of loanHistory; track loan.id) {
               <li class="loan-row">
