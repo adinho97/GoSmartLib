@@ -174,7 +174,7 @@
             class="show-history-btn"
             (click)="showHistory = true"
           >
-            → Zie ontleenhistoriek van {{ selectedLeerling?.displayName }}
+            Zie ontleenhistoriek van {{ selectedLeerling?.displayName }}
           </button>
         </div>
       }
@@ -187,7 +187,7 @@
             class="hide-history-btn"
             (click)="showHistory = false"
           >
-            ↓ Verbergen
+            Verbergen
           </button>
           <ul class="loans-list">
             @for (loan of loanHistory; track loan.id) {
