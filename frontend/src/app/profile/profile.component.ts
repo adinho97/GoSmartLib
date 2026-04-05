@@ -114,6 +114,7 @@ export class ProfileComponent {
         loanedDate: loan.loanedAt ? new Date(loan.loanedAt) : undefined,
       }));
       this.currentReadingHistoryPage = 1;
+      this.cdr.detectChanges();
     } catch {
       this.readingHistory = [];
     } finally {
@@ -141,6 +142,7 @@ export class ProfileComponent {
         totalCopies: item.totalCopies ?? 0,
       }));
       this.currentWishlistPage = 1;
+      this.cdr.detectChanges();
     } catch {
       this.wishlistBooks = [];
     } finally {
@@ -269,6 +271,7 @@ export class ProfileComponent {
       this.favoriteBooks = [];
     } finally {
       this.currentFavoritePage = 1;
+      this.cdr.detectChanges();
     }
   }
 
