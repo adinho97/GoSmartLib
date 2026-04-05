@@ -10,10 +10,15 @@ import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
     List<Loan> findByDueDateAndReturnedAtIsNull(LocalDate dueDate);
+
     List<Loan> findByUserSubAndReturnedAtIsNull(String userSub);
+
     List<Loan> findByUserSubAndReturnedAtIsNotNull(String userSub);
+
     List<Loan> findByCopy_Book_IdAndReturnedAtIsNull(Long bookId);
+
     Optional<Loan> findByCopy_IdAndReturnedAtIsNull(Long copyId);
+
     void deleteByCopy_Id(Long copyId);
 
     @Query("SELECT new map(l.copy.book.id as bookId, COUNT(l) as loanCount) FROM Loan l GROUP BY l.copy.book.id")

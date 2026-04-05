@@ -166,7 +166,7 @@ public class BookService {
     public List<BookDto> getBooksWithStats() {
         List<Book> books = bookRepository.findAll();
         Map<Long, Long> loanCountMap = buildLoanCountMap();
-        
+
         return books.stream()
                 .map(BookMapper::toDto)
                 .peek(dto -> dto.setLoanCount(loanCountMap.getOrDefault(dto.getId(), 0L)))
@@ -180,13 +180,13 @@ public class BookService {
     private Map<Long, Long> buildLoanCountMap() {
         Map<Long, Long> loanCountMap = new HashMap<>();
         List<Map<String, Object>> loanStats = loanRepository.getLoanCountsByBook();
-        
+
         for (Map<String, Object> stat : loanStats) {
             Long bookId = ((Number) stat.get("bookId")).longValue();
             Long count = ((Number) stat.get("loanCount")).longValue();
             loanCountMap.put(bookId, count);
         }
-        
+
         return loanCountMap;
     }
 }

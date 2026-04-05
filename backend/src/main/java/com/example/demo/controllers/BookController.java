@@ -73,6 +73,12 @@ public class BookController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/stats")
+    public List<BookDto> getStatsOrderedByPopularity() {
+        logger.info("Fetching books with loan statistics, sorted by popularity");
+        return bookService.getBooksWithStats();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<BookDto> getBook(@PathVariable @NonNull Long id,
             @RequestParam(required = false) Long schoolId) {
