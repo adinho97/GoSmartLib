@@ -128,23 +128,96 @@
     </div>
   }
 
-  <!-- Books Tab (Skeleton) -->
+  <!-- Books Tab -->
   @if (currentTab === "books") {
     <div class="tab-content">
       <div class="search-section">
-        <h2>Zoek boek</h2>
-        <div class="search-row">
-          <input
-            type="text"
-            placeholder="Voer boektitel in..."
-            [(ngModel)]="bookSearch"
-            class="search-input"
-            disabled
-          />
-          <button type="button" class="search-btn" disabled>Zoeken</button>
-        </div>
-        <div class="skeleton-message">Deze functie is nog in ontwikkeling.</div>
+        <h2>Populairste boeken</h2>
+        <p class="section-subtitle">Overzicht van meest uitgeleende boeken</p>
+        @if (booksError) {
+          <div class="error-message">{{ booksError }}</div>
+        }
       </div>
+
+      @if (booksLoading) {
+        <div class="loading-section">
+          <span class="loading-text">Boeken laden...</span>
+        </div>
+      }
+
+      @if (!booksLoading && allBooks.length > 0) {
+        <div class="results-section">
+          <ul class="books-list">
+            @for (book of pagedBooks; track book.id) {
+              <li class="book-item">
+                <div class="book-header">
+                  <div class="book-info">
+                    @if (book.cover) {
+                      <img
+                        [src]="book.cover"
+                        [alt]="book.titel"
+                        class="book-cover"
+                      />
+                    }
+                    <div class="book-details">
+                      <div class="book-title">{{ book.titel }}</div>
+                      <div class="book-author">{{ book.auteur }}</div>
+                    </div>
+                  </div>
+                  <div class="book-copies">
+                    <span class="copies-label">Exemplaren:</span>
+                    <span class="copies-count"
+                      >{{ book.availableCopies }}/{{ book.totalCopies }}</span
+                    >
+                  </div>
+                </div>
+
+                <div class="popularity-section">
+                  <div class="popularity-label">
+                    Uitleningen: {{ book.loanCount }}
+                  </div>
+                  <div class="popularity-bar-container">
+                    <div
+                      class="popularity-bar"
+                      [style.width.%]="getBarWidth(book.loanCount)"
+                    ></div>
+                  </div>
+                </div>
+
+                @if (shouldShowRecommendation(book)) {
+                  <div class="recommendation-box">
+                    <span class="recommendation-text"
+                      >Overweeg om meer exemplaren aan te schaffen. Dit boek is
+                      populair.</span
+                    >
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+
+          @if (totalBooksPages > 1) {
+            <div class="books-pagination">
+              @for (page of booksPageNumbers; track page) {
+                <button
+                  type="button"
+                  class="page-btn"
+                  [class.active]="page === currentBooksPage"
+                  (click)="goToBooksPage(page)"
+                >
+                  {{ page }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (!booksLoading && allBooks.length === 0 && !booksError) {
+        <div class="empty-state">
+          <p>Geen boeken gevonden.</p>
+        </div>
+      }
     </div>
   }
 </div>
