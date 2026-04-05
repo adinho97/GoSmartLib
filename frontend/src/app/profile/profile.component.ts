@@ -60,8 +60,10 @@ export class ProfileComponent {
   notificationToggleErrors: Record<number, string> = {};
   readonly wishlistPageSize = 6;
   readonly favoritePageSize = 6;
+  readonly readingHistoryPageSize = 6;
   currentWishlistPage = 1;
   currentFavoritePage = 1;
+  currentReadingHistoryPage = 1;
   private wishlistChangedSub?: Subscription;
   private favoriteChangedSub?: Subscription;
 
@@ -111,6 +113,7 @@ export class ProfileComponent {
         cover: loan.bookCover || "",
         loanedDate: loan.loanedAt ? new Date(loan.loanedAt) : undefined,
       }));
+      this.currentReadingHistoryPage = 1;
     } catch {
       this.readingHistory = [];
     } finally {
@@ -195,6 +198,30 @@ export class ProfileComponent {
 
   goToFavoritePage(page: number) {
     this.currentFavoritePage = page;
+  }
+
+  get totalReadingHistoryPages(): number {
+    return Math.max(
+      1,
+      Math.ceil(this.readingHistory.length / this.readingHistoryPageSize),
+    );
+  }
+
+  get readingHistoryPageNumbers(): number[] {
+    return Array.from(
+      { length: this.totalReadingHistoryPages },
+      (_, i) => i + 1,
+    );
+  }
+
+  get pagedReadingHistory(): ProfileBookCard[] {
+    const start =
+      (this.currentReadingHistoryPage - 1) * this.readingHistoryPageSize;
+    return this.readingHistory.slice(start, start + this.readingHistoryPageSize);
+  }
+
+  goToReadingHistoryPage(page: number) {
+    this.currentReadingHistoryPage = page;
   }
 
   async removeFromWishlist(event: MouseEvent, bookId: number) {

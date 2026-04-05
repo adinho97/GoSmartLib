@@ -425,10 +425,10 @@
               } @else if (readingHistory.length === 0) {
                 <div class="inline-empty">Nog geen ontleenhistoriek.</div>
               } @else {
-                <div class="horizontal-scroll-wrapper">
-                  @for (book of readingHistory; track book) {
+                <div class="wishlist-grid">
+                  @for (book of pagedReadingHistory; track book.id) {
                     <article
-                      class="profile-book-card"
+                      class="profile-book-card wishlist-card"
                       (click)="goToDetail(book.id)"
                     >
                       @if (book.cover) {
@@ -445,6 +445,19 @@
                     </article>
                   }
                 </div>
+                @if (totalReadingHistoryPages > 1) {
+                  <div class="wishlist-pagination">
+                    @for (page of readingHistoryPageNumbers; track page) {
+                      <button
+                        (click)="goToReadingHistoryPage(page)"
+                        [class.active]="page === currentReadingHistoryPage"
+                        class="wishlist-page-btn"
+                      >
+                        {{ page }}
+                      </button>
+                    }
+                  </div>
+                }
               }
             </section>
           }
