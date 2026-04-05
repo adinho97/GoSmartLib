@@ -9,6 +9,16 @@ interface StudentOption {
   displayName: string;
 }
 
+interface BookStat {
+  id: number;
+  titel: string;
+  auteur: string;
+  cover: string;
+  loanCount: number;
+  totalCopies: number;
+  availableCopies: number;
+}
+
 @Component({
   selector: "app-loan-history-catalog",
   templateUrl: "./loan-history-catalog.component.html",
@@ -30,8 +40,12 @@ export class LoanHistoryCatalogComponent implements OnInit {
   readonly historyPageSize = 5;
   currentHistoryPage = 1;
 
-  // Books tab (skeleton)
-  bookSearch = "";
+  // Books tab
+  allBooks: BookStat[] = [];
+  booksLoading = false;
+  booksError = "";
+  readonly booksPageSize = 10;
+  currentBooksPage = 1;
 
   constructor(private loanService: LoanService) {}
 
@@ -42,16 +56,21 @@ export class LoanHistoryCatalogComponent implements OnInit {
   switchTab(tab: Tab) {
     this.currentTab = tab;
     this.resetSearches();
+    
+    // Load books when switching to books tab
+    if (tab === "books" && this.allBooks.length === 0) {
+      this.loadAllBooks();
+    }
   }
 
   resetSearches() {
     this.studentSearch = "";
-    this.bookSearch = "";
     this.selectedStudent = null;
     this.studentHistory = [];
     this.studentError = "";
     this.currentHistoryPage = 1;
     this.filteredStudents = [...this.allStudents];
+    this.currentBooksPage = 1;
   }
 
   private async loadAllStudents() {
@@ -153,5 +172,53 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   goToHistoryPage(page: number) {
     this.currentHistoryPage = page;
+  }
+
+  // Books tab methods
+  private async loadAllBooks() {
+    this.booksLoading = true;
+    this.booksError = "";
+
+    try {
+      const response = await axios.get("/api/boeken/stats");
+      this.allBooks = response.data as BookStat[];
+    } catch (err) {
+      console.error("Error loading books", err);
+      this.booksError = "Fout bij ophalen van boeken.";
+      this.allBooks = [];
+    } finally {
+      this.booksLoading = false;
+    }
+  }
+
+  get maxLoanCount(): number {
+    return this.allBooks.length > 0 ? Math.max(...this.allBooks.map((b) => b.loanCount)) : 1;
+  }
+
+  getBarWidth(loanCount: number): number {
+    return (loanCount / this.maxLoanCount) * 100;
+  }
+
+  shouldShowRecommendation(book: BookStat): boolean {
+    const avgLoanThreshold = this.maxLoanCount * 0.5;
+    const hasLowStock = book.availableCopies < book.totalCopies * 0.3;
+    return book.loanCount >= avgLoanThreshold && hasLowStock;
+  }
+
+  get totalBooksPages(): number {
+    return Math.max(1, Math.ceil(this.allBooks.length / this.booksPageSize));
+  }
+
+  get booksPageNumbers(): number[] {
+    return Array.from({ length: this.totalBooksPages }, (_, i) => i + 1);
+  }
+
+  get pagedBooks(): BookStat[] {
+    const start = (this.currentBooksPage - 1) * this.booksPageSize;
+    return this.allBooks.slice(start, start + this.booksPageSize);
+  }
+
+  goToBooksPage(page: number) {
+    this.currentBooksPage = page;
   }
 }
