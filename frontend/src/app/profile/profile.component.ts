@@ -83,13 +83,14 @@ export class ProfileComponent {
       this.dashboardSettings = JSON.parse(saved);
     }
 
+    await Promise.all([
+      this.loadWishlistBooks(),
+      this.loadFavoriteBooks(),
+      this.loadReadingHistory(),
+    ]);
+    this.cdr.detectChanges();
+
     if (this.showSections) {
-      await Promise.all([
-        this.loadWishlistBooks(),
-        this.loadFavoriteBooks(),
-        this.loadReadingHistory(),
-      ]);
-      this.cdr.detectChanges();
       this.wishlistChangedSub = this.bookService.wishlistChanged$.subscribe(
         () => {
           this.loadWishlistBooks();
@@ -114,7 +115,6 @@ export class ProfileComponent {
         loanedDate: loan.loanedAt ? new Date(loan.loanedAt) : undefined,
       }));
       this.currentReadingHistoryPage = 1;
-      this.cdr.detectChanges();
     } catch {
       this.readingHistory = [];
     } finally {
@@ -142,7 +142,6 @@ export class ProfileComponent {
         totalCopies: item.totalCopies ?? 0,
       }));
       this.currentWishlistPage = 1;
-      this.cdr.detectChanges();
     } catch {
       this.wishlistBooks = [];
     } finally {
@@ -271,7 +270,6 @@ export class ProfileComponent {
       this.favoriteBooks = [];
     } finally {
       this.currentFavoritePage = 1;
-      this.cdr.detectChanges();
     }
   }
 
