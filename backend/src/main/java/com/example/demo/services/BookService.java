@@ -2,6 +2,7 @@ package com.example.demo.services;
 
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.BookCopyRepository;
+import com.example.demo.repositories.LoanRepository;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Book;
@@ -13,14 +14,18 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BookService {
 
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
+    private final LoanRepository loanRepository;
     private final SchoolService schoolService;
     private final OpenLibraryService openLibraryService;
     private final IsbnService isbnService;
@@ -28,11 +33,12 @@ public class BookService {
     private final ImportCoreService importCoreService;
 
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
-            SchoolService schoolService, OpenLibraryService openLibraryService,
+            LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
             ImportCoreService importCoreService) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
+        this.loanRepository = loanRepository;
         this.schoolService = schoolService;
         this.openLibraryService = openLibraryService;
         this.isbnService = isbnService;
@@ -151,5 +157,36 @@ public class BookService {
         result.setTotalCopiesAdded(totalCopiesAdded);
         result.setResults(rows);
         return result;
+    }
+
+    /**
+     * Get all books with loan statistics, sorted by loan count descending.
+     * This is used for the popularity catalog feature.
+     */
+    public List<BookDto> getBooksWithStats() {
+        List<Book> books = bookRepository.findAll();
+        Map<Long, Long> loanCountMap = buildLoanCountMap();
+        
+        return books.stream()
+                .map(BookMapper::toDto)
+                .peek(dto -> dto.setLoanCount(loanCountMap.getOrDefault(dto.getId(), 0L)))
+                .sorted((a, b) -> Long.compare(b.getLoanCount(), a.getLoanCount()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Build a map of book ID to total loan count (all loans, including returned).
+     */
+    private Map<Long, Long> buildLoanCountMap() {
+        Map<Long, Long> loanCountMap = new HashMap<>();
+        List<Map<String, Object>> loanStats = loanRepository.getLoanCountsByBook();
+        
+        for (Map<String, Object> stat : loanStats) {
+            Long bookId = ((Number) stat.get("bookId")).longValue();
+            Long count = ((Number) stat.get("loanCount")).longValue();
+            loanCountMap.put(bookId, count);
+        }
+        
+        return loanCountMap;
     }
 }

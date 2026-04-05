@@ -54,6 +54,8 @@ public class BookDto {
 
     private int availableCopies;
 
+    private Long loanCount = 0L;
+
     public int getTotalCopies() {
         return totalCopies;
     }
@@ -188,5 +190,13 @@ public class BookDto {
 
     public void setAverageRating(Double averageRating) {
         this.averageRating = averageRating;
+    }
+
+    public Long getLoanCount() {
+        return loanCount;
+    }
+
+    public void setLoanCount(Long loanCount) {
+        this.loanCount = loanCount;
     }
 }
