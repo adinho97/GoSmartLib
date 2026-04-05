@@ -44,6 +44,7 @@ export class LoanHistoryCatalogComponent implements OnInit {
   allBooks: BookStat[] = [];
   booksLoading = false;
   booksError = "";
+  bookSearch = "";
   readonly booksPageSize = 10;
   currentBooksPage = 1;
 
@@ -205,8 +206,24 @@ export class LoanHistoryCatalogComponent implements OnInit {
     return book.loanCount >= avgLoanThreshold && hasLowStock;
   }
 
+  get filteredBooks(): BookStat[] {
+    const query = this.bookSearch.trim().toLowerCase();
+    if (!query) {
+      return this.allBooks;
+    }
+    return this.allBooks.filter(
+      (book) =>
+        book.titel.toLowerCase().includes(query) ||
+        book.auteur.toLowerCase().includes(query),
+    );
+  }
+
+  onBooksSearchInput() {
+    this.currentBooksPage = 1;
+  }
+
   get totalBooksPages(): number {
-    return Math.max(1, Math.ceil(this.allBooks.length / this.booksPageSize));
+    return Math.max(1, Math.ceil(this.filteredBooks.length / this.booksPageSize));
   }
 
   get booksPageNumbers(): number[] {
@@ -215,7 +232,7 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   get pagedBooks(): BookStat[] {
     const start = (this.currentBooksPage - 1) * this.booksPageSize;
-    return this.allBooks.slice(start, start + this.booksPageSize);
+    return this.filteredBooks.slice(start, start + this.booksPageSize);
   }
 
   goToBooksPage(page: number) {

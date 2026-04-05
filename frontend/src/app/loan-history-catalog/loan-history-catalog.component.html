@@ -134,6 +134,15 @@
       <div class="search-section">
         <h2>Populairste boeken</h2>
         <p class="section-subtitle">Overzicht van meest uitgeleende boeken</p>
+        <div class="search-row">
+          <input
+            type="text"
+            placeholder="Zoek op titel of auteur..."
+            [(ngModel)]="bookSearch"
+            (input)="onBooksSearchInput()"
+            class="search-input"
+          />
+        </div>
         @if (booksError) {
           <div class="error-message">{{ booksError }}</div>
         }
