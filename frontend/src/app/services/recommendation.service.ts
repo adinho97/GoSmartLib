@@ -88,4 +88,23 @@ export class RecommendationService {
       return [];
     }
   }
+
+  async getTrending(limit: number = 5): Promise<RecommendedBook[]> {
+    const grouped = await this.getGroupedRecommendations(limit);
+    return grouped["TrendingStrategy"] || [];
+  }
+
+  async getByGenre(limit: number = 5): Promise<RecommendedBook[]> {
+    const grouped = await this.getGroupedRecommendations(limit);
+    return grouped["GenreBasedStrategy"] || [];
+  }
+
+  async getByAuthor(limit: number = 5): Promise<RecommendedBook[]> {
+    const grouped = await this.getGroupedRecommendations(limit);
+    return grouped["AuthorBasedStrategy"] || [];
+  }
+
+  async getBlended(limit: number = 5): Promise<RecommendedBook[]> {
+    return this.getRecommendations(limit);
+  }
 }
