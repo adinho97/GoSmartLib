@@ -9,6 +9,9 @@ export interface RecommendedBook {
   genre: string;
   score: number;
   reason: string;
+  cover?: string | null;
+  taal?: string | null;
+  paginas?: number | null;
 }
 
 export interface GroupedRecommendations {

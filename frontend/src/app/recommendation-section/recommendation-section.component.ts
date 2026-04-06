@@ -16,10 +16,15 @@ export class RecommendationSectionComponent implements OnInit {
   @Input() books: RecommendedBook[] = [];
   @Input() title: string = 'Aanbevelingen';
   @Input() layout: 'shelf' | 'hero' = 'shelf';
-  @Input() variant: 'normal' | 'didactic' = 'normal';
+  @Input() variant: 'normal' | 'didactic' | 'teacher' = 'normal';
 
   wishlistedBookIds = new Set<number>();
   favoritedBookIds = new Set<number>();
+
+  get isTeacher(): boolean {
+    const role = localStorage.getItem('role');
+    return role === 'leerkracht' || role === 'bibbeheerder';
+  }
 
   constructor(
     private bookService: BookService,

@@ -1,74 +1,101 @@
-<div class="book-card" [title]="book.reason">
-  <!-- Wishlist button -->
-  <button
-    type="button"
-    class="wishlist-toggle-btn"
-    [class.active]="isWishlisted"
-    [attr.aria-label]="
-      isWishlisted ? 'Verwijder uit verlanglijst' : 'Voeg toe aan verlanglijst'
-    "
-    (click)="onToggleWishlist($event)"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
+<div
+  class="book-card"
+  [class.teacher-card]="isTeacherCard"
+  [title]="book.reason"
+>
+  <!-- Wishlist & Favorite buttons -->
+  <div class="button-container">
+    <button
+      type="button"
+      class="wishlist-toggle-btn"
+      [class.active]="isWishlisted"
+      [attr.aria-label]="
+        isWishlisted
+          ? 'Verwijder uit verlanglijst'
+          : 'Voeg toe aan verlanglijst'
+      "
+      (click)="onToggleWishlist($event)"
     >
-      <path
-        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-      />
-    </svg>
-  </button>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path
+          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+        />
+      </svg>
+    </button>
 
-  <!-- Favorite button -->
-  <button
-    type="button"
-    class="favorite-toggle-btn"
-    [class.active]="isFavorited"
-    [attr.aria-label]="
-      isFavorited ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten'
-    "
-    (click)="onToggleFavorite($event)"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
+    <button
+      type="button"
+      class="favorite-toggle-btn"
+      [class.active]="isFavorited"
+      [attr.aria-label]="
+        isFavorited ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten'
+      "
+      (click)="onToggleFavorite($event)"
     >
-      <polygon
-        points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-      />
-    </svg>
-  </button>
-
-  <!-- Score badge -->
-  <div class="score-badge">{{ book.score | number: "1.0-0" }}%</div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <polygon
+          points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+        />
+      </svg>
+    </button>
+  </div>
 
   <!-- Genre tag -->
-  <div class="genre-tag">{{ book.genre }}</div>
+  <div class="genre-tag" [class.teacher-tag]="isTeacherCard">
+    {{ book.genre }}
+  </div>
 
   <!-- Book cover -->
   <div class="book-cover">
-    <div class="cover-placeholder">
-      <span>COVER</span>
-    </div>
+    @if (book.cover) {
+      <img [src]="book.cover" [alt]="book.titel" />
+    } @else {
+      <div class="cover-placeholder">
+        <span>COVER</span>
+      </div>
+    }
   </div>
 
   <!-- Book info -->
   <div class="book-content">
     <h4>{{ book.titel }}</h4>
-    <p class="author">door {{ book.auteur }}</p>
+    <p class="author">{{ book.auteur }}</p>
+    <p class="book-meta">
+      @if (book.taal) {
+        <span>{{ getLanguageAbbr(book.taal) }}</span>
+      }
+      @if (book.taal && book.paginas) {
+        <span> • </span>
+      }
+      @if (book.paginas) {
+        <span>{{ book.paginas }} pag.</span>
+      }
+    </p>
     <p class="reason-text">{{ book.reason }}</p>
-    <button class="details-btn" (click)="onViewDetails()">Details</button>
+    <button
+      class="details-btn"
+      [class.teacher-btn]="isTeacherCard"
+      (click)="onViewDetails()"
+    >
+      Details
+    </button>
   </div>
 </div>

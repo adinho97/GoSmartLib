@@ -87,6 +87,9 @@ export class DashboardComponent implements OnInit {
         genre: book.genre || "",
         score: 0,
         reason: "Didactische collectie",
+        cover: book.cover || null,
+        taal: book.taal || null,
+        paginas: book.paginas || null,
       }));
     } catch (error) {
       console.error("Fout bij ophalen didactische boeken:", error);

@@ -1,6 +1,11 @@
-<section class="recommendation-section" [class.didactic]="variant === 'didactic'">
-  <h2 class="section-title">{{ title }}</h2>
+<h2 class="section-title" [class.didactic-title]="variant === 'didactic'">
+  {{ title }}
+</h2>
 
+<section
+  class="recommendation-section"
+  [class.didactic]="variant === 'didactic'"
+>
   @if (books && books.length > 0) {
     <div class="horizontal-scroll-wrapper">
       @for (book of books; track book.bookId) {
@@ -8,6 +13,8 @@
           [book]="book"
           [isFavorited]="isFavorited(book.bookId)"
           [isWishlisted]="isWishlisted(book.bookId)"
+          [variant]="variant"
+          [isTeacher]="isTeacher"
           (toggleFavorite)="toggleFavorite($event, book.bookId)"
           (toggleWishlist)="toggleWishlist($event, book.bookId)"
           (viewDetails)="seeDetail(book.bookId)"

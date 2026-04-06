@@ -13,10 +13,16 @@ export class RecommendationCardComponent {
   @Input() book!: RecommendedBook;
   @Input() isFavorited: boolean = false;
   @Input() isWishlisted: boolean = false;
+  @Input() variant: 'normal' | 'didactic' | 'teacher' = 'normal';
+  @Input() isTeacher: boolean = false;
 
   @Output() toggleFavorite = new EventEmitter<MouseEvent>();
   @Output() toggleWishlist = new EventEmitter<MouseEvent>();
   @Output() viewDetails = new EventEmitter<void>();
+
+  get isTeacherCard(): boolean {
+    return this.variant === 'teacher' || (this.variant === 'didactic' && this.isTeacher);
+  }
 
   onToggleFavorite(event: MouseEvent) {
     event.stopPropagation();
@@ -32,6 +38,32 @@ export class RecommendationCardComponent {
 
   onViewDetails() {
     this.viewDetails.emit();
+  }
+
+  getLanguageAbbr(language: string): string {
+    const languageMap: { [key: string]: string } = {
+      'nl': 'NL',
+      'dutch': 'NL',
+      'nederlands': 'NL',
+      'en': 'EN',
+      'english': 'EN',
+      'fr': 'FR',
+      'french': 'FR',
+      'français': 'FR',
+      'de': 'DE',
+      'german': 'DE',
+      'deutsch': 'DE',
+      'es': 'ES',
+      'spanish': 'ES',
+      'español': 'ES',
+      'it': 'IT',
+      'italian': 'IT',
+      'italiano': 'IT',
+      'pt': 'PT',
+      'portuguese': 'PT',
+      'português': 'PT',
+    };
+    return languageMap[language.toLowerCase()] || language.toUpperCase().slice(0, 2);
   }
 }
 
