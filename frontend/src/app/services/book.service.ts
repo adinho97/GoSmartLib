@@ -155,6 +155,14 @@ export class BookService {
     return res.data;
   }
 
+  async getMyReviewCount(): Promise<number> {
+    const res = await axios.get<{ count: number }>(
+      `${this.apiUrl}/reviews/mijn/aantal`,
+      this.getRoleHeaders(),
+    );
+    return res.data?.count ?? 0;
+  }
+
   async addBookReview(
     bookId: number,
     payload: {

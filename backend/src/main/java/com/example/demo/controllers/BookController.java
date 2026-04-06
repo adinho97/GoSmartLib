@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -328,6 +329,24 @@ public class BookController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(reviews);
+    }
+
+    @GetMapping("/reviews/mijn/aantal")
+    public ResponseEntity<Map<String, Long>> getMyReviewCount(
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+        String reviewerUserSub = resolveReviewUserKey(userSub, userName, userRole);
+        if (!StringUtils.hasText(reviewerUserSub)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Long reviewerUserId = resolveReviewerUserId(userSub, userName);
+        long count = reviewerUserId == null
+                ? reviewRepository.countByReviewerUserSub(reviewerUserSub)
+                : reviewRepository.countByReviewerUserSubOrReviewerUserId(reviewerUserSub, reviewerUserId);
+
+        return ResponseEntity.ok(Map.of("count", count));
     }
 
     @PostMapping("/{id}/reviews")
