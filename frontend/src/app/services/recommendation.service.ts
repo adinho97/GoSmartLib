@@ -98,7 +98,7 @@ export class RecommendationService {
   }
 
   async getTrending(
-    limit: number = 5,
+    limit: number = 10,
     excludeRead: boolean = true
   ): Promise<RecommendedBook[]> {
     const grouped = await this.getGroupedRecommendations(limit, excludeRead);
@@ -106,7 +106,7 @@ export class RecommendationService {
   }
 
   async getByGenre(
-    limit: number = 5,
+    limit: number = 10,
     excludeRead: boolean = true
   ): Promise<RecommendedBook[]> {
     const grouped = await this.getGroupedRecommendations(limit, excludeRead);
@@ -114,14 +114,19 @@ export class RecommendationService {
   }
 
   async getByAuthor(
-    limit: number = 5,
+    limit: number = 10,
     excludeRead: boolean = true
   ): Promise<RecommendedBook[]> {
     const grouped = await this.getGroupedRecommendations(limit, excludeRead);
     return grouped["AuthorBasedStrategy"] || [];
   }
 
-  async getBlended(limit: number = 5, excludeRead: boolean = true): Promise<RecommendedBook[]> {
+  async getNewArrivals(limit: number = 10): Promise<RecommendedBook[]> {
+    const grouped = await this.getGroupedRecommendations(limit, true);
+    return grouped["NewArrivalsStrategy"] || [];
+  }
+
+  async getBlended(limit: number = 10, excludeRead: boolean = true): Promise<RecommendedBook[]> {
     return this.getRecommendations(limit, excludeRead);
   }
 }
