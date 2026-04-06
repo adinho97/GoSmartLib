@@ -5,9 +5,7 @@
     class="wishlist-toggle-btn"
     [class.active]="isWishlisted"
     [attr.aria-label]="
-      isWishlisted
-        ? 'Verwijder uit verlanglijst'
-        : 'Voeg toe aan verlanglijst'
+      isWishlisted ? 'Verwijder uit verlanglijst' : 'Voeg toe aan verlanglijst'
     "
     (click)="onToggleWishlist($event)"
   >
@@ -54,7 +52,7 @@
   </button>
 
   <!-- Score badge -->
-  <div class="score-badge">{{ book.score | number: '1.0-0' }}%</div>
+  <div class="score-badge">{{ book.score | number: "1.0-0" }}%</div>
 
   <!-- Genre tag -->
   <div class="genre-tag">{{ book.genre }}</div>
@@ -71,9 +69,6 @@
     <h4>{{ book.titel }}</h4>
     <p class="author">door {{ book.auteur }}</p>
     <p class="reason-text">{{ book.reason }}</p>
-    <button class="details-btn" (click)="onViewDetails()">
-      Details
-    </button>
+    <button class="details-btn" (click)="onViewDetails()">Details</button>
   </div>
 </div>
-

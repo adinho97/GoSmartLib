@@ -1,0 +1,20 @@
+<section class="recommendation-section">
+  <h2 class="section-title">{{ title }}</h2>
+
+  @if (books && books.length > 0) {
+    <div class="horizontal-scroll-wrapper">
+      @for (book of books; track book.bookId) {
+        <app-recommendation-card
+          [book]="book"
+          [isFavorited]="isFavorited(book.bookId)"
+          [isWishlisted]="isWishlisted(book.bookId)"
+          (toggleFavorite)="toggleFavorite($event, book.bookId)"
+          (toggleWishlist)="toggleWishlist($event, book.bookId)"
+          (viewDetails)="seeDetail(book.bookId)"
+        ></app-recommendation-card>
+      }
+    </div>
+  } @else {
+    <p class="empty-message">Geen aanbevelingen beschikbaar</p>
+  }
+</section>

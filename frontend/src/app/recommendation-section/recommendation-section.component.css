@@ -1,0 +1,49 @@
+.recommendation-section {
+  margin: 2rem 0;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.horizontal-scroll-wrapper {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  scroll-behavior: smooth;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 10px;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+.empty-message {
+  text-align: center;
+  color: #999;
+  font-size: 0.95rem;
+  padding: 2rem 1rem;
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.25rem;
+  }
+}
