@@ -16,12 +16,12 @@ public class RecommendationService {
         this.strategies = strategies;
     }
 
-    public List<RecommendedBook> getRecommendations(String userId, int limit) {
+    public List<RecommendedBook> getRecommendations(String userId, int limit, boolean excludeRead) {
         // Run all strategies and collect results
         Map<Long, RecommendedBook> combined = new HashMap<>();
 
         for (RecommendationStrategy strategy : strategies) {
-            var result = strategy.recommend(userId, limit * 2); // Get more than needed per strategy
+            var result = strategy.recommend(userId, limit * 2, excludeRead); // Get more than needed per strategy
 
             for (RecommendedBook book : result) {
                 if (combined.containsKey(book.getBookId())) {
@@ -42,13 +42,13 @@ public class RecommendationService {
                 .collect(Collectors.toList());
     }
 
-    public List<RecommendedBook> getRecommendationsByStrategy(String userId, List<String> strategyNames, int limit) {
+    public List<RecommendedBook> getRecommendationsByStrategy(String userId, List<String> strategyNames, int limit, boolean excludeRead) {
         Map<Long, RecommendedBook> combined = new HashMap<>();
 
         for (RecommendationStrategy strategy : strategies) {
             // Only run if this strategy is in the requested list
             if (strategyNames.contains(strategy.getClass().getSimpleName())) {
-                var result = strategy.recommend(userId, limit * 2);
+                var result = strategy.recommend(userId, limit * 2, excludeRead);
 
                 for (RecommendedBook book : result) {
                     if (combined.containsKey(book.getBookId())) {
@@ -69,11 +69,11 @@ public class RecommendationService {
                 .collect(Collectors.toList());
     }
 
-    public Map<String, List<RecommendedBook>> getRecommendationsByStrategyGrouped(String userId, int limit) {
+    public Map<String, List<RecommendedBook>> getRecommendationsByStrategyGrouped(String userId, int limit, boolean excludeRead) {
         Map<String, List<RecommendedBook>> grouped = new LinkedHashMap<>();
 
         for (RecommendationStrategy strategy : strategies) {
-            var results = strategy.recommend(userId, limit);
+            var results = strategy.recommend(userId, limit, excludeRead);
             grouped.put(strategy.getClass().getSimpleName(), results);
         }
 
