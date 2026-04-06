@@ -88,6 +88,8 @@ export class BookService {
 
   private getRoleHeaders() {
     const role = localStorage.getItem("role") || "";
+    const userSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
     const userName =
       localStorage.getItem("userName") ||
       localStorage.getItem("username") ||
@@ -96,6 +98,7 @@ export class BookService {
     return {
       headers: {
         "X-User-Role": role,
+        "X-User-Sub": userSub,
         "X-User-Name": userName,
       },
     };
@@ -150,6 +153,14 @@ export class BookService {
       this.getRoleHeaders(),
     );
     return res.data;
+  }
+
+  async getMyReviewCount(): Promise<number> {
+    const res = await axios.get<{ count: number }>(
+      `${this.apiUrl}/reviews/mijn/aantal`,
+      this.getRoleHeaders(),
+    );
+    return res.data?.count ?? 0;
   }
 
   async addBookReview(
