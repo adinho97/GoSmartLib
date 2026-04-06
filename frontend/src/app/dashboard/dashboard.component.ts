@@ -24,6 +24,8 @@ type BookResponse = {
 })
 export class DashboardComponent implements OnInit {
   trendingBooks: RecommendedBook[] = [];
+  genreBooks: RecommendedBook[] = [];
+  authorBooks: RecommendedBook[] = [];
   didacticBooks: RecommendedBook[] = [];
   myLoans: Loan[] = [];
   loansLoading = true;
@@ -57,6 +59,8 @@ export class DashboardComponent implements OnInit {
       this.fetchRecommendations(),
       this.fetchMyLoans(),
       this.fetchDidacticBooks(),
+      this.fetchGenreRecommendations(),
+      this.fetchAuthorRecommendations(),
     ]);
   }
 
@@ -80,6 +84,46 @@ export class DashboardComponent implements OnInit {
       this.trendingBooks = [];
     } finally {
       this.recommendationsLoading = false;
+    }
+  }
+
+  private async fetchGenreRecommendations() {
+    try {
+      const genreBooks = await this.recommendationService.getByGenre(5);
+      
+      // Enrich with cover images
+      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
+      const bookMap = new Map(allBooks.map(b => [b.id, b]));
+      
+      this.genreBooks = genreBooks.map(rec => ({
+        ...rec,
+        cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
+        taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
+        paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
+      }));
+    } catch (error) {
+      console.error("Fout bij ophalen genre aanbevelingen:", error);
+      this.genreBooks = [];
+    }
+  }
+
+  private async fetchAuthorRecommendations() {
+    try {
+      const authorBooks = await this.recommendationService.getByAuthor(5);
+      
+      // Enrich with cover images
+      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
+      const bookMap = new Map(allBooks.map(b => [b.id, b]));
+      
+      this.authorBooks = authorBooks.map(rec => ({
+        ...rec,
+        cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
+        taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
+        paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
+      }));
+    } catch (error) {
+      console.error("Fout bij ophalen auteur aanbevelingen:", error);
+      this.authorBooks = [];
     }
   }
 

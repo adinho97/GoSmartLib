@@ -66,6 +66,22 @@
         [title]="'Popular Nu'"
         [variant]="'normal'"
       ></app-recommendation-section>
+
+      @if (genreBooks.length > 0) {
+        <app-recommendation-section
+          [books]="genreBooks"
+          [title]="'Jouw Favoriete Genres'"
+          [variant]="'normal'"
+        ></app-recommendation-section>
+      }
+
+      @if (authorBooks.length > 0) {
+        <app-recommendation-section
+          [books]="authorBooks"
+          [title]="'Jouw Favoriete Auteurs'"
+          [variant]="'normal'"
+        ></app-recommendation-section>
+      }
     }
 
     @if (canSeeDidactic && didacticBooks.length > 0) {
