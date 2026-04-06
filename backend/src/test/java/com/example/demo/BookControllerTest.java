@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import reactor.core.publisher.Mono;
 
@@ -461,6 +462,31 @@ class BookControllerTest {
         }
 
         @Test
+        void createReviewShouldReturnConflictWhenUserAlreadyReviewedBook() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(reviewRepository.existsByBook_IdAndReviewerUserSub(1L, "smartschool-sub-1")).thenReturn(true);
+
+                String json = """
+                                {
+                                  "rating": 5,
+                                  "comment": "Opnieuw reviewen",
+                                  "anonymous": false
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .header("X-User-Sub", "smartschool-sub-1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isConflict());
+
+                verify(reviewRepository, never()).save(any(Review.class));
+        }
+
+        @Test
         void createReviewShouldPersistAnonymousReviewerUserIdWhenRequested() throws Exception {
                 Book book = new Book();
                 book.setId(1L);
@@ -471,9 +497,12 @@ class BookControllerTest {
                 saved.setRating(4);
                 saved.setComment("Leuk boek");
                 saved.setReviewerUserId(null);
+                saved.setReviewerUserSub("role:leerkracht");
+                saved.setAnonymous(true);
                 saved.setCreatedAt(LocalDateTime.of(2026, 3, 18, 15, 0));
 
                 when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(reviewRepository.existsByBook_IdAndReviewerUserSub(1L, "role:leerkracht")).thenReturn(false);
                 when(reviewRepository.save(any(Review.class))).thenReturn(saved);
 
                 String json = """
@@ -485,15 +514,201 @@ class BookControllerTest {
                                 """;
 
                 mockMvc.perform(post("/api/boeken/1/reviews")
+                                .header("X-User-Role", "leerkracht")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json))
                                 .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.reviewerUserId").doesNotExist());
+                                .andExpect(jsonPath("$.reviewerUserId").doesNotExist())
+                                .andExpect(jsonPath("$.reviewerUserName").value("Anoniem"))
+                                .andExpect(jsonPath("$.canManage").value(true));
 
                 ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
                 verify(reviewRepository).save(captor.capture());
                 Review persisted = captor.getValue();
                 assertNull(persisted.getReviewerUserId());
+                assertEquals("role:leerkracht", persisted.getReviewerUserSub());
+                assertEquals(true, persisted.getAnonymous());
+        }
+
+        @Test
+        void getReviewsShouldAllowManagingOwnAnonymousReview() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review anonymousReview = new Review();
+                anonymousReview.setId(4L);
+                anonymousReview.setBook(book);
+                anonymousReview.setRating(5);
+                anonymousReview.setComment("Anonieme review");
+                anonymousReview.setReviewerUserId(null);
+                anonymousReview.setReviewerUserSub("role:leerkracht");
+                anonymousReview.setAnonymous(true);
+                anonymousReview.setCreatedAt(LocalDateTime.of(2026, 4, 6, 16, 0));
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(1L)).thenReturn(List.of(anonymousReview));
+
+                mockMvc.perform(get("/api/boeken/1/reviews")
+                                .header("X-User-Role", "leerkracht"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].reviewerUserName").value("Anoniem"))
+                                .andExpect(jsonPath("$[0].canManage").value(true));
+        }
+
+        @Test
+        void createReviewShouldAllowNonAnonymousWhenOnlySubIsAvailable() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review saved = new Review();
+                saved.setId(12L);
+                saved.setBook(book);
+                saved.setRating(4);
+                saved.setComment("Goed boek");
+                saved.setReviewerUserId(null);
+                saved.setReviewerUserSub("smartschool-sub-2");
+                saved.setCreatedAt(LocalDateTime.of(2026, 4, 6, 13, 0));
+
+                SmartschoolUserInfo userInfo = new SmartschoolUserInfo();
+                userInfo.setSub("smartschool-sub-2");
+                userInfo.setFullName("Piet Peeters");
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(reviewRepository.existsByBook_IdAndReviewerUserSub(1L, "smartschool-sub-2")).thenReturn(false);
+                when(reviewRepository.save(any(Review.class))).thenReturn(saved);
+                when(authService.getUserInfoBySub("smartschool-sub-2")).thenReturn(Mono.just(userInfo));
+
+                String json = """
+                                {
+                                  "rating": 4,
+                                  "comment": "Goed boek",
+                                  "anonymous": false
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .header("X-User-Sub", "smartschool-sub-2")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.reviewerUserName").value("Piet Peeters"));
+
+                ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
+                verify(reviewRepository).save(captor.capture());
+                Review persisted = captor.getValue();
+                assertEquals("smartschool-sub-2", persisted.getReviewerUserSub());
+                assertNull(persisted.getReviewerUserId());
+        }
+
+        @Test
+        void createReviewShouldAllowNonAnonymousWhenOnlyRoleIsAvailable() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review saved = new Review();
+                saved.setId(13L);
+                saved.setBook(book);
+                saved.setRating(4);
+                saved.setComment("Prima boek");
+                saved.setReviewerUserId(null);
+                saved.setReviewerUserSub("role:leerkracht");
+                saved.setCreatedAt(LocalDateTime.of(2026, 4, 6, 14, 0));
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(reviewRepository.existsByBook_IdAndReviewerUserSub(1L, "role:leerkracht")).thenReturn(false);
+                when(reviewRepository.save(any(Review.class))).thenReturn(saved);
+
+                String json = """
+                                {
+                                  "rating": 4,
+                                  "comment": "Prima boek",
+                                  "anonymous": false
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .header("X-User-Role", "leerkracht")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.canManage").value(true));
+
+                ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
+                verify(reviewRepository).save(captor.capture());
+                Review persisted = captor.getValue();
+                assertEquals("role:leerkracht", persisted.getReviewerUserSub());
+        }
+
+        @Test
+        void createReviewShouldReturnUnauthorizedWhenIdentityMissingForNonAnonymous() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                String json = """
+                                {
+                                  "rating": 4,
+                                  "comment": "Leuk boek",
+                                  "anonymous": false
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .header("X-User-Name", "GeenNummerNaam")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isUnauthorized());
+
+                verify(reviewRepository, never()).save(any(Review.class));
+        }
+
+        @Test
+        void createReviewShouldAllowUserToPostAgainAfterDeletingOwnReview() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review existingReview = new Review();
+                existingReview.setId(2L);
+                existingReview.setBook(book);
+                existingReview.setReviewerUserId(1L);
+
+                AtomicBoolean hasReview = new AtomicBoolean(true);
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findById(2L)).thenReturn(Optional.of(existingReview));
+                doNothing().when(reviewRepository).delete(any(Review.class));
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+                when(reviewRepository.existsByBook_IdAndReviewerUserId(1L, 1L))
+                                .thenAnswer(invocation -> hasReview.get());
+                when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> {
+                        Review toSave = invocation.getArgument(0);
+                        toSave.setId(11L);
+                        toSave.setCreatedAt(LocalDateTime.of(2026, 4, 6, 12, 0));
+                        return toSave;
+                });
+
+                String deletePath = "/api/boeken/1/reviews/2";
+                mockMvc.perform(delete(deletePath)
+                                .header("X-User-Sub", "1"))
+                                .andExpect(status().isNoContent());
+
+                hasReview.set(false);
+
+                String json = """
+                                {
+                                  "rating": 4,
+                                  "comment": "Nieuwe review",
+                                  "anonymous": false
+                                }
+                                """;
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .header("X-User-Sub", "1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.id").value(11))
+                                .andExpect(jsonPath("$.reviewerUserId").value(1));
         }
 
         @Test
