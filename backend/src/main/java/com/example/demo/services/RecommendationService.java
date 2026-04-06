@@ -42,7 +42,8 @@ public class RecommendationService {
                 .collect(Collectors.toList());
     }
 
-    public List<RecommendedBook> getRecommendationsByStrategy(String userId, List<String> strategyNames, int limit, boolean excludeRead) {
+    public List<RecommendedBook> getRecommendationsByStrategy(String userId, List<String> strategyNames, int limit,
+            boolean excludeRead) {
         Map<Long, RecommendedBook> combined = new HashMap<>();
 
         for (RecommendationStrategy strategy : strategies) {
@@ -69,7 +70,8 @@ public class RecommendationService {
                 .collect(Collectors.toList());
     }
 
-    public Map<String, List<RecommendedBook>> getRecommendationsByStrategyGrouped(String userId, int limit, boolean excludeRead) {
+    public Map<String, List<RecommendedBook>> getRecommendationsByStrategyGrouped(String userId, int limit,
+            boolean excludeRead) {
         Map<String, List<RecommendedBook>> grouped = new LinkedHashMap<>();
 
         for (RecommendationStrategy strategy : strategies) {

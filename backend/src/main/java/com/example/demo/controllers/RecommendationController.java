@@ -50,7 +50,8 @@ public class RecommendationController {
 
         try {
             var strategyList = List.of(strategies.split(","));
-            var recommendations = recommendationService.getRecommendationsByStrategy(userSub, strategyList, limit, excludeRead);
+            var recommendations = recommendationService.getRecommendationsByStrategy(userSub, strategyList, limit,
+                    excludeRead);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -68,7 +69,8 @@ public class RecommendationController {
         }
 
         try {
-            var recommendations = recommendationService.getRecommendationsByStrategyGrouped(userSub, limit, excludeRead);
+            var recommendations = recommendationService.getRecommendationsByStrategyGrouped(userSub, limit,
+                    excludeRead);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

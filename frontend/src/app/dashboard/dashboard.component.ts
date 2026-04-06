@@ -120,6 +120,41 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  async onRefreshRecommendations(section: 'trending' | 'genre' | 'author', excludeRead: boolean) {
+    try {
+      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
+      const bookMap = new Map(allBooks.map(b => [b.id, b]));
+
+      if (section === 'trending') {
+        const trendingBooks = await this.recommendationService.getTrending(5, excludeRead);
+        this.trendingBooks = trendingBooks.map(rec => ({
+          ...rec,
+          cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
+          taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
+          paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
+        }));
+      } else if (section === 'genre') {
+        const genreBooks = await this.recommendationService.getByGenre(5, excludeRead);
+        this.genreBooks = genreBooks.map(rec => ({
+          ...rec,
+          cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
+          taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
+          paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
+        }));
+      } else if (section === 'author') {
+        const authorBooks = await this.recommendationService.getByAuthor(5, excludeRead);
+        this.authorBooks = authorBooks.map(rec => ({
+          ...rec,
+          cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
+          taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
+          paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
+        }));
+      }
+    } catch (error) {
+      console.error(`Fout bij verversen ${section} aanbevelingen:`, error);
+    }
+  }
+
   async fetchMyLoans() {
     this.loansLoading = true;
     const userSub = this.currentUserSub;

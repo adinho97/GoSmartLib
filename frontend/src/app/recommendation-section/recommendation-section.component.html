@@ -1,6 +1,14 @@
-<h2 class="section-title" [class.didactic-title]="variant === 'didactic'">
-  {{ title }}
-</h2>
+<header class="section-header">
+  <h2 class="section-title" [class.didactic-title]="variant === 'didactic'">
+    {{ title }}
+  </h2>
+  @if (books && books.length < 5) {
+    <div class="toggle-group">
+      <span class="toggle-label">{{ excludeRead ? 'Alleen nieuwe boeken' : 'Alle boeken' }}</span>
+      <button class="toggle-btn" (click)="toggleExcludeRead()" [class.active]="!excludeRead"></button>
+    </div>
+  }
+</header>
 
 <section
   class="recommendation-section"

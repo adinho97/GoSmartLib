@@ -65,6 +65,7 @@
         [books]="trendingBooks"
         [title]="'Popular Nu'"
         [variant]="'normal'"
+        (refreshRecommendations)="onRefreshRecommendations('trending', $event)"
       ></app-recommendation-section>
 
       @if (genreBooks.length > 0) {
@@ -72,6 +73,7 @@
           [books]="genreBooks"
           [title]="'Jouw Favoriete Genres'"
           [variant]="'normal'"
+          (refreshRecommendations)="onRefreshRecommendations('genre', $event)"
         ></app-recommendation-section>
       }
 
@@ -80,6 +82,7 @@
           [books]="authorBooks"
           [title]="'Jouw Favoriete Auteurs'"
           [variant]="'normal'"
+          (refreshRecommendations)="onRefreshRecommendations('author', $event)"
         ></app-recommendation-section>
       }
     }

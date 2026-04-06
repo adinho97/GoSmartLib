@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { BookService } from '../services/book.service';
@@ -18,6 +18,9 @@ export class RecommendationSectionComponent implements OnInit {
   @Input() layout: 'shelf' | 'hero' = 'shelf';
   @Input() variant: 'normal' | 'didactic' | 'teacher' = 'normal';
 
+  @Output() refreshRecommendations = new EventEmitter<boolean>();
+
+  excludeRead = true;
   wishlistedBookIds = new Set<number>();
   favoritedBookIds = new Set<number>();
 
@@ -98,5 +101,10 @@ export class RecommendationSectionComponent implements OnInit {
 
   seeDetail(bookId: number) {
     this.router.navigate(['/detail', bookId]);
+  }
+
+  toggleExcludeRead() {
+    this.excludeRead = !this.excludeRead;
+    this.refreshRecommendations.emit(this.excludeRead);
   }
 }
