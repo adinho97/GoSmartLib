@@ -29,6 +29,7 @@
   padding: 20px 10px 40px 10px;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
+  align-items: stretch;
 }
 
 /* Custom Scrollbar */

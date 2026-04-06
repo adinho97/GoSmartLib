@@ -1,10 +1,14 @@
 /* Boek Kaart */
 .book-card {
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+  height: 520px;
   flex: 0 0 320px;
   scroll-snap-align: start;
   background: white;
   border-radius: 20px;
-  padding: 18px 40px;
+  padding: 16px 24px;
   display: flex;
   flex-direction: column;
   border: 2px solid transparent;
@@ -116,19 +120,24 @@
   background: #871f42;
   color: white;
   font-size: 0.65rem;
-  padding: 4px 12px;
+  padding: 4px 10px;
   text-transform: uppercase;
   align-self: center;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   border-radius: 20px;
   font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
   z-index: 2;
 }
 
 .book-cover {
-  width: 110px;
-  height: 160px;
-  margin: 0 auto 12px;
+  width: 140px;
+  height: 200px;
+  margin: 0 auto 10px;
+  flex-shrink: 0;
 }
 
 .book-cover img {
@@ -155,26 +164,36 @@
   flex-direction: column;
   flex-grow: 1;
   text-align: center;
+  min-height: 0;
 }
 
 .book-content h4 {
   color: #871f42;
-  font-size: 1.1rem;
-  margin: 0 0 5px 0;
+  font-size: 1rem;
+  margin: 0 0 4px 0;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .author {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
   color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .book-meta {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #888;
-  margin: 0 0 5px 0;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
 }
 
 .reason-text {
