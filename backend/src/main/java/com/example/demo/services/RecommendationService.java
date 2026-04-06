@@ -69,6 +69,17 @@ public class RecommendationService {
                 .collect(Collectors.toList());
     }
 
+    public Map<String, List<RecommendedBook>> getRecommendationsByStrategyGrouped(String userId, int limit) {
+        Map<String, List<RecommendedBook>> grouped = new LinkedHashMap<>();
+
+        for (RecommendationStrategy strategy : strategies) {
+            var results = strategy.recommend(userId, limit);
+            grouped.put(strategy.getClass().getSimpleName(), results);
+        }
+
+        return grouped;
+    }
+
     // Useful for clients to know what strategies are active.
     public List<String> getAvailableStrategies() {
         return strategies.stream()
