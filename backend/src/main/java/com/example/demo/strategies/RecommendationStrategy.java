@@ -11,4 +11,6 @@ import java.util.List;
 public interface RecommendationStrategy {
 
     List<RecommendedBook> recommend(String userId, int limit);
+    
+    List<RecommendedBook> recommend(String userId, int limit, boolean excludeRead);
 }
