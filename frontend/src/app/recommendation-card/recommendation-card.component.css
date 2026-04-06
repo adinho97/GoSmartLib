@@ -160,28 +160,28 @@
 .book-content h4 {
   color: #871f42;
   font-size: 1.1rem;
-  margin: 0 0 3px 0;
+  margin: 0 0 5px 0;
   font-weight: 700;
 }
 
 .author {
   font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 3px;
+  margin-bottom: 5px;
   color: #555;
 }
 
 .book-meta {
   font-size: 0.8rem;
   color: #888;
-  margin: 0 0 3px 0;
+  margin: 0 0 5px 0;
 }
 
 .reason-text {
   font-size: 0.8rem;
   color: #888;
   margin-bottom: 8px;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .details-btn {

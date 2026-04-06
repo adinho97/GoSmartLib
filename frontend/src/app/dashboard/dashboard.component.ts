@@ -63,7 +63,18 @@ export class DashboardComponent implements OnInit {
   private async fetchRecommendations() {
     this.recommendationsLoading = true;
     try {
-      this.trendingBooks = await this.recommendationService.getTrending(5);
+      const trendingBooks = await this.recommendationService.getTrending(5);
+      
+      // Enrich trending books with cover images from book service
+      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
+      const bookMap = new Map(allBooks.map(b => [b.id, b]));
+      
+      this.trendingBooks = trendingBooks.map(rec => ({
+        ...rec,
+        cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
+        taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
+        paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
+      }));
     } catch (error) {
       console.error("Fout bij ophalen trending aanbevelingen:", error);
       this.trendingBooks = [];
