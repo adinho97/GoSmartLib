@@ -3,6 +3,7 @@ import {
   HostListener,
   Input,
   ChangeDetectorRef,
+  OnDestroy,
 } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router } from "@angular/router";
@@ -89,6 +90,9 @@ export class ProfileComponent {
   private unlockedBadgeIds = new Set<string>();
   private suppressBadgeToast = true;
   private badgeToastTimeoutId?: ReturnType<typeof setTimeout>;
+  private badgeRefreshIntervalId?: ReturnType<typeof setInterval>;
+  private visibilityChangeHandler?: () => void;
+  private windowFocusHandler?: () => void;
   private wishlistChangedSub?: Subscription;
   private favoriteChangedSub?: Subscription;
 
@@ -129,6 +133,59 @@ export class ProfileComponent {
           this.loadFavoriteBooks();
         },
       );
+    }
+
+    // Refresh badges periodically and on visibility change
+    this.startBadgeRefreshInterval();
+    this.setupVisibilityListener();
+  }
+
+  private setupVisibilityListener() {
+    this.visibilityChangeHandler = () => {
+      console.log("Visibility changed, document.hidden:", document.hidden);
+      if (!document.hidden) {
+        // Page became visible, refresh badges immediately
+        console.log("Page is now visible, refreshing badges...");
+        this.refreshBadges();
+      }
+    };
+
+    this.windowFocusHandler = () => {
+      // Window regained focus, refresh badges immediately
+      console.log("Window regained focus, refreshing badges...");
+      this.refreshBadges();
+    };
+
+    document.addEventListener("visibilitychange", this.visibilityChangeHandler);
+    window.addEventListener("focus", this.windowFocusHandler);
+    console.log("Visibility listeners set up");
+  }
+
+  private startBadgeRefreshInterval() {
+    console.log("Starting badge refresh interval...");
+    this.badgeRefreshIntervalId = setInterval(() => {
+      this.refreshBadges();
+    }, 1000); // Check every 1 second
+  }
+
+  async refreshBadges() {
+    try {
+      const newReviewCount = await this.bookService.getMyReviewCount();
+      console.log(
+        "Refreshing badges - reviewCount was:",
+        this.reviewCount,
+        "new:",
+        newReviewCount,
+      );
+      // Only update if review count changed (that's what earns badges on the detail page)
+      if (newReviewCount !== this.reviewCount) {
+        this.reviewCount = newReviewCount;
+        console.log("Review count changed! Rebuilding badges...");
+        this.rebuildBadges();
+        this.cdr.detectChanges();
+      }
+    } catch (error) {
+      console.error("Error refreshing badges:", error);
     }
   }
 
@@ -195,9 +252,20 @@ export class ProfileComponent {
       this.badges.filter((badge) => badge.unlocked).map((badge) => badge.id),
     );
 
+    console.log(
+      "rebuildBadges - suppressBadgeToast:",
+      this.suppressBadgeToast,
+      "unlockedBadgeIds:",
+      Array.from(this.unlockedBadgeIds),
+    );
+
     if (!this.suppressBadgeToast) {
       const newlyUnlockedBadges = this.badges.filter(
         (badge) => badge.unlocked && !this.unlockedBadgeIds.has(badge.id),
+      );
+      console.log(
+        "newlyUnlockedBadges:",
+        newlyUnlockedBadges.map((b) => b.id),
       );
       if (newlyUnlockedBadges.length > 0) {
         this.showBadgeToast(newlyUnlockedBadges);
@@ -214,13 +282,16 @@ export class ProfileComponent {
       newlyUnlockedBadges.length > 1
         ? `En nog ${newlyUnlockedBadges.length - 1} andere badge(s)!`
         : "Goed bezig, hou je streak vol.";
+    console.log("🎉 Showing badge toast:", this.badgeToastTitle);
     this.badgeToastVisible = true;
+    this.cdr.detectChanges(); // Trigger change detection immediately
 
     if (this.badgeToastTimeoutId) {
       clearTimeout(this.badgeToastTimeoutId);
     }
     this.badgeToastTimeoutId = setTimeout(() => {
       this.badgeToastVisible = false;
+      this.cdr.detectChanges(); // Trigger change detection for fade out
     }, 4200);
   }
 
@@ -271,6 +342,18 @@ export class ProfileComponent {
     this.favoriteChangedSub?.unsubscribe();
     if (this.badgeToastTimeoutId) {
       clearTimeout(this.badgeToastTimeoutId);
+    }
+    if (this.badgeRefreshIntervalId) {
+      clearInterval(this.badgeRefreshIntervalId);
+    }
+    if (this.visibilityChangeHandler) {
+      document.removeEventListener(
+        "visibilitychange",
+        this.visibilityChangeHandler,
+      );
+    }
+    if (this.windowFocusHandler) {
+      window.removeEventListener("focus", this.windowFocusHandler);
     }
   }
 

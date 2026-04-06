@@ -392,7 +392,7 @@
   grid-template-columns: auto 1fr auto;
   align-items: start;
   gap: 0.65rem;
-  animation: badgeToastIn 320ms ease-out;
+  animation: badgeToastIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .badge-toast-icon {
@@ -403,6 +403,7 @@
   place-items: center;
   background: #dcfce7;
   font-size: 1.1rem;
+  animation: badgeIconPop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .badge-toast-content strong {
@@ -434,13 +435,28 @@
 }
 
 @keyframes badgeToastIn {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(14px) scale(0.98);
+    transform: translateY(20px) scale(0.9);
   }
-  to {
+  75% {
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes badgeIconPop {
+  0% {
+    transform: scale(0) rotate(-45deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
   }
 }
 
