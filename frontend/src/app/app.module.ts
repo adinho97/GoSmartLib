@@ -12,11 +12,12 @@ import { AddBulkComponent } from "./add-bulk/add-bulk.component";
 import { AddBarcodeComponent } from "./add-barcode/add-barcode.component";
 import { BookListComponent } from "./book-list/book-list.component";
 import { provideHttpClient } from "@angular/common/http";
-import { DetailComponent } from './detail/detail.component';
-import { ProfileComponent } from './profile/profile.component';
-import { GeneralAddComponent } from './general-add/general-add.component';
+import { DetailComponent } from "./detail/detail.component";
+import { ProfileComponent } from "./profile/profile.component";
+import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
+import { BadgeToastComponent } from "./components/badge-toast/badge-toast.component";
 
 @NgModule({
   declarations: [
@@ -31,9 +32,15 @@ import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history
     BookListComponent,
     ProfileComponent,
     LoanPageComponent,
-    LoanHistoryCatalogComponent
+    LoanHistoryCatalogComponent,
   ],
-  imports: [BrowserModule, FormsModule, AppRoutingModule, AddBarcodeComponent],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    AppRoutingModule,
+    AddBarcodeComponent,
+    BadgeToastComponent,
+  ],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent],
 })

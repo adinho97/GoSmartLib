@@ -6,6 +6,7 @@ import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
 import { BookService } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
+import { BadgeNotificationService } from "../services/badge-notification.service";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import axios from "axios";
@@ -80,6 +81,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     private bookService: BookService,
     private loanService: LoanService,
     private sanitizer: DomSanitizer,
+    private badgeNotificationService: BadgeNotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -630,6 +632,9 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.newReviewAnonymous = anonymous;
       this.reviewError = "";
       this.reviewSuccess = "Review opgeslagen.";
+
+      // Check for badge unlocks after successful review post
+      this.checkAndEmitBadgeUnlock();
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
@@ -649,6 +654,40 @@ export class DetailComponent implements OnInit, OnDestroy {
       }
       this.reviewError = "Review opslaan mislukt. Probeer het opnieuw.";
       this.reviewSuccess = "";
+    }
+  }
+
+  private async checkAndEmitBadgeUnlock(): Promise<void> {
+    try {
+      const reviewCount = await this.bookService.getMyReviewCount();
+      const badgeMilestones = [1, 5, 10, 20, 50, 100];
+      const badgeIcons: { [key: number]: string } = {
+        1: "✍️",
+        5: "✍️",
+        10: "📝",
+        20: "📝",
+        50: "🌟",
+        100: "👑",
+      };
+
+      // Check if we just unlocked any badge
+      for (const milestone of badgeMilestones) {
+        if (reviewCount === milestone) {
+          const icon = badgeIcons[milestone];
+          const title =
+            milestone === 1
+              ? "Plaats je eerste review!"
+              : `${milestone} reviews geplaatst!`;
+          this.badgeNotificationService.showBadgeNotification({
+            title,
+            icon,
+            category: "review",
+          });
+          break; // Only show one badge at a time
+        }
+      }
+    } catch (error) {
+      console.error("Error checking badges:", error);
     }
   }
 

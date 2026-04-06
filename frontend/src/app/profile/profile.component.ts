@@ -142,27 +142,20 @@ export class ProfileComponent {
 
   private setupVisibilityListener() {
     this.visibilityChangeHandler = () => {
-      console.log("Visibility changed, document.hidden:", document.hidden);
       if (!document.hidden) {
-        // Page became visible, refresh badges immediately
-        console.log("Page is now visible, refreshing badges...");
         this.refreshBadges();
       }
     };
 
     this.windowFocusHandler = () => {
-      // Window regained focus, refresh badges immediately
-      console.log("Window regained focus, refreshing badges...");
       this.refreshBadges();
     };
 
     document.addEventListener("visibilitychange", this.visibilityChangeHandler);
     window.addEventListener("focus", this.windowFocusHandler);
-    console.log("Visibility listeners set up");
   }
 
   private startBadgeRefreshInterval() {
-    console.log("Starting badge refresh interval...");
     this.badgeRefreshIntervalId = setInterval(() => {
       this.refreshBadges();
     }, 1000); // Check every 1 second
@@ -171,21 +164,13 @@ export class ProfileComponent {
   async refreshBadges() {
     try {
       const newReviewCount = await this.bookService.getMyReviewCount();
-      console.log(
-        "Refreshing badges - reviewCount was:",
-        this.reviewCount,
-        "new:",
-        newReviewCount,
-      );
-      // Only update if review count changed (that's what earns badges on the detail page)
       if (newReviewCount !== this.reviewCount) {
         this.reviewCount = newReviewCount;
-        console.log("Review count changed! Rebuilding badges...");
         this.rebuildBadges();
         this.cdr.detectChanges();
       }
     } catch (error) {
-      console.error("Error refreshing badges:", error);
+      // Silently fail
     }
   }
 
@@ -252,20 +237,9 @@ export class ProfileComponent {
       this.badges.filter((badge) => badge.unlocked).map((badge) => badge.id),
     );
 
-    console.log(
-      "rebuildBadges - suppressBadgeToast:",
-      this.suppressBadgeToast,
-      "unlockedBadgeIds:",
-      Array.from(this.unlockedBadgeIds),
-    );
-
     if (!this.suppressBadgeToast) {
       const newlyUnlockedBadges = this.badges.filter(
         (badge) => badge.unlocked && !this.unlockedBadgeIds.has(badge.id),
-      );
-      console.log(
-        "newlyUnlockedBadges:",
-        newlyUnlockedBadges.map((b) => b.id),
       );
       if (newlyUnlockedBadges.length > 0) {
         this.showBadgeToast(newlyUnlockedBadges);
@@ -282,7 +256,6 @@ export class ProfileComponent {
       newlyUnlockedBadges.length > 1
         ? `En nog ${newlyUnlockedBadges.length - 1} andere badge(s)!`
         : "Goed bezig, hou je streak vol.";
-    console.log("🎉 Showing badge toast:", this.badgeToastTitle);
     this.badgeToastVisible = true;
     this.cdr.detectChanges(); // Trigger change detection immediately
 
