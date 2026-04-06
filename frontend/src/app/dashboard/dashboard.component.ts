@@ -26,6 +26,7 @@ export class DashboardComponent implements OnInit {
   trendingBooks: RecommendedBook[] = [];
   genreBooks: RecommendedBook[] = [];
   authorBooks: RecommendedBook[] = [];
+  newArrivalsBooks: RecommendedBook[] = [];
   myLoans: Loan[] = [];
   loansLoading = true;
   recommendationsLoading = true;
@@ -54,6 +55,7 @@ export class DashboardComponent implements OnInit {
       this.fetchMyLoans(),
       this.fetchGenreRecommendations(),
       this.fetchAuthorRecommendations(),
+      this.fetchNewArrivalsRecommendations(),
     ]);
   }
 
@@ -117,6 +119,26 @@ export class DashboardComponent implements OnInit {
     } catch (error) {
       console.error("Fout bij ophalen auteur aanbevelingen:", error);
       this.authorBooks = [];
+    }
+  }
+
+  private async fetchNewArrivalsRecommendations() {
+    try {
+      const newArrivalsBooks = await this.recommendationService.getNewArrivals(5);
+      
+      // Enrich with cover images
+      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
+      const bookMap = new Map(allBooks.map(b => [b.id, b]));
+      
+      this.newArrivalsBooks = newArrivalsBooks.map(rec => ({
+        ...rec,
+        cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
+        taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
+        paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
+      }));
+    } catch (error) {
+      console.error("Fout bij ophalen nieuwe aankomsten:", error);
+      this.newArrivalsBooks = [];
     }
   }
 

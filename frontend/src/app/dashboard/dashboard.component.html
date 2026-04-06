@@ -63,15 +63,23 @@
     @if (!recommendationsLoading) {
       <app-recommendation-section
         [books]="trendingBooks"
-        [title]="'Popular Nu'"
+        [title]="'Populairste boeken'"
         [variant]="'normal'"
         (refreshRecommendations)="onRefreshRecommendations('trending', $event)"
       ></app-recommendation-section>
 
+      @if (newArrivalsBooks.length > 0) {
+        <app-recommendation-section
+          [books]="newArrivalsBooks"
+          [title]="'Nieuwe Aankomsten'"
+          [variant]="'normal'"
+        ></app-recommendation-section>
+      }
+
       @if (genreBooks.length > 0) {
         <app-recommendation-section
           [books]="genreBooks"
-          [title]="'Jouw Favoriete Genres'"
+          [title]="'Gebaseerd op jouw favoriete genres'"
           [variant]="'normal'"
           (refreshRecommendations)="onRefreshRecommendations('genre', $event)"
         ></app-recommendation-section>
@@ -80,7 +88,7 @@
       @if (authorBooks.length > 0) {
         <app-recommendation-section
           [books]="authorBooks"
-          [title]="'Jouw Favoriete Auteurs'"
+          [title]="'Gebaseerd op jouw favoriete auteurs'"
           [variant]="'normal'"
           (refreshRecommendations)="onRefreshRecommendations('author', $event)"
         ></app-recommendation-section>

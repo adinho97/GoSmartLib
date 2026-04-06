@@ -36,8 +36,7 @@ public class NewArrivalsStrategy implements RecommendationStrategy {
                         book.getAuteur(),
                         book.getGenre(),
                         100.0, // All new arrivals have max score
-                        "Recently added to the library"
-                ))
+                        "Recently added to the library"))
                 .collect(Collectors.toList());
     }
 }
