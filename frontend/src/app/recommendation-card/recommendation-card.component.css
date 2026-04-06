@@ -1,9 +1,9 @@
 /* Boek Kaart */
 .book-card {
-  width: 320px;
-  min-width: 320px;
+  width: 190px;
+  min-width: 180px;
   max-width: 320px;
-  height: 520px;
+  height: 380px;
   flex: 0 0 320px;
   scroll-snap-align: start;
   background: white;

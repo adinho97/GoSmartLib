@@ -84,14 +84,6 @@
       }
     }
 
-    @if (canSeeDidactic && didacticBooks.length > 0) {
-      <app-recommendation-section
-        [books]="didacticBooks"
-        [title]="'Didactische Collectie'"
-        [variant]="'didactic'"
-      ></app-recommendation-section>
-    }
-
     <section class="dashboard-profile-section">
       <app-profile
         [embedded]="true"

@@ -26,17 +26,11 @@ export class DashboardComponent implements OnInit {
   trendingBooks: RecommendedBook[] = [];
   genreBooks: RecommendedBook[] = [];
   authorBooks: RecommendedBook[] = [];
-  didacticBooks: RecommendedBook[] = [];
   myLoans: Loan[] = [];
   loansLoading = true;
   recommendationsLoading = true;
 
   today = new Date().toISOString().split("T")[0];
-
-  get canSeeDidactic(): boolean {
-    const role = localStorage.getItem("role");
-    return role === "leerkracht" || role === "bibbeheerder";
-  }
 
   get currentUsername(): string {
     return localStorage.getItem("username") || "";
@@ -58,7 +52,6 @@ export class DashboardComponent implements OnInit {
     await Promise.all([
       this.fetchRecommendations(),
       this.fetchMyLoans(),
-      this.fetchDidacticBooks(),
       this.fetchGenreRecommendations(),
       this.fetchAuthorRecommendations(),
     ]);
@@ -127,31 +120,6 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private async fetchDidacticBooks() {
-    try {
-      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
-      const didacticGenreBooks = allBooks
-        .filter((book) => this.isDidacticGenre(book.genre))
-        .slice(0, 5);
-      
-      // Convert BookResponse to RecommendedBook format
-      this.didacticBooks = didacticGenreBooks.map((book) => ({
-        bookId: book.id || 0,
-        titel: book.titel || "",
-        auteur: book.auteur || "",
-        genre: book.genre || "",
-        score: 0,
-        reason: "Didactische collectie",
-        cover: book.cover || null,
-        taal: book.taal || null,
-        paginas: book.paginas || null,
-      }));
-    } catch (error) {
-      console.error("Fout bij ophalen didactische boeken:", error);
-      this.didacticBooks = [];
-    }
-  }
-
   async fetchMyLoans() {
     this.loansLoading = true;
     const userSub = this.currentUserSub;
@@ -170,12 +138,6 @@ export class DashboardComponent implements OnInit {
 
   isOverdue(dueDate: string): boolean {
     return dueDate < this.today;
-  }
-
-  private isDidacticGenre(genre: unknown): boolean {
-    return String(genre || "")
-      .toLowerCase()
-      .startsWith("didactiek");
   }
 
   goToDetail(bookId: number) {
