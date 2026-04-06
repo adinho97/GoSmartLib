@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -320,7 +321,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+        String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
 
         List<ReviewDto> reviews = reviewRepository.findByBook_IdOrderByCreatedAtDesc(id)
                 .stream()
@@ -328,6 +329,24 @@ public class BookController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(reviews);
+    }
+
+    @GetMapping("/reviews/mijn/aantal")
+    public ResponseEntity<Map<String, Long>> getMyReviewCount(
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+        String reviewerUserSub = resolveReviewUserKey(userSub, userName, userRole);
+        if (!StringUtils.hasText(reviewerUserSub)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Long reviewerUserId = resolveReviewerUserId(userSub, userName);
+        long count = reviewerUserId == null
+                ? reviewRepository.countByReviewerUserSub(reviewerUserSub)
+                : reviewRepository.countByReviewerUserSubOrReviewerUserId(reviewerUserSub, reviewerUserId);
+
+        return ResponseEntity.ok(Map.of("count", count));
     }
 
     @PostMapping("/{id}/reviews")
@@ -348,16 +367,32 @@ public class BookController {
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
         boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
+        String reviewerUserSub = resolveReviewUserKey(userSub, userName, userRole);
+        Long reviewerUserId = isAnonymous ? null : resolveReviewerUserId(userSub, userName);
+        review.setAnonymous(isAnonymous);
+
+        if (reviewerUserSub == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        if (reviewerUserSub != null && reviewRepository.existsByBook_IdAndReviewerUserSub(id, reviewerUserSub)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        if (reviewerUserId != null && reviewRepository.existsByBook_IdAndReviewerUserId(id, reviewerUserId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
 
         if (isAnonymous) {
             review.setReviewerUserId(null);
+            review.setReviewerUserSub(reviewerUserSub);
         } else {
-            Long reviewerUserId = resolveReviewerUserId(userSub, userName);
             review.setReviewerUserId(reviewerUserId);
+            review.setReviewerUserSub(reviewerUserSub);
         }
 
         Review saved = reviewRepository.save(review);
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+        String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(toReviewDto(saved, userRole, normalizedUserSub));
     }
@@ -377,7 +412,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+        String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
         if (!canManageReview(review, userRole, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -402,7 +437,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+        String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
         if (!canManageReview(review, userRole, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -493,6 +528,19 @@ public class BookController {
         return normalizeUserName(userName);
     }
 
+    private String resolveReviewUserKey(String userSub, String userName, String userRole) {
+        String resolvedUserSub = resolveUserSub(userSub, userName);
+        if (StringUtils.hasText(resolvedUserSub)) {
+            return resolvedUserSub;
+        }
+
+        if (StringUtils.hasText(userRole)) {
+            return "role:" + userRole.trim().toLowerCase(Locale.ROOT);
+        }
+
+        return null;
+    }
+
     private Long resolveReviewerUserId(String userSub, String userName) {
         if (StringUtils.hasText(userSub)) {
             String trimmed = userSub.trim();
@@ -539,6 +587,10 @@ public class BookController {
             return true;
         }
 
+        if (StringUtils.hasText(review.getReviewerUserSub()) && StringUtils.hasText(normalizedUserSub)) {
+            return isSameUser(review.getReviewerUserSub(), normalizedUserSub);
+        }
+
         if (review.getReviewerUserId() != null && normalizedUserSub != null) {
             Long currentUserId = resolveCurrentUserId(normalizedUserSub);
             return currentUserId != null && currentUserId.equals(review.getReviewerUserId());
@@ -556,8 +608,33 @@ public class BookController {
     }
 
     private String resolveReviewerUserName(Review review) {
-        if (review.getReviewerUserId() == null) {
+        if (Boolean.TRUE.equals(review.getAnonymous())) {
             return "Anoniem";
+        }
+
+        if (review.getReviewerUserId() == null && !StringUtils.hasText(review.getReviewerUserSub())) {
+            return "Anoniem";
+        }
+
+        if (review.getReviewerUserId() == null && StringUtils.hasText(review.getReviewerUserSub())) {
+            try {
+                return authService.getUserInfoBySub(review.getReviewerUserSub().trim())
+                        .onErrorResume(err -> Mono.empty())
+                        .blockOptional()
+                        .map(userInfo -> {
+                            var fullName = userInfo.getFullName();
+                            if (fullName != null && !fullName.isBlank()) {
+                                return fullName;
+                            }
+                            var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
+                                    .filter(part -> part != null && !part.isBlank())
+                                    .collect(Collectors.joining(" ")).trim();
+                            return candidate.isEmpty() ? userInfo.getSub() : candidate;
+                        })
+                        .orElse(review.getReviewerUserSub().trim());
+            } catch (Exception e) {
+                return review.getReviewerUserSub().trim();
+            }
         }
 
         try {

@@ -632,6 +632,14 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.reviewSuccess = "Review opgeslagen.";
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        if (status === 409) {
+          this.reviewError =
+            "Je hebt al een review voor dit boek geplaatst. Verwijder of bewerk je bestaande review.";
+          this.reviewSuccess = "";
+          return;
+        }
+
         const apiMessage = error.response?.data?.message;
         if (typeof apiMessage === "string" && apiMessage.trim()) {
           this.reviewError = apiMessage;

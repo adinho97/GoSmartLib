@@ -28,6 +28,12 @@ public class Review {
     @Column(nullable = true)
     private Long reviewerUserId;
 
+    @Column(nullable = true)
+    private String reviewerUserSub;
+
+    @Column(nullable = true)
+    private Boolean anonymous;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -72,6 +78,22 @@ public class Review {
 
     public void setReviewerUserId(Long reviewerUserId) {
         this.reviewerUserId = reviewerUserId;
+    }
+
+    public String getReviewerUserSub() {
+        return reviewerUserSub;
+    }
+
+    public void setReviewerUserSub(String reviewerUserSub) {
+        this.reviewerUserSub = reviewerUserSub;
+    }
+
+    public Boolean getAnonymous() {
+        return anonymous;
+    }
+
+    public void setAnonymous(Boolean anonymous) {
+        this.anonymous = anonymous;
     }
 
     public LocalDateTime getCreatedAt() {
