@@ -16,6 +16,7 @@ export class RecommendationSectionComponent implements OnInit {
   @Input() books: RecommendedBook[] = [];
   @Input() title: string = 'Aanbevelingen';
   @Input() layout: 'shelf' | 'hero' = 'shelf';
+  @Input() variant: 'normal' | 'didactic' = 'normal';
 
   wishlistedBookIds = new Set<number>();
   favoritedBookIds = new Set<number>();

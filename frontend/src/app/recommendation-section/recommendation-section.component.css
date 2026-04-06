@@ -2,6 +2,17 @@
   margin: 2rem 0;
 }
 
+.recommendation-section.didactic {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
+  padding: 1.5rem;
+  border-left: 4px solid #ff9800;
+  border-radius: 4px;
+}
+
+.recommendation-section.didactic .section-title {
+  color: #e65100;
+}
+
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;

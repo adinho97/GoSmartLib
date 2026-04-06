@@ -1,8 +1,20 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
+import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
 import { RecommendationService, RecommendedBook } from "../services/recommendation.service";
 import { HttpClient } from "@angular/common/http";
+
+type BookResponse = {
+  id?: number;
+  titel?: string;
+  auteur?: string;
+  genre?: string;
+  taal?: string;
+  paginas?: number | null;
+  cover?: string | null;
+  beschrijving?: string;
+};
 
 @Component({
   selector: "app-dashboard",
@@ -12,13 +24,17 @@ import { HttpClient } from "@angular/common/http";
 })
 export class DashboardComponent implements OnInit {
   trendingBooks: RecommendedBook[] = [];
-  genreBooks: RecommendedBook[] = [];
-  authorBooks: RecommendedBook[] = [];
+  didacticBooks: RecommendedBook[] = [];
   myLoans: Loan[] = [];
   loansLoading = true;
   recommendationsLoading = true;
 
   today = new Date().toISOString().split("T")[0];
+
+  get canSeeDidactic(): boolean {
+    const role = localStorage.getItem("role");
+    return role === "leerkracht" || role === "bibbeheerder";
+  }
 
   get currentUsername(): string {
     return localStorage.getItem("username") || "";
@@ -30,6 +46,7 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private bookService: BookService,
     private loanService: LoanService,
     private recommendationService: RecommendationService,
     private http: HttpClient
@@ -39,27 +56,41 @@ export class DashboardComponent implements OnInit {
     await Promise.all([
       this.fetchRecommendations(),
       this.fetchMyLoans(),
+      this.fetchDidacticBooks(),
     ]);
   }
 
   private async fetchRecommendations() {
     this.recommendationsLoading = true;
     try {
-      const [trending, byGenre, byAuthor] = await Promise.all([
-        this.recommendationService.getTrending(5),
-        this.recommendationService.getByGenre(5),
-        this.recommendationService.getByAuthor(5),
-      ]);
-      this.trendingBooks = trending;
-      this.genreBooks = byGenre;
-      this.authorBooks = byAuthor;
+      this.trendingBooks = await this.recommendationService.getTrending(5);
     } catch (error) {
-      console.error("Fout bij ophalen aanbevelingen:", error);
+      console.error("Fout bij ophalen trending aanbevelingen:", error);
       this.trendingBooks = [];
-      this.genreBooks = [];
-      this.authorBooks = [];
     } finally {
       this.recommendationsLoading = false;
+    }
+  }
+
+  private async fetchDidacticBooks() {
+    try {
+      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
+      const didacticGenreBooks = allBooks
+        .filter((book) => this.isDidacticGenre(book.genre))
+        .slice(0, 5);
+      
+      // Convert BookResponse to RecommendedBook format
+      this.didacticBooks = didacticGenreBooks.map((book) => ({
+        bookId: book.id || 0,
+        titel: book.titel || "",
+        auteur: book.auteur || "",
+        genre: book.genre || "",
+        score: 0,
+        reason: "Didactische collectie",
+      }));
+    } catch (error) {
+      console.error("Fout bij ophalen didactische boeken:", error);
+      this.didacticBooks = [];
     }
   }
 
@@ -81,6 +112,12 @@ export class DashboardComponent implements OnInit {
 
   isOverdue(dueDate: string): boolean {
     return dueDate < this.today;
+  }
+
+  private isDidacticGenre(genre: unknown): boolean {
+    return String(genre || "")
+      .toLowerCase()
+      .startsWith("didactiek");
   }
 
   goToDetail(bookId: number) {

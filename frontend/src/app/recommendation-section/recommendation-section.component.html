@@ -1,4 +1,4 @@
-<section class="recommendation-section">
+<section class="recommendation-section" [class.didactic]="variant === 'didactic'">
   <h2 class="section-title">{{ title }}</h2>
 
   @if (books && books.length > 0) {
