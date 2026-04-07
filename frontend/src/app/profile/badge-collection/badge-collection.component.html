@@ -1,0 +1,35 @@
+<section id="badges-section" class="profile-section badges-section">
+  <div class="section-head">
+    <h3 class="section-title">Badgecollectie</h3>
+    <span class="section-count"
+      >{{ unlockedBadgesCount }}/{{ totalBadgesCount }}</span
+    >
+  </div>
+
+  @if (loading) {
+    <div class="inline-empty">Badges laden...</div>
+  } @else {
+    <div class="badges-grid">
+      @for (badge of badges; track badge.id) {
+        <article
+          class="badge-card"
+          [class.badge-card-unlocked]="badge.unlocked"
+          [class.badge-card-loan]="badge.category === 'loan'"
+          [class.badge-card-review]="badge.category === 'review'"
+        >
+          <div class="badge-card-top">
+            <span class="badge-icon" aria-hidden="true">
+              {{ getBadgeIcon(badge) }}
+            </span>
+            <span class="badge-category">
+              {{ getBadgeCategoryLabel(badge.category) }}
+            </span>
+          </div>
+
+          <h4>{{ badge.title }}</h4>
+          <p class="badge-progress">{{ getBadgeProgressText(badge) }}</p>
+        </article>
+      }
+    </div>
+  }
+</section>

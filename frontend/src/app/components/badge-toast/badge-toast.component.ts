@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import {
   BadgeNotificationService,
   BadgeUnlocked,
@@ -35,13 +35,17 @@ export class BadgeToastComponent implements OnInit, OnDestroy {
   private badgeSubscription?: Subscription;
   private fadeOutTimeoutId?: ReturnType<typeof setTimeout>;
 
-  constructor(private badgeNotificationService: BadgeNotificationService) {}
+  constructor(
+    private badgeNotificationService: BadgeNotificationService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
     this.badgeSubscription =
       this.badgeNotificationService.badgeUnlocked$.subscribe(
         (badge: BadgeUnlocked) => {
           this.visibleBadge = badge;
+          this.cdr.detectChanges();
 
           if (this.fadeOutTimeoutId) {
             clearTimeout(this.fadeOutTimeoutId);
@@ -49,6 +53,7 @@ export class BadgeToastComponent implements OnInit, OnDestroy {
 
           this.fadeOutTimeoutId = setTimeout(() => {
             this.visibleBadge = null;
+            this.cdr.detectChanges();
           }, 4500); // Show for 4.5 seconds
         },
       );
@@ -56,6 +61,7 @@ export class BadgeToastComponent implements OnInit, OnDestroy {
 
   dismissBadge() {
     this.visibleBadge = null;
+    this.cdr.detectChanges();
     if (this.fadeOutTimeoutId) {
       clearTimeout(this.fadeOutTimeoutId);
       this.fadeOutTimeoutId = undefined;

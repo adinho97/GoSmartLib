@@ -14,6 +14,7 @@ import { BookListComponent } from "./book-list/book-list.component";
 import { provideHttpClient } from "@angular/common/http";
 import { DetailComponent } from "./detail/detail.component";
 import { ProfileComponent } from "./profile/profile.component";
+import { BadgeCollectionComponent } from "./profile/badge-collection/badge-collection.component";
 import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
@@ -39,6 +40,7 @@ import { BadgeToastComponent } from "./components/badge-toast/badge-toast.compon
     FormsModule,
     AppRoutingModule,
     AddBarcodeComponent,
+    BadgeCollectionComponent,
     BadgeToastComponent,
   ],
   providers: [provideHttpClient()],

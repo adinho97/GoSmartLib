@@ -1,10 +1,4 @@
-import {
-  Component,
-  HostListener,
-  Input,
-  ChangeDetectorRef,
-  OnDestroy,
-} from "@angular/core";
+import { Component, HostListener, Input, OnDestroy } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
@@ -24,17 +18,6 @@ type ProfileBookCard = {
   notificationEnabled?: boolean;
   availableCopies?: number;
   totalCopies?: number;
-};
-
-type BadgeCategory = "loan" | "review";
-
-type ProfileBadge = {
-  id: string;
-  title: string;
-  category: BadgeCategory;
-  threshold: number;
-  current: number;
-  unlocked: boolean;
 };
 
 @Component({
@@ -81,18 +64,6 @@ export class ProfileComponent {
   currentWishlistPage = 1;
   currentFavoritePage = 1;
   currentReadingHistoryPage = 1;
-  reviewCount = 0;
-  badges: ProfileBadge[] = [];
-  badgeToastVisible = false;
-  badgeToastTitle = "";
-  badgeToastMessage = "";
-  private readonly badgeMilestones = [1, 5, 10, 20, 50, 100];
-  private unlockedBadgeIds = new Set<string>();
-  private suppressBadgeToast = true;
-  private badgeToastTimeoutId?: ReturnType<typeof setTimeout>;
-  private badgeRefreshIntervalId?: ReturnType<typeof setInterval>;
-  private visibilityChangeHandler?: () => void;
-  private windowFocusHandler?: () => void;
   private wishlistChangedSub?: Subscription;
   private favoriteChangedSub?: Subscription;
 
@@ -103,7 +74,6 @@ export class ProfileComponent {
     private http: HttpClient,
     private bookService: BookService,
     private loanService: LoanService,
-    private cdr: ChangeDetectorRef,
   ) {}
 
   async ngOnInit() {
@@ -116,11 +86,7 @@ export class ProfileComponent {
       this.loadWishlistBooks(),
       this.loadFavoriteBooks(),
       this.loadReadingHistory(),
-      this.loadReviewCount(),
     ]);
-    this.rebuildBadges();
-    this.suppressBadgeToast = false;
-    this.cdr.detectChanges();
 
     if (this.showSections) {
       this.wishlistChangedSub = this.bookService.wishlistChanged$.subscribe(
@@ -133,44 +99,6 @@ export class ProfileComponent {
           this.loadFavoriteBooks();
         },
       );
-    }
-
-    // Refresh badges periodically and on visibility change
-    this.startBadgeRefreshInterval();
-    this.setupVisibilityListener();
-  }
-
-  private setupVisibilityListener() {
-    this.visibilityChangeHandler = () => {
-      if (!document.hidden) {
-        this.refreshBadges();
-      }
-    };
-
-    this.windowFocusHandler = () => {
-      this.refreshBadges();
-    };
-
-    document.addEventListener("visibilitychange", this.visibilityChangeHandler);
-    window.addEventListener("focus", this.windowFocusHandler);
-  }
-
-  private startBadgeRefreshInterval() {
-    this.badgeRefreshIntervalId = setInterval(() => {
-      this.refreshBadges();
-    }, 1000); // Check every 1 second
-  }
-
-  async refreshBadges() {
-    try {
-      const newReviewCount = await this.bookService.getMyReviewCount();
-      if (newReviewCount !== this.reviewCount) {
-        this.reviewCount = newReviewCount;
-        this.rebuildBadges();
-        this.cdr.detectChanges();
-      }
-    } catch (error) {
-      // Silently fail
     }
   }
 
@@ -189,145 +117,12 @@ export class ProfileComponent {
       this.readingHistory = [];
     } finally {
       this.readingHistoryLoading = false;
-      this.rebuildBadges();
     }
-  }
-
-  private async loadReviewCount() {
-    try {
-      this.reviewCount = await this.bookService.getMyReviewCount();
-    } catch {
-      this.reviewCount = 0;
-    } finally {
-      this.rebuildBadges();
-    }
-  }
-
-  private rebuildBadges() {
-    const loanCount = this.readingHistory.length;
-    const reviewCount = this.reviewCount;
-
-    const loanBadges: ProfileBadge[] = this.badgeMilestones.map(
-      (threshold) => ({
-        id: `loan-${threshold}`,
-        title:
-          threshold === 1 ? "Ontleen een boek" : `Ontleen ${threshold} boeken`,
-        category: "loan",
-        threshold,
-        current: loanCount,
-        unlocked: loanCount >= threshold,
-      }),
-    );
-
-    const reviewBadges: ProfileBadge[] = this.badgeMilestones.map(
-      (threshold) => ({
-        id: `review-${threshold}`,
-        title:
-          threshold === 1 ? "Plaats een review" : `Plaats ${threshold} reviews`,
-        category: "review",
-        threshold,
-        current: reviewCount,
-        unlocked: reviewCount >= threshold,
-      }),
-    );
-
-    this.badges = [...loanBadges, ...reviewBadges];
-
-    const nextUnlockedIds = new Set(
-      this.badges.filter((badge) => badge.unlocked).map((badge) => badge.id),
-    );
-
-    if (!this.suppressBadgeToast) {
-      const newlyUnlockedBadges = this.badges.filter(
-        (badge) => badge.unlocked && !this.unlockedBadgeIds.has(badge.id),
-      );
-      if (newlyUnlockedBadges.length > 0) {
-        this.showBadgeToast(newlyUnlockedBadges);
-      }
-    }
-
-    this.unlockedBadgeIds = nextUnlockedIds;
-  }
-
-  private showBadgeToast(newlyUnlockedBadges: ProfileBadge[]) {
-    const firstBadge = newlyUnlockedBadges[0];
-    this.badgeToastTitle = `Nieuwe badge ontgrendeld: ${firstBadge.title}`;
-    this.badgeToastMessage =
-      newlyUnlockedBadges.length > 1
-        ? `En nog ${newlyUnlockedBadges.length - 1} andere badge(s)!`
-        : "Goed bezig, hou je streak vol.";
-    this.badgeToastVisible = true;
-    this.cdr.detectChanges(); // Trigger change detection immediately
-
-    if (this.badgeToastTimeoutId) {
-      clearTimeout(this.badgeToastTimeoutId);
-    }
-    this.badgeToastTimeoutId = setTimeout(() => {
-      this.badgeToastVisible = false;
-      this.cdr.detectChanges(); // Trigger change detection for fade out
-    }, 4200);
-  }
-
-  dismissBadgeToast() {
-    this.badgeToastVisible = false;
-    if (this.badgeToastTimeoutId) {
-      clearTimeout(this.badgeToastTimeoutId);
-      this.badgeToastTimeoutId = undefined;
-    }
-  }
-
-  get unlockedBadgesCount(): number {
-    return this.badges.filter((badge) => badge.unlocked).length;
-  }
-
-  get totalBadgesCount(): number {
-    return this.badges.length;
-  }
-
-  getBadgeProgressText(badge: ProfileBadge): string {
-    if (badge.unlocked) {
-      return `Behaald (${badge.current}/${badge.threshold})`;
-    }
-
-    return `Voortgang ${Math.min(badge.current, badge.threshold)}/${badge.threshold}`;
-  }
-
-  getBadgeCategoryLabel(category: BadgeCategory): string {
-    return category === "loan" ? "Uitleen" : "Reviews";
-  }
-
-  getBadgeIcon(badge: ProfileBadge): string {
-    if (badge.category === "loan") {
-      if (badge.threshold >= 100) return "🏛️";
-      if (badge.threshold >= 50) return "🏆";
-      if (badge.threshold >= 20) return "📚";
-      return "📘";
-    }
-
-    if (badge.threshold >= 100) return "👑";
-    if (badge.threshold >= 50) return "🌟";
-    if (badge.threshold >= 20) return "📝";
-    return "✍️";
   }
 
   ngOnDestroy() {
     this.wishlistChangedSub?.unsubscribe();
     this.favoriteChangedSub?.unsubscribe();
-    if (this.badgeToastTimeoutId) {
-      clearTimeout(this.badgeToastTimeoutId);
-    }
-    if (this.badgeRefreshIntervalId) {
-      clearInterval(this.badgeRefreshIntervalId);
-    }
-    if (this.visibilityChangeHandler) {
-      document.removeEventListener(
-        "visibilitychange",
-        this.visibilityChangeHandler,
-      );
-    }
-    if (this.windowFocusHandler) {
-      window.removeEventListener("focus", this.windowFocusHandler);
-    }
   }
 
   private async loadWishlistBooks() {
