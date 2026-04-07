@@ -51,28 +51,29 @@
 
 .badges-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
 }
 
 .badge-card {
   position: relative;
   overflow: hidden;
-  min-height: 155px;
-  border: 1px solid rgba(215, 180, 194, 0.7);
+  min-height: 146px;
+  border: 1px solid rgba(215, 180, 194, 0.72);
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.9) 0%,
-    #fffafc 100%
+    rgba(255, 255, 255, 0.95) 0%,
+    #fff8fb 100%
   );
-  border-radius: 28px 18px 30px 20px;
-  padding: 1rem 1rem 0.95rem;
+  border-radius: 24px 16px 24px 16px;
+  padding: 0.95rem;
   box-shadow:
-    0 10px 26px rgba(96, 22, 47, 0.05),
+    0 10px 24px rgba(96, 22, 47, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  align-items: stretch;
+  gap: 0.65rem;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
@@ -82,47 +83,29 @@
 .badge-card::before {
   content: "";
   position: absolute;
-  inset: auto -22px -28px auto;
-  width: 92px;
-  height: 92px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(200, 133, 157, 0.18) 0%,
-    transparent 70%
-  );
+  inset: 0 0 auto 0;
+  height: 8px;
+  background: linear-gradient(90deg, #c8859d 0%, #871f42 100%);
   opacity: 0.9;
 }
 
 .badge-card:hover {
-  transform: translateY(-3px) rotate(-0.2deg);
+  transform: translateY(-2px);
   box-shadow:
     0 14px 34px rgba(96, 22, 47, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 .badge-card-loan::before {
-  background: radial-gradient(
-    circle,
-    rgba(29, 78, 216, 0.18) 0%,
-    transparent 70%
-  );
+  background: linear-gradient(90deg, #9cc2ff 0%, #1d4ed8 100%);
 }
 
 .badge-card-review::before {
-  background: radial-gradient(
-    circle,
-    rgba(194, 65, 12, 0.18) 0%,
-    transparent 70%
-  );
+  background: linear-gradient(90deg, #fdbb92 0%, #c2410c 100%);
 }
 
 .badge-card-unlocked::before {
-  background: radial-gradient(
-    circle,
-    rgba(22, 101, 52, 0.18) 0%,
-    transparent 70%
-  );
+  background: linear-gradient(90deg, #9ae6a0 0%, #166534 100%);
 }
 
 .badge-card-loan .badge-icon {
@@ -140,10 +123,10 @@
   background:
     radial-gradient(
       circle at top right,
-      rgba(34, 197, 94, 0.12),
-      transparent 42%
+      rgba(22, 101, 52, 0.08),
+      transparent 38%
     ),
-    linear-gradient(160deg, #eefcf0 0%, #f8fffa 100%);
+    linear-gradient(180deg, #effdf2 0%, #fbfffc 100%);
 }
 
 .badge-card-unlocked .badge-icon {
@@ -155,18 +138,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.6rem;
   position: relative;
   z-index: 1;
 }
 
 .badge-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 16px 18px 14px 20px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
   font-size: 1.15rem;
   box-shadow: 0 8px 18px rgba(31, 41, 55, 0.08);
   display: grid;
   place-items: center;
+  flex-shrink: 0;
 }
 
 .badge-category {
@@ -178,7 +163,7 @@
 
 .badge-card h4 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1rem;
   line-height: 1.2;
   color: #1f2937;
   position: relative;
@@ -196,5 +181,13 @@
 @media (max-width: 560px) {
   .badges-grid {
     grid-template-columns: 1fr;
+  }
+
+  .badge-card {
+    border-radius: 20px;
+  }
+
+  .badge-card-top {
+    width: 100%;
   }
 }
