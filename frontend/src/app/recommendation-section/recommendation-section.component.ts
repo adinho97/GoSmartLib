@@ -45,7 +45,14 @@ export class RecommendationSectionComponent implements OnInit {
     // Load preference from localStorage using section-specific key
     const saved = localStorage.getItem(this.storageKey);
     if (saved !== null) {
-      this.excludeRead = saved === 'true';
+      const savedValue = saved === 'true';
+      // If saved preference differs from default, refresh books with the saved setting
+      if (savedValue !== this.excludeRead) {
+        this.excludeRead = savedValue;
+        this.refreshRecommendations.emit(this.excludeRead);
+      } else {
+        this.excludeRead = savedValue;
+      }
     }
 
     await Promise.all([
