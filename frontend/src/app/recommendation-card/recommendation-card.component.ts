@@ -15,10 +15,16 @@ export class RecommendationCardComponent {
   @Input() isWishlisted: boolean = false;
   @Input() variant: 'normal' | 'didactic' | 'teacher' = 'normal';
   @Input() isTeacher: boolean = false;
+  @Input() profileVariant: 'dashboard' | 'wishlist' | 'favorites' | 'history' = 'dashboard';
+  @Input() showRemoveBtn: boolean = false;
+  @Input() isUnavailable: boolean = false;
+  @Input() loanDate: string | null = null;
 
   @Output() toggleFavorite = new EventEmitter<MouseEvent>();
   @Output() toggleWishlist = new EventEmitter<MouseEvent>();
   @Output() viewDetails = new EventEmitter<void>();
+  @Output() remove = new EventEmitter<void>();
+  @Output() toggleBell = new EventEmitter<void>();
 
   get isTeacherCard(): boolean {
     return this.variant === 'teacher' || (this.variant === 'didactic' && this.isTeacher);
@@ -38,6 +44,16 @@ export class RecommendationCardComponent {
 
   onViewDetails() {
     this.viewDetails.emit();
+  }
+
+  onRemove(event: MouseEvent) {
+    event.stopPropagation();
+    this.remove.emit();
+  }
+
+  onToggleBell(event: MouseEvent) {
+    event.stopPropagation();
+    this.toggleBell.emit();
   }
 
   getLanguageAbbr(language: string): string {

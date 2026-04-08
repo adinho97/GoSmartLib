@@ -3,18 +3,70 @@
   [class.teacher-card]="isTeacherCard"
   [title]="book.reason"
 >
-  <!-- Wishlist & Favorite buttons -->
-  <div class="button-container">
+  <!-- Dashboard: Wishlist & Favorite buttons -->
+  @if (profileVariant === 'dashboard') {
+    <div class="button-container">
+      <button
+        type="button"
+        class="wishlist-toggle-btn"
+        [class.active]="isWishlisted"
+        [attr.aria-label]="
+          isWishlisted
+            ? 'Verwijder uit verlanglijst'
+            : 'Voeg toe aan verlanglijst'
+        "
+        (click)="onToggleWishlist($event)"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="favorite-toggle-btn"
+        [class.active]="isFavorited"
+        [attr.aria-label]="
+          isFavorited ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten'
+        "
+        (click)="onToggleFavorite($event)"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polygon
+            points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+          />
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- Profile: Remove button for wishlist/favorites -->
+  @if (profileVariant !== 'dashboard' && showRemoveBtn) {
     <button
       type="button"
-      class="wishlist-toggle-btn"
-      [class.active]="isWishlisted"
-      [attr.aria-label]="
-        isWishlisted
-          ? 'Verwijder uit verlanglijst'
-          : 'Voeg toe aan verlanglijst'
-      "
-      (click)="onToggleWishlist($event)"
+      class="remove-button"
+      aria-label="Verwijder uit lijst"
+      (click)="onRemove($event)"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -24,52 +76,58 @@
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
-        aria-hidden="true"
       >
-        <path
-          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-        />
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
     </button>
+  }
 
-    <button
-      type="button"
-      class="favorite-toggle-btn"
-      [class.active]="isFavorited"
-      [attr.aria-label]="
-        isFavorited ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten'
-      "
-      (click)="onToggleFavorite($event)"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <polygon
-          points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-        />
-      </svg>
-    </button>
-  </div>
-
-  <!-- Genre tag -->
-  <div class="genre-tag" [class.teacher-tag]="isTeacherCard">
-    {{ book.genre }}
-  </div>
+  <!-- Genre tag - dashboard only -->
+  @if (profileVariant === 'dashboard') {
+    <div class="genre-tag" [class.teacher-tag]="isTeacherCard">
+      {{ book.genre }}
+    </div>
+  }
 
   <!-- Book cover -->
-  <div class="book-cover">
+  <div class="book-cover-container">
     @if (book.cover) {
-      <img [src]="book.cover" [alt]="book.titel" />
+      <img [src]="book.cover" [alt]="book.titel" class="book-cover" />
     } @else {
       <div class="cover-placeholder">
         <span>COVER</span>
+      </div>
+    }
+    <!-- Bell button for unavailable wishlist items -->
+    @if (profileVariant === 'wishlist' && isUnavailable) {
+      <button
+        type="button"
+        class="bell-button"
+        aria-label="Notificatie wanneer beschikbaar"
+        (click)="onToggleBell($event)"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </button>
+
+      <!-- Unavailable overlay -->
+      <div class="unavailable-overlay">
+        <div class="unavailable-message">
+          <div class="unavailable-dot"></div>
+          <p class="unavailable-text">UNAVAILABLE</p>
+          <p class="unavailable-subtext">Not currently available</p>
+        </div>
       </div>
     }
   </div>
@@ -96,5 +154,10 @@
     >
       Details
     </button>
+    
+    <!-- Loan date for history variant -->
+    @if (profileVariant === 'history' && loanDate) {
+      <p class="loan-date">Ontleend op {{ loanDate }}</p>
+    }
   </div>
 </div>
