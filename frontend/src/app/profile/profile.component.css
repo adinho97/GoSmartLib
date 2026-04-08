@@ -779,14 +779,14 @@
   pointer-events: none;
 }
 
-.book-content h4 {
+.profile-book-card .book-content h4 {
   margin: 0;
   font-size: 0.94rem;
   color: #1f2937;
   line-height: 1.35;
 }
 
-.book-meta {
+.profile-book-card .book-meta {
   margin-top: 0.1rem;
   color: #6b7280;
   font-size: 0.8rem;
