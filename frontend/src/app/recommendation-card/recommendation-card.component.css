@@ -401,3 +401,21 @@
   margin: 8px 0 0 0;
   font-style: italic;
 }
+
+/* Reduced font sizes for history variant */
+:host(.history-variant) .book-card h4 {
+  font-size: 0.9rem;
+}
+
+:host(.history-variant) .book-card .author {
+  font-size: 0.8rem;
+}
+
+:host(.history-variant) .book-card .book-meta {
+  font-size: 0.75rem;
+}
+
+:host(.history-variant) .book-card .details-btn {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
