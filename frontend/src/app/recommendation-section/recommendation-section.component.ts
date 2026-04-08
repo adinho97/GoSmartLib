@@ -24,6 +24,8 @@ export class RecommendationSectionComponent implements OnInit {
   wishlistedBookIds = new Set<number>();
   favoritedBookIds = new Set<number>();
 
+  private readonly EXCLUDE_READ_STORAGE_KEY = 'recommendationExcludeRead';
+
   get isTeacher(): boolean {
     const role = localStorage.getItem('role');
     return role === 'leerkracht' || role === 'bibbeheerder';
@@ -35,6 +37,12 @@ export class RecommendationSectionComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
+
+    const saved = localStorage.getItem(this.EXCLUDE_READ_STORAGE_KEY);
+    if (saved !== null) {
+      this.excludeRead = saved === 'true';
+    }
+
     await Promise.all([
       this.loadWishlistState(),
       this.loadFavoritesState(),
@@ -105,6 +113,8 @@ export class RecommendationSectionComponent implements OnInit {
 
   toggleExcludeRead() {
     this.excludeRead = !this.excludeRead;
+    // Persist to localStorage
+    localStorage.setItem(this.EXCLUDE_READ_STORAGE_KEY, String(this.excludeRead));
     this.refreshRecommendations.emit(this.excludeRead);
   }
 }

@@ -266,7 +266,9 @@
                         (viewDetails)="goToDetail(book.id, null)"
                       />
                       @if (notificationToggleErrors[book.id]) {
-                        <div class="notification-error">{{ notificationToggleErrors[book.id] }}</div>
+                        <div class="notification-error">
+                          {{ notificationToggleErrors[book.id] }}
+                        </div>
                       }
                     </div>
                   }
@@ -348,7 +350,7 @@
                     <app-recommendation-card
                       [book]="book"
                       profileVariant="history"
-                      [loanDate]="book.loanedDate | date:'MMM d, yyyy'"
+                      [loanDate]="book.loanedDate | date: 'MMM d, yyyy'"
                       (viewDetails)="goToDetail(book.id, null)"
                     />
                   }
