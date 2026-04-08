@@ -10,7 +10,8 @@ import { RecommendedBook } from '../services/recommendation.service';
   styleUrl: './recommendation-card.component.css',
 })
 export class RecommendationCardComponent {
-  @Input() book!: RecommendedBook;
+  // Accept either RecommendedBook or any book object
+  @Input() book!: RecommendedBook | any;
   @Input() isFavorited: boolean = false;
   @Input() isWishlisted: boolean = false;
   @Input() variant: 'normal' | 'didactic' | 'teacher' = 'normal';
@@ -28,6 +29,35 @@ export class RecommendationCardComponent {
 
   get isTeacherCard(): boolean {
     return this.variant === 'teacher' || (this.variant === 'didactic' && this.isTeacher);
+  }
+
+  // Handle both naming conventions (titel/title, auteur/author, etc.)
+  get bookTitle(): string {
+    return (this.book?.titel || this.book?.title) ?? '';
+  }
+
+  get bookAuthor(): string {
+    return (this.book?.auteur || this.book?.author) ?? '';
+  }
+
+  get bookGenre(): string {
+    return this.book?.genre ?? '';
+  }
+
+  get bookCover(): string | null | undefined {
+    return this.book?.cover ?? null;
+  }
+
+  get bookLanguage(): string | null | undefined {
+    return this.book?.taal ?? null;
+  }
+
+  get bookPages(): number | null | undefined {
+    return this.book?.paginas ?? null;
+  }
+
+  get bookReason(): string {
+    return this.book?.reason ?? '';
   }
 
   onToggleFavorite(event: MouseEvent) {

@@ -113,12 +113,12 @@
 /* Remove button for wishlist/favorites profile variant */
 .remove-button {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 32px;
-  height: 32px;
+  top: 16px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
   border: none;
-  background: rgba(255, 255, 255, 0.95);
+  background: transparent;
   color: #333;
   padding: 0;
   margin: 0;
@@ -126,12 +126,10 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 50%;
   transition:
     transform 0.15s ease,
-    background-color 0.15s ease;
+    color 0.15s ease;
   z-index: 7;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .remove-button svg {
@@ -142,20 +140,19 @@
 }
 
 .remove-button:hover {
-  transform: scale(1.1);
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.15);
+  color: #d4537e;
 }
 
 /* Bell button for unavailable wishlist items */
 .bell-button {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 32px;
-  height: 32px;
+  top: 16px;
+  left: 12px;
+  width: 24px;
+  height: 24px;
   border: none;
-  background: rgba(255, 255, 255, 0.95);
+  background: transparent;
   color: #d4537e;
   padding: 0;
   margin: 0;
@@ -163,12 +160,10 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 50%;
   transition:
     transform 0.15s ease,
-    background-color 0.15s ease;
-  z-index: 7;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color 0.15s ease;
+  z-index: 8;
 }
 
 .bell-button svg {
@@ -180,9 +175,8 @@
 }
 
 .bell-button:hover {
-  transform: scale(1.1);
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.15);
+  color: #a0357d;
 }
 
 /* Unavailable overlay for wishlist items */

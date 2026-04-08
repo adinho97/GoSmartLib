@@ -1,7 +1,7 @@
 <div
   class="book-card"
   [class.teacher-card]="isTeacherCard"
-  [title]="book.reason"
+  [title]="bookReason"
 >
   <!-- Dashboard: Wishlist & Favorite buttons -->
   @if (profileVariant === 'dashboard') {
@@ -83,50 +83,52 @@
     </button>
   }
 
-  <!-- Genre tag - dashboard only -->
-  @if (profileVariant === 'dashboard') {
+  <!-- Bell button for unavailable wishlist items -->
+  @if (profileVariant === 'wishlist' && isUnavailable) {
+    <button
+      type="button"
+      class="bell-button"
+      aria-label="Notificatie wanneer beschikbaar"
+      (click)="onToggleBell($event)"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+    </button>
+  }
+
+  <!-- Genre tag - all variants -->
+  @if (bookGenre) {
     <div class="genre-tag" [class.teacher-tag]="isTeacherCard">
-      {{ book.genre }}
+      {{ bookGenre }}
     </div>
   }
 
   <!-- Book cover -->
   <div class="book-cover-container">
-    @if (book.cover) {
-      <img [src]="book.cover" [alt]="book.titel" class="book-cover" />
+    @if (bookCover) {
+      <img [src]="bookCover" [alt]="bookTitle" class="book-cover" />
     } @else {
       <div class="cover-placeholder">
         <span>COVER</span>
       </div>
     }
-    <!-- Bell button for unavailable wishlist items -->
+    <!-- Unavailable overlay -->
     @if (profileVariant === 'wishlist' && isUnavailable) {
-      <button
-        type="button"
-        class="bell-button"
-        aria-label="Notificatie wanneer beschikbaar"
-        (click)="onToggleBell($event)"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-        </svg>
-      </button>
-
-      <!-- Unavailable overlay -->
       <div class="unavailable-overlay">
         <div class="unavailable-message">
           <div class="unavailable-dot"></div>
-          <p class="unavailable-text">UNAVAILABLE</p>
-          <p class="unavailable-subtext">Not currently available</p>
+          <p class="unavailable-text">NIET BESCHIKBAAR</p>
+          <p class="unavailable-subtext">Momenteel uitgeleend</p>
         </div>
       </div>
     }
@@ -134,17 +136,17 @@
 
   <!-- Book info -->
   <div class="book-content">
-    <h4>{{ book.titel }}</h4>
-    <p class="author">{{ book.auteur }}</p>
+    <h4>{{ bookTitle }}</h4>
+    <p class="author">{{ bookAuthor }}</p>
     <p class="book-meta">
-      @if (book.taal) {
-        <span>{{ getLanguageAbbr(book.taal) }}</span>
+      @if (bookLanguage) {
+        <span>{{ getLanguageAbbr(bookLanguage) }}</span>
       }
-      @if (book.taal && book.paginas) {
+      @if (bookLanguage && bookPages) {
         <span> • </span>
       }
-      @if (book.paginas) {
-        <span>{{ book.paginas }} pag.</span>
+      @if (bookPages) {
+        <span>{{ bookPages }} pag.</span>
       }
     </p>
     <button

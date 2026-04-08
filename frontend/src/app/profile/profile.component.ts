@@ -24,6 +24,9 @@ type ProfileBookCard = {
   notificationEnabled?: boolean;
   availableCopies?: number;
   totalCopies?: number;
+  genre?: string;
+  taal?: string;
+  paginas?: number;
 };
 
 type BadgeCategory = "loan" | "review";
@@ -75,9 +78,9 @@ export class ProfileComponent {
   ];
   wishlistLoading = false;
   notificationToggleErrors: Record<number, string> = {};
-  readonly wishlistPageSize = 6;
-  readonly favoritePageSize = 6;
-  readonly readingHistoryPageSize = 6;
+  readonly wishlistPageSize = 5;
+  readonly favoritePageSize = 5;
+  readonly readingHistoryPageSize = 5;
   currentWishlistPage = 1;
   currentFavoritePage = 1;
   currentReadingHistoryPage = 1;
@@ -458,9 +461,11 @@ export class ProfileComponent {
     this.currentReadingHistoryPage = page;
   }
 
-  async removeFromWishlist(event: MouseEvent, bookId: number) {
-    event.stopPropagation();
-    event.preventDefault();
+  async removeFromWishlist(event: MouseEvent | null, bookId: number) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     try {
       await this.bookService.removeFromWishlist(bookId);
@@ -476,9 +481,11 @@ export class ProfileComponent {
     }
   }
 
-  async removeFromFavorites(event: MouseEvent, bookId: number) {
-    event.stopPropagation();
-    event.preventDefault();
+  async removeFromFavorites(event: MouseEvent | null, bookId: number) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     try {
       await this.bookService.removeFromFavorites(bookId);
@@ -521,9 +528,11 @@ export class ProfileComponent {
     );
   }
 
-  async toggleNotification(event: MouseEvent, book: ProfileBookCard) {
-    event.stopPropagation();
-    event.preventDefault();
+  async toggleNotification(event: MouseEvent | null, book: ProfileBookCard) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     if (!book.wishlistId) return;
 
@@ -558,6 +567,15 @@ export class ProfileComponent {
     }
   }
 
+  // New event handlers for recommendation-card component
+  async onWishlistRemove(bookId: number) {
+    await this.removeFromWishlist(null, bookId);
+  }
+
+  async onFavoritesRemove(bookId: number) {
+    await this.removeFromFavorites(null, bookId);
+  }
+
   goBack() {
     this.location.back();
   }
@@ -582,7 +600,7 @@ export class ProfileComponent {
     }
   }
 
-  goToDetail(bookId: number, event?: MouseEvent) {
+  goToDetail(bookId: number, event?: MouseEvent | null) {
     const target = event?.target as HTMLElement | null;
     if (target?.closest("button")) {
       return;
