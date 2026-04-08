@@ -147,6 +147,7 @@ export class BookService {
     return books.map(book => ({
       ...book,
       cover: bookMap.get(book.bookId)?.cover || book.cover || null,
+      auteur: bookMap.get(book.bookId)?.auteur || book.auteur || null,
       taal: bookMap.get(book.bookId)?.taal || book.taal || null,
       paginas: bookMap.get(book.bookId)?.paginas || book.paginas || null,
       genre: bookMap.get(book.bookId)?.genre || book.genre || null,
