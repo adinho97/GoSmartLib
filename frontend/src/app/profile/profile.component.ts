@@ -196,10 +196,14 @@ export class ProfileComponent {
     this.readingHistoryLoading = true;
     try {
       const history = await this.loanService.getMyLoanHistory();
-      this.readingHistory = history.map((loan) => ({
+      this.readingHistory = history.map((loan: any) => ({
         id: loan.bookId,
         title: loan.bookTitel,
+        author: loan.bookAuteur || "",
         cover: loan.bookCover || "",
+        genre: loan.bookGenre || "",
+        taal: loan.bookTaal || "",
+        paginas: loan.bookPaginas || 0,
         loanedDate: loan.loanedAt ? new Date(loan.loanedAt) : undefined,
       }));
       this.currentReadingHistoryPage = 1;
@@ -364,11 +368,14 @@ export class ProfileComponent {
     this.wishlistLoading = true;
     try {
       const wishlist = await this.bookService.getUserWishlist();
-      this.wishlistBooks = wishlist.map((item) => ({
+      this.wishlistBooks = wishlist.map((item: any) => ({
         id: item.bookId,
         title: item.titel,
         author: item.auteur,
         cover: item.cover || "",
+        genre: item.genre || "",
+        taal: item.taal || "",
+        paginas: item.paginas || 0,
         wishlistId: item.id,
         notificationEnabled: item.notificationEnabled ?? false,
         availableCopies: item.availableCopies ?? 0,
@@ -500,11 +507,14 @@ export class ProfileComponent {
   private async loadFavoriteBooks() {
     try {
       const favorites = await this.bookService.getUserFavorites();
-      this.favoriteBooks = favorites.map((item) => ({
+      this.favoriteBooks = favorites.map((item: any) => ({
         id: item.bookId,
         title: item.titel,
         author: item.auteur,
         cover: item.cover || "",
+        genre: item.genre || "",
+        taal: item.taal || "",
+        paginas: item.paginas || 0,
       }));
     } catch {
       this.favoriteBooks = [];

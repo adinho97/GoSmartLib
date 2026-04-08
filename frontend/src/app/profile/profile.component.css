@@ -474,6 +474,24 @@
   position: relative;
 }
 
+.card-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-error {
+  font-size: 0.75rem;
+  color: #d4537e;
+  text-align: center;
+  margin-top: 0.3rem;
+  padding: 0.3rem 0.3rem;
+  background: rgba(212, 83, 126, 0.1);
+  border-radius: 4px;
+  font-weight: 500;
+  width: 100%;
+}
+
 .wishlist-card {
   flex: 0 0 180px;
   width: 180px;

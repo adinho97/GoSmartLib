@@ -255,15 +255,20 @@
               } @else {
                 <div class="wishlist-grid">
                   @for (book of pagedWishlistBooks; track book.id) {
-                    <app-recommendation-card
-                      [book]="book"
-                      profileVariant="wishlist"
-                      [showRemoveBtn]="true"
-                      [isUnavailable]="isBookUnavailable(book)"
-                      (remove)="onWishlistRemove(book.id)"
-                      (toggleBell)="toggleNotification(null, book)"
-                      (viewDetails)="goToDetail(book.id, null)"
-                    />
+                    <div class="card-wrapper">
+                      <app-recommendation-card
+                        [book]="book"
+                        profileVariant="wishlist"
+                        [showRemoveBtn]="true"
+                        [isUnavailable]="isBookUnavailable(book)"
+                        (remove)="onWishlistRemove(book.id)"
+                        (toggleBell)="toggleNotification(null, book)"
+                        (viewDetails)="goToDetail(book.id, null)"
+                      />
+                      @if (notificationToggleErrors[book.id]) {
+                        <div class="notification-error">{{ notificationToggleErrors[book.id] }}</div>
+                      }
+                    </div>
                   }
                 </div>
 

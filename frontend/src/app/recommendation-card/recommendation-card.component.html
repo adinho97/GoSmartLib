@@ -4,7 +4,7 @@
   [title]="bookReason"
 >
   <!-- Dashboard: Wishlist & Favorite buttons -->
-  @if (profileVariant === 'dashboard') {
+  @if (profileVariant === "dashboard") {
     <div class="button-container">
       <button
         type="button"
@@ -61,7 +61,7 @@
   }
 
   <!-- Profile: Remove button for wishlist/favorites -->
-  @if (profileVariant !== 'dashboard' && showRemoveBtn) {
+  @if (profileVariant !== "dashboard" && showRemoveBtn) {
     <button
       type="button"
       class="remove-button"
@@ -84,10 +84,11 @@
   }
 
   <!-- Bell button for unavailable wishlist items -->
-  @if (profileVariant === 'wishlist' && isUnavailable) {
+  @if (profileVariant === "wishlist" && isUnavailable) {
     <button
       type="button"
       class="bell-button"
+      [class.active]="book?.notificationEnabled"
       aria-label="Notificatie wanneer beschikbaar"
       (click)="onToggleBell($event)"
     >
@@ -123,7 +124,7 @@
       </div>
     }
     <!-- Unavailable overlay -->
-    @if (profileVariant === 'wishlist' && isUnavailable) {
+    @if (profileVariant === "wishlist" && isUnavailable) {
       <div class="unavailable-overlay">
         <div class="unavailable-message">
           <div class="unavailable-dot"></div>
@@ -156,9 +157,9 @@
     >
       Details
     </button>
-    
+
     <!-- Loan date for history variant -->
-    @if (profileVariant === 'history' && loanDate) {
+    @if (profileVariant === "history" && loanDate) {
       <p class="loan-date">Ontleend op {{ loanDate }}</p>
     }
   </div>

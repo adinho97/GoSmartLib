@@ -15,7 +15,8 @@
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  z-index: 1;
 }
 
 .button-container {
@@ -177,6 +178,14 @@
 .bell-button:hover {
   transform: scale(1.15);
   color: #a0357d;
+}
+
+.bell-button.active {
+  color: #871f42;
+}
+
+.bell-button.active svg {
+  fill: #871f42;
 }
 
 /* Unavailable overlay for wishlist items */
