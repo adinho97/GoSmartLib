@@ -63,17 +63,7 @@ export class DashboardComponent implements OnInit {
     this.recommendationsLoading = true;
     try {
       const trendingBooks = await this.recommendationService.getTrending(5);
-      
-      // Enrich trending books with cover images from book service
-      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
-      const bookMap = new Map(allBooks.map(b => [b.id, b]));
-      
-      this.trendingBooks = trendingBooks.map(rec => ({
-        ...rec,
-        cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
-        taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
-        paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
-      }));
+      this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
     } catch (error) {
       console.error("Fout bij ophalen trending aanbevelingen:", error);
       this.trendingBooks = [];
@@ -85,17 +75,7 @@ export class DashboardComponent implements OnInit {
   private async fetchGenreRecommendations() {
     try {
       const genreBooks = await this.recommendationService.getByGenre(5);
-      
-      // Enrich with cover images
-      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
-      const bookMap = new Map(allBooks.map(b => [b.id, b]));
-      
-      this.genreBooks = genreBooks.map(rec => ({
-        ...rec,
-        cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
-        taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
-        paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
-      }));
+      this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
     } catch (error) {
       console.error("Fout bij ophalen genre aanbevelingen:", error);
       this.genreBooks = [];
@@ -105,17 +85,7 @@ export class DashboardComponent implements OnInit {
   private async fetchAuthorRecommendations() {
     try {
       const authorBooks = await this.recommendationService.getByAuthor(5);
-      
-      // Enrich with cover images
-      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
-      const bookMap = new Map(allBooks.map(b => [b.id, b]));
-      
-      this.authorBooks = authorBooks.map(rec => ({
-        ...rec,
-        cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
-        taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
-        paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
-      }));
+      this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
     } catch (error) {
       console.error("Fout bij ophalen auteur aanbevelingen:", error);
       this.authorBooks = [];
@@ -125,17 +95,7 @@ export class DashboardComponent implements OnInit {
   private async fetchNewArrivalsRecommendations() {
     try {
       const newArrivalsBooks = await this.recommendationService.getNewArrivals(5);
-      
-      // Enrich with cover images
-      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
-      const bookMap = new Map(allBooks.map(b => [b.id, b]));
-      
-      this.newArrivalsBooks = newArrivalsBooks.map(rec => ({
-        ...rec,
-        cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
-        taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
-        paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
-      }));
+      this.newArrivalsBooks = await this.bookService.enrichBooksWithDetails(newArrivalsBooks);
     } catch (error) {
       console.error("Fout bij ophalen nieuwe aankomsten:", error);
       this.newArrivalsBooks = [];
@@ -144,33 +104,15 @@ export class DashboardComponent implements OnInit {
 
   async onRefreshRecommendations(section: 'trending' | 'genre' | 'author', excludeRead: boolean) {
     try {
-      const allBooks = (await this.bookService.getBooks()) as BookResponse[];
-      const bookMap = new Map(allBooks.map(b => [b.id, b]));
-
       if (section === 'trending') {
         const trendingBooks = await this.recommendationService.getTrending(5, excludeRead);
-        this.trendingBooks = trendingBooks.map(rec => ({
-          ...rec,
-          cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
-          taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
-          paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
-        }));
+        this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
       } else if (section === 'genre') {
         const genreBooks = await this.recommendationService.getByGenre(5, excludeRead);
-        this.genreBooks = genreBooks.map(rec => ({
-          ...rec,
-          cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
-          taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
-          paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
-        }));
+        this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
       } else if (section === 'author') {
         const authorBooks = await this.recommendationService.getByAuthor(5, excludeRead);
-        this.authorBooks = authorBooks.map(rec => ({
-          ...rec,
-          cover: bookMap.get(rec.bookId)?.cover || rec.cover || null,
-          taal: bookMap.get(rec.bookId)?.taal || rec.taal || null,
-          paginas: bookMap.get(rec.bookId)?.paginas || rec.paginas || null,
-        }));
+        this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
       }
     } catch (error) {
       console.error(`Fout bij verversen ${section} aanbevelingen:`, error);

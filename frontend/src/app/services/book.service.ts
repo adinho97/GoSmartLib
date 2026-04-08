@@ -140,6 +140,19 @@ export class BookService {
     return res.data;
   }
 
+  async enrichBooksWithDetails(books: any[]): Promise<any[]> {
+    const allBooks = await this.getBooks() as any[];
+    const bookMap = new Map(allBooks.map((b: any) => [b.id, b]));
+    
+    return books.map(book => ({
+      ...book,
+      cover: bookMap.get(book.bookId)?.cover || book.cover || null,
+      taal: bookMap.get(book.bookId)?.taal || book.taal || null,
+      paginas: bookMap.get(book.bookId)?.paginas || book.paginas || null,
+      genre: bookMap.get(book.bookId)?.genre || book.genre || null,
+    }));
+  }
+
   async deleteBook(id: number, schoolId?: number) {
     await axios.delete(
       this.withSchoolId(`${this.apiUrl}/${id}`, schoolId),
