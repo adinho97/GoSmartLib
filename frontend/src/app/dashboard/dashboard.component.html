@@ -65,6 +65,7 @@
         [books]="trendingBooks"
         [title]="'Populairste boeken'"
         [variant]="'normal'"
+        [section]="'trending'"
         (refreshRecommendations)="onRefreshRecommendations('trending', $event)"
       ></app-recommendation-section>
 
@@ -73,6 +74,7 @@
           [books]="newArrivalsBooks"
           [title]="'Nieuwe aankomsten'"
           [variant]="'normal'"
+          [section]="'newArrivals'"
         ></app-recommendation-section>
       }
 
@@ -81,6 +83,7 @@
           [books]="genreBooks"
           [title]="'Gebaseerd op jouw favoriete genres'"
           [variant]="'normal'"
+          [section]="'genre'"
           (refreshRecommendations)="onRefreshRecommendations('genre', $event)"
         ></app-recommendation-section>
       }
@@ -90,6 +93,7 @@
           [books]="authorBooks"
           [title]="'Gebaseerd op jouw favoriete auteurs'"
           [variant]="'normal'"
+          [section]="'author'"
           (refreshRecommendations)="onRefreshRecommendations('author', $event)"
         ></app-recommendation-section>
       }

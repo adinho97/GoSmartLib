@@ -17,6 +17,7 @@ export class RecommendationSectionComponent implements OnInit {
   @Input() title: string = 'Aanbevelingen';
   @Input() layout: 'shelf' | 'hero' = 'shelf';
   @Input() variant: 'normal' | 'didactic' | 'teacher' = 'normal';
+  @Input() section: string = 'default';
 
   @Output() refreshRecommendations = new EventEmitter<boolean>();
 
@@ -24,7 +25,11 @@ export class RecommendationSectionComponent implements OnInit {
   wishlistedBookIds = new Set<number>();
   favoritedBookIds = new Set<number>();
 
-  private readonly EXCLUDE_READ_STORAGE_KEY = 'recommendationExcludeRead';
+  private readonly EXCLUDE_READ_STORAGE_KEY_PREFIX = 'recommendationExcludeRead_';
+
+  private get storageKey(): string {
+    return `${this.EXCLUDE_READ_STORAGE_KEY_PREFIX}${this.section}`;
+  }
 
   get isTeacher(): boolean {
     const role = localStorage.getItem('role');
@@ -37,8 +42,8 @@ export class RecommendationSectionComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-
-    const saved = localStorage.getItem(this.EXCLUDE_READ_STORAGE_KEY);
+    // Load preference from localStorage using section-specific key
+    const saved = localStorage.getItem(this.storageKey);
     if (saved !== null) {
       this.excludeRead = saved === 'true';
     }
@@ -113,8 +118,8 @@ export class RecommendationSectionComponent implements OnInit {
 
   toggleExcludeRead() {
     this.excludeRead = !this.excludeRead;
-    // Persist to localStorage
-    localStorage.setItem(this.EXCLUDE_READ_STORAGE_KEY, String(this.excludeRead));
+    // Persist to localStorage using section-specific key
+    localStorage.setItem(this.storageKey, String(this.excludeRead));
     this.refreshRecommendations.emit(this.excludeRead);
   }
 }
