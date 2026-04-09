@@ -92,6 +92,25 @@ export class AppComponent implements OnInit {
       : "Onbekende rol";
   }
 
+  getLevelTier(level: number): number {
+    if (level >= 25) return 5;
+    if (level >= 20) return 4;
+    if (level >= 15) return 3;
+    if (level >= 10) return 2;
+    if (level >= 5) return 1;
+    return 0;
+  }
+
+  getLevelTierLabel(level: number): string {
+    const tier = this.getLevelTier(level);
+    if (tier === 5) return "Legend";
+    if (tier === 4) return "Diamond";
+    if (tier === 3) return "Gold";
+    if (tier === 2) return "Silver";
+    if (tier === 1) return "Bronze";
+    return "Rookie";
+  }
+
   toggleProfileMenu(event: Event): void {
     event.stopPropagation();
     this.profileMenuOpen = !this.profileMenuOpen;

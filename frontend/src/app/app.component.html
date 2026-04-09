@@ -68,11 +68,17 @@
               <p class="profile-name">{{ userName }}</p>
               <p class="profile-role-text">{{ userRoleLabel }}</p>
               @if (levelInfo$ | async; as levelInfo) {
-                <div class="menu-level-card">
+                <div
+                  class="menu-level-card"
+                  [ngClass]="'menu-level-tier-' + getLevelTier(levelInfo.level)"
+                >
                   <div class="menu-level-head">
                     <span class="menu-level-label">Niveau</span>
                     <span class="menu-level-value">{{ levelInfo.level }}</span>
                   </div>
+                  <p class="menu-level-tier-label">
+                    {{ getLevelTierLabel(levelInfo.level) }} Tier
+                  </p>
                   <div class="menu-level-bar" aria-hidden="true">
                     <div
                       class="menu-level-fill"
