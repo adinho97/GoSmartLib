@@ -14,6 +14,7 @@ export interface LevelInfo {
 })
 export class ExperienceService {
   private readonly STORAGE_KEY = "userExperience";
+  private readonly CLAIMED_BADGE_REWARDS_KEY = "claimedBadgeRewards";
   private readonly BASE_EXPERIENCE = 100;
   private readonly LEVEL_MULTIPLIER = 1.5; // Each level requires 1.5x more XP
 
@@ -29,12 +30,11 @@ export class ExperienceService {
   public levelInfo$: Observable<LevelInfo> =
     this.levelInfoSubject.asObservable();
 
-  // Experience rewards for different activities
   private readonly REWARDS = {
-    reviewWritten: 40,
+    loanCreated: 50,
+    reviewWritten: 10,
   };
 
-  // Dynamic XP scaling for badge milestones.
   private readonly BADGE_THRESHOLD_REWARDS: Record<number, number> = {
     1: 20,
     5: 40,
@@ -48,21 +48,21 @@ export class ExperienceService {
     this.updateLevelInfo();
   }
 
-  /**
-   * Add experience for badge unlock
-   */
   addExperienceForBadge(
     threshold: number,
     category: "loan" | "review",
   ): number {
+    const badgeKey = this.getBadgeRewardKey(threshold, category);
+    if (this.hasClaimedBadgeReward(badgeKey)) {
+      return 0;
+    }
+
     const reward = this.getBadgeExperienceWorth(threshold, category);
+    this.markBadgeRewardClaimed(badgeKey);
     this.addExperience(reward);
     return reward;
   }
 
-  /**
-   * Get XP reward for a badge milestone.
-   */
   getBadgeExperienceWorth(
     threshold: number,
     category: "loan" | "review",
@@ -71,20 +71,21 @@ export class ExperienceService {
       this.BADGE_THRESHOLD_REWARDS[threshold] ??
       Math.max(20, Math.floor(18 + threshold * 3.2));
 
-    // Loan badges are worth exactly double review badges.
     return category === "loan" ? reviewReward * 2 : reviewReward;
   }
 
-  /**
-   * Add experience for writing a review
-   */
   addExperienceForReview(): void {
     this.addExperience(this.REWARDS.reviewWritten);
   }
 
-  /**
-   * Add custom amount of experience
-   */
+  addExperienceForLoaningBook(): void {
+    this.addExperience(this.REWARDS.loanCreated);
+  }
+
+  veExperienceForReview(): void {
+    this.removeExperience(this.REWARDS.reviewWritten);
+  }
+
   addExperience(amount: number): void {
     const currentXP = this.totalExperienceSubject.value;
     const newXP = currentXP + amount;
@@ -93,24 +94,25 @@ export class ExperienceService {
     this.updateLevelInfo();
   }
 
-  /**
-   * Reset experience (for testing or account reset)
-   */
+  removeExperience(amount: number): void {
+    const currentXP = this.totalExperienceSubject.value;
+    const newXP = Math.max(0, currentXP - amount);
+    this.totalExperienceSubject.next(newXP);
+    this.saveExperience(newXP);
+    this.updateLevelInfo();
+  }
+
   resetExperience(): void {
     this.totalExperienceSubject.next(0);
     this.saveExperience(0);
     this.updateLevelInfo();
   }
 
-  /**
-   * Calculate level info based on total experience
-   */
   private calculateLevelInfo(): LevelInfo {
     const totalXP = this.totalExperienceSubject.value;
     let level = 1;
     let xpUsed = 0;
 
-    // Calculate level by accumulating required XP per level
     while (true) {
       const requiredForNextLevel = this.getExperienceRequiredForLevel(level);
       if (xpUsed + requiredForNextLevel > totalXP) {
@@ -135,33 +137,61 @@ export class ExperienceService {
     };
   }
 
-  /**
-   * Get experience required to go from current level to next
-   */
   private getExperienceRequiredForLevel(level: number): number {
     return Math.floor(
       this.BASE_EXPERIENCE * Math.pow(this.LEVEL_MULTIPLIER, level - 1),
     );
   }
 
-  /**
-   * Load experience from localStorage
-   */
   private loadExperience(): number {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     return stored ? parseInt(stored, 10) : 0;
   }
 
-  /**
-   * Save experience to localStorage
-   */
+  private getBadgeRewardKey(
+    threshold: number,
+    category: "loan" | "review",
+  ): string {
+    return `${category}-${threshold}`;
+  }
+
+  private readClaimedBadgeRewards(): Set<string> {
+    const stored = localStorage.getItem(this.CLAIMED_BADGE_REWARDS_KEY);
+    if (!stored) {
+      return new Set();
+    }
+
+    try {
+      const parsed = JSON.parse(stored) as unknown;
+      if (Array.isArray(parsed)) {
+        return new Set(
+          parsed.filter((value): value is string => typeof value === "string"),
+        );
+      }
+    } catch {
+      return new Set();
+    }
+
+    return new Set();
+  }
+
+  private hasClaimedBadgeReward(badgeKey: string): boolean {
+    return this.readClaimedBadgeRewards().has(badgeKey);
+  }
+
+  private markBadgeRewardClaimed(badgeKey: string): void {
+    const claimedRewards = this.readClaimedBadgeRewards();
+    claimedRewards.add(badgeKey);
+    localStorage.setItem(
+      this.CLAIMED_BADGE_REWARDS_KEY,
+      JSON.stringify(Array.from(claimedRewards)),
+    );
+  }
+
   private saveExperience(xp: number): void {
     localStorage.setItem(this.STORAGE_KEY, xp.toString());
   }
 
-  /**
-   * Update level info and notify subscribers
-   */
   private updateLevelInfo(): void {
     this.levelInfoSubject.next(this.calculateLevelInfo());
   }

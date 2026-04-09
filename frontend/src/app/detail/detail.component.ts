@@ -764,6 +764,10 @@ export class DetailComponent implements OnInit, OnDestroy {
     try {
       await this.bookService.deleteBookReview(this.currentBookId, reviewId);
       this.reviews = this.reviews.filter((r) => r.id !== reviewId);
+
+      // Remove the review XP again when the review is deleted.
+      this.experienceService.removeExperienceForReview();
+
       this.reviewError = "";
       this.reviewSuccess = "Review verwijderd.";
       if (this.editReviewId === reviewId) {
