@@ -103,21 +103,17 @@ export class AppComponent implements OnInit {
 
   getLevelTierLabel(level: number): string {
     const tier = this.getLevelTier(level);
-    if (tier === 5) return "Legend";
-    if (tier === 4) return "Diamond";
-    if (tier === 3) return "Gold";
-    if (tier === 2) return "Silver";
-    if (tier === 1) return "Bronze";
-    return "Rookie";
+    if (tier === 5) return "Legende";
+    if (tier === 4) return "Diamant";
+    if (tier === 3) return "Goud";
+    if (tier === 2) return "Zilver";
+    if (tier === 1) return "Brons";
+    return "Beginner";
   }
 
   toggleProfileMenu(event: Event): void {
     event.stopPropagation();
     this.profileMenuOpen = !this.profileMenuOpen;
-  }
-
-  closeProfileMenu(): void {
-    this.profileMenuOpen = false;
   }
 
   logout(): void {

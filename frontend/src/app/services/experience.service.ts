@@ -31,11 +31,7 @@ export class ExperienceService {
 
   // Experience rewards for different activities
   private readonly REWARDS = {
-    bookRead: 25, // When finishing a book (based on loan return)
     reviewWritten: 40,
-    reviewLiked: 10, // When someone likes your review
-    bookAddedToWishlist: 5,
-    bookAddedToFavorites: 5,
   };
 
   // Dynamic XP scaling for badge milestones.
@@ -87,27 +83,6 @@ export class ExperienceService {
   }
 
   /**
-   * Add experience for reading a book (loan completion)
-   */
-  addExperienceForReadingBook(): void {
-    this.addExperience(this.REWARDS.bookRead);
-  }
-
-  /**
-   * Add experience for adding to wishlist
-   */
-  addExperienceForWishlist(): void {
-    this.addExperience(this.REWARDS.bookAddedToWishlist);
-  }
-
-  /**
-   * Add experience for adding to favorites
-   */
-  addExperienceForFavorite(): void {
-    this.addExperience(this.REWARDS.bookAddedToFavorites);
-  }
-
-  /**
    * Add custom amount of experience
    */
   addExperience(amount: number): void {
@@ -116,20 +91,6 @@ export class ExperienceService {
     this.totalExperienceSubject.next(newXP);
     this.saveExperience(newXP);
     this.updateLevelInfo();
-  }
-
-  /**
-   * Get current level info
-   */
-  getLevelInfo(): LevelInfo {
-    return this.levelInfoSubject.value;
-  }
-
-  /**
-   * Get current level
-   */
-  getCurrentLevel(): number {
-    return this.levelInfoSubject.value.level;
   }
 
   /**

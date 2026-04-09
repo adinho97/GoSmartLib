@@ -80,14 +80,6 @@
   opacity: 1;
 }
 
-.badge-card:hover {
-  transform: translateY(-10px);
-}
-
-.badge-card.badge-card-unlocked:hover {
-  filter: drop-shadow(0 20px 50px rgba(96, 22, 47, 0.2));
-}
-
 .badge-card::before {
   content: "";
   position: absolute;
@@ -99,16 +91,6 @@
   clip-path: polygon(50% 0%, 100% 25%, 95% 75%, 50% 100%, 5% 75%, 0% 25%);
   z-index: 1;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.12);
-}
-
-.badge-card.badge-card-unlocked::before {
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.2);
-}
-
-/* Locked badges - grayscale */
-.badge-card::before {
   background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
   box-shadow:
     0 0 0 8px rgba(107, 114, 128, 0.08),
