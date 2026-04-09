@@ -28,6 +28,61 @@
   margin-bottom: 0.9rem;
 }
 
+.level-display {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #f0dde5 0%, #fff8fb 100%);
+  border-radius: 12px;
+  border: 1px solid #ead8e0;
+}
+
+.level-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.level-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.level-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #871f42;
+}
+
+.level-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(135, 31, 66, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.level-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #871f42 0%, #c8859d 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.level-stats {
+  text-align: center;
+}
+
+.xp-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
 .profile-page-popup .avatar {
   width: 52px;
   height: 52px;

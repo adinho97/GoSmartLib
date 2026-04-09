@@ -145,6 +145,57 @@
   text-transform: none;
 }
 
+.menu-level-card {
+  margin: 0 0 10px;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid #f0dde5;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fff8fb 0%, #fff 100%);
+}
+
+.menu-level-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.menu-level-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.menu-level-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #871f42;
+}
+
+.menu-level-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(135, 31, 66, 0.12);
+  overflow: hidden;
+}
+
+.menu-level-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #871f42 0%, #c8859d 100%);
+  transition: width 0.25s ease;
+}
+
+.menu-level-xp {
+  margin: 0.35rem 0 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
 .profile-logout-btn {
   width: 100%;
   border: 1.5px solid #871f42;

@@ -9,6 +9,27 @@
         </div>
       </div>
 
+      @if (levelInfo) {
+        <div class="level-display">
+          <div class="level-header">
+            <span class="level-label">Niveau</span>
+            <span class="level-number">{{ levelInfo.level }}</span>
+          </div>
+          <div class="level-progress-bar">
+            <div
+              class="level-progress-fill"
+              [style.width.%]="levelInfo.progressPercentage"
+            ></div>
+          </div>
+          <div class="level-stats">
+            <span class="xp-text"
+              >{{ levelInfo.experienceForCurrentLevel }} /
+              {{ levelInfo.experienceRequiredForLevel }} XP</span
+            >
+          </div>
+        </div>
+      }
+
       <button type="button" class="logout-btn">Uitloggen</button>
     </div>
   </div>

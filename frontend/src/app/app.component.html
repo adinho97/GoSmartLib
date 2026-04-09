@@ -67,6 +67,24 @@
             <div class="profile-dropdown" role="menu" aria-label="Profielmenu">
               <p class="profile-name">{{ userName }}</p>
               <p class="profile-role-text">{{ userRoleLabel }}</p>
+              @if (levelInfo$ | async; as levelInfo) {
+                <div class="menu-level-card">
+                  <div class="menu-level-head">
+                    <span class="menu-level-label">Niveau</span>
+                    <span class="menu-level-value">{{ levelInfo.level }}</span>
+                  </div>
+                  <div class="menu-level-bar" aria-hidden="true">
+                    <div
+                      class="menu-level-fill"
+                      [style.width.%]="levelInfo.progressPercentage"
+                    ></div>
+                  </div>
+                  <p class="menu-level-xp">
+                    {{ levelInfo.experienceForCurrentLevel }} /
+                    {{ levelInfo.experienceRequiredForLevel }} XP
+                  </p>
+                </div>
+              }
               <button
                 type="button"
                 class="profile-logout-btn"

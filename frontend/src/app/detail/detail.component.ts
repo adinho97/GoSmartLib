@@ -10,6 +10,7 @@ import {
   BadgeNotificationService,
   BadgeUnlocked,
 } from "../services/badge-notification.service";
+import { ExperienceService } from "../services/experience.service";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import axios from "axios";
@@ -85,6 +86,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     private loanService: LoanService,
     private sanitizer: DomSanitizer,
     private badgeNotificationService: BadgeNotificationService,
+    private experienceService: ExperienceService,
   ) {}
 
   ngOnInit(): void {
@@ -657,6 +659,10 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.newReviewAnonymous = anonymous;
       this.reviewError = "";
       this.reviewSuccess = "Review opgeslagen.";
+
+      // Add experience for writing a review
+      this.experienceService.addExperienceForReview();
+
       await this.emitReviewBadgeIfUnlocked();
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

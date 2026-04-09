@@ -5,6 +5,7 @@ import {
   BadgeNotificationService,
   BadgeUnlocked,
 } from "../../services/badge-notification.service";
+import { ExperienceService } from "../../services/experience.service";
 
 type BadgeCategory = "loan" | "review";
 
@@ -41,6 +42,7 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     private bookService: BookService,
     private loanService: LoanService,
     private badgeNotificationService: BadgeNotificationService,
+    private experienceService: ExperienceService,
   ) {}
 
   async ngOnInit() {
@@ -171,6 +173,11 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     };
 
     this.badgeNotificationService.showBadgeNotification(toastPayload);
+
+    // Award experience for each newly unlocked badge
+    newlyUnlockedBadges.forEach(() => {
+      this.experienceService.addExperienceForBadge();
+    });
   }
 
   get unlockedBadgesCount(): number {

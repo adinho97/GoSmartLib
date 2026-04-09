@@ -1,7 +1,14 @@
-import { Component, HostListener, ChangeDetectorRef, OnInit } from "@angular/core";
+import {
+  Component,
+  HostListener,
+  ChangeDetectorRef,
+  OnInit,
+} from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { filter } from "rxjs/operators";
+import { Observable } from "rxjs";
+import { ExperienceService, LevelInfo } from "./services/experience.service";
 
 @Component({
   selector: "app-root",
@@ -11,12 +18,16 @@ import { filter } from "rxjs/operators";
 })
 export class AppComponent implements OnInit {
   profileMenuOpen = false;
+  levelInfo$: Observable<LevelInfo>;
 
   constructor(
     private router: Router,
     private http: HttpClient,
     private changeDetectorRef: ChangeDetectorRef,
-  ) {}
+    private experienceService: ExperienceService,
+  ) {
+    this.levelInfo$ = this.experienceService.levelInfo$;
+  }
 
   ngOnInit(): void {
     this.router.events
@@ -76,7 +87,9 @@ export class AppComponent implements OnInit {
     const role = this.userRole.toLowerCase();
     if (role === "leerkracht") return "Leerkracht";
     if (role === "bibbeheerder") return "Bibliotheekbeheerder";
-    return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Onbekende rol";
+    return role
+      ? role.charAt(0).toUpperCase() + role.slice(1)
+      : "Onbekende rol";
   }
 
   toggleProfileMenu(event: Event): void {

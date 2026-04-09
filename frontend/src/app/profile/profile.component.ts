@@ -6,6 +6,7 @@ import { Subscription } from "rxjs";
 import { SmartschoolService } from "../services/smartschool.service";
 import { BookService } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
+import { ExperienceService, LevelInfo } from "../services/experience.service";
 
 type ProfileBookCard = {
   title: string;
@@ -46,6 +47,8 @@ export class ProfileComponent {
 
   settingsOpen = false;
 
+  levelInfo: LevelInfo | null = null;
+
   wishlistBooks: ProfileBookCard[] = [];
   favoriteBooks: ProfileBookCard[] = [];
   readingHistory: ProfileBookCard[] = [];
@@ -66,6 +69,7 @@ export class ProfileComponent {
   currentReadingHistoryPage = 1;
   private wishlistChangedSub?: Subscription;
   private favoriteChangedSub?: Subscription;
+  private levelInfoSub?: Subscription;
 
   constructor(
     private location: Location,
@@ -74,6 +78,7 @@ export class ProfileComponent {
     private http: HttpClient,
     private bookService: BookService,
     private loanService: LoanService,
+    private experienceService: ExperienceService,
   ) {}
 
   async ngOnInit() {
@@ -81,6 +86,11 @@ export class ProfileComponent {
     if (saved) {
       this.dashboardSettings = JSON.parse(saved);
     }
+
+    // Subscribe to level info changes
+    this.levelInfoSub = this.experienceService.levelInfo$.subscribe((info) => {
+      this.levelInfo = info;
+    });
 
     await Promise.all([
       this.loadWishlistBooks(),
@@ -123,6 +133,7 @@ export class ProfileComponent {
   ngOnDestroy() {
     this.wishlistChangedSub?.unsubscribe();
     this.favoriteChangedSub?.unsubscribe();
+    this.levelInfoSub?.unsubscribe();
   }
 
   private async loadWishlistBooks() {
