@@ -16,6 +16,11 @@
           [class.badge-card-unlocked]="badge.unlocked"
           [class.badge-card-loan]="badge.category === 'loan'"
           [class.badge-card-review]="badge.category === 'review'"
+          [class.badge-card-menu-open]="selectedBadgeId === badge.id"
+          tabindex="0"
+          role="button"
+          (click)="toggleBadgeMenu(badge, $event)"
+          (keydown.enter)="toggleBadgeMenu(badge, $event)"
         >
           <div class="badge-card-top">
             <span class="badge-icon" aria-hidden="true">
@@ -28,6 +33,24 @@
           </span>
           <h4>{{ badge.title }}</h4>
           <p class="badge-progress">{{ getBadgeProgressText(badge) }}</p>
+
+          @if (selectedBadgeId === badge.id) {
+            <div
+              class="badge-xp-menu"
+              role="menu"
+              (click)="stopMenuClick($event)"
+            >
+              <p class="badge-xp-title">XP Beloning</p>
+              <p class="badge-xp-value">
+                +{{ getBadgeExperienceWorth(badge) }} XP
+              </p>
+              @if (!badge.unlocked) {
+                <p class="badge-xp-note">
+                  Deze XP krijg je zodra je deze badge behaalt.
+                </p>
+              }
+            </div>
+          }
         </article>
       }
     </div>

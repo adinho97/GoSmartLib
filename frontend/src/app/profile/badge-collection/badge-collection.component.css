@@ -69,6 +69,11 @@
     filter 0.3s ease,
     opacity 0.3s ease;
   opacity: 0.45;
+  cursor: pointer;
+}
+
+.badge-card.badge-card-menu-open {
+  z-index: 20;
 }
 
 .badge-card.badge-card-unlocked {
@@ -227,6 +232,42 @@
   margin-top: 0.5rem;
 }
 
+.badge-xp-menu {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  width: min(180px, calc(100% - 1.1rem));
+  background: #ffffff;
+  border: 1px solid #ead8e0;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  padding: 0.6rem 0.7rem;
+  text-align: center;
+  z-index: 40;
+}
+
+.badge-xp-title {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.badge-xp-value {
+  margin: 0.22rem 0 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #871f42;
+}
+
+.badge-xp-note {
+  margin: 0.28rem 0 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
 @media (max-width: 560px) {
   .badges-grid {
     grid-template-columns: 1fr;
@@ -251,6 +292,13 @@
 
   .badge-card h4 {
     font-size: 0.88rem;
+  }
+
+  .badge-xp-menu {
+    top: 0.45rem;
+    right: 0.45rem;
+    width: min(170px, calc(100% - 0.9rem));
+    padding: 0.52rem 0.6rem;
   }
 
   .badge-card:hover:not(.badge-card-unlocked) {

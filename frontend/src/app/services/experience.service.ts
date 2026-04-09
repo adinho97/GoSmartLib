@@ -31,12 +31,21 @@ export class ExperienceService {
 
   // Experience rewards for different activities
   private readonly REWARDS = {
-    badgeUnlocked: 50,
     bookRead: 25, // When finishing a book (based on loan return)
     reviewWritten: 40,
     reviewLiked: 10, // When someone likes your review
     bookAddedToWishlist: 5,
     bookAddedToFavorites: 5,
+  };
+
+  // Dynamic XP scaling for badge milestones.
+  private readonly BADGE_THRESHOLD_REWARDS: Record<number, number> = {
+    1: 20,
+    5: 40,
+    10: 70,
+    20: 120,
+    50: 220,
+    100: 400,
   };
 
   constructor() {
@@ -46,8 +55,28 @@ export class ExperienceService {
   /**
    * Add experience for badge unlock
    */
-  addExperienceForBadge(): void {
-    this.addExperience(this.REWARDS.badgeUnlocked);
+  addExperienceForBadge(
+    threshold: number,
+    category: "loan" | "review",
+  ): number {
+    const reward = this.getBadgeExperienceWorth(threshold, category);
+    this.addExperience(reward);
+    return reward;
+  }
+
+  /**
+   * Get XP reward for a badge milestone.
+   */
+  getBadgeExperienceWorth(
+    threshold: number,
+    category: "loan" | "review",
+  ): number {
+    const reviewReward =
+      this.BADGE_THRESHOLD_REWARDS[threshold] ??
+      Math.max(20, Math.floor(18 + threshold * 3.2));
+
+    // Loan badges are worth exactly double review badges.
+    return category === "loan" ? reviewReward * 2 : reviewReward;
   }
 
   /**

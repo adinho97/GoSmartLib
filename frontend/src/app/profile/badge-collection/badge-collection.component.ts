@@ -32,6 +32,7 @@ type BadgeCounts = {
 export class BadgeCollectionComponent implements OnInit, OnDestroy {
   badges: ProfileBadge[] = [];
   loading = true;
+  selectedBadgeId: string | null = null;
 
   private readonly badgeMilestones = [1, 5, 10, 20, 50, 100];
   private badgeRefreshIntervalId?: ReturnType<typeof setInterval>;
@@ -65,6 +66,11 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
   @HostListener("window:focus")
   onWindowFocus() {
     this.refreshBadges();
+  }
+
+  @HostListener("document:click")
+  onDocumentClick() {
+    this.selectedBadgeId = null;
   }
 
   private startBadgeRefreshInterval() {
@@ -174,9 +180,12 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
 
     this.badgeNotificationService.showBadgeNotification(toastPayload);
 
-    // Award experience for each newly unlocked badge
-    newlyUnlockedBadges.forEach(() => {
-      this.experienceService.addExperienceForBadge();
+    // Award dynamic experience for each newly unlocked badge.
+    newlyUnlockedBadges.forEach((unlockedBadge) => {
+      this.experienceService.addExperienceForBadge(
+        unlockedBadge.threshold,
+        unlockedBadge.category,
+      );
     });
   }
 
@@ -241,6 +250,22 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     if (badge.threshold >= 50) return "🌟";
     if (badge.threshold >= 20) return "📝";
     return "✍️";
+  }
+
+  toggleBadgeMenu(badge: ProfileBadge, event: Event) {
+    event.stopPropagation();
+    this.selectedBadgeId = this.selectedBadgeId === badge.id ? null : badge.id;
+  }
+
+  stopMenuClick(event: Event) {
+    event.stopPropagation();
+  }
+
+  getBadgeExperienceWorth(badge: ProfileBadge): number {
+    return this.experienceService.getBadgeExperienceWorth(
+      badge.threshold,
+      badge.category,
+    );
   }
 
   ngOnDestroy() {
