@@ -140,8 +140,6 @@
 
       @if (showSections) {
         <div class="profile-sections">
-          <app-badge-collection></app-badge-collection>
-
           @if (dashboardSettings.showBorrowed) {
             <section id="borrowed-section" class="profile-section">
               <div class="section-head">
@@ -463,6 +461,8 @@
               }
             </section>
           }
+
+          <app-badge-collection></app-badge-collection>
         </div>
       }
     </div>
