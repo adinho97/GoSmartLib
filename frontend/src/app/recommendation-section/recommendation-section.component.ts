@@ -142,6 +142,7 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
 
   toggleExcludeRead() {
     this.excludeRead = !this.excludeRead;
+    localStorage.setItem(this.storageKey, String(this.excludeRead));
     const prefsKey = `recommendationExcludeRead_${this.section}` as PreferenceKey;
     this.userPreferencesService.savePreference(prefsKey, this.excludeRead);
     this.refreshRecommendations.emit(this.excludeRead);
