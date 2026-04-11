@@ -2,6 +2,15 @@ import { Injectable } from '@angular/core';
 import axios from 'axios';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+/**
+ * Strongly typed preference keys to prevent typos at compile time
+ */
+export type PreferenceKey =
+  | 'recommendationExcludeRead_trending'
+  | 'recommendationExcludeRead_genre'
+  | 'recommendationExcludeRead_author'
+  | 'recommendationExcludeRead_newArrivals';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -52,7 +61,7 @@ export class UserPreferencesService {
    * Save a preference: update immediately (optimistic), sync to backend
    * Rollback on backend failure to prevent silent data loss
    */
-  async savePreference(key: string, value: boolean): Promise<void> {
+  async savePreference(key: PreferenceKey, value: boolean): Promise<void> {
     // Snapshot state before optimistic update
     const previous = { ...this.preferencesSubject.value };
     const updated = { ...previous, [key]: value };
@@ -85,9 +94,9 @@ export class UserPreferencesService {
   }
 
   /**
-   * Get current preferences value (for legacy code needing synchronous access)
+   * @deprecated Prefer preferences$ observable. Only use for non-reactive legacy contexts.
    */
-  getPreferencesValue(): Record<string, boolean> {
+  getSnapshotForLegacyUse(): Record<string, boolean> {
     return this.preferencesSubject.value;
   }
 
