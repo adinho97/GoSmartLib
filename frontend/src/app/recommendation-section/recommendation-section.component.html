@@ -20,7 +20,7 @@
 >
   @if (books && books.length > 0) {
     <div class="horizontal-scroll-wrapper">
-      @for (book of books; track book.bookId) {
+      @for (book of limitedBooks; track book.bookId) {
         <app-recommendation-card
           [book]="book"
           [isFavorited]="isFavorited(book.bookId)"

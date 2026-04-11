@@ -92,6 +92,10 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
     return this.favoritedBookIds.has(bookId);
   }
 
+  get limitedBooks(): RecommendedBook[] {
+    return this.books.slice(0, 25);
+  }
+
   async toggleWishlist(event: MouseEvent, bookId: number) {
     event.stopPropagation();
     const wasWishlisted = this.wishlistedBookIds.has(bookId);
