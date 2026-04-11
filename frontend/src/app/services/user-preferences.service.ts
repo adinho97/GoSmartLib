@@ -50,16 +50,18 @@ export class UserPreferencesService {
 
   /**
    * Save a preference: update immediately (optimistic), sync to backend
+   * Rollback on backend failure to prevent silent data loss
    */
   async savePreference(key: string, value: boolean): Promise<void> {
-    // Spread into new object — BehaviorSubject detects change, doesn't mutate
-    const updated = { ...this.preferencesSubject.value, [key]: value };
+    // Snapshot state before optimistic update
+    const previous = { ...this.preferencesSubject.value };
+    const updated = { ...previous, [key]: value };
 
     // Update local state immediately (optimistic update - no flicker)
     this.preferencesSubject.next(updated);
     this.saveToLocalStorage(updated);
 
-    // Sync to backend (async, don't block on failure)
+    // Sync to backend
     try {
       await axios.patch(
         this.apiUrl,
@@ -67,7 +69,13 @@ export class UserPreferencesService {
         this.getUserHeaders()
       );
     } catch (error) {
-      console.warn(`Failed to sync preference ${key} to backend:`, error);
+      // Backend failed — rollback to prevent silent data loss on next sync
+      console.warn(
+        `Failed to sync preference ${key}, rolling back to previous state:`,
+        error
+      );
+      this.preferencesSubject.next(previous);
+      this.saveToLocalStorage(previous);
     }
   }
 
