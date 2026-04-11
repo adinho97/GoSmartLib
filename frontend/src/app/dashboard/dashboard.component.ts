@@ -30,6 +30,7 @@ export class DashboardComponent implements OnInit {
   myLoans: Loan[] = [];
   loansLoading = true;
   recommendationsLoading = true;
+  private readonly RECOMMENDATION_LIMIT = 25;
 
   today = new Date().toISOString().split("T")[0];
 
@@ -62,7 +63,7 @@ export class DashboardComponent implements OnInit {
   private async fetchRecommendations() {
     this.recommendationsLoading = true;
     try {
-      const trendingBooks = await this.recommendationService.getTrending(5);
+      const trendingBooks = await this.recommendationService.getTrending(this.RECOMMENDATION_LIMIT);
       this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
     } catch (error) {
       console.error("Fout bij ophalen trending aanbevelingen:", error);
@@ -74,7 +75,7 @@ export class DashboardComponent implements OnInit {
 
   private async fetchGenreRecommendations() {
     try {
-      const genreBooks = await this.recommendationService.getByGenre(5);
+      const genreBooks = await this.recommendationService.getByGenre(this.RECOMMENDATION_LIMIT);
       this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
     } catch (error) {
       console.error("Fout bij ophalen genre aanbevelingen:", error);
@@ -84,7 +85,7 @@ export class DashboardComponent implements OnInit {
 
   private async fetchAuthorRecommendations() {
     try {
-      const authorBooks = await this.recommendationService.getByAuthor(5);
+      const authorBooks = await this.recommendationService.getByAuthor(this.RECOMMENDATION_LIMIT);
       this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
     } catch (error) {
       console.error("Fout bij ophalen auteur aanbevelingen:", error);
@@ -94,7 +95,7 @@ export class DashboardComponent implements OnInit {
 
   private async fetchNewArrivalsRecommendations() {
     try {
-      const newArrivalsBooks = await this.recommendationService.getNewArrivals(5);
+      const newArrivalsBooks = await this.recommendationService.getNewArrivals(this.RECOMMENDATION_LIMIT);
       this.newArrivalsBooks = await this.bookService.enrichBooksWithDetails(newArrivalsBooks);
     } catch (error) {
       console.error("Fout bij ophalen nieuwe aankomsten:", error);
@@ -105,13 +106,13 @@ export class DashboardComponent implements OnInit {
   async onRefreshRecommendations(section: 'trending' | 'genre' | 'author', excludeRead: boolean) {
     try {
       if (section === 'trending') {
-        const trendingBooks = await this.recommendationService.getTrending(5, excludeRead);
+        const trendingBooks = await this.recommendationService.getTrending(this.RECOMMENDATION_LIMIT, excludeRead);
         this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
       } else if (section === 'genre') {
-        const genreBooks = await this.recommendationService.getByGenre(5, excludeRead);
+        const genreBooks = await this.recommendationService.getByGenre(this.RECOMMENDATION_LIMIT, excludeRead);
         this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
       } else if (section === 'author') {
-        const authorBooks = await this.recommendationService.getByAuthor(5, excludeRead);
+        const authorBooks = await this.recommendationService.getByAuthor(this.RECOMMENDATION_LIMIT, excludeRead);
         this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
       }
     } catch (error) {
