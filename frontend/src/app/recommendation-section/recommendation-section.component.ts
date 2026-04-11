@@ -45,32 +45,25 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
-  async ngOnInit() {
-    const prefsKey = `recommendationExcludeRead_${this.section}` as PreferenceKey;
-    this.subscription = this.userPreferencesService.preferences$.subscribe((prefs) => {
-      if (prefs[prefsKey] !== undefined && prefs[prefsKey] !== this.excludeRead) {
-        this.excludeRead = prefs[prefsKey];
-        this.refreshRecommendations.emit(this.excludeRead);
-      } else if (prefs[prefsKey] === undefined) {
-        const saved = localStorage.getItem(this.storageKey);
-        if (saved !== null) {
-          const savedValue = saved === 'true';
-          if (savedValue !== this.excludeRead) {
-            this.excludeRead = savedValue;
-            this.refreshRecommendations.emit(this.excludeRead);
-          }
-        }
-      }
-    });
-
-    await Promise.all([
-      this.loadWishlistState(),
-      this.loadFavoritesState(),
-    ]);
+  ngOnInit(): void {
+    this.initPreferences();
+    this.loadWishlistState();
+    this.loadFavoritesState();
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+  }
+
+  private initPreferences(): void {
+    const prefsKey = `recommendationExcludeRead_${this.section}` as PreferenceKey;
+    this.subscription = this.userPreferencesService.preferences$.subscribe((prefs) => {
+      const value = prefs[prefsKey];
+      if (value !== undefined && value !== this.excludeRead) {
+        this.excludeRead = value;
+        this.refreshRecommendations.emit(this.excludeRead);
+      }
+    });
   }
 
   private async loadWishlistState() {
