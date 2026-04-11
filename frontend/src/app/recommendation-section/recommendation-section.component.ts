@@ -101,31 +101,45 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
 
   async toggleWishlist(event: MouseEvent, bookId: number) {
     event.stopPropagation();
+    const wasWishlisted = this.wishlistedBookIds.has(bookId);
+
+    wasWishlisted
+      ? this.wishlistedBookIds.delete(bookId)
+      : this.wishlistedBookIds.add(bookId);
 
     try {
-      if (this.wishlistedBookIds.has(bookId)) {
-        await this.bookService.removeFromWishlist(bookId);
-        this.wishlistedBookIds.delete(bookId);
-      } else {
-        await this.bookService.addToWishlist(bookId);
-        this.wishlistedBookIds.add(bookId);
-      }
-    } catch {
+      wasWishlisted
+        ? await this.bookService.removeFromWishlist(bookId)
+        : await this.bookService.addToWishlist(bookId);
+    } catch (error) {
+      
+      wasWishlisted
+        ? this.wishlistedBookIds.add(bookId)
+        : this.wishlistedBookIds.delete(bookId);
+      console.error('Failed to toggle wishlist for book', bookId, error);
+      // TODO: Emit toast/error event for user feedback
     }
   }
 
   async toggleFavorite(event: MouseEvent, bookId: number) {
     event.stopPropagation();
+    const wasFavorited = this.favoritedBookIds.has(bookId);
+
+    wasFavorited
+      ? this.favoritedBookIds.delete(bookId)
+      : this.favoritedBookIds.add(bookId);
 
     try {
-      if (this.favoritedBookIds.has(bookId)) {
-        await this.bookService.removeFromFavorites(bookId);
-        this.favoritedBookIds.delete(bookId);
-      } else {
-        await this.bookService.addToFavorites(bookId);
-        this.favoritedBookIds.add(bookId);
-      }
-    } catch {
+      wasFavorited
+        ? await this.bookService.removeFromFavorites(bookId)
+        : await this.bookService.addToFavorites(bookId);
+    } catch (error) {
+
+      wasFavorited
+        ? this.favoritedBookIds.add(bookId)
+        : this.favoritedBookIds.delete(bookId);
+      console.error('Failed to toggle favorite for book', bookId, error);
+      // TODO: Emit toast/error event for user feedback
     }
   }
 
