@@ -46,15 +46,12 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
-    // Subscribe to preferences$ Observable for reactive updates — no flicker
     const prefsKey = `recommendationExcludeRead_${this.section}` as PreferenceKey;
     this.subscription = this.userPreferencesService.preferences$.subscribe((prefs) => {
       if (prefs[prefsKey] !== undefined && prefs[prefsKey] !== this.excludeRead) {
-        // Preference changed — update local state and refresh books
         this.excludeRead = prefs[prefsKey];
         this.refreshRecommendations.emit(this.excludeRead);
       } else if (prefs[prefsKey] === undefined) {
-        // No preference in BehaviorSubject yet — check localStorage fallback
         const saved = localStorage.getItem(this.storageKey);
         if (saved !== null) {
           const savedValue = saved === 'true';
@@ -66,7 +63,6 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Load wishlist and favorites in parallel
     await Promise.all([
       this.loadWishlistState(),
       this.loadFavoritesState(),
@@ -74,7 +70,6 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Unsubscribe to prevent memory leaks
     this.subscription?.unsubscribe();
   }
 
@@ -116,7 +111,6 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
         this.wishlistedBookIds.add(bookId);
       }
     } catch {
-      // Silent fail
     }
   }
 
@@ -132,7 +126,6 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
         this.favoritedBookIds.add(bookId);
       }
     } catch {
-      // Silent fail
     }
   }
 
@@ -142,9 +135,7 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
 
   toggleExcludeRead() {
     this.excludeRead = !this.excludeRead;
-    // Persist to localStorage as cache
     localStorage.setItem(this.storageKey, String(this.excludeRead));
-    // Persist to backend with typed key
     const prefsKey = `recommendationExcludeRead_${this.section}` as PreferenceKey;
     this.userPreferencesService.savePreference(prefsKey, this.excludeRead);
     this.refreshRecommendations.emit(this.excludeRead);
