@@ -2,6 +2,7 @@ import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { BookService } from '../services/book.service';
+import { UserPreferencesService } from '../services/user-preferences.service';
 import { RecommendedBook } from '../services/recommendation.service';
 import { RecommendationCardComponent } from '../recommendation-card/recommendation-card.component';
 
@@ -38,20 +39,40 @@ export class RecommendationSectionComponent implements OnInit {
 
   constructor(
     private bookService: BookService,
+    private userPreferencesService: UserPreferencesService,
     private router: Router
   ) {}
 
   async ngOnInit() {
-    // Load preference from localStorage using section-specific key
-    const saved = localStorage.getItem(this.storageKey);
-    if (saved !== null) {
-      const savedValue = saved === 'true';
+    // Load preference from backend, fall back to localStorage
+    const backendPrefs = await this.userPreferencesService.getPreferences();
+    const backendKey = `excludeRead_${this.section}`;
+    
+    if (backendPrefs[backendKey] !== undefined) {
+      // Backend has this preference
+      const savedValue = backendPrefs[backendKey];
+      // Sync to localStorage as cache
+      localStorage.setItem(this.storageKey, String(savedValue));
+      
       // If saved preference differs from default, refresh books with the saved setting
       if (savedValue !== this.excludeRead) {
         this.excludeRead = savedValue;
         this.refreshRecommendations.emit(this.excludeRead);
       } else {
         this.excludeRead = savedValue;
+      }
+    } else {
+      // No backend preference, check localStorage
+      const saved = localStorage.getItem(this.storageKey);
+      if (saved !== null) {
+        const savedValue = saved === 'true';
+        // If saved preference differs from default, refresh books with the saved setting
+        if (savedValue !== this.excludeRead) {
+          this.excludeRead = savedValue;
+          this.refreshRecommendations.emit(this.excludeRead);
+        } else {
+          this.excludeRead = savedValue;
+        }
       }
     }
 
@@ -125,8 +146,10 @@ export class RecommendationSectionComponent implements OnInit {
 
   toggleExcludeRead() {
     this.excludeRead = !this.excludeRead;
-    // Persist to localStorage using section-specific key
+    // Persist to localStorage as cache
     localStorage.setItem(this.storageKey, String(this.excludeRead));
+    // Persist to backend
+    this.userPreferencesService.savePreference(`excludeRead_${this.section}`, this.excludeRead);
     this.refreshRecommendations.emit(this.excludeRead);
   }
 }
