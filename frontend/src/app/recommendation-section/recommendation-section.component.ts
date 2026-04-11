@@ -1,8 +1,9 @@
-import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
+import { Component, Input, Output, OnInit, OnDestroy, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { BookService } from '../services/book.service';
-import { UserPreferencesService } from '../services/user-preferences.service';
+import { UserPreferencesService, PreferenceKey } from '../services/user-preferences.service';
 import { RecommendedBook } from '../services/recommendation.service';
 import { RecommendationCardComponent } from '../recommendation-card/recommendation-card.component';
 
@@ -13,7 +14,7 @@ import { RecommendationCardComponent } from '../recommendation-card/recommendati
   templateUrl: './recommendation-section.component.html',
   styleUrl: './recommendation-section.component.css',
 })
-export class RecommendationSectionComponent implements OnInit {
+export class RecommendationSectionComponent implements OnInit, OnDestroy {
   @Input() books: RecommendedBook[] = [];
   @Input() title: string = 'Aanbevelingen';
   @Input() layout: 'shelf' | 'hero' = 'shelf';
@@ -27,6 +28,7 @@ export class RecommendationSectionComponent implements OnInit {
   favoritedBookIds = new Set<number>();
 
   private readonly EXCLUDE_READ_STORAGE_KEY_PREFIX = 'recommendationExcludeRead_';
+  private subscription: Subscription | null = null;
 
   private get storageKey(): string {
     return `${this.EXCLUDE_READ_STORAGE_KEY_PREFIX}${this.section}`;
@@ -44,42 +46,36 @@ export class RecommendationSectionComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    // Load preference from backend, fall back to localStorage
-    const backendPrefs = await this.userPreferencesService.getPreferences();
-    const backendKey = `excludeRead_${this.section}`;
-    
-    if (backendPrefs[backendKey] !== undefined) {
-      // Backend has this preference
-      const savedValue = backendPrefs[backendKey];
-      // Sync to localStorage as cache
-      localStorage.setItem(this.storageKey, String(savedValue));
-      
-      // If saved preference differs from default, refresh books with the saved setting
-      if (savedValue !== this.excludeRead) {
-        this.excludeRead = savedValue;
+    // Subscribe to preferences$ Observable for reactive updates — no flicker
+    const prefsKey = `recommendationExcludeRead_${this.section}` as PreferenceKey;
+    this.subscription = this.userPreferencesService.preferences$.subscribe((prefs) => {
+      if (prefs[prefsKey] !== undefined && prefs[prefsKey] !== this.excludeRead) {
+        // Preference changed — update local state and refresh books
+        this.excludeRead = prefs[prefsKey];
         this.refreshRecommendations.emit(this.excludeRead);
-      } else {
-        this.excludeRead = savedValue;
-      }
-    } else {
-      // No backend preference, check localStorage
-      const saved = localStorage.getItem(this.storageKey);
-      if (saved !== null) {
-        const savedValue = saved === 'true';
-        // If saved preference differs from default, refresh books with the saved setting
-        if (savedValue !== this.excludeRead) {
-          this.excludeRead = savedValue;
-          this.refreshRecommendations.emit(this.excludeRead);
-        } else {
-          this.excludeRead = savedValue;
+      } else if (prefs[prefsKey] === undefined) {
+        // No preference in BehaviorSubject yet — check localStorage fallback
+        const saved = localStorage.getItem(this.storageKey);
+        if (saved !== null) {
+          const savedValue = saved === 'true';
+          if (savedValue !== this.excludeRead) {
+            this.excludeRead = savedValue;
+            this.refreshRecommendations.emit(this.excludeRead);
+          }
         }
       }
-    }
+    });
 
+    // Load wishlist and favorites in parallel
     await Promise.all([
       this.loadWishlistState(),
       this.loadFavoritesState(),
     ]);
+  }
+
+  ngOnDestroy(): void {
+    // Unsubscribe to prevent memory leaks
+    this.subscription?.unsubscribe();
   }
 
   private async loadWishlistState() {
@@ -148,8 +144,9 @@ export class RecommendationSectionComponent implements OnInit {
     this.excludeRead = !this.excludeRead;
     // Persist to localStorage as cache
     localStorage.setItem(this.storageKey, String(this.excludeRead));
-    // Persist to backend
-    this.userPreferencesService.savePreference(`excludeRead_${this.section}`, this.excludeRead);
+    // Persist to backend with typed key
+    const prefsKey = `recommendationExcludeRead_${this.section}` as PreferenceKey;
+    this.userPreferencesService.savePreference(prefsKey, this.excludeRead);
     this.refreshRecommendations.emit(this.excludeRead);
   }
 }
