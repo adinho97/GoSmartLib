@@ -91,11 +91,21 @@
   display: flex;
   gap: 25px;
   overflow-x: auto;
+  overflow-y: hidden;
   flex-wrap: nowrap;
   padding: 20px 10px 40px 10px;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Prevent cards from shrinking in scroll container */
+.horizontal-scroll-wrapper app-recommendation-card {
+  flex-shrink: 0;
+  min-width: 200px;
+  scroll-snap-align: start;
 }
 
 /* Custom Scrollbar */
