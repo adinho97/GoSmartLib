@@ -50,24 +50,31 @@ public class LoanReminderService {
         Flux.fromIterable(loans)
                 .flatMap(loan -> {
                     if (loan.getUserSub() == null)
-                        return Flux.empty();
+                        return Mono.empty();
                     return Mono.justOrEmpty(appUserRepository.findBySub(loan.getUserSub()))
-                            .flatMapMany(user -> sendReminderToUser(user, loan));
+                            .flatMap(user -> sendReminderToUser(user, loan));
                 })
-                .doOnComplete(() -> logger.info("Finished processing reminders."))
-                .subscribe();
+                .subscribe(
+                        success -> logger.debug("Reminder processed: {}", success),
+                        error -> logger.error("Error in reminder job", error),
+                        () -> logger.info("Finished processing all reminders for {}", tomorrow));
     }
 
-    private Flux<String> sendReminderToUser(AppUser user, Loan loan) {
+    private Mono<String> sendReminderToUser(AppUser user, Loan loan) {
         if (user.getSmartschoolRefreshToken() == null || loan.getCopy() == null || loan.getCopy().getBook() == null) {
             logger.warn("User {} has no refresh token. Cannot send automated reminder.", user.getSub());
-            return Flux.empty();
+            return Mono.empty();
         }
 
         return authService.getUserInfoBySub(user.getSub())
                 .flatMap(userInfo -> {
                     SmartschoolMessageRequest messageRequest = new SmartschoolMessageRequest();
-                    messageRequest.setPlatformUrl(smartschoolProperties.getApiBaseUrl());
+
+                    // Use user-specific platform URL if available, otherwise fallback to default
+                    String platform = (user.getPlatform() != null && !user.getPlatform().isBlank())
+                            ? user.getPlatform()
+                            : smartschoolProperties.getApiBaseUrl();
+                    messageRequest.setPlatformUrl(platform);
                     messageRequest.setSubject("Herinnering: Inleveren bibliotheekboek");
 
                     String bookTitle = loan.getCopy().getBook().getTitel();
@@ -79,8 +86,9 @@ public class LoanReminderService {
 
                     return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), messageRequest);
                 })
-                .doOnSuccess(response -> logger.info("Successfully sent reminder for user sub {}", user.getSub()))
-                .doOnError(error -> logger.error("Failed to send reminder for user sub {}", user.getSub(), error))
-                .flux();
+                .doOnSuccess(response -> logger.info("Successfully sent reminder to {} for book {}", user.getSub(),
+                        loan.getCopy().getBook().getTitel()))
+                .doOnError(error -> logger.error("Failed to send reminder to user sub {}", user.getSub(), error))
+                .onErrorResume(e -> Mono.empty());
     }
 }

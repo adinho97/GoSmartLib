@@ -70,9 +70,7 @@ export class ProfileComponent {
   favoriteBooks: ProfileBookCard[] = [];
   readingHistory: ProfileBookCard[] = [];
   readingHistoryLoading = false;
-  borrowedBooks: ProfileBookCard[] = [
-    { title: "Book Four", deadline: new Date(), cover: "", id: 4 },
-  ];
+  borrowedBooks: ProfileBookCard[] = [];
   readingList: ProfileBookCard[] = [
     { title: "Book Five", author: "Author C", cover: "", id: 5 },
   ];
@@ -120,6 +118,7 @@ export class ProfileComponent {
       this.loadFavoriteBooks(),
       this.loadReadingHistory(),
       this.loadReviewCount(),
+      this.loadActiveLoans(),
     ]);
     this.rebuildBadges();
     this.suppressBadgeToast = false;
@@ -189,6 +188,27 @@ export class ProfileComponent {
       }
     } catch (error) {
       console.error("Error refreshing badges:", error);
+    }
+  }
+
+  private async loadActiveLoans() {
+    try {
+      const activeLoans = await this.loanService.getMyActiveLoans();
+      const enriched = await this.bookService.enrichBooksWithDetails(activeLoans.map((loan: any) => ({
+        ...loan,
+        bookId: loan.bookId,
+        titel: loan.bookTitel,
+      })));
+
+      this.borrowedBooks = enriched.map((item: any) => ({
+        id: item.bookId,
+        title: item.titel,
+        cover: item.cover || "",
+        deadline: item.dueDate ? new Date(item.dueDate) : undefined,
+      }));
+    } catch (error) {
+      console.error("Error loading active loans:", error);
+      this.borrowedBooks = [];
     }
   }
 
