@@ -1,7 +1,14 @@
-import { Component, HostListener, ChangeDetectorRef, OnInit } from "@angular/core";
+import {
+  Component,
+  HostListener,
+  ChangeDetectorRef,
+  OnInit,
+} from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { filter } from "rxjs/operators";
+import { Observable } from "rxjs";
+import { ExperienceService, LevelInfo } from "./services/experience.service";
 import { UserPreferencesService } from "./services/user-preferences.service";
 
 @Component({
@@ -12,13 +19,17 @@ import { UserPreferencesService } from "./services/user-preferences.service";
 })
 export class AppComponent implements OnInit {
   profileMenuOpen = false;
+  levelInfo$: Observable<LevelInfo>;
 
   constructor(
     private router: Router,
     private http: HttpClient,
     private changeDetectorRef: ChangeDetectorRef,
+    private experienceService: ExperienceService,
     private userPreferencesService: UserPreferencesService,
-  ) {}
+  ) {
+    this.levelInfo$ = this.experienceService.levelInfo$;
+  }
 
   ngOnInit(): void {
     // Initialize preferences from cache (localStorage seed is synchronous)
@@ -80,16 +91,33 @@ export class AppComponent implements OnInit {
     const role = this.userRole.toLowerCase();
     if (role === "leerkracht") return "Leerkracht";
     if (role === "bibbeheerder") return "Bibliotheekbeheerder";
-    return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Onbekende rol";
+    return role
+      ? role.charAt(0).toUpperCase() + role.slice(1)
+      : "Onbekende rol";
+  }
+
+  getLevelTier(level: number): number {
+    if (level >= 25) return 5;
+    if (level >= 20) return 4;
+    if (level >= 15) return 3;
+    if (level >= 10) return 2;
+    if (level >= 5) return 1;
+    return 0;
+  }
+
+  getLevelTierLabel(level: number): string {
+    const tier = this.getLevelTier(level);
+    if (tier === 5) return "Legende";
+    if (tier === 4) return "Diamant";
+    if (tier === 3) return "Goud";
+    if (tier === 2) return "Zilver";
+    if (tier === 1) return "Brons";
+    return "Beginner";
   }
 
   toggleProfileMenu(event: Event): void {
     event.stopPropagation();
     this.profileMenuOpen = !this.profileMenuOpen;
-  }
-
-  closeProfileMenu(): void {
-    this.profileMenuOpen = false;
   }
 
   logout(): void {

@@ -9,6 +9,27 @@
         </div>
       </div>
 
+      @if (levelInfo) {
+        <div class="level-display">
+          <div class="level-header">
+            <span class="level-label">Niveau</span>
+            <span class="level-number">{{ levelInfo.level }}</span>
+          </div>
+          <div class="level-progress-bar">
+            <div
+              class="level-progress-fill"
+              [style.width.%]="levelInfo.progressPercentage"
+            ></div>
+          </div>
+          <div class="level-stats">
+            <span class="xp-text"
+              >{{ levelInfo.experienceForCurrentLevel }} /
+              {{ levelInfo.experienceRequiredForLevel }} XP</span
+            >
+          </div>
+        </div>
+      }
+
       <button type="button" class="logout-btn">Uitloggen</button>
     </div>
   </div>
@@ -140,44 +161,6 @@
 
       @if (showSections) {
         <div class="profile-sections">
-          <section id="badges-section" class="profile-section badges-section">
-            <div class="section-head">
-              <h3 class="section-title">Badgecollectie</h3>
-              <span class="section-count"
-                >{{ unlockedBadgesCount }}/{{ totalBadgesCount }}</span
-              >
-            </div>
-
-            @if (badges.length === 0) {
-              <div class="inline-empty">Badges laden...</div>
-            } @else {
-              <div class="badges-grid">
-                @for (badge of badges; track badge.id) {
-                  <article
-                    class="badge-card"
-                    [class.badge-card-unlocked]="badge.unlocked"
-                    [class.badge-card-loan]="badge.category === 'loan'"
-                    [class.badge-card-review]="badge.category === 'review'"
-                  >
-                    <div class="badge-card-top">
-                      <span class="badge-icon" aria-hidden="true">{{
-                        getBadgeIcon(badge)
-                      }}</span>
-                      <span class="badge-category">{{
-                        getBadgeCategoryLabel(badge.category)
-                      }}</span>
-                    </div>
-
-                    <h4>{{ badge.title }}</h4>
-                    <p class="badge-progress">
-                      {{ getBadgeProgressText(badge) }}
-                    </p>
-                  </article>
-                }
-              </div>
-            }
-          </section>
-
           @if (dashboardSettings.showBorrowed) {
             <section id="borrowed-section" class="profile-section">
               <div class="section-head">
@@ -371,25 +354,9 @@
               }
             </section>
           }
-        </div>
 
-        @if (badgeToastVisible) {
-          <div class="badge-toast" role="status" aria-live="polite">
-            <div class="badge-toast-icon" aria-hidden="true">🎉</div>
-            <div class="badge-toast-content">
-              <strong>{{ badgeToastTitle }}</strong>
-              <p>{{ badgeToastMessage }}</p>
-            </div>
-            <button
-              type="button"
-              class="badge-toast-close"
-              aria-label="Sluit melding"
-              (click)="dismissBadgeToast()"
-            >
-              ×
-            </button>
-          </div>
-        }
+          <app-badge-collection></app-badge-collection>
+        </div>
       }
     </div>
   </div>
