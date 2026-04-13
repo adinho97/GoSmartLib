@@ -46,16 +46,16 @@ class RecommendationServiceTest {
         RecommendedBook book3From2 = new RecommendedBook(3L, "Book 3", "Author", "Genre", 70.0, "Reason 2");
 
         when(strategy1.recommend("user123", 20, true))
-            .thenReturn(List.of(book1From1, book2From1));
+                .thenReturn(List.of(book1From1, book2From1));
         when(strategy2.recommend("user123", 20, true))
-            .thenReturn(List.of(book1From2, book3From2));
+                .thenReturn(List.of(book1From2, book3From2));
 
         List<RecommendedBook> result = recommendationService.getRecommendations("user123", 10, true);
 
         RecommendedBook book1Result = result.stream()
-            .filter(b -> b.getBookId() == 1L)
-            .findFirst()
-            .orElse(null);
+                .filter(b -> b.getBookId() == 1L)
+                .findFirst()
+                .orElse(null);
 
         assertNotNull(book1Result);
         assertEquals(90.0, book1Result.getScore(), 0.01);
@@ -82,10 +82,9 @@ class RecommendationServiceTest {
     @DisplayName("should respect limit parameter")
     void testLimitRespected() {
         List<RecommendedBook> strategy1Results = List.of(
-            new RecommendedBook(1L, "B1", "A", "G", 100.0, "R1"),
-            new RecommendedBook(2L, "B2", "A", "G", 90.0, "R1"),
-            new RecommendedBook(3L, "B3", "A", "G", 80.0, "R1")
-        );
+                new RecommendedBook(1L, "B1", "A", "G", 100.0, "R1"),
+                new RecommendedBook(2L, "B2", "A", "G", 90.0, "R1"),
+                new RecommendedBook(3L, "B3", "A", "G", 80.0, "R1"));
         List<RecommendedBook> strategy2Results = new ArrayList<>();
 
         when(strategy1.recommend("user123", 20, true)).thenReturn(strategy1Results);
@@ -109,11 +108,10 @@ class RecommendationServiceTest {
         when(strategy2.recommend("user123", 20, true)).thenReturn(List.of(book2));
 
         List<RecommendedBook> result = recommendationService.getRecommendationsByStrategy(
-            "user123",
-            List.of("TrendingStrategy"),
-            10,
-            true
-        );
+                "user123",
+                List.of("TrendingStrategy"),
+                10,
+                true);
 
         assertEquals(1, result.size());
         assertEquals(1L, result.get(0).getBookId());
@@ -132,10 +130,9 @@ class RecommendationServiceTest {
         when(strategy2.recommend("user123", 10, true)).thenReturn(List.of(book2));
 
         Map<String, List<RecommendedBook>> result = recommendationService.getRecommendationsByStrategyGrouped(
-            "user123",
-            10,
-            true
-        );
+                "user123",
+                10,
+                true);
 
         assertEquals(2, result.size());
         assertTrue(result.containsKey("TrendingStrategy"));
