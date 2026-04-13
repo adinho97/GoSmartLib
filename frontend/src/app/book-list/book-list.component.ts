@@ -16,6 +16,7 @@ type BookItem = {
   paginas: number | null;
   taal: string;
   uitgeverij: string;
+  leesniveau?: string | null;
   reviewCount?: number;
   averageRating?: number;
 };
@@ -59,6 +60,14 @@ export class BookListComponent implements OnInit {
     "Italiaans",
     "Portugees",
     "Latijn",
+  ];
+  readonly leesniveaus = [
+    "1ste-2de leerljaar",
+    "3de-4de leerjaar",
+    "5de-6de leerjaar",
+    "1ste graad",
+    "2de graad",
+    "3de graad",
   ];
   readonly nonFictionSubgenres = [
     "Biografie / autobiografie",
@@ -107,6 +116,7 @@ export class BookListComponent implements OnInit {
 
   selectedGenre = "";
   selectedLanguage = "";
+  selectedLeesniveau = "";
   selectedMinAverageRating = "";
   selectedNonFictionSubgenre = "";
   selectedDidacticSubgenre = "";
@@ -115,6 +125,7 @@ export class BookListComponent implements OnInit {
 
   appliedGenre = "";
   appliedLanguage = "";
+  appliedLeesniveau = "";
   appliedMinAverageRating = "";
   appliedNonFictionSubgenre = "";
   appliedDidacticSubgenre = "";
@@ -275,6 +286,10 @@ export class BookListComponent implements OnInit {
       const languageMatches =
         !this.appliedLanguage ||
         (book.taal || "").toLowerCase() === this.appliedLanguage.toLowerCase();
+      const leesniveauMatches =
+        !this.appliedLeesniveau ||
+        (book.leesniveau || "").toLowerCase() ===
+          this.appliedLeesniveau.toLowerCase();
 
       const minAverage = Number(this.appliedMinAverageRating);
       const averageMatches =
@@ -290,6 +305,7 @@ export class BookListComponent implements OnInit {
         titleOrAuthorMatches &&
         genreMatches &&
         languageMatches &&
+        leesniveauMatches &&
         averageMatches &&
         pageMatches
       );
@@ -314,6 +330,7 @@ export class BookListComponent implements OnInit {
   applyFilters() {
     this.appliedGenre = this.selectedGenre;
     this.appliedLanguage = this.selectedLanguage;
+    this.appliedLeesniveau = this.selectedLeesniveau;
     this.appliedMinAverageRating = this.selectedMinAverageRating;
     this.appliedNonFictionSubgenre = this.selectedNonFictionSubgenre;
     this.appliedDidacticSubgenre = this.selectedDidacticSubgenre;
@@ -337,6 +354,7 @@ export class BookListComponent implements OnInit {
     this.searchQuery = "";
     this.selectedGenre = "";
     this.selectedLanguage = "";
+    this.selectedLeesniveau = "";
     this.selectedMinAverageRating = "";
     this.selectedNonFictionSubgenre = "";
     this.selectedDidacticSubgenre = "";
