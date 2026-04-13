@@ -12,6 +12,7 @@ import { Subscription } from "rxjs";
 import { SmartschoolService } from "../services/smartschool.service";
 import { BookService } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
+import { UserPreferencesService, PreferenceKey } from "../services/user-preferences.service";
 
 type ProfileBookCard = {
   title: string;
@@ -53,7 +54,7 @@ export class ProfileComponent {
 
   role = localStorage.getItem("role") || "gebruiker";
 
-  dashboardSettings = {
+  dashboardSettings: Record<string, boolean> = {
     showWishlist: true,
     showFavorites: true,
     showReadingHistory: true,
@@ -96,6 +97,7 @@ export class ProfileComponent {
   private windowFocusHandler?: () => void;
   private wishlistChangedSub?: Subscription;
   private favoriteChangedSub?: Subscription;
+  private preferencesSub?: Subscription;
 
   constructor(
     private location: Location,
@@ -104,14 +106,23 @@ export class ProfileComponent {
     private http: HttpClient,
     private bookService: BookService,
     private loanService: LoanService,
+    private userPreferencesService: UserPreferencesService,
     private cdr: ChangeDetectorRef,
   ) {}
 
   async ngOnInit() {
-    const saved = localStorage.getItem("dashboardSettings");
-    if (saved) {
-      this.dashboardSettings = JSON.parse(saved);
-    }
+    // Subscribe to preferences to keep dashboard settings in sync reactively
+    this.preferencesSub = this.userPreferencesService.preferences$.subscribe(prefs => {
+      this.dashboardSettings = {
+        showWishlist: prefs['dashboard_showWishlist'] !== false,
+        showFavorites: prefs['dashboard_showFavorites'] !== false,
+        showReadingHistory: prefs['dashboard_showReadingHistory'] !== false,
+        showBorrowed: prefs['dashboard_showBorrowed'] !== false,
+        showHighlighted: prefs['dashboard_showHighlighted'] !== false,
+        showDeadline: prefs['dashboard_showDeadline'] !== false,
+      };
+      this.cdr.detectChanges();
+    });
 
     await Promise.all([
       this.loadWishlistBooks(),
@@ -380,6 +391,7 @@ export class ProfileComponent {
   ngOnDestroy() {
     this.wishlistChangedSub?.unsubscribe();
     this.favoriteChangedSub?.unsubscribe();
+    this.preferencesSub?.unsubscribe();
     if (this.badgeToastTimeoutId) {
       clearTimeout(this.badgeToastTimeoutId);
     }
@@ -645,11 +657,32 @@ export class ProfileComponent {
     this.settingsOpen = !this.settingsOpen;
   }
 
-  saveDashboardSettings() {
-    localStorage.setItem(
-      "dashboardSettings",
-      JSON.stringify(this.dashboardSettings),
-    );
+  async saveDashboardSettings() {
+    const currentPrefs = this.userPreferencesService.getSnapshotForLegacyUse();
+    const settingsToSave: { prop: string, key: PreferenceKey }[] = [
+      { prop: 'showWishlist', key: 'dashboard_showWishlist' },
+      { prop: 'showFavorites', key: 'dashboard_showFavorites' },
+      { prop: 'showReadingHistory', key: 'dashboard_showReadingHistory' },
+      { prop: 'showBorrowed', key: 'dashboard_showBorrowed' },
+      { prop: 'showHighlighted', key: 'dashboard_showHighlighted' },
+      { prop: 'showDeadline', key: 'dashboard_showDeadline' }
+    ];
+
+    const saveTasks: Promise<void>[] = [];
+
+    for (const item of settingsToSave) {
+      const newValue = this.dashboardSettings[item.prop];
+      const oldValue = currentPrefs[item.key];
+      
+      // Only save if the value has actually changed to minimize network calls
+      if (newValue !== oldValue) {
+        saveTasks.push(this.userPreferencesService.savePreference(item.key, newValue));
+      }
+    }
+
+    if (saveTasks.length > 0) {
+      await Promise.all(saveTasks);
+    }
     this.settingsOpen = false;
   }
 
