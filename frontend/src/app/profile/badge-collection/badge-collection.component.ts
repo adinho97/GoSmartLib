@@ -35,9 +35,13 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
   selectedBadgeId: string | null = null;
 
   private readonly badgeMilestones = [1, 5, 10, 20, 50, 100];
+  private readonly badgeRefreshIntervalMs = 60000;
+  private readonly manualRefreshCooldownMs = 10000;
   private badgeRefreshIntervalId?: ReturnType<typeof setInterval>;
   private lastKnownCounts: BadgeCounts | null = null;
   private readonly badgeStateStorageKey = "profileBadgeCounts";
+  private isRefreshing = false;
+  private lastRefreshAt = 0;
 
   constructor(
     private bookService: BookService,
@@ -59,13 +63,13 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
   @HostListener("document:visibilitychange")
   onVisibilityChange() {
     if (!document.hidden) {
-      this.refreshBadges();
+      this.refreshBadges(true);
     }
   }
 
   @HostListener("window:focus")
   onWindowFocus() {
-    this.refreshBadges();
+    this.refreshBadges(true);
   }
 
   @HostListener("document:click")
@@ -76,7 +80,7 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
   private startBadgeRefreshInterval() {
     this.badgeRefreshIntervalId = setInterval(() => {
       this.refreshBadges();
-    }, 1000);
+    }, this.badgeRefreshIntervalMs);
   }
 
   private async loadCounts(): Promise<BadgeCounts> {
@@ -88,7 +92,19 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     return { loanCount, reviewCount };
   }
 
-  async refreshBadges() {
+  async refreshBadges(force = false) {
+    const now = Date.now();
+
+    if (this.isRefreshing) {
+      return;
+    }
+
+    if (!force && now - this.lastRefreshAt < this.manualRefreshCooldownMs) {
+      return;
+    }
+
+    this.isRefreshing = true;
+
     try {
       const currentCounts = await this.loadCounts();
       const previousCounts = this.lastKnownCounts;
@@ -104,6 +120,9 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
       }
     } catch {
       // Ignore refresh failures.
+    } finally {
+      this.lastRefreshAt = Date.now();
+      this.isRefreshing = false;
     }
   }
 
