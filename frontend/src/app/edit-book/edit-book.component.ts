@@ -17,6 +17,15 @@ export enum Language {
   Latijn = "Latijn",
 }
 
+export const LEESNIVEAUS = [
+  "1ste-2de leerljaar",
+  "3de-4de leerjaar",
+  "5de-6de leerjaar",
+  "1ste graad",
+  "2de graad",
+  "3de graad",
+] as const;
+
 @Component({
   selector: "app-edit-book",
   standalone: true,
@@ -27,6 +36,7 @@ export enum Language {
 export class EditBookComponent implements OnInit {
   bookId!: number;
   readonly languages = Object.values(Language);
+  readonly leesniveaus = LEESNIVEAUS;
   readonly genres = [
     "Didactiek",
     "Fictie algemeen",
@@ -92,6 +102,7 @@ export class EditBookComponent implements OnInit {
     paginas: 0,
     taal: "",
     uitgeverij: "",
+    leesniveau: "",
   };
 
   isLoading = true;
@@ -237,6 +248,16 @@ export class EditBookComponent implements OnInit {
     if (!currentLanguage) return true;
     return this.languages.some(
       (language) => language.toLowerCase() === currentLanguage,
+    );
+  }
+
+  get hasKnownLeesniveau(): boolean {
+    const currentLeesniveau = String(this.book.leesniveau || "")
+      .trim()
+      .toLowerCase();
+    if (!currentLeesniveau) return true;
+    return this.leesniveaus.some(
+      (leesniveau) => leesniveau.toLowerCase() === currentLeesniveau,
     );
   }
 

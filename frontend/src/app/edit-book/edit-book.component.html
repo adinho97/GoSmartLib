@@ -132,6 +132,23 @@
             </select>
           </div>
 
+          <div class="form-group">
+            <label for="leesniveau">Leesniveau</label>
+            <select
+              id="leesniveau"
+              [(ngModel)]="book.leesniveau"
+              name="leesniveau"
+            >
+              <option value="">Kies een leesniveau</option>
+              @if (book.leesniveau && !hasKnownLeesniveau) {
+                <option [value]="book.leesniveau">{{ book.leesniveau }}</option>
+              }
+              @for (leesniveau of leesniveaus; track leesniveau) {
+                <option [value]="leesniveau">{{ leesniveau }}</option>
+              }
+            </select>
+          </div>
+
           <div class="form-group full-width">
             <label for="beschrijving">Beschrijving</label>
             <textarea
