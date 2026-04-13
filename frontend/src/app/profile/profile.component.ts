@@ -193,12 +193,16 @@ export class ProfileComponent {
 
   private async loadActiveLoans() {
     try {
-      const activeLoans = await this.loanService.getActiveLoans(localStorage.getItem("sub") || "");
-      const enriched = await this.bookService.enrichBooksWithDetails(activeLoans.map((loan: any) => ({
-        ...loan,
-        bookId: loan.bookId,
-        titel: loan.bookTitel,
-      })));
+      const activeLoans = await this.loanService.getActiveLoans(
+        localStorage.getItem("sub") || "",
+      );
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        activeLoans.map((loan: any) => ({
+          ...loan,
+          bookId: loan.bookId,
+          titel: loan.bookTitel,
+        })),
+      );
 
       this.borrowedBooks = enriched.map((item: any) => ({
         id: item.bookId,
@@ -216,13 +220,15 @@ export class ProfileComponent {
     this.readingHistoryLoading = true;
     try {
       const history = await this.loanService.getMyLoanHistory();
-      const enriched = await this.bookService.enrichBooksWithDetails(history.map((loan: any) => ({
-        ...loan,
-        bookId: loan.bookId,
-        titel: loan.bookTitel,
-        auteur: loan.bookAuteur || "",
-      })));
-      
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        history.map((loan: any) => ({
+          ...loan,
+          bookId: loan.bookId,
+          titel: loan.bookTitel,
+          auteur: loan.bookAuteur || "",
+        })),
+      );
+
       this.readingHistory = enriched.map((item: any) => ({
         id: item.bookId,
         title: item.titel,
@@ -395,13 +401,15 @@ export class ProfileComponent {
     this.wishlistLoading = true;
     try {
       const wishlist = await this.bookService.getUserWishlist();
-      const enriched = await this.bookService.enrichBooksWithDetails(wishlist.map((item: any) => ({
-        ...item,
-        bookId: item.bookId,
-        titel: item.titel,
-        auteur: item.auteur,
-      })));
-      
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        wishlist.map((item: any) => ({
+          ...item,
+          bookId: item.bookId,
+          titel: item.titel,
+          auteur: item.auteur,
+        })),
+      );
+
       this.wishlistBooks = enriched.map((item: any) => ({
         id: item.bookId,
         title: item.titel,
@@ -541,13 +549,15 @@ export class ProfileComponent {
   private async loadFavoriteBooks() {
     try {
       const favorites = await this.bookService.getUserFavorites();
-      const enriched = await this.bookService.enrichBooksWithDetails(favorites.map((item: any) => ({
-        ...item,
-        bookId: item.bookId,
-        titel: item.titel,
-        auteur: item.auteur,
-      })));
-      
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        favorites.map((item: any) => ({
+          ...item,
+          bookId: item.bookId,
+          titel: item.titel,
+          auteur: item.auteur,
+        })),
+      );
+
       this.favoriteBooks = enriched.map((item: any) => ({
         id: item.bookId,
         title: item.titel,
