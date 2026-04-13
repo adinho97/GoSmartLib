@@ -184,6 +184,16 @@
       </div>
 
       <div class="form-row">
+        <label for="leesniveau">Leesniveau</label>
+        <select id="leesniveau" name="leesniveau" [(ngModel)]="book.leesniveau">
+          <option value="">Kies een leesniveau</option>
+          @for (leesniveau of leesniveaus; track leesniveau) {
+          <option [value]="leesniveau">{{ leesniveau }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-row">
         <label for="uitgeverij">Uitgeverij</label>
         <input
           id="uitgeverij"
