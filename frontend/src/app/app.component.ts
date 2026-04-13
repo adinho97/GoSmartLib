@@ -9,6 +9,7 @@ import { HttpClient } from "@angular/common/http";
 import { filter } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { ExperienceService, LevelInfo } from "./services/experience.service";
+import { UserPreferencesService } from "./services/user-preferences.service";
 
 @Component({
   selector: "app-root",
@@ -25,11 +26,14 @@ export class AppComponent implements OnInit {
     private http: HttpClient,
     private changeDetectorRef: ChangeDetectorRef,
     private experienceService: ExperienceService,
+    private userPreferencesService: UserPreferencesService,
   ) {
     this.levelInfo$ = this.experienceService.levelInfo$;
   }
 
   ngOnInit(): void {
+    // Initialize preferences from cache (localStorage seed is synchronous)
+    this.userPreferencesService.init();
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
@@ -137,6 +141,7 @@ export class AppComponent implements OnInit {
   }
 
   private completeLogout(): void {
+    this.userPreferencesService.clearCache();
     localStorage.clear();
     // Prevent back button access
     window.history.replaceState(null, "", "/login");

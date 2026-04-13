@@ -19,6 +19,9 @@ type ProfileBookCard = {
   notificationEnabled?: boolean;
   availableCopies?: number;
   totalCopies?: number;
+  genre?: string;
+  taal?: string;
+  paginas?: number;
 };
 
 @Component({
@@ -53,17 +56,15 @@ export class ProfileComponent {
   favoriteBooks: ProfileBookCard[] = [];
   readingHistory: ProfileBookCard[] = [];
   readingHistoryLoading = false;
-  borrowedBooks: ProfileBookCard[] = [
-    { title: "Book Four", deadline: new Date(), cover: "", id: 4 },
-  ];
+  borrowedBooks: ProfileBookCard[] = [];
   readingList: ProfileBookCard[] = [
     { title: "Book Five", author: "Author C", cover: "", id: 5 },
   ];
   wishlistLoading = false;
   notificationToggleErrors: Record<number, string> = {};
-  readonly wishlistPageSize = 6;
-  readonly favoritePageSize = 6;
-  readonly readingHistoryPageSize = 6;
+  readonly wishlistPageSize = 5;
+  readonly favoritePageSize = 5;
+  readonly readingHistoryPageSize = 5;
   currentWishlistPage = 1;
   currentFavoritePage = 1;
   currentReadingHistoryPage = 1;
@@ -96,6 +97,7 @@ export class ProfileComponent {
       this.loadWishlistBooks(),
       this.loadFavoriteBooks(),
       this.loadReadingHistory(),
+      this.loadActiveLoans(),
     ]);
 
     if (this.showSections) {
@@ -112,15 +114,53 @@ export class ProfileComponent {
     }
   }
 
+  private async loadActiveLoans() {
+    try {
+      const activeLoans = await this.loanService.getActiveLoans(
+        localStorage.getItem("sub") || "",
+      );
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        activeLoans.map((loan: any) => ({
+          ...loan,
+          bookId: loan.bookId,
+          titel: loan.bookTitel,
+        })),
+      );
+
+      this.borrowedBooks = enriched.map((item: any) => ({
+        id: item.bookId,
+        title: item.titel,
+        cover: item.cover || "",
+        deadline: item.dueDate ? new Date(item.dueDate) : undefined,
+      }));
+    } catch (error) {
+      console.error("Error loading active loans:", error);
+      this.borrowedBooks = [];
+    }
+  }
+
   private async loadReadingHistory() {
     this.readingHistoryLoading = true;
     try {
       const history = await this.loanService.getMyLoanHistory();
-      this.readingHistory = history.map((loan) => ({
-        id: loan.bookId,
-        title: loan.bookTitel,
-        cover: loan.bookCover || "",
-        loanedDate: loan.loanedAt ? new Date(loan.loanedAt) : undefined,
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        history.map((loan: any) => ({
+          ...loan,
+          bookId: loan.bookId,
+          titel: loan.bookTitel,
+          auteur: loan.bookAuteur || "",
+        })),
+      );
+
+      this.readingHistory = enriched.map((item: any) => ({
+        id: item.bookId,
+        title: item.titel,
+        author: item.auteur,
+        cover: item.cover || "",
+        genre: item.genre || "",
+        taal: item.taal || "",
+        paginas: item.paginas || 0,
+        loanedDate: item.loanedAt ? new Date(item.loanedAt) : undefined,
       }));
       this.currentReadingHistoryPage = 1;
     } catch {
@@ -140,11 +180,23 @@ export class ProfileComponent {
     this.wishlistLoading = true;
     try {
       const wishlist = await this.bookService.getUserWishlist();
-      this.wishlistBooks = wishlist.map((item) => ({
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        wishlist.map((item: any) => ({
+          ...item,
+          bookId: item.bookId,
+          titel: item.titel,
+          auteur: item.auteur,
+        })),
+      );
+
+      this.wishlistBooks = enriched.map((item: any) => ({
         id: item.bookId,
         title: item.titel,
         author: item.auteur,
         cover: item.cover || "",
+        genre: item.genre || "",
+        taal: item.taal || "",
+        paginas: item.paginas || 0,
         wishlistId: item.id,
         notificationEnabled: item.notificationEnabled ?? false,
         availableCopies: item.availableCopies ?? 0,
@@ -237,9 +289,11 @@ export class ProfileComponent {
     this.currentReadingHistoryPage = page;
   }
 
-  async removeFromWishlist(event: MouseEvent, bookId: number) {
-    event.stopPropagation();
-    event.preventDefault();
+  async removeFromWishlist(event: MouseEvent | null, bookId: number) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     try {
       await this.bookService.removeFromWishlist(bookId);
@@ -255,9 +309,11 @@ export class ProfileComponent {
     }
   }
 
-  async removeFromFavorites(event: MouseEvent, bookId: number) {
-    event.stopPropagation();
-    event.preventDefault();
+  async removeFromFavorites(event: MouseEvent | null, bookId: number) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     try {
       await this.bookService.removeFromFavorites(bookId);
@@ -272,11 +328,23 @@ export class ProfileComponent {
   private async loadFavoriteBooks() {
     try {
       const favorites = await this.bookService.getUserFavorites();
-      this.favoriteBooks = favorites.map((item) => ({
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        favorites.map((item: any) => ({
+          ...item,
+          bookId: item.bookId,
+          titel: item.titel,
+          auteur: item.auteur,
+        })),
+      );
+
+      this.favoriteBooks = enriched.map((item: any) => ({
         id: item.bookId,
         title: item.titel,
         author: item.auteur,
         cover: item.cover || "",
+        genre: item.genre || "",
+        taal: item.taal || "",
+        paginas: item.paginas || 0,
       }));
     } catch {
       this.favoriteBooks = [];
@@ -300,9 +368,11 @@ export class ProfileComponent {
     );
   }
 
-  async toggleNotification(event: MouseEvent, book: ProfileBookCard) {
-    event.stopPropagation();
-    event.preventDefault();
+  async toggleNotification(event: MouseEvent | null, book: ProfileBookCard) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     if (!book.wishlistId) return;
 
@@ -337,6 +407,15 @@ export class ProfileComponent {
     }
   }
 
+  // New event handlers for recommendation-card component
+  async onWishlistRemove(bookId: number) {
+    await this.removeFromWishlist(null, bookId);
+  }
+
+  async onFavoritesRemove(bookId: number) {
+    await this.removeFromFavorites(null, bookId);
+  }
+
   goBack() {
     this.location.back();
   }
@@ -361,7 +440,7 @@ export class ProfileComponent {
     }
   }
 
-  goToDetail(bookId: number, event?: MouseEvent) {
+  goToDetail(bookId: number, event?: MouseEvent | null) {
     const target = event?.target as HTMLElement | null;
     if (target?.closest("button")) {
       return;

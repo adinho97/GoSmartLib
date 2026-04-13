@@ -373,6 +373,24 @@
   position: relative;
 }
 
+.card-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-error {
+  font-size: 0.75rem;
+  color: #d4537e;
+  text-align: center;
+  margin-top: 0.3rem;
+  padding: 0.3rem 0.3rem;
+  background: rgba(212, 83, 126, 0.1);
+  border-radius: 4px;
+  font-weight: 500;
+  width: 100%;
+}
+
 .wishlist-card {
   flex: 0 0 180px;
   width: 180px;
@@ -660,14 +678,14 @@
   pointer-events: none;
 }
 
-.book-content h4 {
+.profile-book-card .book-content h4 {
   margin: 0;
   font-size: 0.94rem;
   color: #1f2937;
   line-height: 1.35;
 }
 
-.book-meta {
+.profile-book-card .book-meta {
   margin-top: 0.1rem;
   color: #6b7280;
   font-size: 0.8rem;

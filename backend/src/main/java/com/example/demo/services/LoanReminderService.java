@@ -41,46 +41,43 @@ public class LoanReminderService {
 
     @Scheduled(cron = "0 0 9 * * ?") // Runs every day at 9 AM
     public void sendLoanReminders() {
-        logger.info("Running loan reminder job.");
         LocalDate tomorrow = LocalDate.now().plusDays(1);
+        logger.info("Starting automated loan reminder check for date: {}", tomorrow);
+
         List<Loan> loans = loanRepository.findByDueDateAndReturnedAtIsNull(tomorrow);
-
-        logger.info("Found {} loans due tomorrow.", loans.size());
-
-        Flux.fromIterable(loans)
-                .flatMap(loan -> {
-                    if (loan.getUserSub() == null)
-                        return Flux.empty();
-                    return Mono.justOrEmpty(appUserRepository.findBySub(loan.getUserSub()))
-                            .flatMapMany(user -> sendReminderToUser(user, loan));
-                })
-                .doOnComplete(() -> logger.info("Finished processing reminders."))
-                .subscribe();
-    }
-
-    private Flux<String> sendReminderToUser(AppUser user, Loan loan) {
-        if (user.getSmartschoolRefreshToken() == null || loan.getCopy() == null || loan.getCopy().getBook() == null) {
-            logger.warn("User {} has no refresh token. Cannot send automated reminder.", user.getSub());
-            return Flux.empty();
+        logger.info("Found {} loans due for reminder on {}", loans.size(), tomorrow);
+        if (loans.isEmpty()) {
+            logger.info("No loans due on {}. No reminders sent.", tomorrow);
+            return;
         }
 
-        return authService.getUserInfoBySub(user.getSub())
+        Flux.fromIterable(loans)
+                .flatMap(this::processLoanReminder)
+                .subscribe(
+                        success -> logger.debug("Reminder processed successfully."),
+                        error -> logger.error("Error in reminder job batch", error),
+                        () -> logger.info("Finished processing all reminders for {}", tomorrow));
+    }
+
+    private Mono<String> processLoanReminder(Loan loan) {
+        return authService.getUserInfoBySub(loan.getUserSub())
                 .flatMap(userInfo -> {
-                    SmartschoolMessageRequest messageRequest = new SmartschoolMessageRequest();
-                    messageRequest.setPlatformUrl(smartschoolProperties.getApiBaseUrl());
-                    messageRequest.setSubject("Herinnering: Inleveren bibliotheekboek");
+                    SmartschoolMessageRequest request = new SmartschoolMessageRequest();
+                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                            : smartschoolProperties.getApiBaseUrl();
 
-                    String bookTitle = loan.getCopy().getBook().getTitel();
-                    String body = String.format(
-                            "Beste %s,\n\nDit is een automatische herinnering dat het boek '%s' morgen ingeleverd moet worden.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
-                            userInfo.getGivenName() != null ? userInfo.getGivenName() : "Lezer",
-                            bookTitle);
-                    messageRequest.setBody(body);
+                    request.setPlatformUrl(platform);
+                    request.setSubject("Herinnering: Inleveren bibliotheekboek");
+                    request.setBody(String.format(
+                            "Beste %s,\n\nHet boek '%s' moet morgen ingeleverd worden.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                            userInfo.getName() != null ? userInfo.getName() : "Lezer",
+                            loan.getCopy().getBook().getTitel()));
 
-                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), messageRequest);
+                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), request);
                 })
-                .doOnSuccess(response -> logger.info("Successfully sent reminder for user sub {}", user.getSub()))
-                .doOnError(error -> logger.error("Failed to send reminder for user sub {}", user.getSub(), error))
-                .flux();
+                .doOnSuccess(res -> logger.info("Sent reminder to {} for {}", loan.getUserSub(),
+                        loan.getCopy().getBook().getTitel()))
+                .doOnError(err -> logger.error("Failed reminder for {}: {}", loan.getUserSub(), err.getMessage()))
+                .onErrorResume(e -> Mono.empty());
     }
 }

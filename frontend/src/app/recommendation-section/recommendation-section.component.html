@@ -1,0 +1,39 @@
+<header class="section-header">
+  <h2 class="section-title" [class.didactic-title]="variant === 'didactic'">
+    {{ title }}
+  </h2>
+  <div class="toggle-group">
+    <span class="toggle-label">{{
+      excludeRead ? "Alleen ongelezen boeken" : "Alle boeken"
+    }}</span>
+    <button
+      class="toggle-btn"
+      (click)="toggleExcludeRead()"
+      [class.active]="!excludeRead"
+    ></button>
+  </div>
+</header>
+
+<section
+  class="recommendation-section"
+  [class.didactic]="variant === 'didactic'"
+>
+  @if (books && books.length > 0) {
+    <div class="horizontal-scroll-wrapper">
+      @for (book of limitedBooks; track book.bookId) {
+        <app-recommendation-card
+          [book]="book"
+          [isFavorited]="isFavorited(book.bookId)"
+          [isWishlisted]="isWishlisted(book.bookId)"
+          [variant]="variant"
+          [isTeacher]="isTeacher"
+          (toggleFavorite)="toggleFavorite($event, book.bookId)"
+          (toggleWishlist)="toggleWishlist($event, book.bookId)"
+          (viewDetails)="seeDetail(book.bookId)"
+        ></app-recommendation-card>
+      }
+    </div>
+  } @else {
+    <p class="empty-message">Geen aanbevelingen beschikbaar</p>
+  }
+</section>

@@ -2,17 +2,8 @@ import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
+import { RecommendationService, RecommendedBook } from "../services/recommendation.service";
 import { HttpClient } from "@angular/common/http";
-
-type DashboardBook = {
-  id: number;
-  titel: string;
-  auteur: string;
-  genre: string;
-  taal: string;
-  paginas: number | string;
-  coverUrl: string | null;
-};
 
 type BookResponse = {
   id?: number;
@@ -32,123 +23,100 @@ type BookResponse = {
   standalone: false,
 })
 export class DashboardComponent implements OnInit {
-  featuredBooks: DashboardBook[] = [];
-  didacticBooks: DashboardBook[] = [];
+  trendingBooks: RecommendedBook[] = [];
+  genreBooks: RecommendedBook[] = [];
+  authorBooks: RecommendedBook[] = [];
+  newArrivalsBooks: RecommendedBook[] = [];
   myLoans: Loan[] = [];
-  wishlistedBookIds = new Set<number>();
-  favoritedBookIds = new Set<number>();
-  loading = true;
   loansLoading = true;
+  recommendationsLoading = true;
+  private readonly RECOMMENDATION_LIMIT = 25;
 
   today = new Date().toISOString().split("T")[0];
-
-  get canSeeDidactic(): boolean {
-    const role = localStorage.getItem("role");
-    return role === "leerkracht" || role === "bibbeheerder";
-  }
 
   get currentUsername(): string {
     return localStorage.getItem("username") || "";
   }
 
   get currentUserSub(): string {
-    return (
-      localStorage.getItem("sub") || ""
-    );
+    return localStorage.getItem("sub") || "";
   }
 
   constructor(
     private router: Router,
     private bookService: BookService,
     private loanService: LoanService,
-    private http: HttpClient,
+    private recommendationService: RecommendationService,
+    private http: HttpClient
   ) {}
 
   async ngOnInit() {
     await Promise.all([
-      this.fetchBooks(),
+      this.fetchRecommendations(),
       this.fetchMyLoans(),
-      this.loadWishlistState(),
-      this.loadFavoritesState(),
+      this.fetchGenreRecommendations(),
+      this.fetchAuthorRecommendations(),
+      this.fetchNewArrivalsRecommendations(),
     ]);
   }
 
-  private async loadWishlistState() {
+  private async fetchRecommendations() {
+    this.recommendationsLoading = true;
     try {
-      const wishlist = await this.bookService.getUserWishlist();
-      this.wishlistedBookIds = new Set(wishlist.map((item) => item.bookId));
-    } catch {
-      this.wishlistedBookIds = new Set<number>();
-    }
-  }
-
-  private async loadFavoritesState() {
-    try {
-      const favorites = await this.bookService.getUserFavorites();
-      this.favoritedBookIds = new Set(favorites.map((item) => item.bookId));
-    } catch {
-      this.favoritedBookIds = new Set<number>();
-    }
-  }
-
-  isWishlisted(bookId: number): boolean {
-    return this.wishlistedBookIds.has(bookId);
-  }
-
-  isFavorited(bookId: number): boolean {
-    return this.favoritedBookIds.has(bookId);
-  }
-
-  async toggleWishlist(event: MouseEvent, bookId: number) {
-    event.stopPropagation();
-    event.preventDefault();
-
-    try {
-      if (this.wishlistedBookIds.has(bookId)) {
-        await this.bookService.removeFromWishlist(bookId);
-        this.wishlistedBookIds.delete(bookId);
-        return;
-      }
-
-      await this.bookService.addToWishlist(bookId);
-      this.wishlistedBookIds.add(bookId);
-    } catch {
-      // Keep interaction silent on dashboard.
-    }
-  }
-
-  async toggleFavorite(event: MouseEvent, bookId: number) {
-    event.stopPropagation();
-    event.preventDefault();
-
-    try {
-      if (this.favoritedBookIds.has(bookId)) {
-        await this.bookService.removeFromFavorites(bookId);
-        this.favoritedBookIds.delete(bookId);
-        return;
-      }
-
-      await this.bookService.addToFavorites(bookId);
-      this.favoritedBookIds.add(bookId);
-    } catch {
-      // Keep interaction silent on dashboard.
-    }
-  }
-
-  async fetchBooks() {
-    this.loading = true;
-    try {
-      const data = (await this.bookService.getBooks()) as BookResponse[];
-      this.featuredBooks = data
-        .filter((book) => !this.isDidacticGenre(book.genre))
-        .map((book) => this.mapBook(book));
-      this.didacticBooks = data
-        .filter((book) => this.isDidacticGenre(book.genre))
-        .map((book) => this.mapBook(book));
+      const trendingBooks = await this.recommendationService.getTrending(this.RECOMMENDATION_LIMIT);
+      this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
     } catch (error) {
-      console.error("Fout bij ophalen boeken:", error);
+      console.error("Fout bij ophalen trending aanbevelingen:", error);
+      this.trendingBooks = [];
     } finally {
-      this.loading = false;
+      this.recommendationsLoading = false;
+    }
+  }
+
+  private async fetchGenreRecommendations() {
+    try {
+      const genreBooks = await this.recommendationService.getByGenre(this.RECOMMENDATION_LIMIT);
+      this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
+    } catch (error) {
+      console.error("Fout bij ophalen genre aanbevelingen:", error);
+      this.genreBooks = [];
+    }
+  }
+
+  private async fetchAuthorRecommendations() {
+    try {
+      const authorBooks = await this.recommendationService.getByAuthor(this.RECOMMENDATION_LIMIT);
+      this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
+    } catch (error) {
+      console.error("Fout bij ophalen auteur aanbevelingen:", error);
+      this.authorBooks = [];
+    }
+  }
+
+  private async fetchNewArrivalsRecommendations() {
+    try {
+      const newArrivalsBooks = await this.recommendationService.getNewArrivals(this.RECOMMENDATION_LIMIT);
+      this.newArrivalsBooks = await this.bookService.enrichBooksWithDetails(newArrivalsBooks);
+    } catch (error) {
+      console.error("Fout bij ophalen nieuwe aankomsten:", error);
+      this.newArrivalsBooks = [];
+    }
+  }
+
+  async onRefreshRecommendations(section: 'trending' | 'genre' | 'author', excludeRead: boolean) {
+    try {
+      if (section === 'trending') {
+        const trendingBooks = await this.recommendationService.getTrending(this.RECOMMENDATION_LIMIT, excludeRead);
+        this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
+      } else if (section === 'genre') {
+        const genreBooks = await this.recommendationService.getByGenre(this.RECOMMENDATION_LIMIT, excludeRead);
+        this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
+      } else if (section === 'author') {
+        const authorBooks = await this.recommendationService.getByAuthor(this.RECOMMENDATION_LIMIT, excludeRead);
+        this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
+      }
+    } catch (error) {
+      console.error(`Fout bij verversen ${section} aanbevelingen:`, error);
     }
   }
 
@@ -170,48 +138,6 @@ export class DashboardComponent implements OnInit {
 
   isOverdue(dueDate: string): boolean {
     return dueDate < this.today;
-  }
-
-  private isDidacticGenre(genre: unknown): boolean {
-    return String(genre || "")
-      .toLowerCase()
-      .startsWith("didactiek");
-  }
-
-  private formatGenreForDisplay(genre: unknown): string {
-    const genreText = String(genre || "").trim();
-    if (!genreText) return "Algemeen";
-    const [baseGenre, subgenrePart] = genreText.split(" - ", 2);
-    if (!subgenrePart) return genreText;
-    const firstSubgenre = subgenrePart
-      .split(",")
-      .map((value) => value.trim())
-      .find((value) => value.length > 0);
-    return firstSubgenre ? `${baseGenre} - ${firstSubgenre}` : baseGenre;
-  }
-
-  private formatLanguageForDisplay(language: unknown): string {
-    const languageText = String(language || "");
-    if (!languageText) return "??";
-    return languageText.toLowerCase() === "nederlands"
-      ? "NL"
-      : languageText.substring(0, 2).toUpperCase();
-  }
-
-  private mapBook(book: BookResponse): DashboardBook {
-    return {
-      id: book.id || 0,
-      titel: book.titel || "",
-      auteur: book.auteur || "",
-      genre: this.formatGenreForDisplay(book.genre),
-      taal: this.formatLanguageForDisplay(book.taal),
-      paginas: book.paginas || "?",
-      coverUrl: book.cover || null,
-    };
-  }
-
-  seeDetail(book: DashboardBook) {
-    this.router.navigate(["/detail", book.id]);
   }
 
   goToDetail(bookId: number) {
