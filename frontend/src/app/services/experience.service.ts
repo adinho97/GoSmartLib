@@ -82,7 +82,7 @@ export class ExperienceService {
     this.addExperience(this.REWARDS.loanCreated);
   }
 
-  veExperienceForReview(): void {
+  removeExperienceForReview(): void {
     this.removeExperience(this.REWARDS.reviewWritten);
   }
 
