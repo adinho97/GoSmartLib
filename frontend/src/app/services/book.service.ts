@@ -59,6 +59,8 @@ export class BookService {
   wishlistChanged$ = this.wishlistChangedSource.asObservable();
   private favoriteChangedSource = new Subject<void>();
   favoriteChanged$ = this.favoriteChangedSource.asObservable();
+  
+  private bookCache: Map<number | null, any[]> = new Map();
 
   constructor(private http: HttpClient) {}
 
@@ -136,8 +138,19 @@ export class BookService {
   }
 
   async getBooks(schoolId?: number) {
+    const cacheKey = schoolId ?? null;
+    
+    if (this.bookCache.has(cacheKey)) {
+      return this.bookCache.get(cacheKey)!;
+    }
+    
     const res = await axios.get(this.withSchoolId(this.apiUrl, schoolId));
+    this.bookCache.set(cacheKey, res.data);
     return res.data;
+  }
+  
+  clearCache(): void {
+    this.bookCache.clear();
   }
 
   async enrichBooksWithDetails(books: any[]): Promise<any[]> {
