@@ -3,6 +3,7 @@ import { Router, NavigationEnd } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { filter } from "rxjs/operators";
 import { UserPreferencesService } from "./services/user-preferences.service";
+import { RecommendationService } from "./services/recommendation.service";
 
 @Component({
   selector: "app-root",
@@ -18,6 +19,7 @@ export class AppComponent implements OnInit {
     private http: HttpClient,
     private changeDetectorRef: ChangeDetectorRef,
     private userPreferencesService: UserPreferencesService,
+    private recommendationService: RecommendationService,
   ) {}
 
   ngOnInit(): void {
@@ -114,6 +116,7 @@ export class AppComponent implements OnInit {
 
   private completeLogout(): void {
     this.userPreferencesService.clearCache();
+    this.recommendationService.clearCache();
     localStorage.clear();
     // Prevent back button access
     window.history.replaceState(null, "", "/login");
