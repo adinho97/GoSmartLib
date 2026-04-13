@@ -4,6 +4,7 @@ import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
 import { RecommendationService, RecommendedBook } from "../services/recommendation.service";
 import { HttpClient } from "@angular/common/http";
+import { UserPreferencesService } from "../services/user-preferences.service";
 
 type BookResponse = {
   id?: number;
@@ -47,23 +48,31 @@ export class DashboardComponent implements OnInit {
     private bookService: BookService,
     private loanService: LoanService,
     private recommendationService: RecommendationService,
-    private http: HttpClient
+    private http: HttpClient,
+    private userPreferencesService: UserPreferencesService
   ) {}
 
   async ngOnInit() {
+    const prefs = this.userPreferencesService.getSnapshotForLegacyUse();
+
     await Promise.all([
-      this.fetchRecommendations(),
+      this.fetchRecommendations(prefs["recommendationExcludeRead_trending"] ?? true),
       this.fetchMyLoans(),
-      this.fetchGenreRecommendations(),
-      this.fetchAuthorRecommendations(),
-      this.fetchNewArrivalsRecommendations(),
+      this.fetchGenreRecommendations(prefs["recommendationExcludeRead_genre"] ?? true),
+      this.fetchAuthorRecommendations(prefs["recommendationExcludeRead_author"] ?? true),
+      this.fetchNewArrivalsRecommendations(
+        prefs["recommendationExcludeRead_newArrivals"] ?? true
+      ),
     ]);
   }
 
-  private async fetchRecommendations() {
+  private async fetchRecommendations(excludeRead: boolean = true) {
     this.recommendationsLoading = true;
     try {
-      const trendingBooks = await this.recommendationService.getTrending(this.RECOMMENDATION_LIMIT);
+      const trendingBooks = await this.recommendationService.getTrending(
+        this.RECOMMENDATION_LIMIT,
+        excludeRead
+      );
       this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
     } catch (error) {
       console.error("Fout bij ophalen trending aanbevelingen:", error);
@@ -73,9 +82,12 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private async fetchGenreRecommendations() {
+  private async fetchGenreRecommendations(excludeRead: boolean = true) {
     try {
-      const genreBooks = await this.recommendationService.getByGenre(this.RECOMMENDATION_LIMIT);
+      const genreBooks = await this.recommendationService.getByGenre(
+        this.RECOMMENDATION_LIMIT,
+        excludeRead
+      );
       this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
     } catch (error) {
       console.error("Fout bij ophalen genre aanbevelingen:", error);
@@ -83,9 +95,12 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private async fetchAuthorRecommendations() {
+  private async fetchAuthorRecommendations(excludeRead: boolean = true) {
     try {
-      const authorBooks = await this.recommendationService.getByAuthor(this.RECOMMENDATION_LIMIT);
+      const authorBooks = await this.recommendationService.getByAuthor(
+        this.RECOMMENDATION_LIMIT,
+        excludeRead
+      );
       this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
     } catch (error) {
       console.error("Fout bij ophalen auteur aanbevelingen:", error);
@@ -93,9 +108,12 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private async fetchNewArrivalsRecommendations() {
+  private async fetchNewArrivalsRecommendations(excludeRead: boolean = true) {
     try {
-      const newArrivalsBooks = await this.recommendationService.getNewArrivals(this.RECOMMENDATION_LIMIT);
+      const newArrivalsBooks = await this.recommendationService.getNewArrivals(
+        this.RECOMMENDATION_LIMIT,
+        excludeRead
+      );
       this.newArrivalsBooks = await this.bookService.enrichBooksWithDetails(newArrivalsBooks);
     } catch (error) {
       console.error("Fout bij ophalen nieuwe aankomsten:", error);

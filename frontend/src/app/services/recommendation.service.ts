@@ -121,8 +121,11 @@ export class RecommendationService {
     return grouped["AuthorBasedStrategy"] || [];
   }
 
-  async getNewArrivals(limit: number = 10): Promise<RecommendedBook[]> {
-    const grouped = await this.getGroupedRecommendations(limit, true);
+  async getNewArrivals(
+    limit: number = 10,
+    excludeRead: boolean = true
+  ): Promise<RecommendedBook[]> {
+    const grouped = await this.getGroupedRecommendations(limit, excludeRead);
     return grouped["NewArrivalsStrategy"] || [];
   }
 
