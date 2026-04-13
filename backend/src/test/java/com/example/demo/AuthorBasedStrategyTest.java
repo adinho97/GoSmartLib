@@ -10,7 +10,7 @@ import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.FavoriteRepository;
 import com.example.demo.repositories.LoanRepository;
-import com.example.demo.strategies.GenreBasedStrategy;
+import com.example.demo.strategies.AuthorBasedStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,8 +29,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("GenreBasedStrategy Tests")
-class GenreBasedStrategyTest {
+@DisplayName("AuthorBasedStrategy Tests")
+class AuthorBasedStrategyTest {
 
     @Mock
     private AppUserRepository appUserRepository;
@@ -45,12 +45,12 @@ class GenreBasedStrategyTest {
     private LoanRepository loanRepository;
 
     @InjectMocks
-    private GenreBasedStrategy genreBasedStrategy;
+    private AuthorBasedStrategy authorBasedStrategy;
 
     private AppUser testUser;
-    private Book fantasyBook1, fantasyBook2, fantasyBook3;
-    private Book romanceBook1, romanceBook2;
-    private Book scifiBook1;
+    private Book rowlingBook1, rowlingBook2, rowlingBook3;
+    private Book tolkienBook1, tolkienBook2;
+    private Book herbertBook1;
     private BookCopy copy1, copy2, copy3, copy4, copy5, copy6;
 
     @BeforeEach
@@ -59,21 +59,21 @@ class GenreBasedStrategyTest {
         testUser.setId(1L);
         testUser.setSub("user123");
 
-        fantasyBook1 = createBook(1L, "Harry Potter", "J.K. Rowling", "Fantasy");
-        fantasyBook2 = createBook(2L, "The Hobbit", "J.R.R. Tolkien", "Fantasy");
-        fantasyBook3 = createBook(3L, "Percy Jackson", "Rick Riordan", "Fantasy");
+        rowlingBook1 = createBook(1L, "Harry Potter 1", "J.K. Rowling", "Fantasy");
+        rowlingBook2 = createBook(2L, "Harry Potter 2", "J.K. Rowling", "Fantasy");
+        rowlingBook3 = createBook(3L, "The Casual Vacancy", "J.K. Rowling", "Fiction");
 
-        romanceBook1 = createBook(4L, "Pride and Prejudice", "Jane Austen", "Romantiek");
-        romanceBook2 = createBook(5L, "Jane Eyre", "Charlotte Bronte", "Romantiek");
+        tolkienBook1 = createBook(4L, "The Hobbit", "J.R.R. Tolkien", "Fantasy");
+        tolkienBook2 = createBook(5L, "The Lord of The Rings", "J.R.R. Tolkien", "Fantasy");
 
-        scifiBook1 = createBook(6L, "Dune", "Frank Herbert", "Sciencefiction");
+        herbertBook1 = createBook(6L, "Dune", "Frank Herbert", "Sciencefiction");
 
-        copy1 = createBookCopy(1L, fantasyBook1);
-        copy2 = createBookCopy(2L, fantasyBook2);
-        copy3 = createBookCopy(3L, fantasyBook3);
-        copy4 = createBookCopy(4L, romanceBook1);
-        copy5 = createBookCopy(5L, romanceBook2);
-        copy6 = createBookCopy(6L, scifiBook1);
+        copy1 = createBookCopy(1L, rowlingBook1);
+        copy2 = createBookCopy(2L, rowlingBook2);
+        copy3 = createBookCopy(3L, rowlingBook3);
+        copy4 = createBookCopy(4L, tolkienBook1);
+        copy5 = createBookCopy(5L, tolkienBook2);
+        copy6 = createBookCopy(6L, herbertBook1);
     }
 
     @Test
@@ -81,7 +81,7 @@ class GenreBasedStrategyTest {
     void testRecommendWhenUserNotFound() {
         when(appUserRepository.findBySub("unknownUser")).thenReturn(Optional.empty());
 
-        List<RecommendedBook> result = genreBasedStrategy.recommend("unknownUser", 10);
+        List<RecommendedBook> result = authorBasedStrategy.recommend("unknownUser", 10);
 
         assertTrue(result.isEmpty());
         verify(appUserRepository).findBySub("unknownUser");
@@ -94,68 +94,68 @@ class GenreBasedStrategyTest {
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
         when(favoriteRepository.findByUser(testUser)).thenReturn(new ArrayList<>());
 
-        List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 10);
+        List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10);
 
         assertTrue(result.isEmpty());
         verify(bookRepository, never()).findAll();
     }
 
     @Test
-    @DisplayName("should recommend books from same genre as favorite")
-    void testRecommendWithSingleFavoriteSingleGenre() {
-        Favorite fav = createFavorite(1L, testUser, fantasyBook1);
+    @DisplayName("should recommend books from same author as favorite")
+    void testRecommendWithSingleFavoriteSingleAuthor() {
+        Favorite fav = createFavorite(1L, testUser, rowlingBook1);
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
         when(favoriteRepository.findByUser(testUser)).thenReturn(List.of(fav));
         when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
         when(bookRepository.findAll()).thenReturn(List.of(
-                fantasyBook1, fantasyBook2, fantasyBook3, romanceBook1, romanceBook2, scifiBook1));
+                rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
-        List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 10, true);
+        List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10, true);
 
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(b -> "Fantasy".equals(b.getGenre())));
+        assertTrue(result.stream().allMatch(b -> "J.K. Rowling".equals(b.getAuteur())));
         assertEquals(2L, result.get(0).getBookId());
         assertEquals(3L, result.get(1).getBookId());
         assertTrue(result.stream().noneMatch(b -> b.getBookId() == 1L));
     }
 
     @Test
-    @DisplayName("should score books by genre frequency in favorites")
-    void testRecommendWithMultipleFavoritesMultipleGenres() {
+    @DisplayName("should score books by author frequency in favorites")
+    void testRecommendWithMultipleFavoritesMultipleAuthors() {
         List<Favorite> favorites = List.of(
-                createFavorite(1L, testUser, fantasyBook1),
-                createFavorite(2L, testUser, fantasyBook2),
-                createFavorite(3L, testUser, romanceBook1));
+                createFavorite(1L, testUser, rowlingBook1),
+                createFavorite(2L, testUser, rowlingBook2),
+                createFavorite(3L, testUser, tolkienBook1));
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
         when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
         when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
         when(bookRepository.findAll()).thenReturn(List.of(
-                fantasyBook1, fantasyBook2, fantasyBook3, romanceBook1, romanceBook2, scifiBook1));
+                rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
-        List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 10, true);
+        List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10, true);
 
         assertTrue(result.size() >= 2);
-        RecommendedBook firstFantasy = result.stream()
-                .filter(b -> "Fantasy".equals(b.getGenre()))
+        RecommendedBook firstRowling = result.stream()
+                .filter(b -> "J.K. Rowling".equals(b.getAuteur()))
                 .findFirst()
                 .orElse(null);
-        RecommendedBook firstRomance = result.stream()
-                .filter(b -> "Romantiek".equals(b.getGenre()))
+        RecommendedBook firstTolkien = result.stream()
+                .filter(b -> "J.R.R. Tolkien".equals(b.getAuteur()))
                 .findFirst()
                 .orElse(null);
 
-        assertNotNull(firstFantasy);
-        assertNotNull(firstRomance);
-        assertTrue(firstFantasy.getScore() > firstRomance.getScore());
-        assertEquals(66.67, firstFantasy.getScore(), 0.1);
-        assertEquals(33.33, firstRomance.getScore(), 0.1);
+        assertNotNull(firstRowling);
+        assertNotNull(firstTolkien);
+        assertTrue(firstRowling.getScore() > firstTolkien.getScore());
+        assertEquals(66.67, firstRowling.getScore(), 0.1);
+        assertEquals(33.33, firstTolkien.getScore(), 0.1);
     }
 
     @Test
     @DisplayName("should exclude books user already favorited when excludeRead=true")
     void testExcludeReadFiltering() {
-        Favorite fav1 = createFavorite(1L, testUser, fantasyBook1);
-        Favorite fav2 = createFavorite(2L, testUser, fantasyBook2);
+        Favorite fav1 = createFavorite(1L, testUser, rowlingBook1);
+        Favorite fav2 = createFavorite(2L, testUser, rowlingBook2);
         List<Favorite> favorites = List.of(fav1, fav2);
 
         Loan returnedLoan = createLoan(1000L, copy3, "user123");
@@ -165,9 +165,9 @@ class GenreBasedStrategyTest {
         when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
         when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(returnedLoan));
         when(bookRepository.findAll()).thenReturn(List.of(
-                fantasyBook1, fantasyBook2, fantasyBook3, romanceBook1, romanceBook2, scifiBook1));
+                rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
-        List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 10, true);
+        List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10, true);
 
         assertTrue(result.stream().noneMatch(b -> b.getBookId() == 1L || b.getBookId() == 2L || b.getBookId() == 3L));
         assertEquals(0, result.size());
@@ -176,7 +176,7 @@ class GenreBasedStrategyTest {
     @Test
     @DisplayName("should include previously read books when excludeRead=false")
     void testIncludeReadWhenExcludeReadFalse() {
-        Favorite fav = createFavorite(1L, testUser, fantasyBook1);
+        Favorite fav = createFavorite(1L, testUser, rowlingBook1);
         List<Favorite> favorites = List.of(fav);
 
         Loan returnedLoan = createLoan(1000L, copy2, "user123");
@@ -185,9 +185,9 @@ class GenreBasedStrategyTest {
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
         when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
         when(bookRepository.findAll()).thenReturn(List.of(
-                fantasyBook1, fantasyBook2, fantasyBook3, romanceBook1, romanceBook2, scifiBook1));
+                rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
-        List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 10, false);
+        List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10, false);
 
         assertTrue(result.stream().anyMatch(b -> b.getBookId() == 2L || b.getBookId() == 3L));
     }
@@ -196,15 +196,15 @@ class GenreBasedStrategyTest {
     @DisplayName("should respect limit parameter")
     void testLimitRespected() {
         List<Favorite> favorites = List.of(
-                createFavorite(1L, testUser, fantasyBook1),
-                createFavorite(2L, testUser, fantasyBook2));
+                createFavorite(1L, testUser, rowlingBook1),
+                createFavorite(2L, testUser, rowlingBook2));
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
         when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
         when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
         when(bookRepository.findAll()).thenReturn(List.of(
-                fantasyBook1, fantasyBook2, fantasyBook3, romanceBook1, romanceBook2, scifiBook1));
+                rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
-        List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 1, true);
+        List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 1, true);
 
         assertEquals(1, result.size());
     }
