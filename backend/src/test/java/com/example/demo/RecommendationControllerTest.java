@@ -2,7 +2,6 @@ package com.example.demo;
 
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.services.RecommendationService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +94,7 @@ class RecommendationControllerTest {
 
         when(recommendationService.getRecommendationsByStrategy(
             eq("user123"),
-            contains("TrendingStrategy"),
+            argThat(list -> list.contains("TrendingStrategy")),
             eq(10),
             eq(true)))
             .thenReturn(mockRecommendations);

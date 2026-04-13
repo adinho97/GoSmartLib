@@ -50,7 +50,6 @@ class TrendingStrategyTest {
     private AppUser testUser;
     private Book book1, book2, book3, book4, book5;
     private BookCopy copy1, copy2, copy3, copy4, copy5;
-    private Loan loan1, loan2, loan3, loan4;
 
     @BeforeEach
     void setUp() {
@@ -192,7 +191,6 @@ class TrendingStrategyTest {
         Loan returnedLoan = createLoan(1000L, copy2, "user123");
         returnedLoan.setReturnedAt(LocalDate.now().minusDays(10));
 
-        List<Loan> userLoans = List.of(returnedLoan);
         List<Loan> allLoans = createLoansForBooks();
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));

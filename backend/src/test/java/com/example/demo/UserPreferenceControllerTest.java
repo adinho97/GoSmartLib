@@ -69,9 +69,10 @@ class UserPreferenceControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        assertTrue(response.getBody().get("recommendationExcludeRead_trending"));
-        assertFalse(response.getBody().get("recommendationExcludeRead_genre"));
+        Map<String, Boolean> body = response.getBody();
+        assertEquals(2, body.size());
+        assertTrue(body.get("recommendationExcludeRead_trending"));
+        assertFalse(body.get("recommendationExcludeRead_genre"));
     }
 
     @Test
@@ -84,7 +85,8 @@ class UserPreferenceControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().isEmpty());
+        Map<String, Boolean> body = response.getBody();
+        assertTrue(body.isEmpty());
     }
 
     @Test
@@ -138,6 +140,7 @@ class UserPreferenceControllerTest {
         when(userPreferenceRepository.save(any(UserPreference.class)))
             .thenReturn(new UserPreference("user123", "newKey", true));
 
+        @SuppressWarnings("unchecked")
         ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -163,6 +166,7 @@ class UserPreferenceControllerTest {
         when(userPreferenceRepository.save(any(UserPreference.class)))
             .thenReturn(existing);
 
+        @SuppressWarnings("unchecked")
         ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());

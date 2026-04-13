@@ -3,17 +3,12 @@ package com.example.demo;
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
-import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Favorite;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.FavoriteRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.RecommendationService;
-import com.example.demo.strategies.AuthorBasedStrategy;
-import com.example.demo.strategies.GenreBasedStrategy;
-import com.example.demo.strategies.NewArrivalsStrategy;
-import com.example.demo.strategies.TrendingStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,8 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +42,7 @@ class RecommendationIntegrationTest {
     private LoanRepository loanRepository;
 
     private AppUser testUser;
-    private Book fantasyBook, genreBook, authorBook, newBook;
+    private Book fantasyBook;
 
     @BeforeEach
     void setUp() {
@@ -64,9 +57,9 @@ class RecommendationIntegrationTest {
         appUserRepository.save(testUser);
 
         fantasyBook = createAndSaveBook(1L, "Fantasy Book", "Author A", "Fantasy");
-        genreBook = createAndSaveBook(2L, "Another Fantasy", "Author B", "Fantasy");
-        authorBook = createAndSaveBook(3L, "Other by Author A", "Author A", "SciFi");
-        newBook = createAndSaveBook(4L, "Brand New Book", "Author C", "Mystery");
+        createAndSaveBook(2L, "Another Fantasy", "Author B", "Fantasy");
+        createAndSaveBook(3L, "Other by Author A", "Author A", "SciFi");
+        createAndSaveBook(4L, "Brand New Book", "Author C", "Mystery");
     }
 
     @Test
