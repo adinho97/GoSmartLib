@@ -9,6 +9,7 @@ export interface Book {
   paginas: number;
   taal: string;
   uitgeverij: string;
+  leesniveau?: string | null;
   isbn?: string;
   schoolId?: number;
   schoolNaam?: string;

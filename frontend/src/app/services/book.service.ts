@@ -123,6 +123,7 @@ export class BookService {
       paginas: number | null;
       taal: string;
       uitgeverij: string;
+      leesniveau?: string | null;
       schoolId?: number;
     },
     schoolId?: number,
@@ -141,10 +142,10 @@ export class BookService {
   }
 
   async enrichBooksWithDetails(books: any[]): Promise<any[]> {
-    const allBooks = await this.getBooks() as any[];
+    const allBooks = (await this.getBooks()) as any[];
     const bookMap = new Map(allBooks.map((b: any) => [b.id, b]));
-    
-    return books.map(book => ({
+
+    return books.map((book) => ({
       ...book,
       cover: bookMap.get(book.bookId)?.cover || book.cover || null,
       auteur: bookMap.get(book.bookId)?.auteur || book.auteur || null,
