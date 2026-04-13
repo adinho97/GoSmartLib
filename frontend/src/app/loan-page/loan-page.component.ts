@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
+import { ExperienceService } from "../services/experience.service";
 import axios from "axios";
 
 type BookOption = {
@@ -68,6 +69,7 @@ export class LoanPageComponent implements OnInit {
     private bookService: BookService,
     private loanService: LoanService,
     private schoolService: SchoolService,
+    private experienceService: ExperienceService,
   ) {}
 
   async ngOnInit() {
@@ -181,7 +183,10 @@ export class LoanPageComponent implements OnInit {
   }
 
   get totalHistoryPages(): number {
-    return Math.max(1, Math.ceil(this.loanHistory.length / this.historyPageSize));
+    return Math.max(
+      1,
+      Math.ceil(this.loanHistory.length / this.historyPageSize),
+    );
   }
 
   get historyPageNumbers(): number[] {
@@ -269,6 +274,7 @@ export class LoanPageComponent implements OnInit {
           this.selectedLeerling.sub,
           this.dueDate,
         );
+        this.experienceService.addExperienceForLoaningBook();
       }
       this.successMessage = `${this.selectedBooks.length} boek(en) uitgeleend aan ${this.selectedLeerling.displayName}.`;
       this.selectedBooks = [];
