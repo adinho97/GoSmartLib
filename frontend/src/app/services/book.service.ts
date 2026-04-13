@@ -154,6 +154,27 @@ export class BookService {
     }));
   }
 
+  // Batch enrich multiple book sets with a shared book list (for performance)
+  async enrichMultipleBooksWithDetails(bookSets: Record<string, any[]>): Promise<Record<string, any[]>> {
+    const allBooks = await this.getBooks() as any[];
+    const bookMap = new Map(allBooks.map((b: any) => [b.id, b]));
+    
+    const enrichBook = (book: any) => ({
+      ...book,
+      cover: bookMap.get(book.bookId)?.cover || book.cover || null,
+      auteur: bookMap.get(book.bookId)?.auteur || book.auteur || null,
+      taal: bookMap.get(book.bookId)?.taal || book.taal || null,
+      paginas: bookMap.get(book.bookId)?.paginas || book.paginas || null,
+      genre: bookMap.get(book.bookId)?.genre || book.genre || null,
+    });
+    
+    const enriched: Record<string, any[]> = {};
+    for (const [key, books] of Object.entries(bookSets)) {
+      enriched[key] = books.map(enrichBook);
+    }
+    return enriched;
+  }
+
   async deleteBook(id: number, schoolId?: number) {
     await axios.delete(
       this.withSchoolId(`${this.apiUrl}/${id}`, schoolId),

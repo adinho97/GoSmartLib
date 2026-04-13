@@ -55,68 +55,70 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     const prefs = this.userPreferencesService.getSnapshotForLegacyUse();
 
-    // Fire and forget — don't await. Each section loads independently in background.
-    this.fetchRecommendations(prefs["recommendationExcludeRead_trending"] ?? true);
+    // Single consolidated call for all recommendations (instead of 5 separate calls)
+    this.fetchAllRecommendations({
+      trending: prefs["recommendationExcludeRead_trending"] ?? true,
+      genre: prefs["recommendationExcludeRead_genre"] ?? true,
+      author: prefs["recommendationExcludeRead_author"] ?? true,
+      newArrivals: prefs["recommendationExcludeRead_newArrivals"] ?? true,
+    });
+    
     this.fetchMyLoans();
-    this.fetchGenreRecommendations(prefs["recommendationExcludeRead_genre"] ?? true);
-    this.fetchAuthorRecommendations(prefs["recommendationExcludeRead_author"] ?? true);
-    this.fetchNewArrivalsRecommendations(
-      prefs["recommendationExcludeRead_newArrivals"] ?? true
-    );
   }
 
-  private async fetchRecommendations(excludeRead: boolean = true) {
+  // Single consolidated fetch for all recommendations - uses cached API call for efficiency
+  private async fetchAllRecommendations(excludeReadFlags: {
+    trending: boolean;
+    genre: boolean;
+    author: boolean;
+    newArrivals: boolean;
+  }) {
     this.recommendationsLoading = true;
     try {
-      const trendingBooks = await this.recommendationService.getTrending(
-        this.RECOMMENDATION_LIMIT,
-        excludeRead
-      );
-      this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
+      // Load all strategies in parallel. The service caches these calls, so multiple calls
+      // with same params hit cache. This respects per-strategy exclude-read preferences.
+      const results = await Promise.all([
+        this.recommendationService.getTrending(
+          this.RECOMMENDATION_LIMIT,
+          excludeReadFlags.trending
+        ),
+        this.recommendationService.getByGenre(
+          this.RECOMMENDATION_LIMIT,
+          excludeReadFlags.genre
+        ),
+        this.recommendationService.getByAuthor(
+          this.RECOMMENDATION_LIMIT,
+          excludeReadFlags.author
+        ),
+        this.recommendationService.getNewArrivals(
+          this.RECOMMENDATION_LIMIT,
+          excludeReadFlags.newArrivals
+        ),
+      ]);
+
+      // Prepare book sets for batch enrichment
+      const bookSets = {
+        trending: results[0],
+        genre: results[1],
+        author: results[2],
+        newArrivals: results[3],
+      };
+
+      // Enrich all at once with a shared book list (single getBooks call instead of 4)
+      const enriched = await this.bookService.enrichMultipleBooksWithDetails(bookSets);
+
+      this.trendingBooks = enriched["trending"];
+      this.genreBooks = enriched["genre"];
+      this.authorBooks = enriched["author"];
+      this.newArrivalsBooks = enriched["newArrivals"];
     } catch (error) {
-      console.error("Fout bij ophalen trending aanbevelingen:", error);
+      console.error("Fout bij ophalen aanbevelingen:", error);
       this.trendingBooks = [];
+      this.genreBooks = [];
+      this.authorBooks = [];
+      this.newArrivalsBooks = [];
     } finally {
       this.recommendationsLoading = false;
-    }
-  }
-
-  private async fetchGenreRecommendations(excludeRead: boolean = true) {
-    try {
-      const genreBooks = await this.recommendationService.getByGenre(
-        this.RECOMMENDATION_LIMIT,
-        excludeRead
-      );
-      this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
-    } catch (error) {
-      console.error("Fout bij ophalen genre aanbevelingen:", error);
-      this.genreBooks = [];
-    }
-  }
-
-  private async fetchAuthorRecommendations(excludeRead: boolean = true) {
-    try {
-      const authorBooks = await this.recommendationService.getByAuthor(
-        this.RECOMMENDATION_LIMIT,
-        excludeRead
-      );
-      this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
-    } catch (error) {
-      console.error("Fout bij ophalen auteur aanbevelingen:", error);
-      this.authorBooks = [];
-    }
-  }
-
-  private async fetchNewArrivalsRecommendations(excludeRead: boolean = true) {
-    try {
-      const newArrivalsBooks = await this.recommendationService.getNewArrivals(
-        this.RECOMMENDATION_LIMIT,
-        excludeRead
-      );
-      this.newArrivalsBooks = await this.bookService.enrichBooksWithDetails(newArrivalsBooks);
-    } catch (error) {
-      console.error("Fout bij ophalen nieuwe aankomsten:", error);
-      this.newArrivalsBooks = [];
     }
   }
 
