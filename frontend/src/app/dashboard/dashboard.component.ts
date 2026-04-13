@@ -52,18 +52,17 @@ export class DashboardComponent implements OnInit {
     private userPreferencesService: UserPreferencesService
   ) {}
 
-  async ngOnInit() {
+  ngOnInit(): void {
     const prefs = this.userPreferencesService.getSnapshotForLegacyUse();
 
-    await Promise.all([
-      this.fetchRecommendations(prefs["recommendationExcludeRead_trending"] ?? true),
-      this.fetchMyLoans(),
-      this.fetchGenreRecommendations(prefs["recommendationExcludeRead_genre"] ?? true),
-      this.fetchAuthorRecommendations(prefs["recommendationExcludeRead_author"] ?? true),
-      this.fetchNewArrivalsRecommendations(
-        prefs["recommendationExcludeRead_newArrivals"] ?? true
-      ),
-    ]);
+    // Fire and forget — don't await. Each section loads independently in background.
+    this.fetchRecommendations(prefs["recommendationExcludeRead_trending"] ?? true);
+    this.fetchMyLoans();
+    this.fetchGenreRecommendations(prefs["recommendationExcludeRead_genre"] ?? true);
+    this.fetchAuthorRecommendations(prefs["recommendationExcludeRead_author"] ?? true);
+    this.fetchNewArrivalsRecommendations(
+      prefs["recommendationExcludeRead_newArrivals"] ?? true
+    );
   }
 
   private async fetchRecommendations(excludeRead: boolean = true) {
