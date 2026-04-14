@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
+import axios from "axios";
 
 export interface LevelInfo {
   level: number;
@@ -15,8 +16,12 @@ export interface LevelInfo {
 export class ExperienceService {
   private readonly STORAGE_KEY = "userExperience";
   private readonly CLAIMED_BADGE_REWARDS_KEY = "claimedBadgeRewards";
+  private readonly API_URL = "/api/user/experience";
+  private readonly backendSyncDebounceMs = 350;
   private readonly BASE_EXPERIENCE = 100;
   private readonly LEVEL_MULTIPLIER = 1.5; // Each level requires 1.5x more XP
+  private backendSyncTimeoutId?: ReturnType<typeof setTimeout>;
+  private initializedFromBackend = false;
 
   private totalExperienceSubject = new BehaviorSubject<number>(
     this.loadExperience(),
@@ -46,6 +51,7 @@ export class ExperienceService {
 
   constructor() {
     this.updateLevelInfo();
+    this.initFromBackend();
   }
 
   addExperienceForBadge(
@@ -105,7 +111,9 @@ export class ExperienceService {
   resetExperience(): void {
     this.totalExperienceSubject.next(0);
     this.saveExperience(0);
+    this.saveClaimedBadgeRewards(new Set());
     this.updateLevelInfo();
+    this.scheduleBackendSync();
   }
 
   private calculateLevelInfo(): LevelInfo {
@@ -144,8 +152,20 @@ export class ExperienceService {
   }
 
   private loadExperience(): number {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
-    return stored ? parseInt(stored, 10) : 0;
+    const scopedKey = this.getUserScopedKey(this.STORAGE_KEY);
+    const stored = localStorage.getItem(scopedKey);
+    if (stored !== null) {
+      return parseInt(stored, 10);
+    }
+
+    const legacyStored = localStorage.getItem(this.STORAGE_KEY);
+    if (legacyStored !== null && scopedKey !== this.STORAGE_KEY) {
+      localStorage.setItem(scopedKey, legacyStored);
+      localStorage.removeItem(this.STORAGE_KEY);
+      return parseInt(legacyStored, 10);
+    }
+
+    return 0;
   }
 
   private getBadgeRewardKey(
@@ -156,13 +176,157 @@ export class ExperienceService {
   }
 
   private readClaimedBadgeRewards(): Set<string> {
-    const stored = localStorage.getItem(this.CLAIMED_BADGE_REWARDS_KEY);
+    const scopedKey = this.getUserScopedKey(this.CLAIMED_BADGE_REWARDS_KEY);
+    const stored = localStorage.getItem(scopedKey);
+
+    if (!stored && scopedKey !== this.CLAIMED_BADGE_REWARDS_KEY) {
+      const legacyStored = localStorage.getItem(this.CLAIMED_BADGE_REWARDS_KEY);
+      if (legacyStored) {
+        localStorage.setItem(scopedKey, legacyStored);
+        localStorage.removeItem(this.CLAIMED_BADGE_REWARDS_KEY);
+        return this.parseClaimedBadgeRewardsJson(legacyStored);
+      }
+    }
+
     if (!stored) {
       return new Set();
     }
 
+    return this.parseClaimedBadgeRewardsJson(stored);
+  }
+
+  private hasClaimedBadgeReward(badgeKey: string): boolean {
+    return this.readClaimedBadgeRewards().has(badgeKey);
+  }
+
+  private markBadgeRewardClaimed(badgeKey: string): void {
+    const claimedRewards = this.readClaimedBadgeRewards();
+    claimedRewards.add(badgeKey);
+    this.saveClaimedBadgeRewards(claimedRewards);
+  }
+
+  private saveExperience(xp: number): void {
+    localStorage.setItem(
+      this.getUserScopedKey(this.STORAGE_KEY),
+      xp.toString(),
+    );
+    this.scheduleBackendSync();
+  }
+
+  private updateLevelInfo(): void {
+    this.levelInfoSubject.next(this.calculateLevelInfo());
+  }
+
+  private saveClaimedBadgeRewards(claimedRewards: Set<string>): void {
+    localStorage.setItem(
+      this.getUserScopedKey(this.CLAIMED_BADGE_REWARDS_KEY),
+      JSON.stringify(Array.from(claimedRewards)),
+    );
+    this.scheduleBackendSync();
+  }
+
+  private getUserSub(): string {
+    return localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+  }
+
+  private getUserScopedKey(baseKey: string): string {
+    const userSub = this.getUserSub();
+    return userSub ? `${baseKey}:${userSub}` : baseKey;
+  }
+
+  private getUserHeaders() {
+    return {
+      headers: {
+        "X-User-Sub": this.getUserSub(),
+      },
+    };
+  }
+
+  private scheduleBackendSync(): void {
+    if (!this.initializedFromBackend) {
+      return;
+    }
+
+    if (!this.getUserSub()) {
+      return;
+    }
+
+    if (this.backendSyncTimeoutId) {
+      clearTimeout(this.backendSyncTimeoutId);
+    }
+
+    this.backendSyncTimeoutId = setTimeout(() => {
+      this.syncToBackend();
+    }, this.backendSyncDebounceMs);
+  }
+
+  private async initFromBackend(): Promise<void> {
+    const userSub = this.getUserSub();
+    if (!userSub) {
+      this.initializedFromBackend = true;
+      return;
+    }
+
     try {
-      const parsed = JSON.parse(stored) as unknown;
+      const response = await axios.get<{
+        totalExperience: number;
+        claimedBadgeRewardsJson: string;
+      }>(this.API_URL, this.getUserHeaders());
+
+      const totalExperience = Math.max(
+        0,
+        Number(response.data?.totalExperience || 0),
+      );
+      const claimedBadgeRewards = this.parseClaimedBadgeRewardsJson(
+        response.data?.claimedBadgeRewardsJson,
+      );
+
+      this.totalExperienceSubject.next(totalExperience);
+      this.updateLevelInfo();
+      localStorage.setItem(
+        this.getUserScopedKey(this.STORAGE_KEY),
+        totalExperience.toString(),
+      );
+      localStorage.setItem(
+        this.getUserScopedKey(this.CLAIMED_BADGE_REWARDS_KEY),
+        JSON.stringify(Array.from(claimedBadgeRewards)),
+      );
+    } catch {
+      // Keep local fallback data when backend is unreachable.
+    } finally {
+      this.initializedFromBackend = true;
+    }
+  }
+
+  private async syncToBackend(): Promise<void> {
+    if (!this.getUserSub()) {
+      return;
+    }
+
+    try {
+      const claimed = this.readClaimedBadgeRewards();
+      await axios.patch(
+        this.API_URL,
+        {
+          totalExperience: this.totalExperienceSubject.value,
+          claimedBadgeRewardsJson: JSON.stringify(Array.from(claimed)),
+        },
+        this.getUserHeaders(),
+      );
+    } catch {
+      // Keep local cache and retry on next XP change.
+    }
+  }
+
+  private parseClaimedBadgeRewardsJson(
+    rawJson: string | undefined,
+  ): Set<string> {
+    if (!rawJson) {
+      return new Set();
+    }
+
+    try {
+      const parsed = JSON.parse(rawJson) as unknown;
       if (Array.isArray(parsed)) {
         return new Set(
           parsed.filter((value): value is string => typeof value === "string"),
@@ -173,26 +337,5 @@ export class ExperienceService {
     }
 
     return new Set();
-  }
-
-  private hasClaimedBadgeReward(badgeKey: string): boolean {
-    return this.readClaimedBadgeRewards().has(badgeKey);
-  }
-
-  private markBadgeRewardClaimed(badgeKey: string): void {
-    const claimedRewards = this.readClaimedBadgeRewards();
-    claimedRewards.add(badgeKey);
-    localStorage.setItem(
-      this.CLAIMED_BADGE_REWARDS_KEY,
-      JSON.stringify(Array.from(claimedRewards)),
-    );
-  }
-
-  private saveExperience(xp: number): void {
-    localStorage.setItem(this.STORAGE_KEY, xp.toString());
-  }
-
-  private updateLevelInfo(): void {
-    this.levelInfoSubject.next(this.calculateLevelInfo());
   }
 }
