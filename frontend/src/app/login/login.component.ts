@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
+import { UserPreferencesService } from "../services/user-preferences.service";
 
 @Component({
   selector: "app-login",
@@ -17,6 +18,7 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private http: HttpClient,
+    private userPreferencesService: UserPreferencesService,
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +64,7 @@ export class LoginComponent implements OnInit {
         if (userInfo.platform) {
           localStorage.setItem("smartschoolPlatform", userInfo.platform);
         }
+        this.userPreferencesService.init();
         this.isLoading = false;
       },
       error: (err) => {
@@ -89,6 +92,7 @@ export class LoginComponent implements OnInit {
     if (!localStorage.getItem("selectedSchoolId")) {
       localStorage.setItem("selectedSchoolId", "1");
     }
+    this.userPreferencesService.init();
     this.router.navigate(["/dashboard"]);
   }
 }

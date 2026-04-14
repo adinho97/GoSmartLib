@@ -23,7 +23,6 @@ export type PreferenceKey =
 export class UserPreferencesService {
   private apiUrl = "/api/user/preferences";
   private readonly STORAGE_KEY = "userPreferences";
-  private initialized = false;
 
   // Reactive state - components subscribe to this observable
   private preferencesSubject = new BehaviorSubject<Record<string, boolean>>({});
@@ -34,12 +33,9 @@ export class UserPreferencesService {
    * Initialize preferences from localStorage (synchronous, no flicker)
    * Then sync with backend in background without blocking UI
    * Note: AppComponent can call this without awaiting — localStorage seed is instant
-   * Idempotent: safe to call multiple times, only initializes once
+   * Can be called multiple times safely - will re-sync if needed
    */
   async init(): Promise<void> {
-    if (this.initialized) return;
-    this.initialized = true;
-
     // Load from localStorage immediately (synchronous - no flicker)
     const cached = this.getFromLocalStorage();
     this.preferencesSubject.next(cached);

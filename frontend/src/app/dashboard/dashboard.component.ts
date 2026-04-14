@@ -2,7 +2,10 @@ import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
-import { RecommendationService, RecommendedBook } from "../services/recommendation.service";
+import {
+  RecommendationService,
+  RecommendedBook,
+} from "../services/recommendation.service";
 import { HttpClient } from "@angular/common/http";
 import { UserPreferencesService } from "../services/user-preferences.service";
 
@@ -49,20 +52,20 @@ export class DashboardComponent implements OnInit {
     private loanService: LoanService,
     private recommendationService: RecommendationService,
     private http: HttpClient,
-    private userPreferencesService: UserPreferencesService
+    private userPreferencesService: UserPreferencesService,
   ) {}
 
   ngOnInit(): void {
-    const prefs = this.userPreferencesService.getSnapshotForLegacyUse();
-
-    // Single consolidated call for all recommendations (instead of 5 separate calls)
-    this.fetchAllRecommendations({
-      trending: prefs["recommendationExcludeRead_trending"] ?? true,
-      genre: prefs["recommendationExcludeRead_genre"] ?? true,
-      author: prefs["recommendationExcludeRead_author"] ?? true,
-      newArrivals: prefs["recommendationExcludeRead_newArrivals"] ?? true,
+    this.userPreferencesService.preferences$.subscribe((prefs) => {
+      // Fetch recommendations whenever preferences change
+      this.fetchAllRecommendations({
+        trending: prefs["recommendationExcludeRead_trending"] ?? true,
+        genre: prefs["recommendationExcludeRead_genre"] ?? true,
+        author: prefs["recommendationExcludeRead_author"] ?? true,
+        newArrivals: prefs["recommendationExcludeRead_newArrivals"] ?? true,
+      });
     });
-    
+
     this.fetchMyLoans();
   }
 
@@ -80,19 +83,19 @@ export class DashboardComponent implements OnInit {
       const results = await Promise.all([
         this.recommendationService.getTrending(
           this.RECOMMENDATION_LIMIT,
-          excludeReadFlags.trending
+          excludeReadFlags.trending,
         ),
         this.recommendationService.getByGenre(
           this.RECOMMENDATION_LIMIT,
-          excludeReadFlags.genre
+          excludeReadFlags.genre,
         ),
         this.recommendationService.getByAuthor(
           this.RECOMMENDATION_LIMIT,
-          excludeReadFlags.author
+          excludeReadFlags.author,
         ),
         this.recommendationService.getNewArrivals(
           this.RECOMMENDATION_LIMIT,
-          excludeReadFlags.newArrivals
+          excludeReadFlags.newArrivals,
         ),
       ]);
 
@@ -105,7 +108,8 @@ export class DashboardComponent implements OnInit {
       };
 
       // Enrich all at once with a shared book list (single getBooks call instead of 4)
-      const enriched = await this.bookService.enrichMultipleBooksWithDetails(bookSets);
+      const enriched =
+        await this.bookService.enrichMultipleBooksWithDetails(bookSets);
 
       this.trendingBooks = enriched["trending"];
       this.genreBooks = enriched["genre"];
@@ -122,17 +126,32 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  async onRefreshRecommendations(section: 'trending' | 'genre' | 'author', excludeRead: boolean) {
+  async onRefreshRecommendations(
+    section: "trending" | "genre" | "author",
+    excludeRead: boolean,
+  ) {
     try {
-      if (section === 'trending') {
-        const trendingBooks = await this.recommendationService.getTrending(this.RECOMMENDATION_LIMIT, excludeRead);
-        this.trendingBooks = await this.bookService.enrichBooksWithDetails(trendingBooks);
-      } else if (section === 'genre') {
-        const genreBooks = await this.recommendationService.getByGenre(this.RECOMMENDATION_LIMIT, excludeRead);
-        this.genreBooks = await this.bookService.enrichBooksWithDetails(genreBooks);
-      } else if (section === 'author') {
-        const authorBooks = await this.recommendationService.getByAuthor(this.RECOMMENDATION_LIMIT, excludeRead);
-        this.authorBooks = await this.bookService.enrichBooksWithDetails(authorBooks);
+      if (section === "trending") {
+        const trendingBooks = await this.recommendationService.getTrending(
+          this.RECOMMENDATION_LIMIT,
+          excludeRead,
+        );
+        this.trendingBooks =
+          await this.bookService.enrichBooksWithDetails(trendingBooks);
+      } else if (section === "genre") {
+        const genreBooks = await this.recommendationService.getByGenre(
+          this.RECOMMENDATION_LIMIT,
+          excludeRead,
+        );
+        this.genreBooks =
+          await this.bookService.enrichBooksWithDetails(genreBooks);
+      } else if (section === "author") {
+        const authorBooks = await this.recommendationService.getByAuthor(
+          this.RECOMMENDATION_LIMIT,
+          excludeRead,
+        );
+        this.authorBooks =
+          await this.bookService.enrichBooksWithDetails(authorBooks);
       }
     } catch (error) {
       console.error(`Fout bij verversen ${section} aanbevelingen:`, error);
