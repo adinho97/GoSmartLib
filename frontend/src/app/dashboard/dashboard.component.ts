@@ -163,6 +163,28 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(["/detail", bookId]);
   }
 
+  logout(): void {
+    const accessToken = localStorage.getItem("smartschoolToken");
+    if (accessToken) {
+      this.http.post("/api/auth/logout", { accessToken }).subscribe({
+        next: () => {
+          this.completeLogout();
+        },
+        error: (err) => {
+          console.warn("Error revoking token, but proceeding with logout", err);
+          this.completeLogout();
+        },
+      });
+    } else {
+      this.completeLogout();
+    }
+  }
+
+  private completeLogout(): void {
+    localStorage.clear();
+    this.router.navigate(["/login"]);
+  }
+
   sendTestReminder() {
     const sub = localStorage.getItem("userId");
     if (!sub) return;
