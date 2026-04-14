@@ -64,6 +64,8 @@ export class LoanPageComponent implements OnInit {
   errorMessage = "";
 
   readonly role = localStorage.getItem("role") || "";
+  private readonly currentUserSub =
+    localStorage.getItem("sub") || localStorage.getItem("userId") || "";
 
   constructor(
     private bookService: BookService,
@@ -268,13 +270,19 @@ export class LoanPageComponent implements OnInit {
     this.errorMessage = "";
     this.successMessage = "";
     try {
+      const shouldAwardLoanXp =
+        !!this.currentUserSub &&
+        this.selectedLeerling.sub === this.currentUserSub;
+
       for (const book of this.selectedBooks) {
         await this.loanService.createLoan(
           book.id,
           this.selectedLeerling.sub,
           this.dueDate,
         );
-        this.experienceService.addExperienceForLoaningBook();
+        if (shouldAwardLoanXp) {
+          this.experienceService.addExperienceForLoaningBook();
+        }
       }
       this.successMessage = `${this.selectedBooks.length} boek(en) uitgeleend aan ${this.selectedLeerling.displayName}.`;
       this.selectedBooks = [];
