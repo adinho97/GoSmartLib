@@ -51,9 +51,6 @@ export class DashboardComponent implements OnInit {
     private http: HttpClient,
     private userPreferencesService: UserPreferencesService
   ) {}
-    private http: HttpClient,
-    private userPreferencesService: UserPreferencesService
-  ) {}
 
   ngOnInit(): void {
     const prefs = this.userPreferencesService.getSnapshotForLegacyUse();
