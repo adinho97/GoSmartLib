@@ -24,6 +24,7 @@ export class ExperienceService {
   private readonly LEVEL_MULTIPLIER = 1.5; // Each level requires 1.5x more XP
   private backendSyncTimeoutId?: ReturnType<typeof setTimeout>;
   private initializedFromBackend = false;
+  private hydratedForUserSub = "";
 
   private totalExperienceSubject = new BehaviorSubject<number>(
     this.loadExperience(),
@@ -54,6 +55,24 @@ export class ExperienceService {
   constructor() {
     this.updateLevelInfo();
     this.initFromBackend();
+  }
+
+  async refreshForCurrentUser(): Promise<void> {
+    const userSub = this.getUserSub();
+    if (!userSub) {
+      return;
+    }
+
+    if (this.backendSyncTimeoutId) {
+      clearTimeout(this.backendSyncTimeoutId);
+      this.backendSyncTimeoutId = undefined;
+    }
+
+    if (this.hydratedForUserSub === userSub && this.initializedFromBackend) {
+      return;
+    }
+
+    await this.initFromBackend();
   }
 
   addExperienceForBadge(threshold: number, category: BadgeCategory): number {
@@ -228,6 +247,7 @@ export class ExperienceService {
     const userSub = this.getUserSub();
     if (!userSub) {
       this.initializedFromBackend = true;
+      this.hydratedForUserSub = "";
       return;
     }
 
@@ -249,6 +269,7 @@ export class ExperienceService {
       this.updateLevelInfo();
       this.persistExperienceLocally(totalExperience);
       this.persistClaimedBadgeRewardsLocally(claimedBadgeRewards);
+      this.hydratedForUserSub = userSub;
     } catch {
       // Keep local fallback data when backend is unreachable.
     } finally {
