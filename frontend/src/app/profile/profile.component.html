@@ -55,7 +55,7 @@
                   <label class="setting-option">
                     <input
                       type="checkbox"
-                      [(ngModel)]="dashboardSettings.showWishlist"
+                      [(ngModel)]="dashboardSettings['showWishlist']"
                     />
                     Verlanglijst tonen
                   </label>
@@ -63,7 +63,7 @@
                   <label class="setting-option">
                     <input
                       type="checkbox"
-                      [(ngModel)]="dashboardSettings.showFavorites"
+                      [(ngModel)]="dashboardSettings['showFavorites']"
                     />
                     Favoriete boeken tonen
                   </label>
@@ -71,7 +71,7 @@
                   <label class="setting-option">
                     <input
                       type="checkbox"
-                      [(ngModel)]="dashboardSettings.showReadingHistory"
+                      [(ngModel)]="dashboardSettings['showReadingHistory']"
                     />
                     Leeshistoriek tonen
                   </label>
@@ -79,7 +79,7 @@
                   <label class="setting-option">
                     <input
                       type="checkbox"
-                      [(ngModel)]="dashboardSettings.showBorrowed"
+                      [(ngModel)]="dashboardSettings['showBorrowed']"
                     />
                     Geleende boeken tonen
                   </label>
@@ -87,7 +87,7 @@
                   <label class="setting-option">
                     <input
                       type="checkbox"
-                      [(ngModel)]="dashboardSettings.showHighlighted"
+                      [(ngModel)]="dashboardSettings['showHighlighted']"
                     />
                     Klasleeslijst tonen
                   </label>
@@ -95,7 +95,7 @@
                   <label class="setting-option">
                     <input
                       type="checkbox"
-                      [(ngModel)]="dashboardSettings.showDeadline"
+                      [(ngModel)]="dashboardSettings['showDeadline']"
                     />
                     Deadlines tonen bij geleende boeken
                   </label>
@@ -119,6 +119,7 @@
               <span class="stat-label">Geleend</span>
               <strong>{{ borrowedBooks.length }}</strong>
             </button>
+
             <button
               type="button"
               class="stat-card stat-card-link"
@@ -127,6 +128,7 @@
               <span class="stat-label">Klasleeslijst</span>
               <strong>{{ readingList.length }}</strong>
             </button>
+
             <button
               type="button"
               class="stat-card stat-card-link"
@@ -135,6 +137,7 @@
               <span class="stat-label">Historiek</span>
               <strong>{{ readingHistory.length }}</strong>
             </button>
+
             <button
               type="button"
               class="stat-card stat-card-link"
@@ -143,6 +146,7 @@
               <span class="stat-label">Verlanglijst</span>
               <strong>{{ wishlistCount }}</strong>
             </button>
+
             <button
               type="button"
               class="stat-card stat-card-link"
@@ -151,17 +155,52 @@
               <span class="stat-label">Favorieten</span>
               <strong>{{ favoritesCount }}</strong>
             </button>
-            <button type="button" class="stat-card stat-card-link">
-              <span class="stat-label">Uitgelichte boeken</span>
-              <strong>{{ highlightedBooksCount }}</strong>
-            </button>
           </div>
         </header>
       }
 
       @if (showSections) {
         <div class="profile-sections">
-          @if (dashboardSettings.showBorrowed) {
+          <!-- Badges section is always visible -->
+          <section id="badges-section" class="profile-section badges-section">
+            <div class="section-head">
+              <h3 class="section-title">Badgecollectie</h3>
+              <span class="section-count"
+                >{{ unlockedBadgesCount }}/{{ totalBadgesCount }}</span
+              >
+            </div>
+
+            @if (badges.length === 0) {
+              <div class="inline-empty">Badges laden...</div>
+            } @else {
+              <div class="badges-grid">
+                @for (badge of badges; track badge.id) {
+                  <article
+                    class="badge-card"
+                    [class.badge-card-unlocked]="badge.unlocked"
+                    [class.badge-card-loan]="badge.category === 'loan'"
+                    [class.badge-card-review]="badge.category === 'review'"
+                  >
+                    <div class="badge-card-top">
+                      <span class="badge-icon" aria-hidden="true">{{
+                        getBadgeIcon(badge)
+                      }}</span>
+                      <span class="badge-category">{{
+                        getBadgeCategoryLabel(badge.category)
+                      }}</span>
+                    </div>
+
+                    <h4>{{ badge.title }}</h4>
+                    <p class="badge-progress">
+                      {{ getBadgeProgressText(badge) }}
+                    </p>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+
+          @if (dashboardSettings["showBorrowed"]) {
             <section id="borrowed-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Geleende boeken</h3>
@@ -180,7 +219,7 @@
                     }
                     <div class="book-content">
                       <h4>{{ book.title }}</h4>
-                      @if (dashboardSettings.showDeadline) {
+                      @if (dashboardSettings["showDeadline"]) {
                         <div class="book-meta">
                           Terugbrengen voor {{ book.deadline | date }}
                         </div>
@@ -192,7 +231,7 @@
             </section>
           }
 
-          @if (dashboardSettings.showHighlighted) {
+          @if (dashboardSettings["showHighlighted"]) {
             <section id="highlighted-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Klasleeslijst</h3>
@@ -219,7 +258,7 @@
             </section>
           }
 
-          @if (dashboardSettings.showWishlist) {
+          @if (dashboardSettings["showWishlist"]) {
             <section
               id="wishlist-section"
               class="profile-section wishlist-section"
@@ -275,7 +314,7 @@
             </section>
           }
 
-          @if (dashboardSettings.showFavorites) {
+          @if (dashboardSettings["showFavorites"]) {
             <section id="favorites-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Favoriete boeken</h3>
@@ -317,7 +356,7 @@
             </section>
           }
 
-          @if (dashboardSettings.showReadingHistory) {
+          @if (dashboardSettings["showReadingHistory"]) {
             <section id="history-section" class="profile-section">
               <div class="section-head">
                 <h3 class="section-title">Ontleenhistoriek</h3>
