@@ -147,31 +147,10 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     currentCounts: BadgeCounts,
     previousCounts: BadgeCounts | null,
   ) {
-    const loanBadges: ProfileBadge[] = this.badgeMilestones.map(
-      (threshold) => ({
-        id: `loan-${threshold}`,
-        title:
-          threshold === 1 ? "Ontleen een boek" : `Ontleen ${threshold} boeken`,
-        category: "loan",
-        threshold,
-        current: currentCounts.loanCount,
-        unlocked: currentCounts.loanCount >= threshold,
-      }),
-    );
-
-    const reviewBadges: ProfileBadge[] = this.badgeMilestones.map(
-      (threshold) => ({
-        id: `review-${threshold}`,
-        title:
-          threshold === 1 ? "Plaats een review" : `Plaats ${threshold} reviews`,
-        category: "review",
-        threshold,
-        current: currentCounts.reviewCount,
-        unlocked: currentCounts.reviewCount >= threshold,
-      }),
-    );
-
-    this.badges = [...loanBadges, ...reviewBadges];
+    this.badges = [
+      ...this.buildBadgesForCategory("loan", currentCounts.loanCount),
+      ...this.buildBadgesForCategory("review", currentCounts.reviewCount),
+    ];
 
     if (previousCounts) {
       const newlyUnlockedBadges = this.badges.filter((badge) => {
@@ -187,6 +166,32 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
         this.showBadgeToast(newlyUnlockedBadges);
       }
     }
+  }
+
+  private buildBadgesForCategory(
+    category: BadgeCategory,
+    currentCount: number,
+  ): ProfileBadge[] {
+    return this.badgeMilestones.map((threshold) => ({
+      id: `${category}-${threshold}`,
+      title: this.getBadgeTitle(category, threshold),
+      category,
+      threshold,
+      current: currentCount,
+      unlocked: currentCount >= threshold,
+    }));
+  }
+
+  private getBadgeTitle(category: BadgeCategory, threshold: number): string {
+    if (category === "loan") {
+      return threshold === 1
+        ? "Ontleen een boek"
+        : `Ontleen ${threshold} boeken`;
+    }
+
+    return threshold === 1
+      ? "Plaats een review"
+      : `Plaats ${threshold} reviews`;
   }
 
   private showBadgeToast(newlyUnlockedBadges: ProfileBadge[]) {
