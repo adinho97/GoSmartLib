@@ -30,7 +30,14 @@
         </div>
       }
 
-      <button type="button" class="logout-btn">Uitloggen</button>
+      <button
+        type="button"
+        class="logout-btn"
+        (click)="logout()"
+        aria-label="Uitloggen"
+      >
+        Uitloggen
+      </button>
     </div>
   </div>
 } @else {
@@ -47,60 +54,80 @@
 
             <div class="identity-actions" (click)="$event.stopPropagation()">
               <div class="settings-dropdown">
-                <button class="settings-btn" (click)="toggleSettings()">
+                <button
+                  class="settings-btn"
+                  type="button"
+                  (click)="toggleSettings()"
+                  [attr.aria-expanded]="settingsOpen"
+                >
                   Weergave-instellingen
                 </button>
 
-                <div class="dropdown-menu" [class.show]="settingsOpen">
+                <div
+                  class="dropdown-menu"
+                  [class.show]="settingsOpen"
+                  role="menu"
+                  (click)="$event.stopPropagation()"
+                >
                   <label class="setting-option">
                     <input
                       type="checkbox"
+                      id="showWishlist"
                       [(ngModel)]="dashboardSettings['showWishlist']"
                     />
-                    Verlanglijst tonen
+                    <span>Verlanglijst tonen</span>
                   </label>
 
                   <label class="setting-option">
                     <input
                       type="checkbox"
+                      id="showFavorites"
                       [(ngModel)]="dashboardSettings['showFavorites']"
                     />
-                    Favoriete boeken tonen
+                    <span>Favoriete boeken tonen</span>
                   </label>
 
                   <label class="setting-option">
                     <input
                       type="checkbox"
+                      id="showReadingHistory"
                       [(ngModel)]="dashboardSettings['showReadingHistory']"
                     />
-                    Leeshistoriek tonen
+                    <span>Leeshistoriek tonen</span>
                   </label>
 
                   <label class="setting-option">
                     <input
                       type="checkbox"
+                      id="showBorrowed"
                       [(ngModel)]="dashboardSettings['showBorrowed']"
                     />
-                    Geleende boeken tonen
+                    <span>Geleende boeken tonen</span>
                   </label>
 
                   <label class="setting-option">
                     <input
                       type="checkbox"
+                      id="showHighlighted"
                       [(ngModel)]="dashboardSettings['showHighlighted']"
                     />
-                    Klasleeslijst tonen
+                    <span>Klasleeslijst tonen</span>
                   </label>
 
                   <label class="setting-option">
                     <input
                       type="checkbox"
+                      id="showDeadline"
                       [(ngModel)]="dashboardSettings['showDeadline']"
                     />
-                    Deadlines tonen bij geleende boeken
+                    <span>Deadlines tonen bij geleende boeken</span>
                   </label>
 
-                  <button class="save-btn" (click)="saveDashboardSettings()">
+                  <button
+                    class="save-btn"
+                    type="button"
+                    (click)="saveDashboardSettings()"
+                  >
                     Opslaan
                   </button>
                 </div>
@@ -161,44 +188,7 @@
 
       @if (showSections) {
         <div class="profile-sections">
-          <!-- Badges section is always visible -->
-          <section id="badges-section" class="profile-section badges-section">
-            <div class="section-head">
-              <h3 class="section-title">Badgecollectie</h3>
-              <span class="section-count"
-                >{{ unlockedBadgesCount }}/{{ totalBadgesCount }}</span
-              >
-            </div>
-
-            @if (badges.length === 0) {
-              <div class="inline-empty">Badges laden...</div>
-            } @else {
-              <div class="badges-grid">
-                @for (badge of badges; track badge.id) {
-                  <article
-                    class="badge-card"
-                    [class.badge-card-unlocked]="badge.unlocked"
-                    [class.badge-card-loan]="badge.category === 'loan'"
-                    [class.badge-card-review]="badge.category === 'review'"
-                  >
-                    <div class="badge-card-top">
-                      <span class="badge-icon" aria-hidden="true">{{
-                        getBadgeIcon(badge)
-                      }}</span>
-                      <span class="badge-category">{{
-                        getBadgeCategoryLabel(badge.category)
-                      }}</span>
-                    </div>
-
-                    <h4>{{ badge.title }}</h4>
-                    <p class="badge-progress">
-                      {{ getBadgeProgressText(badge) }}
-                    </p>
-                  </article>
-                }
-              </div>
-            }
-          </section>
+          <app-badge-collection></app-badge-collection>
 
           @if (dashboardSettings["showBorrowed"]) {
             <section id="borrowed-section" class="profile-section">
@@ -211,6 +201,13 @@
                   <article
                     class="profile-book-card"
                     (click)="goToDetail(book.id)"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-label]="'Bekijk details van ' + book.title"
+                    (keydown.enter)="goToDetail(book.id)"
+                    (keydown.space)="
+                      $event.preventDefault(); goToDetail(book.id)
+                    "
                   >
                     @if (book.cover) {
                       <div class="book-cover"><img [src]="book.cover" /></div>
@@ -242,6 +239,13 @@
                   <article
                     class="profile-book-card"
                     (click)="goToDetail(book.id)"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-label]="'Bekijk details van ' + book.title"
+                    (keydown.enter)="goToDetail(book.id)"
+                    (keydown.space)="
+                      $event.preventDefault(); goToDetail(book.id)
+                    "
                   >
                     @if (book.cover) {
                       <div class="book-cover"><img [src]="book.cover" /></div>
@@ -381,9 +385,10 @@
                   <div class="wishlist-pagination">
                     @for (page of readingHistoryPageNumbers; track page) {
                       <button
-                        (click)="goToReadingHistoryPage(page)"
-                        [class.active]="page === currentReadingHistoryPage"
+                        type="button"
                         class="wishlist-page-btn"
+                        [class.active]="page === currentReadingHistoryPage"
+                        (click)="goToReadingHistoryPage(page)"
                       >
                         {{ page }}
                       </button>
@@ -393,8 +398,6 @@
               }
             </section>
           }
-
-          <app-badge-collection></app-badge-collection>
         </div>
       }
     </div>
