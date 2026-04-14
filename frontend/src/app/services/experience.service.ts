@@ -10,6 +10,8 @@ export interface LevelInfo {
   progressPercentage: number;
 }
 
+type BadgeCategory = "loan" | "review";
+
 @Injectable({
   providedIn: "root",
 })
@@ -54,10 +56,7 @@ export class ExperienceService {
     this.initFromBackend();
   }
 
-  addExperienceForBadge(
-    threshold: number,
-    category: "loan" | "review",
-  ): number {
+  addExperienceForBadge(threshold: number, category: BadgeCategory): number {
     const badgeKey = this.getBadgeRewardKey(threshold, category);
     if (this.hasClaimedBadgeReward(badgeKey)) {
       return 0;
@@ -69,10 +68,7 @@ export class ExperienceService {
     return reward;
   }
 
-  getBadgeExperienceWorth(
-    threshold: number,
-    category: "loan" | "review",
-  ): number {
+  getBadgeExperienceWorth(threshold: number, category: BadgeCategory): number {
     const reviewReward =
       this.BADGE_THRESHOLD_REWARDS[threshold] ??
       Math.max(20, Math.floor(18 + threshold * 3.2));
@@ -113,7 +109,6 @@ export class ExperienceService {
     this.saveExperience(0);
     this.saveClaimedBadgeRewards(new Set());
     this.updateLevelInfo();
-    this.scheduleBackendSync();
   }
 
   private calculateLevelInfo(): LevelInfo {
@@ -152,46 +147,21 @@ export class ExperienceService {
   }
 
   private loadExperience(): number {
-    const scopedKey = this.getUserScopedKey(this.STORAGE_KEY);
-    const stored = localStorage.getItem(scopedKey);
-    if (stored !== null) {
-      return parseInt(stored, 10);
-    }
-
-    const legacyStored = localStorage.getItem(this.STORAGE_KEY);
-    if (legacyStored !== null && scopedKey !== this.STORAGE_KEY) {
-      localStorage.setItem(scopedKey, legacyStored);
-      localStorage.removeItem(this.STORAGE_KEY);
-      return parseInt(legacyStored, 10);
-    }
-
-    return 0;
+    const stored = this.readScopedValueWithLegacyMigration(this.STORAGE_KEY);
+    return stored ? parseInt(stored, 10) : 0;
   }
 
   private getBadgeRewardKey(
     threshold: number,
-    category: "loan" | "review",
+    category: BadgeCategory,
   ): string {
     return `${category}-${threshold}`;
   }
 
   private readClaimedBadgeRewards(): Set<string> {
-    const scopedKey = this.getUserScopedKey(this.CLAIMED_BADGE_REWARDS_KEY);
-    const stored = localStorage.getItem(scopedKey);
-
-    if (!stored && scopedKey !== this.CLAIMED_BADGE_REWARDS_KEY) {
-      const legacyStored = localStorage.getItem(this.CLAIMED_BADGE_REWARDS_KEY);
-      if (legacyStored) {
-        localStorage.setItem(scopedKey, legacyStored);
-        localStorage.removeItem(this.CLAIMED_BADGE_REWARDS_KEY);
-        return this.parseClaimedBadgeRewardsJson(legacyStored);
-      }
-    }
-
-    if (!stored) {
-      return new Set();
-    }
-
+    const stored = this.readScopedValueWithLegacyMigration(
+      this.CLAIMED_BADGE_REWARDS_KEY,
+    );
     return this.parseClaimedBadgeRewardsJson(stored);
   }
 
@@ -206,10 +176,7 @@ export class ExperienceService {
   }
 
   private saveExperience(xp: number): void {
-    localStorage.setItem(
-      this.getUserScopedKey(this.STORAGE_KEY),
-      xp.toString(),
-    );
+    this.persistExperienceLocally(xp);
     this.scheduleBackendSync();
   }
 
@@ -218,10 +185,7 @@ export class ExperienceService {
   }
 
   private saveClaimedBadgeRewards(claimedRewards: Set<string>): void {
-    localStorage.setItem(
-      this.getUserScopedKey(this.CLAIMED_BADGE_REWARDS_KEY),
-      JSON.stringify(Array.from(claimedRewards)),
-    );
+    this.persistClaimedBadgeRewardsLocally(claimedRewards);
     this.scheduleBackendSync();
   }
 
@@ -283,14 +247,8 @@ export class ExperienceService {
 
       this.totalExperienceSubject.next(totalExperience);
       this.updateLevelInfo();
-      localStorage.setItem(
-        this.getUserScopedKey(this.STORAGE_KEY),
-        totalExperience.toString(),
-      );
-      localStorage.setItem(
-        this.getUserScopedKey(this.CLAIMED_BADGE_REWARDS_KEY),
-        JSON.stringify(Array.from(claimedBadgeRewards)),
-      );
+      this.persistExperienceLocally(totalExperience);
+      this.persistClaimedBadgeRewardsLocally(claimedBadgeRewards);
     } catch {
       // Keep local fallback data when backend is unreachable.
     } finally {
@@ -319,7 +277,7 @@ export class ExperienceService {
   }
 
   private parseClaimedBadgeRewardsJson(
-    rawJson: string | undefined,
+    rawJson: string | undefined | null,
   ): Set<string> {
     if (!rawJson) {
       return new Set();
@@ -337,5 +295,40 @@ export class ExperienceService {
     }
 
     return new Set();
+  }
+
+  private readScopedValueWithLegacyMigration(baseKey: string): string | null {
+    const scopedKey = this.getUserScopedKey(baseKey);
+    const scopedValue = localStorage.getItem(scopedKey);
+    if (scopedValue !== null) {
+      return scopedValue;
+    }
+
+    if (scopedKey === baseKey) {
+      return null;
+    }
+
+    const legacyValue = localStorage.getItem(baseKey);
+    if (legacyValue !== null) {
+      localStorage.setItem(scopedKey, legacyValue);
+      localStorage.removeItem(baseKey);
+      return legacyValue;
+    }
+
+    return null;
+  }
+
+  private persistExperienceLocally(totalExperience: number): void {
+    localStorage.setItem(
+      this.getUserScopedKey(this.STORAGE_KEY),
+      totalExperience.toString(),
+    );
+  }
+
+  private persistClaimedBadgeRewardsLocally(claimedRewards: Set<string>): void {
+    localStorage.setItem(
+      this.getUserScopedKey(this.CLAIMED_BADGE_REWARDS_KEY),
+      JSON.stringify(Array.from(claimedRewards)),
+    );
   }
 }

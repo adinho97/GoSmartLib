@@ -24,23 +24,13 @@ public class UserExperienceController {
     @GetMapping
     public ResponseEntity<UserExperienceResponse> getUserExperience(
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        if (userSub == null || userSub.isBlank()) {
+        if (!isValidUserSub(userSub)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         try {
-            UserExperience userExperience = userExperienceRepository.findByUserSub(userSub)
-                    .orElseGet(() -> new UserExperience(userSub, 0, "[]"));
-
-            UserExperienceResponse response = new UserExperienceResponse();
-            response.setTotalExperience(
-                    userExperience.getTotalExperience() != null ? userExperience.getTotalExperience() : 0);
-            response.setClaimedBadgeRewardsJson(
-                    userExperience.getClaimedBadgeRewardsJson() != null
-                            ? userExperience.getClaimedBadgeRewardsJson()
-                            : "[]");
-
-            return ResponseEntity.ok(response);
+            UserExperience userExperience = findOrCreate(userSub);
+            return ResponseEntity.ok(toResponse(userExperience));
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -50,7 +40,7 @@ public class UserExperienceController {
     public ResponseEntity<Void> saveUserExperience(
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestBody UserExperienceRequest request) {
-        if (userSub == null || userSub.isBlank()) {
+        if (!isValidUserSub(userSub)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -59,20 +49,38 @@ public class UserExperienceController {
         }
 
         try {
-            UserExperience userExperience = userExperienceRepository.findByUserSub(userSub)
-                    .orElseGet(() -> new UserExperience(userSub, 0, "[]"));
+            UserExperience userExperience = findOrCreate(userSub);
 
             userExperience.setTotalExperience(request.getTotalExperience());
-            userExperience.setClaimedBadgeRewardsJson(
-                    request.getClaimedBadgeRewardsJson() != null
-                            ? request.getClaimedBadgeRewardsJson()
-                            : "[]");
+            userExperience.setClaimedBadgeRewardsJson(sanitizeClaimedBadgeRewardsJson(request.getClaimedBadgeRewardsJson()));
 
             userExperienceRepository.save(userExperience);
             return ResponseEntity.noContent().build();
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private boolean isValidUserSub(String userSub) {
+        return userSub != null && !userSub.isBlank();
+    }
+
+    private UserExperience findOrCreate(String userSub) {
+        return userExperienceRepository.findByUserSub(userSub)
+                .orElseGet(() -> new UserExperience(userSub, 0, "[]"));
+    }
+
+    private String sanitizeClaimedBadgeRewardsJson(String value) {
+        return value != null ? value : "[]";
+    }
+
+    private UserExperienceResponse toResponse(UserExperience userExperience) {
+        UserExperienceResponse response = new UserExperienceResponse();
+        response.setTotalExperience(
+                userExperience.getTotalExperience() != null ? userExperience.getTotalExperience() : 0);
+        response.setClaimedBadgeRewardsJson(
+                sanitizeClaimedBadgeRewardsJson(userExperience.getClaimedBadgeRewardsJson()));
+        return response;
     }
 
     public static class UserExperienceRequest {
