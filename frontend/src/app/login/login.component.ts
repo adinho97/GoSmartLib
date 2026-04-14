@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
+import { ExperienceService } from "../services/experience.service";
 
 @Component({
   selector: "app-login",
@@ -17,6 +18,7 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private http: HttpClient,
+    private experienceService: ExperienceService,
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +64,13 @@ export class LoginComponent implements OnInit {
         if (userInfo.platform) {
           localStorage.setItem("smartschoolPlatform", userInfo.platform);
         }
+
+        this.experienceService.refreshForCurrentUser().catch((error) => {
+          console.warn("Failed to hydrate experience after login:", error);
+        });
+
+        this.router.navigate(["/dashboard"]);
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -83,6 +92,5 @@ export class LoginComponent implements OnInit {
     if (!localStorage.getItem("selectedSchoolId")) {
       localStorage.setItem("selectedSchoolId", "1");
     }
-    this.router.navigate(["/dashboard"]);
   }
 }
