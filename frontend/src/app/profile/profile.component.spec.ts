@@ -5,16 +5,26 @@ import { Router } from "@angular/router";
 import { Location } from "@angular/common";
 import { By } from "@angular/platform-browser";
 import { BookService } from "../services/book.service";
+import { UserPreferencesService } from "../services/user-preferences.service";
+import { of } from "rxjs";
 
 describe("ProfileComponent", () => {
   let component: ProfileComponent;
   let fixture: ComponentFixture<ProfileComponent>;
   let bookServiceSpy: jasmine.SpyObj<BookService>;
+  let userPreferencesServiceSpy: jasmine.SpyObj<UserPreferencesService>;
 
   let routerSpy = jasmine.createSpyObj("Router", ["navigate"]);
   let locationSpy = jasmine.createSpyObj("Location", ["back"]);
 
   beforeEach(async () => {
+    userPreferencesServiceSpy = jasmine.createSpyObj("UserPreferencesService", [
+      "savePreference",
+      "getSnapshotForLegacyUse",
+    ]);
+    userPreferencesServiceSpy.preferences$ = of({});
+    userPreferencesServiceSpy.getSnapshotForLegacyUse.and.returnValue({});
+
     bookServiceSpy = jasmine.createSpyObj<BookService>("BookService", [
       "getUserFavorites",
       "removeFromFavorites",
@@ -27,6 +37,10 @@ describe("ProfileComponent", () => {
         { provide: Router, useValue: routerSpy },
         { provide: Location, useValue: locationSpy },
         { provide: BookService, useValue: bookServiceSpy },
+        {
+          provide: UserPreferencesService,
+          useValue: userPreferencesServiceSpy,
+        },
       ],
     }).compileComponents();
 
@@ -135,34 +149,35 @@ describe("ProfileComponent", () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(["/detail", 5]);
   });
 
-  it("should save dashboard settings to localStorage", () => {
-    spyOn(localStorage, "setItem");
+  it("should save dashboard settings via UserPreferencesService", async () => {
+    // Set a change in settings
+    component.dashboardSettings["showFavorites"] = false;
 
-    component.saveDashboardSettings();
+    // Mock snapshot to return true so the component thinks it changed from true to false
+    userPreferencesServiceSpy.getSnapshotForLegacyUse.and.returnValue({
+      dashboard_showFavorites: true,
+    });
 
-    expect(localStorage.setItem).toHaveBeenCalledWith(
-      "dashboardSettings",
-      JSON.stringify(component.dashboardSettings),
+    await component.saveDashboardSettings();
+
+    expect(userPreferencesServiceSpy.savePreference).toHaveBeenCalledWith(
+      "dashboard_showFavorites",
+      false,
     );
     expect(component.settingsOpen).toBeFalse();
   });
 
-  it("should load dashboard settings from localStorage on init", () => {
-    const mockSettings = {
-      showFavorites: false,
-      showReadingHistory: false,
-      showBorrowed: false,
-      showHighlighted: false,
-      showDeadline: false,
+  it("should update dashboardSettings when preferences service emits new values", () => {
+    const mockPrefs = {
+      dashboard_showFavorites: false,
+      dashboard_showWishlist: true,
     };
 
-    spyOn(localStorage, "getItem").and.returnValue(
-      JSON.stringify(mockSettings),
-    );
+    // Emit new preferences via the mock subject (re-using the spy setup)
+    (userPreferencesServiceSpy.preferences$ as any).next(mockPrefs);
 
-    component.ngOnInit();
-
-    expect(component.dashboardSettings.showFavorites).toBeFalse();
+    expect(component.dashboardSettings["showFavorites"]).toBeFalse();
+    expect(component.dashboardSettings["showWishlist"]).toBeTrue();
   });
 
   it("should close settings when clicking outside", () => {

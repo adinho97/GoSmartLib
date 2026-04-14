@@ -1,27 +1,34 @@
-import { Injectable } from '@angular/core';
-import axios from 'axios';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable } from "@angular/core";
+import axios from "axios";
+import { BehaviorSubject, Observable } from "rxjs";
 
 /**
  * Strongly typed preference keys to prevent typos at compile time
  */
 export type PreferenceKey =
-  | 'recommendationExcludeRead_trending'
-  | 'recommendationExcludeRead_genre'
-  | 'recommendationExcludeRead_author'
-  | 'recommendationExcludeRead_newArrivals';
+  | "recommendationExcludeRead_trending"
+  | "recommendationExcludeRead_genre"
+  | "recommendationExcludeRead_author"
+  | "recommendationExcludeRead_newArrivals"
+  | "dashboard_showWishlist"
+  | "dashboard_showFavorites"
+  | "dashboard_showReadingHistory"
+  | "dashboard_showBorrowed"
+  | "dashboard_showHighlighted"
+  | "dashboard_showDeadline";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class UserPreferencesService {
-  private apiUrl = '/api/user/preferences';
-  private readonly STORAGE_KEY = 'userPreferences';
+  private apiUrl = "/api/user/preferences";
+  private readonly STORAGE_KEY = "userPreferences";
   private initialized = false;
 
   // Reactive state - components subscribe to this observable
   private preferencesSubject = new BehaviorSubject<Record<string, boolean>>({});
-  public preferences$: Observable<Record<string, boolean>> = this.preferencesSubject.asObservable();
+  public preferences$: Observable<Record<string, boolean>> =
+    this.preferencesSubject.asObservable();
 
   /**
    * Initialize preferences from localStorage (synchronous, no flicker)
@@ -57,7 +64,7 @@ export class UserPreferencesService {
         }
       })
       .catch((error) => {
-        console.warn('Failed to sync preferences with backend:', error);
+        console.warn("Failed to sync preferences with backend:", error);
         // Silently fail - keep using cached localStorage value
       });
   }
@@ -77,16 +84,12 @@ export class UserPreferencesService {
 
     // Sync to backend
     try {
-      await axios.patch(
-        this.apiUrl,
-        { key, value },
-        this.getUserHeaders()
-      );
+      await axios.patch(this.apiUrl, { key, value }, this.getUserHeaders());
     } catch (error) {
       // Backend failed — rollback to prevent silent data loss on next sync
       console.warn(
         `Failed to sync preference ${key}, rolling back to previous state:`,
-        error
+        error,
       );
       this.preferencesSubject.next(previous);
       this.saveToLocalStorage(previous);
@@ -105,13 +108,12 @@ export class UserPreferencesService {
     return this.preferencesSubject.value;
   }
 
-
   private getFromLocalStorage(): Record<string, boolean> {
     try {
       const cached = localStorage.getItem(this.STORAGE_KEY);
       return cached ? JSON.parse(cached) : {};
     } catch (error) {
-      console.warn('Failed to parse cached preferences:', error);
+      console.warn("Failed to parse cached preferences:", error);
       return {};
     }
   }
@@ -120,24 +122,26 @@ export class UserPreferencesService {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(prefs));
     } catch (error) {
-      console.warn('Failed to save preferences to localStorage:', error);
+      console.warn("Failed to save preferences to localStorage:", error);
     }
   }
 
   private async fetchFromBackend(): Promise<Record<string, boolean>> {
     const res = await axios.get<Record<string, boolean>>(
       this.apiUrl,
-      this.getUserHeaders()
+      this.getUserHeaders(),
     );
     return res.data || {};
   }
 
   private getUserHeaders() {
     const userSub =
-      localStorage.getItem('sub') || localStorage.getItem('userId') || '';
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    const token = localStorage.getItem("smartschoolToken") || "";
     return {
       headers: {
-        'X-User-Sub': userSub,
+        "X-User-Sub": userSub,
+        Authorization: token ? `Bearer ${token}` : "",
       },
     };
   }

@@ -10,6 +10,8 @@ import { filter } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { ExperienceService, LevelInfo } from "./services/experience.service";
 import { UserPreferencesService } from "./services/user-preferences.service";
+import { RecommendationService } from "./services/recommendation.service";
+import { BookService } from "./services/book.service";
 
 @Component({
   selector: "app-root",
@@ -27,6 +29,8 @@ export class AppComponent implements OnInit {
     private changeDetectorRef: ChangeDetectorRef,
     private experienceService: ExperienceService,
     private userPreferencesService: UserPreferencesService,
+    private recommendationService: RecommendationService,
+    private bookService: BookService,
   ) {
     this.levelInfo$ = this.experienceService.levelInfo$;
   }
@@ -142,6 +146,8 @@ export class AppComponent implements OnInit {
 
   private completeLogout(): void {
     this.userPreferencesService.clearCache();
+    this.recommendationService.clearCache();
+    this.bookService.clearCache();
     localStorage.clear();
     // Prevent back button access
     window.history.replaceState(null, "", "/login");
