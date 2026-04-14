@@ -137,9 +137,11 @@ export class UserPreferencesService {
   private getUserHeaders() {
     const userSub =
       localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    const token = localStorage.getItem("smartschoolToken") || "";
     return {
       headers: {
         "X-User-Sub": userSub,
+        Authorization: token ? `Bearer ${token}` : "",
       },
     };
   }
