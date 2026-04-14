@@ -341,8 +341,8 @@
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
 }
 
-.badge-loading-placeholder {
-  min-height: 140px;
+.section-loading-placeholder {
+  min-height: 72px;
 }
 
 .wishlist-section {
