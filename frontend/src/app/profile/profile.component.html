@@ -188,8 +188,6 @@
 
       @if (showSections) {
         <div class="profile-sections">
-          <app-badge-collection></app-badge-collection>
-
           @if (dashboardSettings["showBorrowed"]) {
             <section id="borrowed-section" class="profile-section">
               <div class="section-head">
@@ -402,15 +400,9 @@
           @defer (on viewport) {
             <app-badge-collection></app-badge-collection>
           } @placeholder {
-            <section
-              class="profile-section badges-section badge-loading-placeholder"
-            >
-              <div class="section-head">
-                <h3 class="section-title">Badgecollectie</h3>
-                <span class="section-count">...</span>
-              </div>
+            <section class="profile-section section-loading-placeholder">
               <div class="inline-empty">
-                Badgecollectie wordt geladen zodra je onderaan de pagina komt.
+                Meer profielinhoud wordt geladen...
               </div>
             </section>
           }
