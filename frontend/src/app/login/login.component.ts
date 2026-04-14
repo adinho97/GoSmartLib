@@ -78,6 +78,14 @@ export class LoginComponent implements OnInit {
 
   setRole(role: string): void {
     localStorage.setItem("role", role);
+    // Set dev token and user ID for dev login flow
+    localStorage.setItem("smartschoolToken", "dev-token-" + role);
+    localStorage.setItem("sub", "dev-user-" + role + "-" + Date.now());
+    localStorage.setItem("userId", "dev-user-" + role + "-" + Date.now());
+    localStorage.setItem(
+      "userName",
+      role.charAt(0).toUpperCase() + role.slice(1),
+    );
     if (!localStorage.getItem("selectedSchoolId")) {
       localStorage.setItem("selectedSchoolId", "1");
     }
