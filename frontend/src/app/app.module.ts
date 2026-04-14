@@ -19,7 +19,6 @@ import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
 import { BadgeToastComponent } from "./components/badge-toast/badge-toast.component";
-import { BadgeCollectionComponent } from "./profile/badge-collection/badge-collection.component";
 import { RecommendationSectionComponent } from "./recommendation-section/recommendation-section.component";
 import { RecommendationCardComponent } from "./recommendation-card/recommendation-card.component";
 
