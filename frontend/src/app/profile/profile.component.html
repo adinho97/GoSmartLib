@@ -9,6 +9,27 @@
         </div>
       </div>
 
+      @if (levelInfo) {
+        <div class="level-display">
+          <div class="level-header">
+            <span class="level-label">Niveau</span>
+            <span class="level-number">{{ levelInfo.level }}</span>
+          </div>
+          <div class="level-progress-bar">
+            <div
+              class="level-progress-fill"
+              [style.width.%]="levelInfo.progressPercentage"
+            ></div>
+          </div>
+          <div class="level-stats">
+            <span class="xp-text"
+              >{{ levelInfo.experienceForCurrentLevel }} /
+              {{ levelInfo.experienceRequiredForLevel }} XP</span
+            >
+          </div>
+        </div>
+      }
+
       <button type="button" class="logout-btn">Uitloggen</button>
     </div>
   </div>
@@ -372,25 +393,9 @@
               }
             </section>
           }
-        </div>
 
-        @if (badgeToastVisible) {
-          <div class="badge-toast" role="status" aria-live="polite">
-            <div class="badge-toast-icon" aria-hidden="true">🎉</div>
-            <div class="badge-toast-content">
-              <strong>{{ badgeToastTitle }}</strong>
-              <p>{{ badgeToastMessage }}</p>
-            </div>
-            <button
-              type="button"
-              class="badge-toast-close"
-              aria-label="Sluit melding"
-              (click)="dismissBadgeToast()"
-            >
-              ×
-            </button>
-          </div>
-        }
+          <app-badge-collection></app-badge-collection>
+        </div>
       }
     </div>
   </div>

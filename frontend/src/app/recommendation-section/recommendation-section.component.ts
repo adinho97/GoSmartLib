@@ -1,7 +1,7 @@
 import { Component, Input, Output, OnInit, OnDestroy, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { Subscription, skip } from 'rxjs';
 import { BookService } from '../services/book.service';
 import { UserPreferencesService, PreferenceKey } from '../services/user-preferences.service';
 import { RecommendedBook } from '../services/recommendation.service';
@@ -57,13 +57,20 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
 
   private initPreferences(): void {
     const prefsKey = `recommendationExcludeRead_${this.section}` as PreferenceKey;
-    this.subscription = this.userPreferencesService.preferences$.subscribe((prefs) => {
-      const value = prefs[prefsKey];
-      if (value !== undefined && value !== this.excludeRead) {
-        this.excludeRead = value;
-        this.refreshRecommendations.emit(this.excludeRead);
-      }
-    });
+
+    // Seed initial value without emitting refresh to avoid duplicate fetch on route load.
+    const initialPrefs = this.userPreferencesService.getSnapshotForLegacyUse();
+    this.excludeRead = initialPrefs[prefsKey] ?? true;
+
+    this.subscription = this.userPreferencesService.preferences$
+      .pipe(skip(1))
+      .subscribe((prefs) => {
+        const value = prefs[prefsKey];
+        if (value !== undefined && value !== this.excludeRead) {
+          this.excludeRead = value;
+          this.refreshRecommendations.emit(this.excludeRead);
+        }
+      });
   }
 
   private async loadWishlistState() {

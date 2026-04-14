@@ -143,10 +143,13 @@ export class BookListComponent implements OnInit {
     this.route.queryParamMap.subscribe((params) => {
       this.applyQueryGenreFilter(params.get("genre"));
     });
-    await this.loadSchools();
-    await this.loadBooks();
-    await this.loadWishlistState();
-    await this.loadFavoritesState();
+    
+    await Promise.all([
+      this.loadSchools().then(() => this.loadBooks()), // Sequential dependency: books need school selection
+      this.loadWishlistState(),                          // Independent
+      this.loadFavoritesState(),                         // Independent
+    ]);
+    
     this.applyFilters();
   }
 

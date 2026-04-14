@@ -18,11 +18,18 @@ export interface GroupedRecommendations {
   [strategyName: string]: RecommendedBook[];
 }
 
+interface CacheEntry {
+  data: GroupedRecommendations;
+  timestamp: number;
+}
+
 @Injectable({
   providedIn: "root",
 })
 export class RecommendationService {
   private apiUrl = "/api/aanbevelingen";
+  private readonly CACHE_TTL = 20 * 60 * 1000; //20min
+  private cache: Map<string, CacheEntry> = new Map();
 
   constructor(private http: HttpClient) {}
 
@@ -46,16 +53,43 @@ export class RecommendationService {
     };
   }
 
- 
+  private getCacheKey(limit: number, excludeRead: boolean): string {
+    return `grouped_${limit}_${excludeRead}`;
+  }
+
+  private isCacheValid(entry: CacheEntry | undefined): boolean {
+    if (!entry) return false;
+    const now = Date.now();
+    return now - entry.timestamp < this.CACHE_TTL;
+  }
+
+  clearCache(): void {
+    this.cache.clear();
+  }
+
   async getGroupedRecommendations(
     limit: number = 10,
     excludeRead: boolean = true
   ): Promise<GroupedRecommendations> {
+    const cacheKey = this.getCacheKey(limit, excludeRead);
+    const cachedEntry = this.cache.get(cacheKey);
+
+    if (this.isCacheValid(cachedEntry)) {
+      console.log(`Cache hit for ${cacheKey}`);
+      return cachedEntry!.data;
+    }
+
     try {
       const response = await axios.get<GroupedRecommendations>(
         `${this.apiUrl}/grouped?limit=${limit}&excludeRead=${excludeRead}`,
         this.getRoleHeaders()
       );
+
+      this.cache.set(cacheKey, {
+        data: response.data,
+        timestamp: Date.now(),
+      });
+      
       return response.data;
     } catch (error) {
       console.error("Error fetching grouped recommendations:", error);
@@ -121,8 +155,11 @@ export class RecommendationService {
     return grouped["AuthorBasedStrategy"] || [];
   }
 
-  async getNewArrivals(limit: number = 10): Promise<RecommendedBook[]> {
-    const grouped = await this.getGroupedRecommendations(limit, true);
+  async getNewArrivals(
+    limit: number = 10,
+    excludeRead: boolean = true
+  ): Promise<RecommendedBook[]> {
+    const grouped = await this.getGroupedRecommendations(limit, excludeRead);
     return grouped["NewArrivalsStrategy"] || [];
   }
 

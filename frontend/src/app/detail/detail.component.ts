@@ -6,6 +6,11 @@ import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
 import { BookService } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
+import {
+  BadgeNotificationService,
+  BadgeUnlocked,
+} from "../services/badge-notification.service";
+import { ExperienceService } from "../services/experience.service";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import axios from "axios";
@@ -80,6 +85,8 @@ export class DetailComponent implements OnInit, OnDestroy {
     private bookService: BookService,
     private loanService: LoanService,
     private sanitizer: DomSanitizer,
+    private badgeNotificationService: BadgeNotificationService,
+    private experienceService: ExperienceService,
   ) {}
 
   ngOnInit(): void {
@@ -555,8 +562,18 @@ export class DetailComponent implements OnInit, OnDestroy {
     }).format(d);
   }
 
+  getReviewAuthor(review: Review): string {
+    return review.reviewerUserName?.trim() || "Anoniem";
+  }
+
   setReviewRating(rating: number): void {
     this.newReviewRating = rating;
+    this.reviewError = "";
+    this.reviewSuccess = "";
+  }
+
+  setEditReviewRating(rating: number): void {
+    this.editReviewRating = rating;
     this.reviewError = "";
     this.reviewSuccess = "";
   }
@@ -606,6 +623,18 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.pendingReviewRating = 0;
   }
 
+  startReviewEdit(review: Review): void {
+    if (!this.canManageReview(review)) {
+      return;
+    }
+
+    this.editReviewId = review.id;
+    this.editReviewRating = review.rating;
+    this.editReviewComment = review.comment;
+    this.reviewError = "";
+    this.reviewSuccess = "";
+  }
+
   private async postReview(comment: string, anonymous: boolean): Promise<void> {
     if (this.currentBookId === null) {
       return;
@@ -630,6 +659,11 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.newReviewAnonymous = anonymous;
       this.reviewError = "";
       this.reviewSuccess = "Review opgeslagen.";
+
+      // Add experience for writing a review
+      this.experienceService.addExperienceForReview();
+
+      await this.emitReviewBadgeIfUnlocked();
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
@@ -650,6 +684,60 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.reviewError = "Review opslaan mislukt. Probeer het opnieuw.";
       this.reviewSuccess = "";
     }
+  }
+
+  private async emitReviewBadgeIfUnlocked(): Promise<void> {
+    const reviewCount = await this.bookService.getMyReviewCount();
+    const badgeMilestones = [1, 5, 10, 20, 50, 100];
+    if (!badgeMilestones.includes(reviewCount)) {
+      return;
+    }
+
+    const badgeMap: Record<number, BadgeUnlocked> = {
+      1: {
+        title: "Ontgrendeld: je eerste review",
+        icon: "✍️",
+        category: "review",
+      },
+      5: { title: "Ontgrendeld: 5 reviews", icon: "✍️", category: "review" },
+      10: { title: "Ontgrendeld: 10 reviews", icon: "📝", category: "review" },
+      20: { title: "Ontgrendeld: 20 reviews", icon: "📝", category: "review" },
+      50: { title: "Ontgrendeld: 50 reviews", icon: "🌟", category: "review" },
+      100: {
+        title: "Ontgrendeld: 100 reviews",
+        icon: "👑",
+        category: "review",
+      },
+    };
+
+    const badge = badgeMap[reviewCount];
+    if (!badge) {
+      return;
+    }
+
+    const storageKey = "profileBadgeCounts";
+    let storedLoanCount = 0;
+    try {
+      const rawValue = localStorage.getItem(storageKey);
+      if (rawValue) {
+        const parsedValue = JSON.parse(rawValue) as {
+          loanCount?: number;
+          reviewCount?: number;
+        };
+        if (typeof parsedValue.loanCount === "number") {
+          storedLoanCount = parsedValue.loanCount;
+        }
+      }
+    } catch {
+      storedLoanCount = 0;
+    }
+
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({ loanCount: storedLoanCount, reviewCount }),
+    );
+
+    this.badgeNotificationService.showBadgeNotification(badge);
   }
 
   deleteReview(reviewId: number): void {
@@ -676,6 +764,10 @@ export class DetailComponent implements OnInit, OnDestroy {
     try {
       await this.bookService.deleteBookReview(this.currentBookId, reviewId);
       this.reviews = this.reviews.filter((r) => r.id !== reviewId);
+
+      // Remove the review XP again when the review is deleted.
+      this.experienceService.removeExperienceForReview();
+
       this.reviewError = "";
       this.reviewSuccess = "Review verwijderd.";
       if (this.editReviewId === reviewId) {
@@ -702,41 +794,6 @@ export class DetailComponent implements OnInit, OnDestroy {
     return !!review.canManage;
   }
 
-  getReviewAuthor(review: Review): string {
-    if (review.reviewerUserName && review.reviewerUserName.trim()) {
-      return review.reviewerUserName;
-    }
-    if (review.reviewerUserId != null) {
-      return String(review.reviewerUserId);
-    }
-    return "Anoniem";
-  }
-
-  startReviewEdit(review: Review): void {
-    if (!this.canManageReview(review)) {
-      return;
-    }
-
-    this.editReviewId = review.id;
-    this.editReviewRating = review.rating;
-    this.editReviewComment = review.comment;
-    this.reviewError = "";
-    this.reviewSuccess = "";
-  }
-
-  cancelReviewEdit(): void {
-    this.editReviewId = null;
-    this.editReviewRating = 0;
-    this.editReviewComment = "";
-    this.reviewError = "";
-  }
-
-  setEditReviewRating(rating: number): void {
-    this.editReviewRating = rating;
-    this.reviewError = "";
-    this.reviewSuccess = "";
-  }
-
   isReviewExpanded(reviewId: number): boolean {
     return this.expandedReviewIds.has(reviewId);
   }
@@ -758,6 +815,12 @@ export class DetailComponent implements OnInit, OnDestroy {
     const rating = Math.min(5, Math.max(0, review.rating || 0));
     const fillForStar = rating - starIndex;
     return Math.min(100, Math.max(0, fillForStar * 100));
+  }
+
+  cancelReviewEdit(): void {
+    this.editReviewId = null;
+    this.editReviewRating = 0;
+    this.editReviewComment = "";
   }
 
   async saveReviewEdit(reviewId: number): Promise<void> {
