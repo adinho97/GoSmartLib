@@ -45,7 +45,7 @@ public class AuthService {
                                                                 "No refresh token available for user: " + sub));
                                         }
                                         logger.debug("Refreshing access token for user: {}", sub);
-                                        return refreshAccessToken(user.getSmartschoolRefreshToken())
+                                        return refreshAccessToken(user.getSmartschoolRefreshToken(), user.getPlatform())
                                                         .flatMap(tokenResponse -> {
                                                                 user.setAccessToken(tokenResponse.getAccessToken());
                                                                 if (tokenResponse.getRefreshToken() != null) {
@@ -193,6 +193,10 @@ public class AuthService {
         }
 
         public Mono<SmartschoolTokenResponse> refreshAccessToken(String refreshToken) {
+                return refreshAccessToken(refreshToken, null);
+        }
+
+        public Mono<SmartschoolTokenResponse> refreshAccessToken(String refreshToken, String platformUrl) {
                 String clientSecret = smartschoolProperties.getClientSecret();
                 if (clientSecret == null || clientSecret.isBlank()
                                 || "${SMARTSCHOOL_CLIENT_SECRET}".equals(clientSecret)) {
@@ -207,7 +211,10 @@ public class AuthService {
                 formData.add("client_id", smartschoolProperties.getClientId());
                 formData.add("client_secret", clientSecret);
 
-                String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/index/token";
+                String baseUrl = (platformUrl != null && !platformUrl.isBlank())
+                                ? platformUrl
+                                : smartschoolProperties.getApiBaseUrl();
+                String tokenUrl = baseUrl + "/OAuth/index/token";
                 logger.info("Requesting new access token using refresh token from: {}", tokenUrl);
 
                 return this.webClient.post()
