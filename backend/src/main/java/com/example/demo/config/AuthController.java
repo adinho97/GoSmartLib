@@ -1,5 +1,6 @@
 package com.example.demo.config;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -16,9 +17,18 @@ public class AuthController {
 
     @PostMapping("/smartschool-login")
     public Mono<ResponseEntity<AuthLoginResponse>> smartschoolLogin(
-            @RequestBody LoginRequest loginRequest) {
+            @RequestBody LoginRequest loginRequest,
+            HttpSession session) {
         return authService.processSmartschoolCallback(loginRequest.getCode())
-                .map(ResponseEntity::ok)
+                .map(response -> {
+                    String inviteToken = (String) session.getAttribute("inviteToken");
+                    if (inviteToken != null) {
+                        response.setRedirectTo("select-teacher");
+                    } else {
+                        response.setRedirectTo("dashboard");
+                    }
+                    return ResponseEntity.ok(response);
+                })
                 .defaultIfEmpty(ResponseEntity.status(401).build());
     }
 
