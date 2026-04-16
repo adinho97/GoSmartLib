@@ -39,7 +39,7 @@ public class LoanReminderService {
         this.smartschoolProperties = smartschoolProperties;
     }
 
-    @Scheduled(cron = "0 0 9 * * ?") // Runs every day at 9 AM
+    @Scheduled(cron = "0 0 9 * * ?", zone = "Europe/Brussels") // Runs every day at 9 AM
     public void sendLoanReminders() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         logger.info("Starting automated loan reminder check for date: {}", tomorrow);
