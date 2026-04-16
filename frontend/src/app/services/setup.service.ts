@@ -27,7 +27,7 @@ export interface ConfirmInviteResponse {
   providedIn: 'root'
 })
 export class SetupService {
-  private apiUrl = '/setup';
+  private apiUrl = '/api/setup';
 
   constructor(private http: HttpClient) {}
 

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/setup")
+@RequestMapping("/api/setup")
 @CrossOrigin(origins = "*")
 public class SetupController {
 
@@ -121,7 +121,6 @@ public class SetupController {
         String token = inviteService.generateInvite(schoolId);
         return ResponseEntity.ok(Map.of(
                 "token", token,
-                "link", "https://gosmartlibs07.tech/setup/invite/" + token
-        ));
+                "link", "https://gosmartlibs07.tech/setup/invite/" + token));
     }
 }
