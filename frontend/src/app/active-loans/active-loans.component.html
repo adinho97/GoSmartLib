@@ -1,0 +1,41 @@
+<div class="results-section">
+  <div class="result-header">
+    <h3>Mijn huidige uitleningen</h3>
+    <span class="count-badge">{{ loans.length }} boeken</span>
+  </div>
+
+  @if (loans.length > 0) {
+    <ul class="history-list">
+      @for (loan of loans; track loan.id) {
+        <li class="history-item clickable" (click)="goToDetail(loan.bookId)">
+          <div class="item-book-info">
+            @if (loan.bookCover) {
+              <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="book-cover" />
+            }
+            <div class="item-details">
+              <div class="item-title">{{ loan.bookTitel }}</div>
+              
+              <div class="item-dates" [class.danger]="isOverdue(loan.dueDate)">
+                Uiterste inleverdatum: {{ loan.dueDate | date: "dd/MM/yyyy" }}
+              </div>
+
+              <div class="status-row">
+                @if (isOverdue(loan.dueDate)) {
+                  <span class="badge overdue">⚠️ Te laat</span>
+                } @else if (isDueToday(loan.dueDate)) {
+                  <span class="badge warning">📅 Vandaag inleveren</span>
+                } @else {
+                  <span class="badge info">In bezit</span>
+                }
+              </div>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="empty-state">
+      <p>Je hebt momenteel geen boeken geleend.</p>
+    </div>
+  }
+</div>

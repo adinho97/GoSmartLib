@@ -21,6 +21,7 @@ import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history
 import { BadgeToastComponent } from "./components/badge-toast/badge-toast.component";
 import { RecommendationSectionComponent } from "./recommendation-section/recommendation-section.component";
 import { RecommendationCardComponent } from "./recommendation-card/recommendation-card.component";
+import { ActiveLoansComponent } from "./active-loans/active-loans.component";
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { RecommendationCardComponent } from "./recommendation-card/recommendatio
     BadgeToastComponent,
     RecommendationSectionComponent,
     RecommendationCardComponent,
-  ],
+    ActiveLoansComponent
+],
   providers: [provideHttpClient()],
   bootstrap: [AppComponent],
 })
