@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { UserPreferencesService } from "../services/user-preferences.service";
+import { ExperienceService } from "../services/experience.service";
 
 @Component({
   selector: "app-login",
@@ -19,11 +20,19 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute,
     private http: HttpClient,
     private userPreferencesService: UserPreferencesService,
+    private experienceService: ExperienceService,
   ) {}
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       const code = params["code"];
+      const inviteToken = params["invite"];
+      
+      // Store invite token in sessionStorage if present
+      if (inviteToken) {
+        sessionStorage.setItem("inviteToken", inviteToken);
+      }
+      
       if (code) {
         this.handleSmartschoolCode(code);
       }
@@ -65,6 +74,16 @@ export class LoginComponent implements OnInit {
           localStorage.setItem("smartschoolPlatform", userInfo.platform);
         }
         this.userPreferencesService.init();
+
+        this.experienceService.refreshForCurrentUser().catch((error) => {
+          console.warn("Failed to hydrate experience after login:", error);
+        });
+
+        // Check redirectTo field from backend (new invite flow logic)
+        const redirectTo = userInfo.redirectTo || "dashboard";
+        const path = redirectTo === "select-teacher" ? `/setup/${redirectTo}` : `/${redirectTo}`;
+        this.router.navigate([path]);
+
         this.isLoading = false;
       },
       error: (err) => {

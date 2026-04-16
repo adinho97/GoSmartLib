@@ -102,18 +102,32 @@ public class AuthService {
 
         private AuthLoginResponse saveUserAndBuildResponse(SmartschoolUserInfo userInfo) {
                 String sub = userInfo.getSub();
-                String role = userInfo.getRole();
+                String smartschoolRole = userInfo.getRole();
                 String displayName = userInfo.getName(); // Renamed to clarify it's for display only
 
-                AppUser user = appUserRepository.findBySub(sub).orElseGet(() -> {
+                // Check if user already exists
+                var existingUserOpt = appUserRepository.findBySub(sub);
+                String finalRole;
+                
+                if (existingUserOpt.isPresent()) {
+                        // User exists → keep existing role (don't overwrite with Smartschool role)
+                        // This preserves bibbeheerder role after promotion
+                        finalRole = existingUserOpt.get().getRole();
+                        logger.info("Bestaande gebruiker ingelogd met sub: {}, keeping role: {}", sub, finalRole);
+                } else {
+                        // New user → set role from Smartschool
+                        finalRole = smartschoolRole;
+                        logger.info("Nieuwe gebruiker aangemaakt met sub: {}, role: {}", sub, finalRole);
+                }
+
+                AppUser user = existingUserOpt.orElseGet(() -> {
                         AppUser newUser = new AppUser();
                         newUser.setSub(sub);
-                        newUser.setRole(role);
-                        logger.info("Nieuwe gebruiker aangemaakt met sub: {}", sub);
                         return newUser;
                 });
 
-                user.setRole(role);
+                // Always update tokens and platform (regardless of existing or new)
+                user.setRole(finalRole);
                 user.setSmartschoolRefreshToken(userInfo.getRefreshToken());
                 user.setAccessToken(userInfo.getAccessToken());
                 user.setPlatform(userInfo.getPlatform());
@@ -121,7 +135,7 @@ public class AuthService {
 
                 AuthLoginResponse response = new AuthLoginResponse(
                                 sub,
-                                role,
+                                finalRole,
                                 displayName,
                                 userInfo.getGivenName(),
                                 userInfo.getFamilyName());

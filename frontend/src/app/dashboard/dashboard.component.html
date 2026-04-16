@@ -18,40 +18,9 @@
       ></app-profile>
     </section>
 
-    <!-- Mijn uitgeleende boeken -->
     @if (currentUsername && !loansLoading && myLoans.length > 0) {
-      <h2 class="section-title">Mijn uitgeleende boeken</h2>
-      <div class="loans-scroll-wrapper">
-        @for (loan of myLoans; track loan.id) {
-          <div
-            class="loan-card"
-            [class.overdue]="isOverdue(loan.dueDate)"
-            (click)="goToDetail(loan.bookId)"
-          >
-            <div class="loan-cover">
-              @if (loan.bookCover) {
-                <img [src]="loan.bookCover" [alt]="loan.bookTitel" />
-              } @else {
-                <div class="loan-cover-placeholder">?</div>
-              }
-            </div>
-            <div class="loan-info">
-              <span class="loan-title">{{ loan.bookTitel }}</span>
-              <span
-                class="loan-due"
-                [class.overdue-text]="isOverdue(loan.dueDate)"
-              >
-                @if (isOverdue(loan.dueDate)) {
-                  ⚠ Te laat — {{ loan.dueDate | date: "dd/MM/yyyy" }}
-                } @else {
-                  Terug voor {{ loan.dueDate | date: "dd/MM/yyyy" }}
-                }
-              </span>
-            </div>
-          </div>
-        }
-      </div>
-    }
+    <app-active-loans [loans]="myLoans"></app-active-loans>
+}
 
     <!-- Recommendation Sections -->
     @if (recommendationsLoading) {

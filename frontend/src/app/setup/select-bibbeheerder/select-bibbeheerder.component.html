@@ -1,0 +1,54 @@
+<div class="teacher-container">
+  @if (isLoading) {
+    <div class="loading">
+      <p>Leerkrachten laden...</p>
+    </div>
+  }
+
+  @if (error && !isLoading) {
+    <div class="error">
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  @if (success) {
+    <div class="success">
+      <p>{{ success }}</p>
+      <p>Redirect naar dashboard...</p>
+    </div>
+  }
+
+  @if (teachers.length > 0 && !isLoading && !success) {
+    <div class="content">
+      <h2>Selecteer Bibbeheerder</h2>
+      <p>Kies de leerkracht die bibbeheerder wordt:</p>
+
+      <form (ngSubmit)="confirmTeacher()">
+        <div class="teachers-list">
+          @for (teacher of teachers; track teacher.id) {
+            <div class="teacher-item">
+              <input
+                type="radio"
+                [id]="'teacher-' + teacher.id"
+                [value]="teacher.id"
+                [(ngModel)]="selectedTeacherId"
+                name="teacher"
+              />
+              <label [for]="'teacher-' + teacher.id">
+                {{ teacher.naam }}
+              </label>
+            </div>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="!selectedTeacherId || isSubmitting"
+        >
+          {{ isSubmitting ? "Bezig..." : "Bevestigen" }}
+        </button>
+      </form>
+    </div>
+  }
+</div>

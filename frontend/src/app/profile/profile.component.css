@@ -341,6 +341,10 @@
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
 }
 
+.section-loading-placeholder {
+  min-height: 72px;
+}
+
 .wishlist-section {
   border-color: #f0dde5;
   background: #ffffff;
