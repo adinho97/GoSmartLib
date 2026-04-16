@@ -3,13 +3,15 @@ package com.example.demo.repositories;
 import com.example.demo.entities.Loan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
-    List<Loan> findByDueDateAndReturnedAtIsNull(LocalDate dueDate);
+    @Query("SELECT l FROM Loan l JOIN FETCH l.copy c JOIN FETCH c.book WHERE l.dueDate = :dueDate AND l.returnedAt IS NULL")
+    List<Loan> findByDueDateAndReturnedAtIsNull(@Param("dueDate") LocalDate dueDate);
 
     List<Loan> findByUserSubAndReturnedAtIsNull(String userSub);
 
