@@ -41,8 +41,12 @@
           }
         </div>
 
-        <button type="submit" class="btn-primary" [disabled]="!selectedTeacherId || isSubmitting">
-          {{ isSubmitting ? 'Bezig...' : 'Bevestigen' }}
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="!selectedTeacherId || isSubmitting"
+        >
+          {{ isSubmitting ? "Bezig..." : "Bevestigen" }}
         </button>
       </form>
     </div>
