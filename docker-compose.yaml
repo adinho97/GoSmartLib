@@ -50,6 +50,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
       - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
       - SMARTSCHOOL_CLIENT_SECRET=${SMARTSCHOOL_CLIENT_SECRET}
+      - INVITE_ADMIN_KEY=${INVITE_ADMIN_KEY}
     depends_on:
       db:
         condition: service_healthy

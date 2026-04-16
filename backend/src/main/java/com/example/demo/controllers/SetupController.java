@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/setup")
@@ -103,5 +104,24 @@ public class SetupController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(confirmResponse);
         }
+    }
+
+    @PostMapping("/generate-invite")
+    public ResponseEntity<?> generateInvite(
+            @RequestParam String schoolId,
+            @RequestHeader(value = "X-Admin-Key", required = false) String adminKey) {
+
+        // Check admin key from environment variable
+        String expectedKey = System.getenv("INVITE_ADMIN_KEY");
+        if (expectedKey == null || !expectedKey.equals(adminKey)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Unauthorized"));
+        }
+
+        String token = inviteService.generateInvite(schoolId);
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "link", "https://gosmartlibs07.tech/setup/invite/" + token
+        ));
     }
 }
