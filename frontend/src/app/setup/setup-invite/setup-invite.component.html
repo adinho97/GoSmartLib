@@ -1,0 +1,25 @@
+<div class="invite-container">
+  @if (isLoading) {
+    <div class="loading">
+      <p>Valideren...</p>
+    </div>
+  }
+
+  @if (error && !isLoading) {
+    <div class="error">
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  @if (isValid && !isLoading) {
+    <div class="content">
+      <h1>Bibbeheerder Instellen</h1>
+      <p>Kies een bibbeheerder voor:</p>
+      <p class="school-name">{{ schoolName }}</p>
+      
+      <button (click)="loginWithSmartschool()" class="btn-primary">
+        Inloggen via Smartschool
+      </button>
+    </div>
+  }
+</div>
