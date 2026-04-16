@@ -108,5 +108,6 @@ export class LoginComponent implements OnInit {
     if (!localStorage.getItem("selectedSchoolId")) {
       localStorage.setItem("selectedSchoolId", "1");
     }
+    this.router.navigate(["/dashboard"]);
   }
 }
