@@ -78,7 +78,8 @@ export class LoginComponent implements OnInit {
 
         // Check redirectTo field from backend (new invite flow logic)
         const redirectTo = userInfo.redirectTo || "dashboard";
-        this.router.navigate([`/${redirectTo}`]);
+        const path = redirectTo === "select-teacher" ? `/setup/${redirectTo}` : `/${redirectTo}`;
+        this.router.navigate([path]);
 
         this.isLoading = false;
       },
