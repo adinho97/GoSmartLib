@@ -1,9 +1,11 @@
-import { NgModule } from "@angular/core";
+import { LOCALE_ID, NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
 import { AppRoutingModule } from "./app-routing.module";
 import { provideHttpClient } from "@angular/common/http";
 
+import { registerLocaleData } from '@angular/common';
+import localeNl from '@angular/common/locales/nl';
 import { AppComponent } from "./app.component";
 import { LoginComponent } from "./login/login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
@@ -22,6 +24,8 @@ import { BadgeToastComponent } from "./components/badge-toast/badge-toast.compon
 import { RecommendationSectionComponent } from "./recommendation-section/recommendation-section.component";
 import { RecommendationCardComponent } from "./recommendation-card/recommendation-card.component";
 import { ActiveLoansComponent } from "./active-loans/active-loans.component";
+
+registerLocaleData(localeNl, 'nl');
 
 @NgModule({
   declarations: [
@@ -49,7 +53,9 @@ import { ActiveLoansComponent } from "./active-loans/active-loans.component";
     RecommendationCardComponent,
     ActiveLoansComponent
 ],
-  providers: [provideHttpClient()],
+  providers: [provideHttpClient(),
+    {provide: LOCALE_ID, useValue: 'nl'}
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
