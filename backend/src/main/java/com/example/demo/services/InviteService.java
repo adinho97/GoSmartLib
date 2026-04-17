@@ -58,15 +58,39 @@ public class InviteService {
     }
 
     public List<TeacherDto> getTeachersBySchool(String schoolId) {
-        List<AppUser> teachers = appUserRepository.findByRoleAndPlatform("leerkracht", schoolId);
+        // Get all teachers with leerkracht role
+        List<AppUser> allTeachers = appUserRepository.findByRole("leerkracht");
 
-        return teachers.stream()
+        // Filter by matching school name extracted from platform URL
+        // Platform format: "https://aphogeschool.smartschool.be" → extract "aphogeschool"
+        return allTeachers.stream()
+                .filter(teacher -> {
+                    if (teacher.getPlatform() == null) return false;
+                    String platformSchool = extractSchoolFromPlatform(teacher.getPlatform());
+                    return schoolId.equalsIgnoreCase(platformSchool);
+                })
                 .map(teacher -> new TeacherDto(
                         teacher.getId(),
                         teacher.getSub(),
                         teacher.getSub() // TODO: fetch naam van Smartschool API of user display name
                 ))
                 .collect(Collectors.toList());
+    }
+
+    private String extractSchoolFromPlatform(String platform) {
+        // Extract school name from platform URL
+        // "https://aphogeschool.smartschool.be" → "aphogeschool"
+        if (platform == null || platform.isBlank()) {
+            return null;
+        }
+        try {
+            // Remove https:// and split on .smartschool.be
+            return platform
+                    .replaceAll("^https?://", "")
+                    .split("\\.smartschool\\.be")[0];
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Transactional

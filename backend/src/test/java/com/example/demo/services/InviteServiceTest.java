@@ -74,10 +74,9 @@ class InviteServiceTest {
         inviteService.generateInvite(schoolId);
 
         // Assert
-        verify(inviteRepository, times(1)).save(argThat(invite ->
-            invite.getExpiresAt().isAfter(LocalDateTime.now().plusDays(6)) &&
-            invite.getExpiresAt().isBefore(LocalDateTime.now().plusDays(8))
-        ));
+        verify(inviteRepository, times(1))
+                .save(argThat(invite -> invite.getExpiresAt().isAfter(LocalDateTime.now().plusDays(6)) &&
+                        invite.getExpiresAt().isBefore(LocalDateTime.now().plusDays(8))));
     }
 
     // ===== validateInvite() Tests =====
@@ -145,19 +144,19 @@ class InviteServiceTest {
         teacher1.setId(1L);
         teacher1.setSub("teacher-sub-1");
         teacher1.setRole("leerkracht");
-        teacher1.setPlatform(schoolId);
+        teacher1.setPlatform("https://aphogeschool.smartschool.be");
 
         AppUser teacher2 = new AppUser();
         teacher2.setId(2L);
         teacher2.setSub("teacher-sub-2");
         teacher2.setRole("leerkracht");
-        teacher2.setPlatform(schoolId);
+        teacher2.setPlatform("https://aphogeschool.smartschool.be");
 
-        when(appUserRepository.findByRoleAndPlatform("leerkracht", schoolId))
-            .thenReturn(Arrays.asList(teacher1, teacher2));
+        when(appUserRepository.findByRole("leerkracht"))
+                .thenReturn(Arrays.asList(teacher1, teacher2));
 
         // Act
-        List<TeacherDto> teachers = inviteService.getTeachersBySchool(schoolId);
+        List<TeacherDto> teachers = inviteService.getTeachersBySchool("aphogeschool");
 
         // Assert
         assertEquals(2, teachers.size());
@@ -168,11 +167,11 @@ class InviteServiceTest {
     @Test
     void getTeachersBySchool_shouldReturnEmptyListIfNoTeachers() {
         // Arrange
-        when(appUserRepository.findByRoleAndPlatform("leerkracht", schoolId))
-            .thenReturn(Arrays.asList());
+        when(appUserRepository.findByRole("leerkracht"))
+                .thenReturn(Arrays.asList());
 
         // Act
-        List<TeacherDto> teachers = inviteService.getTeachersBySchool(schoolId);
+        List<TeacherDto> teachers = inviteService.getTeachersBySchool("aphogeschool");
 
         // Assert
         assertTrue(teachers.isEmpty());
@@ -181,14 +180,25 @@ class InviteServiceTest {
     @Test
     void getTeachersBySchool_shouldFilterByPlatform() {
         // Arrange
-        when(appUserRepository.findByRoleAndPlatform("leerkracht", schoolId))
-            .thenReturn(Arrays.asList());
+        AppUser teacher1 = new AppUser();
+        teacher1.setId(1L);
+        teacher1.setRole("leerkracht");
+        teacher1.setPlatform("https://aphogeschool.smartschool.be");
+
+        AppUser teacher2 = new AppUser();
+        teacher2.setId(2L);
+        teacher2.setRole("leerkracht");
+        teacher2.setPlatform("https://otherschool.smartschool.be"); // Different school
+
+        when(appUserRepository.findByRole("leerkracht"))
+                .thenReturn(Arrays.asList(teacher1, teacher2));
 
         // Act
-        inviteService.getTeachersBySchool(schoolId);
+        List<TeacherDto> teachers = inviteService.getTeachersBySchool("aphogeschool");
 
         // Assert
-        verify(appUserRepository, times(1)).findByRoleAndPlatform("leerkracht", schoolId);
+        assertEquals(1, teachers.size()); // Only teacher from aphogeschool
+        assertEquals(1L, teachers.get(0).getId());
     }
 
     // ===== confirmInvite() Tests =====
@@ -212,12 +222,9 @@ class InviteServiceTest {
 
         // Assert
         assertTrue(response.isSuccess());
-        verify(inviteRepository, times(1)).save(argThat(invite ->
-            invite.getUsed() && invite.getUsedBy().equals("admin-sub")
-        ));
-        verify(appUserRepository, times(1)).save(argThat(user ->
-            user.getRole().equals("bibbeheerder")
-        ));
+        verify(inviteRepository, times(1))
+                .save(argThat(invite -> invite.getUsed() && invite.getUsedBy().equals("admin-sub")));
+        verify(appUserRepository, times(1)).save(argThat(user -> user.getRole().equals("bibbeheerder")));
     }
 
     @Test
