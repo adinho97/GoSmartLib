@@ -17,8 +17,9 @@
         (logoutRequested)="logout()"
       ></app-profile>
     </section>
-    <app-active-loans [loans]="myLoans"></app-active-loans>
-
+    @if (!loansLoading) {
+      <app-active-loans [loans]="myLoans"></app-active-loans>
+    }
 
     <!-- Recommendation Sections -->
     @if (recommendationsLoading) {
