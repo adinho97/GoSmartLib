@@ -1,413 +1,291 @@
 @if (!embedded) {
-  <div class="profile-page profile-page-popup">
-    <div class="profile-popover" role="dialog" aria-label="Profielmenu">
-      <div class="profile-popover-top">
+<div class="profile-page profile-page-popup">
+  <div class="profile-popover" role="dialog" aria-label="Profielmenu">
+    <div class="profile-popover-top">
+      <div class="avatar">{{ userName.charAt(0).toUpperCase() }}</div>
+      <div class="identity-text">
+        <h1>{{ userName }}</h1>
+        <p>{{ role }}</p>
+      </div>
+    </div>
+
+    @if (levelInfo) {
+    <div class="level-display">
+      <div class="level-header">
+        <span class="level-label">Niveau</span>
+        <span class="level-number">{{ levelInfo.level }}</span>
+      </div>
+      <div class="level-progress-bar">
+        <div class="level-progress-fill" [style.width.%]="levelInfo.progressPercentage"></div>
+      </div>
+      <div class="level-stats">
+        <span class="xp-text">{{ levelInfo.experienceForCurrentLevel }} /
+          {{ levelInfo.experienceRequiredForLevel }} XP</span>
+      </div>
+    </div>
+    }
+
+    <button type="button" class="logout-btn" (click)="logout()" aria-label="Uitloggen">
+      Uitloggen
+    </button>
+  </div>
+</div>
+} @else {
+<div class="profile-page embedded">
+  <div class="profile-shell">
+    @if (showHero) {
+    <header class="profile-hero">
+      <div class="identity-row">
         <div class="avatar">{{ userName.charAt(0).toUpperCase() }}</div>
         <div class="identity-text">
           <h1>{{ userName }}</h1>
-          <p>{{ role }}</p>
+          <p>Jouw leescentrum en persoonlijke boekinzichten</p>
+        </div>
+
+        <div class="identity-actions" (click)="$event.stopPropagation()">
+          <div class="settings-dropdown">
+            <button class="settings-btn" type="button" (click)="toggleSettings()" [attr.aria-expanded]="settingsOpen">
+              Weergave-instellingen
+            </button>
+
+            <div class="dropdown-menu" [class.show]="settingsOpen" role="menu" (click)="$event.stopPropagation()">
+              <label class="setting-option">
+                <input type="checkbox" id="showWishlist" [(ngModel)]="dashboardSettings['showWishlist']" />
+                <span>Verlanglijst tonen</span>
+              </label>
+
+              <label class="setting-option">
+                <input type="checkbox" id="showFavorites" [(ngModel)]="dashboardSettings['showFavorites']" />
+                <span>Favoriete boeken tonen</span>
+              </label>
+
+              <label class="setting-option">
+                <input type="checkbox" id="showReadingHistory" [(ngModel)]="dashboardSettings['showReadingHistory']" />
+                <span>Leeshistoriek tonen</span>
+              </label>
+
+              <label class="setting-option">
+                <input type="checkbox" id="showBorrowed" [(ngModel)]="dashboardSettings['showBorrowed']" />
+                <span>Geleende boeken tonen</span>
+              </label>
+
+              <label class="setting-option">
+                <input type="checkbox" id="showHighlighted" [(ngModel)]="dashboardSettings['showHighlighted']" />
+                <span>Klasleeslijst tonen</span>
+              </label>
+
+              <label class="setting-option">
+                <input type="checkbox" id="showDeadline" [(ngModel)]="dashboardSettings['showDeadline']" />
+                <span>Deadlines tonen bij geleende boeken</span>
+              </label>
+
+              <button class="save-btn" type="button" (click)="saveDashboardSettings()">
+                Opslaan
+              </button>
+            </div>
+          </div>
+
+          <div class="profile-role">{{ role }}</div>
         </div>
       </div>
 
-      @if (levelInfo) {
-        <div class="level-display">
-          <div class="level-header">
-            <span class="level-label">Niveau</span>
-            <span class="level-number">{{ levelInfo.level }}</span>
-          </div>
-          <div class="level-progress-bar">
-            <div
-              class="level-progress-fill"
-              [style.width.%]="levelInfo.progressPercentage"
-            ></div>
-          </div>
-          <div class="level-stats">
-            <span class="xp-text"
-              >{{ levelInfo.experienceForCurrentLevel }} /
-              {{ levelInfo.experienceRequiredForLevel }} XP</span
-            >
-          </div>
+      <div class="stats-row">
+        <button type="button" class="stat-card stat-card-link" (click)="scrollToSection('borrowed-section')">
+          <span class="stat-label">Geleend</span>
+          <strong>{{ borrowedBooks.length }}</strong>
+        </button>
+
+        <button type="button" class="stat-card stat-card-link" (click)="scrollToSection('highlighted-section')">
+          <span class="stat-label">Klasleeslijst</span>
+          <strong>{{ readingList.length }}</strong>
+        </button>
+
+        <button type="button" class="stat-card stat-card-link" (click)="scrollToSection('history-section')">
+          <span class="stat-label">Historiek</span>
+          <strong>{{ readingHistory.length }}</strong>
+        </button>
+
+        <button type="button" class="stat-card stat-card-link" (click)="scrollToSection('wishlist-section')">
+          <span class="stat-label">Verlanglijst</span>
+          <strong>{{ wishlistCount }}</strong>
+        </button>
+
+        <button type="button" class="stat-card stat-card-link" (click)="scrollToSection('favorites-section')">
+          <span class="stat-label">Favorieten</span>
+          <strong>{{ favoritesCount }}</strong>
+        </button>
+      </div>
+    </header>
+    }
+
+    @if (showSections) {
+    <div class="profile-sections">
+      @if (dashboardSettings["showBorrowed"]) {
+      <section id="borrowed-section" class="profile-section">
+        <div class="section-head">
+          <h3 class="section-title">Geleende boeken</h3>
+          <span class="section-count">{{ borrowedBooks.length }}</span>
         </div>
-      }
-
-      <button
-        type="button"
-        class="logout-btn"
-        (click)="logout()"
-        aria-label="Uitloggen"
-      >
-        Uitloggen
-      </button>
-    </div>
-  </div>
-} @else {
-  <div class="profile-page embedded">
-    <div class="profile-shell">
-      @if (showHero) {
-        <header class="profile-hero">
-          <div class="identity-row">
-            <div class="avatar">{{ userName.charAt(0).toUpperCase() }}</div>
-            <div class="identity-text">
-              <h1>{{ userName }}</h1>
-              <p>Jouw leescentrum en persoonlijke boekinzichten</p>
-            </div>
-
-            <div class="identity-actions" (click)="$event.stopPropagation()">
-              <div class="settings-dropdown">
-                <button
-                  class="settings-btn"
-                  type="button"
-                  (click)="toggleSettings()"
-                  [attr.aria-expanded]="settingsOpen"
-                >
-                  Weergave-instellingen
-                </button>
-
-                <div
-                  class="dropdown-menu"
-                  [class.show]="settingsOpen"
-                  role="menu"
-                  (click)="$event.stopPropagation()"
-                >
-                  <label class="setting-option">
-                    <input
-                      type="checkbox"
-                      id="showWishlist"
-                      [(ngModel)]="dashboardSettings['showWishlist']"
-                    />
-                    <span>Verlanglijst tonen</span>
-                  </label>
-
-                  <label class="setting-option">
-                    <input
-                      type="checkbox"
-                      id="showFavorites"
-                      [(ngModel)]="dashboardSettings['showFavorites']"
-                    />
-                    <span>Favoriete boeken tonen</span>
-                  </label>
-
-                  <label class="setting-option">
-                    <input
-                      type="checkbox"
-                      id="showReadingHistory"
-                      [(ngModel)]="dashboardSettings['showReadingHistory']"
-                    />
-                    <span>Leeshistoriek tonen</span>
-                  </label>
-
-                  <label class="setting-option">
-                    <input
-                      type="checkbox"
-                      id="showBorrowed"
-                      [(ngModel)]="dashboardSettings['showBorrowed']"
-                    />
-                    <span>Geleende boeken tonen</span>
-                  </label>
-
-                  <label class="setting-option">
-                    <input
-                      type="checkbox"
-                      id="showHighlighted"
-                      [(ngModel)]="dashboardSettings['showHighlighted']"
-                    />
-                    <span>Klasleeslijst tonen</span>
-                  </label>
-
-                  <label class="setting-option">
-                    <input
-                      type="checkbox"
-                      id="showDeadline"
-                      [(ngModel)]="dashboardSettings['showDeadline']"
-                    />
-                    <span>Deadlines tonen bij geleende boeken</span>
-                  </label>
-
-                  <button
-                    class="save-btn"
-                    type="button"
-                    (click)="saveDashboardSettings()"
-                  >
-                    Opslaan
-                  </button>
-                </div>
-              </div>
-
-              <div class="profile-role">{{ role }}</div>
-            </div>
-          </div>
-
-          <div class="stats-row">
-            <button
-              type="button"
-              class="stat-card stat-card-link"
-              (click)="scrollToSection('borrowed-section')"
-            >
-              <span class="stat-label">Geleend</span>
-              <strong>{{ borrowedBooks.length }}</strong>
-            </button>
-
-            <button
-              type="button"
-              class="stat-card stat-card-link"
-              (click)="scrollToSection('highlighted-section')"
-            >
-              <span class="stat-label">Klasleeslijst</span>
-              <strong>{{ readingList.length }}</strong>
-            </button>
-
-            <button
-              type="button"
-              class="stat-card stat-card-link"
-              (click)="scrollToSection('history-section')"
-            >
-              <span class="stat-label">Historiek</span>
-              <strong>{{ readingHistory.length }}</strong>
-            </button>
-
-            <button
-              type="button"
-              class="stat-card stat-card-link"
-              (click)="scrollToSection('wishlist-section')"
-            >
-              <span class="stat-label">Verlanglijst</span>
-              <strong>{{ wishlistCount }}</strong>
-            </button>
-
-            <button
-              type="button"
-              class="stat-card stat-card-link"
-              (click)="scrollToSection('favorites-section')"
-            >
-              <span class="stat-label">Favorieten</span>
-              <strong>{{ favoritesCount }}</strong>
-            </button>
-          </div>
-        </header>
-      }
-
-      @if (showSections) {
-        <div class="profile-sections">
-          @if (dashboardSettings["showBorrowed"]) {
-            <section id="borrowed-section" class="profile-section">
-              <div class="section-head">
-                <h3 class="section-title">Geleende boeken</h3>
-                <span class="section-count">{{ borrowedBooks.length }}</span>
-              </div>
-              <div class="horizontal-scroll-wrapper">
-                @for (book of borrowedBooks; track book) {
-                  <article
-                    class="profile-book-card"
-                    (click)="goToDetail(book.id)"
-                    role="button"
-                    tabindex="0"
-                    [attr.aria-label]="'Bekijk details van ' + book.title"
-                    (keydown.enter)="goToDetail(book.id)"
-                    (keydown.space)="
-                      $event.preventDefault(); goToDetail(book.id)
-                    "
-                  >
-                    @if (book.cover) {
-                      <div class="book-cover"><img [src]="book.cover" /></div>
-                    } @else {
-                      <div class="cover-placeholder">Geen cover</div>
-                    }
-                    <div class="book-content">
-                      <h4>{{ book.title }}</h4>
-                      @if (dashboardSettings["showDeadline"]) {
-                        <div class="book-meta">
-                          Terugbrengen voor {{ book.deadline | date }}
-                        </div>
-                      }
-                    </div>
-                  </article>
-                }
-              </div>
-            </section>
-          }
-
-          @if (dashboardSettings["showHighlighted"]) {
-            <section id="highlighted-section" class="profile-section">
-              <div class="section-head">
-                <h3 class="section-title">Klasleeslijst</h3>
-                <span class="section-count">{{ readingList.length }}</span>
-              </div>
-              <div class="horizontal-scroll-wrapper">
-                @for (book of readingList; track book) {
-                  <article
-                    class="profile-book-card"
-                    (click)="goToDetail(book.id)"
-                    role="button"
-                    tabindex="0"
-                    [attr.aria-label]="'Bekijk details van ' + book.title"
-                    (keydown.enter)="goToDetail(book.id)"
-                    (keydown.space)="
-                      $event.preventDefault(); goToDetail(book.id)
-                    "
-                  >
-                    @if (book.cover) {
-                      <div class="book-cover"><img [src]="book.cover" /></div>
-                    } @else {
-                      <div class="cover-placeholder">Geen cover</div>
-                    }
-                    <div class="book-content">
-                      <h4>{{ book.title }}</h4>
-                      <div class="book-meta">{{ book.author }}</div>
-                    </div>
-                  </article>
-                }
-              </div>
-            </section>
-          }
-
-          @if (dashboardSettings["showWishlist"]) {
-            <section
-              id="wishlist-section"
-              class="profile-section wishlist-section"
-            >
-              <div class="section-head">
-                <h3 class="section-title">Verlanglijst</h3>
-                <span class="section-count">{{ wishlistCount }}</span>
-              </div>
-
-              @if (wishlistLoading) {
-                <div class="inline-empty">Verlanglijst laden...</div>
-              } @else if (wishlistBooks.length === 0) {
-                <div class="inline-empty">
-                  Nog geen boeken op je verlanglijst.
-                </div>
-              } @else {
-                <div class="wishlist-grid">
-                  @for (book of pagedWishlistBooks; track book.id) {
-                    <div class="card-wrapper">
-                      <app-recommendation-card
-                        [book]="book"
-                        profileVariant="wishlist"
-                        [showRemoveBtn]="true"
-                        [isUnavailable]="isBookUnavailable(book)"
-                        (remove)="onWishlistRemove(book.id)"
-                        (toggleBell)="toggleNotification(null, book)"
-                        (viewDetails)="goToDetail(book.id, null)"
-                      />
-                      @if (notificationToggleErrors[book.id]) {
-                        <div class="notification-error">
-                          {{ notificationToggleErrors[book.id] }}
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-
-                @if (totalWishlistPages > 1) {
-                  <div class="wishlist-pagination">
-                    @for (page of wishlistPageNumbers; track page) {
-                      <button
-                        type="button"
-                        class="wishlist-page-btn"
-                        [class.active]="page === currentWishlistPage"
-                        (click)="goToWishlistPage(page)"
-                      >
-                        {{ page }}
-                      </button>
-                    }
-                  </div>
-                }
-              }
-            </section>
-          }
-
-          @if (dashboardSettings["showFavorites"]) {
-            <section id="favorites-section" class="profile-section">
-              <div class="section-head">
-                <h3 class="section-title">Favoriete boeken</h3>
-                <span class="section-count">{{ favoritesCount }}</span>
-              </div>
-
-              @if (favoriteBooks.length === 0) {
-                <div class="inline-empty">
-                  Nog geen boeken in je favorieten.
-                </div>
-              } @else {
-                <div class="wishlist-grid">
-                  @for (book of pagedFavoriteBooks; track book) {
-                    <app-recommendation-card
-                      [book]="book"
-                      profileVariant="favorites"
-                      [showRemoveBtn]="true"
-                      (remove)="onFavoritesRemove(book.id)"
-                      (viewDetails)="goToDetail(book.id, null)"
-                    />
-                  }
-                </div>
-
-                @if (totalFavoritePages > 1) {
-                  <div class="wishlist-pagination">
-                    @for (page of favoritePageNumbers; track page) {
-                      <button
-                        type="button"
-                        class="wishlist-page-btn"
-                        [class.active]="page === currentFavoritePage"
-                        (click)="goToFavoritePage(page)"
-                      >
-                        {{ page }}
-                      </button>
-                    }
-                  </div>
-                }
-              }
-            </section>
-          }
-
-          @if (dashboardSettings["showReadingHistory"]) {
-            <section id="history-section" class="profile-section">
-              <div class="section-head">
-                <h3 class="section-title">Ontleenhistoriek</h3>
-                <span class="section-count">{{ readingHistory.length }}</span>
-              </div>
-              @if (readingHistoryLoading) {
-                <div class="inline-empty">Historiek laden...</div>
-              } @else if (readingHistory.length === 0) {
-                <div class="inline-empty">Nog geen ontleenhistoriek.</div>
-              } @else {
-                <div class="wishlist-grid">
-                  @for (book of pagedReadingHistory; track book.id) {
-                    <app-recommendation-card
-                      [book]="book"
-                      profileVariant="history"
-                      [loanDate]="book.loanedDate | date: 'MMM d, yyyy'"
-                      (viewDetails)="goToDetail(book.id, null)"
-                    />
-                  }
-                </div>
-                @if (totalReadingHistoryPages > 1) {
-                  <div class="wishlist-pagination">
-                    @for (page of readingHistoryPageNumbers; track page) {
-                      <button
-                        type="button"
-                        class="wishlist-page-btn"
-                        [class.active]="page === currentReadingHistoryPage"
-                        (click)="goToReadingHistoryPage(page)"
-                      >
-                        {{ page }}
-                      </button>
-                    }
-                  </div>
-                }
-              }
-            </section>
-          }
-
-          @defer (on viewport) {
-            <app-badge-collection></app-badge-collection>
-          } @placeholder {
-            <section class="profile-section section-loading-placeholder">
-              <div class="inline-empty">
-                Meer profielinhoud wordt geladen...
-              </div>
-            </section>
+        @if (borrowedBooks.length === 0) {
+        <div class="inline-empty">Geen boeken momenteel uitgeleend.</div>
+        } @else {
+        <div class="wishlist-grid">
+          @for (book of borrowedBooks; track book.id) {
+          <app-recommendation-card [book]="book" profileVariant="history"
+            [loanDate]="book.deadline | date: 'dd MMM yyyy' : '' : 'nl'" (viewDetails)="goToDetail(book.id, null)" />
           }
         </div>
+        }
+      </section>
+      }
+
+
+      @if (dashboardSettings["showHighlighted"]) {
+      <section id="highlighted-section" class="profile-section">
+        <div class="section-head">
+          <h3 class="section-title">Klasleeslijst</h3>
+          <span class="section-count">{{ readingList.length }}</span>
+        </div>
+        <div class="horizontal-scroll-wrapper">
+          @for (book of readingList; track book) {
+          <article class="profile-book-card" (click)="goToDetail(book.id)" role="button" tabindex="0"
+            [attr.aria-label]="'Bekijk details van ' + book.title" (keydown.enter)="goToDetail(book.id)"
+            (keydown.space)="
+                      $event.preventDefault(); goToDetail(book.id)
+                    ">
+            @if (book.cover) {
+            <div class="book-cover"><img [src]="book.cover" /></div>
+            } @else {
+            <div class="cover-placeholder">Geen cover</div>
+            }
+            <div class="book-content">
+              <h4>{{ book.title }}</h4>
+              <div class="book-meta">{{ book.author }}</div>
+            </div>
+          </article>
+          }
+        </div>
+      </section>
+      }
+
+      @if (dashboardSettings["showWishlist"]) {
+      <section id="wishlist-section" class="profile-section wishlist-section">
+        <div class="section-head">
+          <h3 class="section-title">Verlanglijst</h3>
+          <span class="section-count">{{ wishlistCount }}</span>
+        </div>
+
+        @if (wishlistLoading) {
+        <div class="inline-empty">Verlanglijst laden...</div>
+        } @else if (wishlistBooks.length === 0) {
+        <div class="inline-empty">
+          Nog geen boeken op je verlanglijst.
+        </div>
+        } @else {
+        <div class="wishlist-grid">
+          @for (book of pagedWishlistBooks; track book.id) {
+          <div class="card-wrapper">
+            <app-recommendation-card [book]="book" profileVariant="wishlist" [showRemoveBtn]="true"
+              [isUnavailable]="isBookUnavailable(book)" (remove)="onWishlistRemove(book.id)"
+              (toggleBell)="toggleNotification(null, book)" (viewDetails)="goToDetail(book.id, null)" />
+            @if (notificationToggleErrors[book.id]) {
+            <div class="notification-error">
+              {{ notificationToggleErrors[book.id] }}
+            </div>
+            }
+          </div>
+          }
+        </div>
+
+        @if (totalWishlistPages > 1) {
+        <div class="wishlist-pagination">
+          @for (page of wishlistPageNumbers; track page) {
+          <button type="button" class="wishlist-page-btn" [class.active]="page === currentWishlistPage"
+            (click)="goToWishlistPage(page)">
+            {{ page }}
+          </button>
+          }
+        </div>
+        }
+        }
+      </section>
+      }
+
+      @if (dashboardSettings["showFavorites"]) {
+      <section id="favorites-section" class="profile-section">
+        <div class="section-head">
+          <h3 class="section-title">Favoriete boeken</h3>
+          <span class="section-count">{{ favoritesCount }}</span>
+        </div>
+
+        @if (favoriteBooks.length === 0) {
+        <div class="inline-empty">
+          Nog geen boeken in je favorieten.
+        </div>
+        } @else {
+        <div class="wishlist-grid">
+          @for (book of pagedFavoriteBooks; track book) {
+          <app-recommendation-card [book]="book" profileVariant="favorites" [showRemoveBtn]="true"
+            (remove)="onFavoritesRemove(book.id)" (viewDetails)="goToDetail(book.id, null)" />
+          }
+        </div>
+
+        @if (totalFavoritePages > 1) {
+        <div class="wishlist-pagination">
+          @for (page of favoritePageNumbers; track page) {
+          <button type="button" class="wishlist-page-btn" [class.active]="page === currentFavoritePage"
+            (click)="goToFavoritePage(page)">
+            {{ page }}
+          </button>
+          }
+        </div>
+        }
+        }
+      </section>
+      }
+
+      @if (dashboardSettings["showReadingHistory"]) {
+      <section id="history-section" class="profile-section">
+        <div class="section-head">
+          <h3 class="section-title">Ontleenhistoriek</h3>
+          <span class="section-count">{{ readingHistory.length }}</span>
+        </div>
+        @if (readingHistoryLoading) {
+        <div class="inline-empty">Historiek laden...</div>
+        } @else if (readingHistory.length === 0) {
+        <div class="inline-empty">Nog geen ontleenhistoriek.</div>
+        } @else {
+        <div class="wishlist-grid">
+          @for (book of pagedReadingHistory; track book.id) {
+          <app-recommendation-card [book]="book" profileVariant="history"
+            [loanDate]="book.loanedDate | date: 'MMM d, yyyy'" (viewDetails)="goToDetail(book.id, null)" />
+          }
+        </div>
+        @if (totalReadingHistoryPages > 1) {
+        <div class="wishlist-pagination">
+          @for (page of readingHistoryPageNumbers; track page) {
+          <button type="button" class="wishlist-page-btn" [class.active]="page === currentReadingHistoryPage"
+            (click)="goToReadingHistoryPage(page)">
+            {{ page }}
+          </button>
+          }
+        </div>
+        }
+        }
+      </section>
+      }
+
+      @defer (on viewport) {
+      <app-badge-collection></app-badge-collection>
+      } @placeholder {
+      <section class="profile-section section-loading-placeholder">
+        <div class="inline-empty">
+          Meer profielinhoud wordt geladen...
+        </div>
+      </section>
       }
     </div>
+    }
   </div>
+</div>
 }
