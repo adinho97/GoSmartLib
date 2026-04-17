@@ -12,6 +12,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+
 @Service
 public class AuthService {
 
@@ -108,15 +114,15 @@ public class AuthService {
                 // Check if user already exists
                 var existingUserOpt = appUserRepository.findBySub(sub);
                 String finalRole;
-                
+
                 if (existingUserOpt.isPresent()) {
                         // User exists → keep existing role (don't overwrite with Smartschool role)
                         // This preserves bibbeheerder role after promotion
                         finalRole = existingUserOpt.get().getRole();
                         logger.info("Bestaande gebruiker ingelogd met sub: {}, keeping role: {}", sub, finalRole);
                 } else {
-                        // New user → set role from Smartschool
-                        finalRole = smartschoolRole;
+                        // New user → set role from Smartschool or fallback to leerling
+                        finalRole = smartschoolRole != null ? smartschoolRole : "leerling";
                         logger.info("Nieuwe gebruiker aangemaakt met sub: {}, role: {}", sub, finalRole);
                 }
 
@@ -276,6 +282,71 @@ public class AuthService {
                                                 "Failed to retrieve new access token using refresh token.", error));
         }
 
+        private Mono<SmartschoolUserInfo> enrichUserRoleFromGroupInfo(
+                        SmartschoolUserInfo userInfo,
+                        String accessToken,
+                        String baseUrl) {
+                if (userInfo.getRole() != null && userInfo.getRole().equals("leerkracht")) {
+                        return Mono.just(userInfo);
+                }
+
+                return getGroupInfo(accessToken, baseUrl)
+                                .map(this::deriveRoleFromGroupInfo)
+                                .map(groupRole -> {
+                                        if (groupRole != null) {
+                                                userInfo.setRole(groupRole);
+                                        }
+                                        return userInfo;
+                                })
+                                .onErrorResume(error -> {
+                                        logger.warn("Failed to load groupinfo for role detection, using fallback role",
+                                                        error);
+                                        return Mono.just(userInfo);
+                                });
+        }
+
+        private Mono<SmartschoolGroupInfo> getGroupInfo(String accessToken, String baseUrl) {
+                String encodedToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+                String groupInfoUrl = baseUrl + "/Api/V1/groupinfo?access_token=" + encodedToken;
+
+                return this.webClient.get()
+                                .uri(groupInfoUrl)
+                                .retrieve()
+                                .bodyToMono(String.class)
+                                .map(json -> {
+                                        try {
+                                                return objectMapper.readValue(json, SmartschoolGroupInfo.class);
+                                        } catch (Exception e) {
+                                                logger.error("Error parsing Smartschool groupinfo JSON", e);
+                                                throw new RuntimeException("Failed to parse Smartschool groupinfo JSON",
+                                                                e);
+                                        }
+                                });
+        }
+
+        private String deriveRoleFromGroupInfo(SmartschoolGroupInfo groupInfo) {
+                if (groupInfo == null) {
+                        return null;
+                }
+
+                var roleHints = Stream.concat(
+                                groupInfo.getGroups().stream(),
+                                groupInfo.getParentGroups().stream())
+                                .flatMap(item -> Stream.of(item.getName(), item.getDescription()))
+                                .filter(Objects::nonNull)
+                                .map(String::toLowerCase)
+                                .toList();
+
+                if (roleHints.stream().anyMatch(text -> text.contains("leerkracht") || text.contains("leerkrachten")
+                                || text.contains("leraar"))) {
+                        return "leerkracht";
+                }
+                if (roleHints.stream().anyMatch(text -> text.contains("leerling") || text.contains("student"))) {
+                        return "leerling";
+                }
+                return null;
+        }
+
         public Mono<SmartschoolUserInfo> getUserInfo(SmartschoolTokenResponse tokenResponse, String platformUrl) {
                 String baseUrl = (platformUrl != null && !platformUrl.isBlank())
                                 ? platformUrl
@@ -336,6 +407,8 @@ public class AuthService {
                                         userInfo.setRefreshToken(tokenResponse.getRefreshToken());
                                         return userInfo;
                                 })
+                                .flatMap(userInfo -> this.enrichUserRoleFromGroupInfo(userInfo,
+                                                tokenResponse.getAccessToken(), baseUrl))
                                 .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for user: {}",
                                                 userInfo.getName()))
                                 .doOnError(error -> logger.error("Failed to retrieve user info", error.getMessage()));

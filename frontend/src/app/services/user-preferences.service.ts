@@ -44,25 +44,28 @@ export class UserPreferencesService {
     this.syncWithBackendInBackground();
   }
 
+  async loadPreferencesFromBackend(): Promise<void> {
+    try {
+      const backendPrefs = await this.fetchFromBackend();
+      if (Object.keys(backendPrefs).length === 0) {
+        return;
+      }
+
+      const merged = { ...this.preferencesSubject.value, ...backendPrefs };
+      this.preferencesSubject.next(merged);
+      this.saveToLocalStorage(merged);
+    } catch (error) {
+      console.warn("Failed to load preferences from backend:", error);
+      // Keep using cached localStorage values if backend is unavailable
+    }
+  }
+
   /**
    * Sync with backend without awaiting - runs in background
    * Merges backend response with cached values (backend wins on conflicts, cache fills gaps)
    */
   private syncWithBackendInBackground(): void {
-    this.fetchFromBackend()
-      .then((backendPrefs) => {
-        // Update local state if backend has data
-        if (Object.keys(backendPrefs).length > 0) {
-          // Merge backend prefs with cache (don't lose cached keys missing in backend response)
-          const merged = { ...this.preferencesSubject.value, ...backendPrefs };
-          this.preferencesSubject.next(merged);
-          this.saveToLocalStorage(merged);
-        }
-      })
-      .catch((error) => {
-        console.warn("Failed to sync preferences with backend:", error);
-        // Silently fail - keep using cached localStorage value
-      });
+    this.loadPreferencesFromBackend();
   }
 
   /**
