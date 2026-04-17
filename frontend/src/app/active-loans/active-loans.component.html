@@ -14,30 +14,26 @@
   @if (loans && loans.length > 0) {
     <div class="horizontal-scroll-wrapper">
       @for (loan of loans; track loan.id) {
-        <div class="book-card clickable" (click)="goToDetail(loan.bookId)">
+        <div class="book-card-fixed clickable" (click)="goToDetail(loan.bookId)">
           
-          <div class="book-cover-container">
+          <div class="book-cover-wrapper">
             @if (loan.bookCover) {
-              <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="book-cover" />
+              <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="book-img" />
             } @else {
-              <div class="cover-placeholder">
-                <span>GEEN COVER</span>
-              </div>
+              <div class="no-cover"><span>GEEN COVER</span></div>
             }
           </div>
 
-          <div class="book-content">
-            <h4>{{ loan.bookTitel }}</h4>
+          <div class="book-info">
+            <h4 class="book-title">{{ loan.bookTitel }}</h4>
             
-            <p class="loan-status" [class.danger]="isOverdue(loan.dueDate)">
-              @if (isOverdue(loan.dueDate)) {
-                Te laat!
-              } @else {
-                Tot: {{ loan.dueDate | date: "dd/MM" }}
-              }
+            <p class="book-date" [class.danger]="isOverdue(loan.dueDate)">
+              {{ isOverdue(loan.dueDate) ? 'Te laat!' : (loan.dueDate | date: "dd/MM") }}
             </p>
             
-            <button class="details-btn">Details</button>
+            <div class="button-wrapper">
+              <button class="details-action-btn">Details</button>
+            </div>
           </div>
         </div>
       }

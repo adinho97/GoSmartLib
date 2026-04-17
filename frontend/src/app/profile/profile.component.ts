@@ -112,7 +112,6 @@ export class ProfileComponent {
           showWishlist: prefs["dashboard_showWishlist"] !== false,
           showFavorites: prefs["dashboard_showFavorites"] !== false,
           showReadingHistory: prefs["dashboard_showReadingHistory"] !== false,
-          showBorrowed: prefs["dashboard_showBorrowed"] !== false,
           showHighlighted: prefs["dashboard_showHighlighted"] !== false,
           showDeadline: prefs["dashboard_showDeadline"] !== false,
         };
@@ -129,7 +128,6 @@ export class ProfileComponent {
       this.loadWishlistBooks(),
       this.loadFavoriteBooks(),
       this.loadReadingHistory(),
-      this.loadActiveLoans(),
     ]);
 
     if (this.showSections) {
@@ -146,30 +144,6 @@ export class ProfileComponent {
     }
   }
 
-  private async loadActiveLoans() {
-    try {
-      const activeLoans = await this.loanService.getActiveLoans(
-        localStorage.getItem("sub") || "",
-      );
-      const enriched = await this.bookService.enrichBooksWithDetails(
-        activeLoans.map((loan: any) => ({
-          ...loan,
-          bookId: loan.bookId,
-          titel: loan.bookTitel,
-        })),
-      );
-
-      this.borrowedBooks = enriched.map((item: any) => ({
-        id: item.bookId,
-        title: item.titel,
-        cover: item.cover || "",
-        deadline: item.dueDate ? new Date(item.dueDate) : undefined,
-      }));
-    } catch (error) {
-      console.error("Error loading active loans:", error);
-      this.borrowedBooks = [];
-    }
-  }
 
   private async loadReadingHistory() {
     this.readingHistoryLoading = true;
