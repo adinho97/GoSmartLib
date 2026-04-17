@@ -1,17 +1,13 @@
-.results-section {
+.recommendation-section {
   margin: 2rem 0;
-  background: white;
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
-  border: 1px solid #f0dde5;
 }
 
-.result-header {
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
+  gap: 20px;
 }
 
 .section-title {
@@ -21,145 +17,152 @@
   margin: 0;
   font-weight: 700;
   color: #1a1a1a;
+  flex-grow: 1;
 }
 
-.count-badge {
-  background: #871f42;
-  color: white;
-  padding: 6px 14px;
+.toggle-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #871f42;
+  background: rgba(135, 31, 66, 0.05);
+  padding: 4px 12px;
   border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
+  white-space: nowrap;
 }
 
-.loan-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.horizontal-scroll-wrapper {
+  display: flex;
+  gap: 25px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  padding: 10px 10px 40px 10px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  align-items: stretch;
+  width: 100%;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #871f42;
+  border-radius: 10px;
+}
+
+.book-card {
+  width: 190px;
+  min-width: 180px;
+  height: 360px;
+  background: white;
+  border-radius: 20px;
+  padding: 16px 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+  scroll-snap-align: start;
 }
 
-.loan-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  background: white;
-  border: 1px solid #f0dde5;
-  border-radius: 16px;
-  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-  position: relative;
-}
-
-.clickable {
-  cursor: pointer;
-}
-
-.clickable:hover {
-  transform: translateY(-3px);
+.book-card:hover {
+  transform: translateY(-10px);
   border-color: #871f42;
-  box-shadow: 0 8px 20px rgba(135, 31, 66, 0.08);
+  box-shadow: 0 15px 35px rgba(135, 31, 66, 0.12);
 }
 
-.book-cover-wrapper {
-  width: 60px;
-  height: 85px;
+.book-cover-container {
+  position: relative;
+  width: 130px;
+  height: 190px;
+  margin: 0 auto 10px;
   flex-shrink: 0;
 }
 
 .book-cover {
   width: 100%;
   height: 100%;
+  border-radius: 10px;
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.15);
   object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .cover-placeholder {
   width: 100%;
   height: 100%;
-  background: #eee;
-  border-radius: 8px;
+  background-color: #eee;
+  border-radius: 10px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 0.5rem;
+  align-items: center;
   color: #999;
+  font-size: 0.8rem;
 }
 
-.loan-info {
-  margin-left: 20px;
-  flex-grow: 1;
+.book-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.book-title {
-  margin: 0;
-  color: #1a1a1a;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.status-container {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.due-date {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.due-date span {
-  font-weight: 600;
-}
-
-.due-date.danger {
-  color: #d4537e;
-}
-
-/* Badges */
-.status-badge {
-  font-size: 0.7rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 6px;
-  letter-spacing: 0.5px;
-}
-
-.overdue { background: #ffebee; color: #d4537e; }
-.warning { background: #fff3e0; color: #e67e22; }
-.info { background: #f0f7ff; color: #1976d2; }
-
-.arrow-indicator {
-  color: #f0dde5;
-  width: 24px;
-  height: 24px;
-}
-
-.loan-item:hover .arrow-indicator {
-  color: #871f42;
-}
-
-.empty-state {
+  flex-grow: 1;
   text-align: center;
-  padding: 40px;
-  border: 2px dashed #f0dde5;
-  border-radius: 16px;
-  color: #999;
-  font-weight: 500;
 }
 
-@media (max-width: 600px) {
-  .status-container {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-  }
+.book-content h4 {
+  color: #871f42;
+  font-size: 1rem;
+  margin: 0 0 4px 0;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.loan-status {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.loan-status.danger {
+  color: #d4537e;
+  font-weight: 800;
+}
+
+.details-btn {
+  margin-top: auto;
+  background: #871f42;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.details-btn:hover {
+  background: #60162f;
+  transform: scale(1.05);
+}
+
+.empty-container {
+  padding: 3rem 1rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 15px;
+  border: 2px dashed #eee;
+}
+
+.empty-message {
+  color: #999;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.clickable {
+  cursor: pointer;
 }
