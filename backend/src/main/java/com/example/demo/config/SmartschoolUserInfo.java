@@ -77,20 +77,20 @@ public class SmartschoolUserInfo {
     }
 
     public String getRole() {
-        if (this.basisrol != null) {
+        if (this.role != null && !this.role.isBlank()) {
+            return this.role.toLowerCase();
+        }
+        if (this.basisrol != null && !this.basisrol.isBlank()) {
             switch (this.basisrol.toLowerCase()) {
                 case "leerling":
                     return "leerling";
                 case "leerkracht":
                     return "leerkracht";
                 default:
-                    return "leerling";
+                    return this.basisrol.toLowerCase();
             }
         }
-        if (this.name != null || this.sub != null) {
-            return "leerling";
-        }
-        return role;
+        return null;
     }
 
     public void setRole(String role) {
