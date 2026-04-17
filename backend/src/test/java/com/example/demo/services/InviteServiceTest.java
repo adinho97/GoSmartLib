@@ -201,6 +201,26 @@ class InviteServiceTest {
         assertEquals(1L, teachers.get(0).getId());
     }
 
+    @Test
+    void getTeachersBySchool_shouldMatchWhenSchoolIdIsFullUrl() {
+        // Arrange
+        AppUser teacher = new AppUser();
+        teacher.setId(3L);
+        teacher.setSub("teacher-sub-3");
+        teacher.setRole("leerkracht");
+        teacher.setPlatform("https://aphogeschool.smartschool.be");
+
+        when(appUserRepository.findByRole("leerkracht"))
+                .thenReturn(List.of(teacher));
+
+        // Act
+        List<TeacherDto> teachers = inviteService.getTeachersBySchool("https://aphogeschool.smartschool.be");
+
+        // Assert
+        assertEquals(1, teachers.size());
+        assertEquals(3L, teachers.get(0).getId());
+    }
+
     // ===== confirmInvite() Tests =====
 
     @Test
@@ -289,5 +309,29 @@ class InviteServiceTest {
         // Assert
         assertFalse(response.isSuccess());
         assertTrue(response.getMessage().contains("niet van de juiste school"));
+    }
+
+    @Test
+    void confirmInvite_shouldSucceedWhenInviteHasSlugAndTeacherHasFullUrlPlatform() {
+        // Arrange
+        Invite slugInvite = new Invite(testToken, "aphogeschool", LocalDateTime.now().plusDays(7));
+
+        AppUser teacher = new AppUser();
+        teacher.setId(10L);
+        teacher.setSub("teacher-sub-10");
+        teacher.setRole("leerkracht");
+        teacher.setPlatform("https://aphogeschool.smartschool.be");
+
+        when(inviteRepository.findByToken(testToken)).thenReturn(Optional.of(slugInvite));
+        when(appUserRepository.findById(10L)).thenReturn(Optional.of(teacher));
+        when(appUserRepository.save(any(AppUser.class))).thenReturn(teacher);
+        when(inviteRepository.save(any(Invite.class))).thenReturn(slugInvite);
+
+        // Act
+        ConfirmInviteResponse response = inviteService.confirmInvite(testToken, 10L, "admin-sub");
+
+        // Assert
+        assertTrue(response.isSuccess());
+        verify(appUserRepository, times(1)).save(argThat(user -> "bibbeheerder".equals(user.getRole())));
     }
 }
