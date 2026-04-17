@@ -1,41 +1,54 @@
 <div class="results-section">
   <div class="result-header">
-    <h3>Mijn huidige uitleningen</h3>
-    <span class="count-badge">{{ loans.length }} boeken</span>
+    <h3 class="section-title">Mijn huidige uitleningen</h3>
+    @if (loans.length > 0) {
+      <span class="count-badge">{{ loans.length }} {{ loans.length === 1 ? 'boek' : 'boeken' }}</span>
+    }
   </div>
 
-  @if (loans.length > 0) {
-    <ul class="history-list">
-      @for (loan of loans; track loan.id) {
-        <li class="history-item clickable" (click)="goToDetail(loan.bookId)">
-          <div class="item-book-info">
-            @if (loan.bookCover) {
-              <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="book-cover" />
-            }
-            <div class="item-details">
-              <div class="item-title">{{ loan.bookTitel }}</div>
-              
-              <div class="item-dates" [class.danger]="isOverdue(loan.dueDate)">
-                Uiterste inleverdatum: {{ loan.dueDate | date: "dd/MM/yyyy" }}
-              </div>
+  <section class="loans-container">
+    @if (loans.length > 0) {
+      <ul class="loan-list">
+        @for (loan of loans; track loan.id) {
+          <li class="loan-item clickable" (click)="goToDetail(loan.bookId)">
+            <div class="book-cover-wrapper">
+              @if (loan.bookCover) {
+                <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="book-cover" />
+              } @else {
+                <div class="cover-placeholder"><span>GEEN COVER</span></div>
+              }
+            </div>
 
-              <div class="status-row">
-                @if (isOverdue(loan.dueDate)) {
-                  <span class="badge overdue">⚠️ Te laat</span>
-                } @else if (isDueToday(loan.dueDate)) {
-                  <span class="badge warning">📅 Vandaag inleveren</span>
-                } @else {
-                  <span class="badge info">In bezit</span>
-                }
+            <div class="loan-info">
+              <h4 class="book-title">{{ loan.bookTitel }}</h4>
+              
+              <div class="status-container">
+                <p class="due-date" [class.danger]="isOverdue(loan.dueDate)">
+                  Inleveren voor: <span>{{ loan.dueDate | date: "dd/MM/yyyy" }}</span>
+                </p>
+
+                <div class="badge-row">
+                  @if (isOverdue(loan.dueDate)) {
+                    <span class="status-badge overdue">TE LAAT</span>
+                  } @else if (isDueToday(loan.dueDate)) {
+                    <span class="status-badge warning">VANDAAG INLEVEREN</span>
+                  } @else {
+                    <span class="status-badge info">IN BEZIT</span>
+                  }
+                </div>
               </div>
             </div>
-          </div>
-        </li>
-      }
-    </ul>
-  } @else {
-    <div class="empty-state">
-      <p>Je hebt momenteel geen boeken geleend.</p>
-    </div>
-  }
+            
+            <div class="arrow-indicator">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="empty-state">
+        <p>Er zijn momenteel geen boeken door jou geleend.</p>
+      </div>
+    }
+  </section>
 </div>
