@@ -1,46 +1,27 @@
 <header class="section-header">
   <h2 class="section-title">Mijn huidige uitleningen</h2>
-  
-  @if (loans && loans.length > 0) {
-    <div class="toggle-group">
-      <span class="toggle-label">
-        {{ loans.length }} {{ loans.length === 1 ? 'boek' : 'boeken' }}
-      </span>
-    </div>
-  }
+  <span class="count-tag">{{ loans.length }} boeken</span>
 </header>
 
-<section class="loans-section">
-  @if (loans && loans.length > 0) {
-    <div class="horizontal-scroll-wrapper">
-      @for (loan of loans; track loan.id) {
-        <div class="book-card-fixed clickable" (click)="goToDetail(loan.bookId)">
-          
-          <div class="book-cover-wrapper">
-            @if (loan.bookCover) {
-              <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="book-img" />
-            } @else {
-              <div class="no-cover"><span>GEEN COVER</span></div>
-            }
-          </div>
-
-          <div class="book-info">
-            <h4 class="book-title">{{ loan.bookTitel }}</h4>
-            
-            <p class="book-date" [class.danger]="isOverdue(loan.dueDate)">
-              {{ isOverdue(loan.dueDate) ? 'Te laat!' : (loan.dueDate | date: "dd/MM") }}
-            </p>
-            
-            <div class="button-wrapper">
-              <button class="details-action-btn">Details</button>
-            </div>
-          </div>
+<div class="loans-container">
+  @for (loan of loans; track loan.id) {
+    <div class="loan-card" (click)="goToDetail(loan.bookId)">
+      <div class="card-content">
+        <div class="cover-wrapper">
+          <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="mini-cover" />
         </div>
-      }
-    </div>
-  } @else {
-    <div class="empty-container">
-      <p class="empty-message">Je hebt momenteel geen boeken uitgeleend.</p>
+
+        <div class="book-details">
+          <span class="genre-label">Lening</span>
+          <h4 class="title">{{ loan.bookTitel }}</h4>
+          
+          <p class="due-date" [class.overdue]="isOverdue(loan.dueDate)">
+            {{ isOverdue(loan.dueDate) ? 'TE LAAT' : 'Inleveren: ' + (loan.dueDate | date: 'dd/MM') }}
+          </p>
+          
+          <button class="btn-details">Details</button>
+        </div>
+      </div>
     </div>
   }
-</section>
+</div>

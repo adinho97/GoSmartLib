@@ -1,149 +1,110 @@
-/* Sectie Styling */
 .section-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 15px;
   margin-bottom: 20px;
 }
 
 .section-title {
-  font-size: 1.4rem;
-  border-left: 5px solid #871f42;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border-left: 4px solid #871f42;
   padding-left: 12px;
   margin: 0;
-  font-weight: 700;
-  color: #1a1a1a;
 }
 
-.toggle-label {
-  font-size: 0.85rem;
-  font-weight: 700;
+.count-tag {
+  background: #f0dde5;
   color: #871f42;
-  background: rgba(135, 31, 66, 0.08);
-  padding: 4px 12px;
-  border-radius: 15px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
-.loans-section {
-  margin-bottom: 2rem;
-}
-
-/* De Scroll-lijst */
-.horizontal-scroll-wrapper {
+.loans-container {
   display: flex;
-  gap: 15px;
+  gap: 16px;
   overflow-x: auto;
-  padding: 10px 2px 20px 2px;
-  scroll-behavior: smooth;
+  padding-bottom: 15px;
 }
 
-/* FIX: Het kaartje - Nu 180px breed net als de rest */
-.book-card-fixed {
-  flex: 0 0 180px;
-  width: 180px;
+/* FIX: Het kaartje is nu slank (200px) en niet meer dubbel zo dik */
+.loan-card {
+  flex: 0 0 200px;
   background: white;
+  border: 1px solid #f0dde5;
   border-radius: 12px;
-  padding: 10px;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  padding: 12px;
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.book-card-fixed:hover {
-  transform: translateY(-4px);
-  border-color: #871f42;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+.loan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(135, 31, 66, 0.1);
 }
 
-/* De Afbeelding */
-.book-cover-wrapper {
-  width: 100%;
-  height: 240px; /* Hoogte aangepast voor slankere look */
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 10px;
-  background: #f9fafb;
-}
-
-.book-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.no-cover {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  font-size: 0.7rem;
-  font-weight: bold;
-  color: #9ca3af;
-}
-
-/* Info en Tekst */
-.book-info {
+.card-content {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  gap: 10px;
 }
 
-.book-title {
-  font-size: 0.95rem;
-  margin: 0 0 4px 0;
-  color: #1a1a1a;
+/* FIX: Foto breedte aangepast zodat het niet meer "reusachtig" is */
+.mini-cover {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.book-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.genre-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #871f42;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.title {
+  margin: 4px 0;
+  font-size: 0.9rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.book-date {
-  font-size: 0.85rem;
-  font-weight: 600;
+.due-date {
+  font-size: 0.8rem;
   color: #6b7280;
-  margin: 0 0 12px 0;
+  margin-bottom: 12px;
 }
 
-.book-date.danger {
-  color: #871f42;
+.due-date.overdue {
+  color: #c62828;
+  font-weight: 800;
 }
 
-/* FIX: De Knop - Gecentreerd en slank */
-.button-wrapper {
-  margin-top: auto;
-}
-
-.details-action-btn {
+/* FIX: De knop staat nu netjes gecentreerd over de breedte */
+.btn-details {
   width: 100%;
   background: #871f42;
   color: white;
   border: none;
-  padding: 8px 0;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
-.details-action-btn:hover {
+.btn-details:hover {
   background: #60162f;
-}
-
-/* Lege melding styling */
-.empty-container {
-  padding: 30px;
-  text-align: center;
-  background: white;
-  border: 2px dashed #e5e7eb;
-  border-radius: 12px;
-}
-
-.empty-message {
-  color: #6b7280;
-  font-size: 0.95rem;
-  margin: 0;
 }
