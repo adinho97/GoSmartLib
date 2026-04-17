@@ -1,5 +1,6 @@
-.recommendation-section {
+.loans-section {
   margin: 2rem 0;
+  background: transparent; 
 }
 
 .section-header {
@@ -33,34 +34,26 @@
   display: flex;
   gap: 25px;
   overflow-x: auto;
-  padding: 10px 10px 40px 10px;
+  padding: 10px 5px 30px 5px;
   scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-}
-
-.horizontal-scroll-wrapper::-webkit-scrollbar { height: 8px; }
-.horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
-  background: #871f42;
-  border-radius: 10px;
 }
 
 .book-card {
   flex: 0 0 260px;
-  scroll-snap-align: start;
   background: white;
   border-radius: 20px;
   padding: 25px;
   display: flex;
   flex-direction: column;
-  border: 2px solid transparent;
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 2px solid #eee; 
+  transition: all 0.4s ease;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
 }
 
 .book-card:hover {
-  transform: translateY(-10px);
+  transform: translateY(-8px);
   border-color: #871f42;
-  box-shadow: 0 15px 35px rgba(135, 31, 66, 0.12);
+  box-shadow: 0 12px 25px rgba(135, 31, 66, 0.1);
 }
 
 .book-cover-container {
@@ -74,25 +67,7 @@
   height: 100%;
   object-fit: cover;
   border-radius: 10px;
-  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.cover-placeholder {
-  width: 100%;
-  height: 100%;
-  background: #eee;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-}
-
-.book-content {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  text-align: center;
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .book-content h4 {
@@ -100,14 +75,15 @@
   font-size: 1.1rem;
   margin: 0 0 8px 0;
   font-weight: 700;
-  min-height: 2.4em;
+  text-align: center;
 }
 
 .loan-status {
   font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 10px;
   color: #555;
+  text-align: center;
+  margin-bottom: 15px;
 }
 
 .loan-status.danger {
@@ -120,27 +96,32 @@
   background: #871f42;
   color: white;
   border: none;
-  padding: 12px 20px;
+  padding: 12px;
   border-radius: 12px;
   font-weight: bold;
   cursor: pointer;
-  width: 80%;
-  align-self: center;
+  transition: background 0.3s;
+}
+
+.details-btn:hover {
+  background: #60162f;
 }
 
 .empty-container {
-  padding: 3rem 1rem;
+  padding: 40px;
   text-align: center;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 15px;
-  border: 2px dashed #eee;
-  margin: 10px;
+  background: white; 
+  border: 2px dashed #ddd;
+  border-radius: 20px;
+  margin-top: 10px;
 }
 
 .empty-message {
-  color: #999;
-  font-size: 0.95rem;
-  margin: 0;
+  color: #777;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
-.clickable { cursor: pointer; }
+.clickable {
+  cursor: pointer;
+}

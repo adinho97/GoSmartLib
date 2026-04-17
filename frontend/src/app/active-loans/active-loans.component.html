@@ -1,34 +1,42 @@
 <header class="section-header">
   <h2 class="section-title">Mijn huidige uitleningen</h2>
+  
   @if (loans && loans.length > 0) {
     <div class="toggle-group">
-      <span class="toggle-label">{{ loans.length }} {{ loans.length === 1 ? 'boek' : 'boeken' }}</span>
+      <span class="toggle-label">
+        {{ loans.length }} {{ loans.length === 1 ? 'boek' : 'boeken' }}
+      </span>
     </div>
   }
 </header>
 
-<section class="recommendation-section">
+<section class="loans-section">
   @if (loans && loans.length > 0) {
     <div class="horizontal-scroll-wrapper">
       @for (loan of loans; track loan.id) {
         <div class="book-card clickable" (click)="goToDetail(loan.bookId)">
+          
           <div class="book-cover-container">
             @if (loan.bookCover) {
               <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="book-cover" />
             } @else {
-              <div class="cover-placeholder"><span>COVER</span></div>
+              <div class="cover-placeholder">
+                <span>GEEN COVER</span>
+              </div>
             }
           </div>
 
           <div class="book-content">
             <h4>{{ loan.bookTitel }}</h4>
-            <p class="loan-status author" [class.danger]="isOverdue(loan.dueDate)">
+            
+            <p class="loan-status" [class.danger]="isOverdue(loan.dueDate)">
               @if (isOverdue(loan.dueDate)) {
                 Te laat!
               } @else {
                 Tot: {{ loan.dueDate | date: "dd/MM" }}
               }
             </p>
+            
             <button class="details-btn">Details</button>
           </div>
         </div>
