@@ -18,7 +18,7 @@
       ></app-profile>
     </section>
 
-    @if (currentUsername && !loansLoading && myLoans.length > 0) {
+    @if (currentUsername && !loansLoading) {
     <app-active-loans [loans]="myLoans"></app-active-loans>
 }
 

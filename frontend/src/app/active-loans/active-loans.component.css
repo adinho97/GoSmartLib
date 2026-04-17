@@ -27,44 +27,34 @@
   background: rgba(135, 31, 66, 0.05);
   padding: 4px 12px;
   border-radius: 20px;
-  white-space: nowrap;
 }
 
 .horizontal-scroll-wrapper {
   display: flex;
   gap: 25px;
   overflow-x: auto;
-  overflow-y: hidden;
-  flex-wrap: nowrap;
   padding: 10px 10px 40px 10px;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  align-items: stretch;
-  width: 100%;
 }
 
-.horizontal-scroll-wrapper::-webkit-scrollbar {
-  height: 8px;
-}
-
+.horizontal-scroll-wrapper::-webkit-scrollbar { height: 8px; }
 .horizontal-scroll-wrapper::-webkit-scrollbar-thumb {
   background: #871f42;
   border-radius: 10px;
 }
 
 .book-card {
-  width: 190px;
-  min-width: 180px;
-  height: 360px;
+  flex: 0 0 260px;
+  scroll-snap-align: start;
   background: white;
   border-radius: 20px;
-  padding: 16px 24px;
+  padding: 25px;
   display: flex;
   flex-direction: column;
   border: 2px solid transparent;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
-  scroll-snap-align: start;
 }
 
 .book-card:hover {
@@ -74,31 +64,28 @@
 }
 
 .book-cover-container {
-  position: relative;
-  width: 130px;
-  height: 190px;
-  margin: 0 auto 10px;
-  flex-shrink: 0;
+  width: 110px;
+  height: 160px;
+  margin: 0 auto 20px;
 }
 
 .book-cover {
   width: 100%;
   height: 100%;
+  object-fit: cover;
   border-radius: 10px;
   box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.15);
-  object-fit: cover;
 }
 
 .cover-placeholder {
   width: 100%;
   height: 100%;
-  background-color: #eee;
+  background: #eee;
   border-radius: 10px;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   color: #999;
-  font-size: 0.8rem;
 }
 
 .book-content {
@@ -110,20 +97,16 @@
 
 .book-content h4 {
   color: #871f42;
-  font-size: 1rem;
-  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  margin: 0 0 8px 0;
   font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  min-height: 2.4em;
 }
 
 .loan-status {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: #555;
 }
 
@@ -137,16 +120,12 @@
   background: #871f42;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 12px 20px;
   border-radius: 12px;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.details-btn:hover {
-  background: #60162f;
-  transform: scale(1.05);
+  width: 80%;
+  align-self: center;
 }
 
 .empty-container {
@@ -155,6 +134,7 @@
   background: rgba(0, 0, 0, 0.02);
   border-radius: 15px;
   border: 2px dashed #eee;
+  margin: 10px;
 }
 
 .empty-message {
@@ -163,6 +143,4 @@
   margin: 0;
 }
 
-.clickable {
-  cursor: pointer;
-}
+.clickable { cursor: pointer; }
