@@ -216,6 +216,11 @@ export class ProfileComponent {
         title: item.titel,
         cover: item.cover || "",
         deadline: item.dueDate ? new Date(item.dueDate) : undefined,
+        eadline: item.dueDate ? new Date(item.dueDate) : undefined,
+        author: item.auteur || "",      
+        genre: item.genre || "",        
+        taal: item.taal || "",          
+        paginas: item.paginas || 0,     
       }));
     } catch (error) {
       console.error("Error loading active loans:", error);
