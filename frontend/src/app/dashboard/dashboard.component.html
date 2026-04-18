@@ -5,13 +5,26 @@
   </header>
 
   <main class="container">
-    <section class="dashboard-profile-top">
-      <app-profile
-        [embedded]="true"
-        [showHero]="true"
-        [showSections]="false"
-        (logoutRequested)="logout()"
-      ></app-profile>
+    <section class="dashboard-section">
+      <header class="dashboard-inline-header">
+        <h2 class="dashboard-inline-title">Profiel en snelle acties</h2>
+        <button
+          class="info-icon-btn"
+          type="button"
+          (click)="openInfo('profileTop')"
+          aria-label="Info over profiel en snelkoppelingen"
+        >
+          i
+        </button>
+      </header>
+      <section class="dashboard-profile-top">
+        <app-profile
+          [embedded]="true"
+          [showHero]="true"
+          [showSections]="false"
+          (logoutRequested)="logout()"
+        ></app-profile>
+      </section>
     </section>
 
     <!-- Recommendation Sections -->
@@ -23,51 +36,115 @@
     }
 
     @if (!recommendationsLoading) {
-      <app-recommendation-section
-        [books]="trendingBooks"
-        [title]="'Populairste boeken'"
-        [variant]="'normal'"
-        [section]="'trending'"
-        (refreshRecommendations)="onRefreshRecommendations('trending', $event)"
-      ></app-recommendation-section>
+      <section class="dashboard-section">
+        <app-recommendation-section
+          [books]="trendingBooks"
+          [title]="'Populairste boeken'"
+          [variant]="'normal'"
+          [section]="'trending'"
+          [showInfoButton]="true"
+          [infoAriaLabel]="'Info over populairste boeken'"
+          (infoRequested)="openInfo('trending')"
+          (refreshRecommendations)="
+            onRefreshRecommendations('trending', $event)
+          "
+        ></app-recommendation-section>
+      </section>
 
       @if (newArrivalsBooks.length > 0) {
-        <app-recommendation-section
-          [books]="newArrivalsBooks"
-          [title]="'Nieuwe aankomsten'"
-          [variant]="'normal'"
-          [section]="'newArrivals'"
-        ></app-recommendation-section>
+        <section class="dashboard-section">
+          <app-recommendation-section
+            [books]="newArrivalsBooks"
+            [title]="'Nieuwe aankomsten'"
+            [variant]="'normal'"
+            [section]="'newArrivals'"
+            [showInfoButton]="true"
+            [infoAriaLabel]="'Info over nieuwe aankomsten'"
+            (infoRequested)="openInfo('newArrivals')"
+          ></app-recommendation-section>
+        </section>
       }
 
       @if (genreBooks.length > 0) {
-        <app-recommendation-section
-          [books]="genreBooks"
-          [title]="'Gebaseerd op jouw favoriete genres'"
-          [variant]="'normal'"
-          [section]="'genre'"
-          (refreshRecommendations)="onRefreshRecommendations('genre', $event)"
-        ></app-recommendation-section>
+        <section class="dashboard-section">
+          <app-recommendation-section
+            [books]="genreBooks"
+            [title]="'Gebaseerd op jouw favoriete genres'"
+            [variant]="'normal'"
+            [section]="'genre'"
+            [showInfoButton]="true"
+            [infoAriaLabel]="'Info over aanbevelingen op basis van genres'"
+            (infoRequested)="openInfo('genre')"
+            (refreshRecommendations)="onRefreshRecommendations('genre', $event)"
+          ></app-recommendation-section>
+        </section>
       }
 
       @if (authorBooks.length > 0) {
-        <app-recommendation-section
-          [books]="authorBooks"
-          [title]="'Gebaseerd op jouw favoriete auteurs'"
-          [variant]="'normal'"
-          [section]="'author'"
-          (refreshRecommendations)="onRefreshRecommendations('author', $event)"
-        ></app-recommendation-section>
+        <section class="dashboard-section">
+          <app-recommendation-section
+            [books]="authorBooks"
+            [title]="'Gebaseerd op jouw favoriete auteurs'"
+            [variant]="'normal'"
+            [section]="'author'"
+            [showInfoButton]="true"
+            [infoAriaLabel]="'Info over aanbevelingen op basis van auteurs'"
+            (infoRequested)="openInfo('author')"
+            (refreshRecommendations)="
+              onRefreshRecommendations('author', $event)
+            "
+          ></app-recommendation-section>
+        </section>
       }
     }
 
-    <section class="dashboard-profile-section">
-      <app-profile
-        [embedded]="true"
-        [showHero]="false"
-        [showSections]="true"
-        (logoutRequested)="logout()"
-      ></app-profile>
+    <section class="dashboard-section">
+      <header class="dashboard-inline-header">
+        <h2 class="dashboard-inline-title">Profielgegevens</h2>
+        <button
+          class="info-icon-btn"
+          type="button"
+          (click)="openInfo('profileDetails')"
+          aria-label="Info over profielgegevens"
+        >
+          i
+        </button>
+      </header>
+      <section class="dashboard-profile-section">
+        <app-profile
+          [embedded]="true"
+          [showHero]="false"
+          [showSections]="true"
+          (logoutRequested)="logout()"
+        ></app-profile>
+      </section>
     </section>
   </main>
+
+  @if (activeInfoKey) {
+    <div class="info-modal-backdrop" (click)="closeInfo()">
+      <section
+        class="info-modal"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-labelledby]="'info-modal-title-' + activeInfoKey"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="info-modal-header">
+          <h2 [id]="'info-modal-title-' + activeInfoKey">
+            {{ activeInfo?.title }}
+          </h2>
+          <button
+            class="info-close-btn"
+            type="button"
+            (click)="closeInfo()"
+            aria-label="Sluit informatievenster"
+          >
+            x
+          </button>
+        </header>
+        <p>{{ activeInfo?.description }}</p>
+      </section>
+    </div>
+  }
 </div>
