@@ -378,7 +378,7 @@
 .info-modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 14px;
   margin-bottom: 12px;
 }
@@ -405,7 +405,12 @@
   color: #6f2743;
   cursor: pointer;
   font-weight: 700;
+  font-size: 1rem;
   line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 

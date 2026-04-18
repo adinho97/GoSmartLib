@@ -651,7 +651,7 @@
 
 .profile-info-modal-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
@@ -678,7 +678,12 @@
   background: #f3f5f7;
   color: #5e646a;
   font-weight: 700;
+  font-size: 1rem;
   line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
 }
