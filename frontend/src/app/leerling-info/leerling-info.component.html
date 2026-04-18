@@ -5,6 +5,14 @@
   </header>
 
   <main class="info-content">
+    <section class="info-card quick-actions-card">
+      <h2>Snelle acties</h2>
+      <div class="quick-actions-grid">
+        <a class="quick-action" routerLink="/books">Naar Boekencatalogus</a>
+        <a class="quick-action" routerLink="/dashboard">Naar Dashboard</a>
+      </div>
+    </section>
+
     <section class="info-card">
       <h2>Hoe wordt een boek uitgeleend?</h2>
       <ol>
@@ -52,6 +60,30 @@
         sneller een passend boek te vinden. Voeg interessante titels toe aan je
         verlanglijst, zodat je ze later makkelijk terugvindt.
       </p>
+    </section>
+
+    <section class="info-card faq-card">
+      <h2>Veelgestelde vragen</h2>
+      <div class="faq-list">
+        @for (faq of faqItems; track faq.question; let i = $index) {
+          <article class="faq-item">
+            <button
+              class="faq-question"
+              type="button"
+              [attr.aria-expanded]="openFaqIndex === i"
+              (click)="toggleFaq(i)"
+            >
+              <span>{{ faq.question }}</span>
+              <span class="faq-indicator">{{
+                openFaqIndex === i ? "-" : "+"
+              }}</span>
+            </button>
+            @if (openFaqIndex === i) {
+              <p class="faq-answer">{{ faq.answer }}</p>
+            }
+          </article>
+        }
+      </div>
     </section>
   </main>
 </div>
