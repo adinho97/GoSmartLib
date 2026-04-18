@@ -1,0 +1,74 @@
+.info-page {
+  min-height: calc(100vh - 72px);
+  background: #f9f9f9;
+  color: #1f2937;
+}
+
+.info-hero {
+  padding: 38px 20px 30px;
+  text-align: center;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f7f8 100%);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.info-hero h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.3vw, 2.3rem);
+  color: #2f2f2f;
+}
+
+.info-hero p {
+  margin: 0.65rem auto 0;
+  max-width: 700px;
+  color: #5b636d;
+}
+
+.info-content {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 36px;
+  display: grid;
+  gap: 14px;
+}
+
+.info-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.info-card h2 {
+  margin: 0 0 0.7rem;
+  color: #2f2f2f;
+  font-size: 1.1rem;
+}
+
+.info-card ol,
+.info-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.45rem;
+  line-height: 1.45;
+}
+
+.info-card p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tip-card {
+  background: #f3f6f8;
+  border-color: #dce2e7;
+}
+
+@media (max-width: 600px) {
+  .info-content {
+    padding-top: 16px;
+  }
+
+  .info-card {
+    padding: 14px;
+  }
+}

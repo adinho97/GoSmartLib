@@ -16,6 +16,7 @@ import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
 import { SetupInviteComponent } from "./setup/setup-invite/setup-invite.component";
 import { SelectBibbeheerderComponent } from "./setup/select-bibbeheerder/select-bibbeheerder.component";
+import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
@@ -67,9 +68,8 @@ export const appRoutes: Routes = [
     path: "isbn-bulk",
     component: AddBulkComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["bibbeheerder"] }
-  }
-,
+    data: { roles: ["bibbeheerder"] },
+  },
   {
     path: "books",
     component: BookListComponent,
@@ -77,25 +77,31 @@ export const appRoutes: Routes = [
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
   {
-  path: 'uitleen',
-  component: LoanPageComponent,
-  canActivate: [AuthGuard],
-  data: { roles: ['leerkracht', 'bibbeheerder'] },
-},
-{
-  path: 'uitleen-catalogus',
-  component: LoanHistoryCatalogComponent,
-  canActivate: [AuthGuard],
-  data: { roles: ['leerkracht', 'bibbeheerder'] },
-},
-{ 
-  path: 'setup/invite/:token',
-  component: SetupInviteComponent
-},
-{
-  path: 'setup/select-teacher',
-  component: SelectBibbeheerderComponent
-},
+    path: "info",
+    component: LeerlingInfoComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerling"] },
+  },
+  {
+    path: "uitleen",
+    component: LoanPageComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "uitleen-catalogus",
+    component: LoanHistoryCatalogComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "setup/invite/:token",
+    component: SetupInviteComponent,
+  },
+  {
+    path: "setup/select-teacher",
+    component: SelectBibbeheerderComponent,
+  },
 ];
 
 @NgModule({

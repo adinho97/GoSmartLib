@@ -61,6 +61,10 @@ export class AppComponent implements OnInit {
     return this.userRole === "bibbeheerder";
   }
 
+  get isStudent(): boolean {
+    return this.userRole === "leerling";
+  }
+
   get canAccessLoans(): boolean {
     return this.isTeacher || this.isLibrarian;
   }
