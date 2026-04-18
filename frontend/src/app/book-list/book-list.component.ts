@@ -3,6 +3,7 @@ import { ActivatedRoute } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
+import { UiToastService } from "../services/ui-toast.service";
 
 type BookItem = {
   id?: number;
@@ -21,6 +22,27 @@ type BookItem = {
   averageRating?: number;
 };
 
+type BookListFilterState = {
+  searchInput: string;
+  searchQuery: string;
+  selectedGenre: string;
+  selectedLanguage: string;
+  selectedLeesniveau: string;
+  selectedMinAverageRating: string;
+  selectedNonFictionSubgenre: string;
+  selectedDidacticSubgenre: string;
+  minPages: number;
+  maxPages: number;
+  appliedGenre: string;
+  appliedLanguage: string;
+  appliedLeesniveau: string;
+  appliedMinAverageRating: string;
+  appliedNonFictionSubgenre: string;
+  appliedDidacticSubgenre: string;
+  appliedMinPages: number;
+  appliedMaxPages: number;
+};
+
 @Component({
   selector: "app-book-list",
   templateUrl: "./book-list.component.html",
@@ -28,6 +50,8 @@ type BookItem = {
   standalone: false,
 })
 export class BookListComponent implements OnInit {
+  private readonly FILTER_STORAGE_KEY = "bookListFiltersV1";
+  private hasAppliedQueryGenre = false;
   readonly ratingStars = [0, 1, 2, 3, 4];
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
@@ -142,6 +166,7 @@ export class BookListComponent implements OnInit {
     private route: ActivatedRoute,
     private bookService: BookService,
     private schoolService: SchoolService,
+    private uiToastService: UiToastService,
   ) {
     // Close menu when clicking outside
     document.addEventListener("click", () => {
@@ -150,17 +175,18 @@ export class BookListComponent implements OnInit {
   }
 
   async ngOnInit() {
+    this.restoreFilterState();
     this.initializeFiltersFromQueryParams();
     this.route.queryParamMap.subscribe((params) => {
       this.applyQueryGenreFilter(params.get("genre"));
     });
-    
+
     await Promise.all([
       this.loadSchools().then(() => this.loadBooks()), // Sequential dependency: books need school selection
-      this.loadWishlistState(),                          // Independent
-      this.loadFavoritesState(),                         // Independent
+      this.loadWishlistState(), // Independent
+      this.loadFavoritesState(), // Independent
     ]);
-    
+
     this.applyFilters();
   }
 
@@ -171,10 +197,14 @@ export class BookListComponent implements OnInit {
 
   private applyQueryGenreFilter(genre: string | null) {
     if (!genre) {
-      // Clicking "Boekenlijst" removes the didactic quick-filter.
-      this.selectedGenre = "";
-      this.clearGenreSubgenres();
-      this.applyFilters();
+      // Clicking "Boekenlijst" should remove didactic quick-filter only
+      // when a query-driven genre was previously applied.
+      if (this.hasAppliedQueryGenre) {
+        this.selectedGenre = "";
+        this.clearGenreSubgenres();
+        this.applyFilters();
+      }
+      this.hasAppliedQueryGenre = false;
       return;
     }
 
@@ -190,7 +220,80 @@ export class BookListComponent implements OnInit {
     );
     this.selectedGenre = matchedGenre || "";
     this.clearGenreSubgenres();
+    this.hasAppliedQueryGenre = true;
     this.applyFilters();
+  }
+
+  private persistFilterState(): void {
+    const state: BookListFilterState = {
+      searchInput: this.searchInput,
+      searchQuery: this.searchQuery,
+      selectedGenre: this.selectedGenre,
+      selectedLanguage: this.selectedLanguage,
+      selectedLeesniveau: this.selectedLeesniveau,
+      selectedMinAverageRating: this.selectedMinAverageRating,
+      selectedNonFictionSubgenre: this.selectedNonFictionSubgenre,
+      selectedDidacticSubgenre: this.selectedDidacticSubgenre,
+      minPages: this.minPages,
+      maxPages: this.maxPages,
+      appliedGenre: this.appliedGenre,
+      appliedLanguage: this.appliedLanguage,
+      appliedLeesniveau: this.appliedLeesniveau,
+      appliedMinAverageRating: this.appliedMinAverageRating,
+      appliedNonFictionSubgenre: this.appliedNonFictionSubgenre,
+      appliedDidacticSubgenre: this.appliedDidacticSubgenre,
+      appliedMinPages: this.appliedMinPages,
+      appliedMaxPages: this.appliedMaxPages,
+    };
+    localStorage.setItem(this.FILTER_STORAGE_KEY, JSON.stringify(state));
+  }
+
+  private restoreFilterState(): void {
+    const raw = localStorage.getItem(this.FILTER_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+
+    try {
+      const state = JSON.parse(raw) as Partial<BookListFilterState>;
+      this.searchInput = state.searchInput ?? "";
+      this.searchQuery = state.searchQuery ?? "";
+      this.selectedGenre = state.selectedGenre ?? "";
+      this.selectedLanguage = state.selectedLanguage ?? "";
+      this.selectedLeesniveau = state.selectedLeesniveau ?? "";
+      this.selectedMinAverageRating = state.selectedMinAverageRating ?? "";
+      this.selectedNonFictionSubgenre = state.selectedNonFictionSubgenre ?? "";
+      this.selectedDidacticSubgenre = state.selectedDidacticSubgenre ?? "";
+      this.minPages =
+        typeof state.minPages === "number"
+          ? state.minPages
+          : this.minPageFilterLimit;
+      this.maxPages =
+        typeof state.maxPages === "number"
+          ? state.maxPages
+          : this.maxPageFilterLimit;
+
+      this.appliedGenre = state.appliedGenre ?? this.selectedGenre;
+      this.appliedLanguage = state.appliedLanguage ?? this.selectedLanguage;
+      this.appliedLeesniveau =
+        state.appliedLeesniveau ?? this.selectedLeesniveau;
+      this.appliedMinAverageRating =
+        state.appliedMinAverageRating ?? this.selectedMinAverageRating;
+      this.appliedNonFictionSubgenre =
+        state.appliedNonFictionSubgenre ?? this.selectedNonFictionSubgenre;
+      this.appliedDidacticSubgenre =
+        state.appliedDidacticSubgenre ?? this.selectedDidacticSubgenre;
+      this.appliedMinPages =
+        typeof state.appliedMinPages === "number"
+          ? state.appliedMinPages
+          : this.minPages;
+      this.appliedMaxPages =
+        typeof state.appliedMaxPages === "number"
+          ? state.appliedMaxPages
+          : this.maxPages;
+    } catch {
+      localStorage.removeItem(this.FILTER_STORAGE_KEY);
+    }
   }
 
   private clearGenreSubgenres() {
@@ -329,6 +432,7 @@ export class BookListComponent implements OnInit {
   applySearch() {
     this.searchQuery = this.searchInput.trim();
     this.currentPage = 1;
+    this.persistFilterState();
   }
   applyFilters() {
     this.appliedGenre = this.selectedGenre;
@@ -340,6 +444,7 @@ export class BookListComponent implements OnInit {
     this.appliedMinPages = this.minPages;
     this.appliedMaxPages = this.maxPages;
     this.currentPage = 1;
+    this.persistFilterState();
   }
 
   onGenreChange() {
@@ -364,6 +469,7 @@ export class BookListComponent implements OnInit {
     this.minPages = this.minPageFilterLimit;
     this.maxPages = this.maxPageFilterLimit;
     this.applyFilters();
+    this.persistFilterState();
   }
 
   onMinPagesChange(v: any) {
@@ -462,13 +568,16 @@ export class BookListComponent implements OnInit {
       if (this.wishlistedBookIds.has(bookId)) {
         await this.bookService.removeFromWishlist(bookId);
         this.wishlistedBookIds.delete(bookId);
+        this.uiToastService.success("Boek verwijderd van je verlanglijst.");
         return;
       }
 
       await this.bookService.addToWishlist(bookId);
       this.wishlistedBookIds.add(bookId);
+      this.uiToastService.success("Boek toegevoegd aan je verlanglijst.");
     } catch {
       this.error = "Verlanglijst bijwerken mislukt. Probeer later opnieuw.";
+      this.uiToastService.error("Verlanglijst bijwerken mislukt.");
     }
   }
 
@@ -485,13 +594,16 @@ export class BookListComponent implements OnInit {
       if (this.favoritedBookIds.has(bookId)) {
         await this.bookService.removeFromFavorites(bookId);
         this.favoritedBookIds.delete(bookId);
+        this.uiToastService.success("Boek verwijderd uit je favorieten.");
         return;
       }
 
       await this.bookService.addToFavorites(bookId);
       this.favoritedBookIds.add(bookId);
+      this.uiToastService.success("Boek toegevoegd aan je favorieten.");
     } catch {
       this.error = "Favorieten bijwerken mislukt. Probeer later opnieuw.";
+      this.uiToastService.error("Favorieten bijwerken mislukt.");
     }
   }
 

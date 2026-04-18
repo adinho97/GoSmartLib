@@ -25,6 +25,7 @@ import { RecommendationSectionComponent } from "./recommendation-section/recomme
 import { RecommendationCardComponent } from "./recommendation-card/recommendation-card.component";
 import { ActiveLoansComponent } from "./active-loans/active-loans.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
+import { UiToastComponent } from "./components/ui-toast/ui-toast.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -54,6 +55,7 @@ registerLocaleData(localeNl, "nl");
     RecommendationSectionComponent,
     RecommendationCardComponent,
     ActiveLoansComponent,
+    UiToastComponent,
   ],
   providers: [provideHttpClient(), { provide: LOCALE_ID, useValue: "nl" }],
   bootstrap: [AppComponent],
