@@ -50,6 +50,40 @@ export class ProfileComponent {
 
   @Output() logoutRequested = new EventEmitter<void>();
 
+  activeSectionInfoKey: keyof typeof this.sectionInfoContent | null = null;
+  readonly sectionInfoContent = {
+    borrowed: {
+      title: "Geleende boeken",
+      description:
+        "Hier zie je alle boeken die je nu in uitleen hebt. Via deze lijst ga je snel naar details en volg je je deadlines op.",
+    },
+    highlighted: {
+      title: "Klasleeslijst",
+      description:
+        "Dit zijn de boeken die voor jouw klas of leeromgeving extra in de kijker staan. Gebruik dit overzicht om snel relevant lesmateriaal te vinden.",
+    },
+    wishlist: {
+      title: "Verlanglijst",
+      description:
+        "Bewaar hier boeken die je later wilt lezen of ontlenen. Je kunt ze vanuit dit blok ook beheren of meldingen aanpassen.",
+    },
+    favorites: {
+      title: "Favoriete boeken",
+      description:
+        "Deze sectie bevat je persoonlijke favorieten. Handig om snel terug te keren naar boeken die je sterk aanbeveelt of vaker gebruikt.",
+    },
+    history: {
+      title: "Ontleenhistoriek",
+      description:
+        "In de historiek zie je welke boeken je eerder ontleende. Dit helpt je om gelezen titels te herbekijken en leespatronen te volgen.",
+    },
+    badges: {
+      title: "Badges",
+      description:
+        "Hier verzamel je badges op basis van je activiteit in de bibliotheek. Ze tonen je voortgang en belonen je lees- en gebruiksgedrag.",
+    },
+  } as const;
+
   role = localStorage.getItem("role") || "gebruiker";
 
   dashboardSettings: Record<string, boolean> = {
@@ -217,10 +251,10 @@ export class ProfileComponent {
         cover: item.cover || "",
         deadline: item.dueDate ? new Date(item.dueDate) : undefined,
         eadline: item.dueDate ? new Date(item.dueDate) : undefined,
-        author: item.auteur || "",      
-        genre: item.genre || "",        
-        taal: item.taal || "",          
-        paginas: item.paginas || 0,     
+        author: item.auteur || "",
+        genre: item.genre || "",
+        taal: item.taal || "",
+        paginas: item.paginas || 0,
       }));
     } catch (error) {
       console.error("Error loading active loans:", error);
@@ -308,6 +342,13 @@ export class ProfileComponent {
 
   get highlightedBooksCount(): number {
     return this.readingList.length;
+  }
+
+  get activeSectionInfo() {
+    if (!this.activeSectionInfoKey) {
+      return null;
+    }
+    return this.sectionInfoContent[this.activeSectionInfoKey];
   }
 
   goToFavoritePage(page: number) {
@@ -533,6 +574,14 @@ export class ProfileComponent {
     }
 
     section.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  openSectionInfo(key: keyof typeof this.sectionInfoContent) {
+    this.activeSectionInfoKey = key;
+  }
+
+  closeSectionInfo() {
+    this.activeSectionInfoKey = null;
   }
 
   testSmartschoolMessage(): void {

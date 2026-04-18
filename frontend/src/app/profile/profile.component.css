@@ -583,10 +583,108 @@
   padding-bottom: 0.25rem;
 }
 
+.section-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .section-title {
   margin: 0;
   color: #1a1a1a;
   font-size: 1.15rem;
+}
+
+.profile-section-info-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid #c7ccd1;
+  background: #eef1f4;
+  color: #6b7075;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.profile-section-info-btn:hover {
+  background: #e4e8ec;
+  border-color: #b8bec4;
+  transform: translateY(-1px);
+}
+
+.profile-section-info-btn:focus-visible {
+  outline: 2px solid #aeb5bc;
+  outline-offset: 2px;
+}
+
+.profile-info-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(18, 12, 15, 0.56);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.profile-info-modal {
+  width: min(480px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #d8dce1;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+  padding: 16px 18px;
+}
+
+.profile-info-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.profile-info-modal-header h4 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 1.06rem;
+  line-height: 1.3;
+}
+
+.profile-info-modal p {
+  margin: 0;
+  color: #3a3f44;
+  line-height: 1.5;
+}
+
+.profile-info-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #d0d4d9;
+  background: #f3f5f7;
+  color: #5e646a;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.profile-info-close-btn:hover {
+  background: #e8ebef;
 }
 
 .section-count {
@@ -730,6 +828,16 @@
 @media (max-width: 560px) {
   .profile-shell {
     padding: 1rem 0.75rem 2rem;
+  }
+
+  .section-title-group {
+    gap: 6px;
+  }
+
+  .profile-section-info-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 0.64rem;
   }
 
   .identity-row {
