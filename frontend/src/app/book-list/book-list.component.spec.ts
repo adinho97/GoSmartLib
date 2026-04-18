@@ -16,6 +16,7 @@ type TestBook = {
   paginas: number | null;
   taal: string;
   uitgeverij: string;
+  leesniveau?: string | null;
 };
 
 const createBook = (
@@ -126,6 +127,34 @@ describe("BookListComponent", () => {
 
     expect(component.filteredBooks.map((book) => book.id)).toEqual([1, 2, 3]);
 
+    component.applyFilters();
+
+    expect(component.filteredBooks.map((book) => book.id)).toEqual([1]);
+  });
+
+  it("applies leesniveau filter only after applyFilters", () => {
+    component.books = [
+      createBook(1, "Boek 1", { leesniveau: "1ste graad" }),
+      createBook(2, "Boek 2", { leesniveau: "2de graad" }),
+      createBook(3, "Boek 3", { leesniveau: null }),
+    ];
+
+    component.selectedLeesniveau = "1ste graad";
+
+    expect(component.filteredBooks.map((book) => book.id)).toEqual([1, 2, 3]);
+
+    component.applyFilters();
+
+    expect(component.filteredBooks.map((book) => book.id)).toEqual([1]);
+  });
+
+  it("matches leesniveau case-insensitively", () => {
+    component.books = [
+      createBook(1, "Boek 1", { leesniveau: "1ste graad" }),
+      createBook(2, "Boek 2", { leesniveau: "2de graad" }),
+    ];
+
+    component.selectedLeesniveau = "1STE GRAAD";
     component.applyFilters();
 
     expect(component.filteredBooks.map((book) => book.id)).toEqual([1]);
