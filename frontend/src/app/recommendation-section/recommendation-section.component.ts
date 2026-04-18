@@ -16,6 +16,7 @@ import {
 } from "../services/user-preferences.service";
 import { RecommendedBook } from "../services/recommendation.service";
 import { RecommendationCardComponent } from "../recommendation-card/recommendation-card.component";
+import { UiToastService } from "../services/ui-toast.service";
 
 @Component({
   selector: "app-recommendation-section",
@@ -57,6 +58,7 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
     private bookService: BookService,
     private userPreferencesService: UserPreferencesService,
     private router: Router,
+    private uiToastService: UiToastService,
   ) {}
 
   ngOnInit(): void {
@@ -130,12 +132,17 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
       wasWishlisted
         ? await this.bookService.removeFromWishlist(bookId)
         : await this.bookService.addToWishlist(bookId);
+      this.uiToastService.success(
+        wasWishlisted
+          ? "Boek verwijderd van je verlanglijst."
+          : "Boek toegevoegd aan je verlanglijst.",
+      );
     } catch (error) {
       wasWishlisted
         ? this.wishlistedBookIds.add(bookId)
         : this.wishlistedBookIds.delete(bookId);
       console.error("Failed to toggle wishlist for book", bookId, error);
-      // TODO: Emit toast/error event for user feedback
+      this.uiToastService.error("Verlanglijst bijwerken mislukt.");
     }
   }
 
@@ -151,12 +158,17 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
       wasFavorited
         ? await this.bookService.removeFromFavorites(bookId)
         : await this.bookService.addToFavorites(bookId);
+      this.uiToastService.success(
+        wasFavorited
+          ? "Boek verwijderd uit je favorieten."
+          : "Boek toegevoegd aan je favorieten.",
+      );
     } catch (error) {
       wasFavorited
         ? this.favoritedBookIds.add(bookId)
         : this.favoritedBookIds.delete(bookId);
       console.error("Failed to toggle favorite for book", bookId, error);
-      // TODO: Emit toast/error event for user feedback
+      this.uiToastService.error("Favorieten bijwerken mislukt.");
     }
   }
 

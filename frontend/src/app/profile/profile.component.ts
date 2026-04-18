@@ -20,6 +20,7 @@ import {
 } from "../services/user-preferences.service";
 import { ExperienceService, LevelInfo } from "../services/experience.service";
 import { BadgeCollectionComponent } from "./badge-collection/badge-collection.component";
+import { UiToastService } from "../services/ui-toast.service";
 
 type ProfileBookCard = {
   title: string;
@@ -136,6 +137,7 @@ export class ProfileComponent {
     private userPreferencesService: UserPreferencesService,
     private cdr: ChangeDetectorRef,
     private experienceService: ExperienceService,
+    private uiToastService: UiToastService,
   ) {}
 
   async ngOnInit() {
@@ -393,12 +395,14 @@ export class ProfileComponent {
       this.wishlistBooks = this.wishlistBooks.filter(
         (book) => book.id !== bookId,
       );
+      this.uiToastService.success("Boek verwijderd van je verlanglijst.");
 
       if (this.currentWishlistPage > this.totalWishlistPages) {
         this.currentWishlistPage = this.totalWishlistPages;
       }
     } catch {
       // Keep silent here to avoid noisy alerts on dashboard profile cards.
+      this.uiToastService.error("Verlanglijst bijwerken mislukt.");
     }
   }
 
@@ -413,8 +417,10 @@ export class ProfileComponent {
       this.favoriteBooks = this.favoriteBooks.filter(
         (book) => book.id !== bookId,
       );
+      this.uiToastService.success("Boek verwijderd uit je favorieten.");
     } catch {
       // Keep silent here as well.
+      this.uiToastService.error("Favorieten bijwerken mislukt.");
     }
   }
 
@@ -483,6 +489,11 @@ export class ProfileComponent {
       book.notificationEnabled =
         updatedWishlist.notificationEnabled ?? nextValue;
       this.notificationToggleErrors[book.id] = "";
+      this.uiToastService.success(
+        nextValue
+          ? "Melding ingeschakeld voor dit boek."
+          : "Melding uitgeschakeld voor dit boek.",
+      );
     } catch (error) {
       book.notificationEnabled = previousValue;
       console.error("Failed to toggle notification:", error);
@@ -497,6 +508,7 @@ export class ProfileComponent {
         this.notificationToggleErrors[book.id] =
           "Melding aanpassen mislukt. Probeer opnieuw.";
       }
+      this.uiToastService.error(this.notificationToggleErrors[book.id]);
     }
   }
 

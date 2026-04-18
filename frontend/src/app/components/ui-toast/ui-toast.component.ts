@@ -16,9 +16,21 @@ type RenderedToast = {
   standalone: true,
   template: `
     @if (currentToast) {
-      <div class="ui-toast" [class]="'ui-toast ' + currentToast.kind" role="status" aria-live="polite">
+      <div
+        class="ui-toast"
+        [class]="'ui-toast ' + currentToast.kind"
+        role="status"
+        aria-live="polite"
+      >
         <span>{{ currentToast.text }}</span>
-        <button type="button" class="ui-toast-close" aria-label="Sluit melding" (click)="dismiss()">×</button>
+        <button
+          type="button"
+          class="ui-toast-close"
+          aria-label="Sluit melding"
+          (click)="dismiss()"
+        >
+          ×
+        </button>
       </div>
     }
   `,
