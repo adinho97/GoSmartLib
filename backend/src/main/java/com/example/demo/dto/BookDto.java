@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import com.example.demo.entities.Leesniveau;
+
 import java.time.LocalDate;
 
 public class BookDto {
@@ -41,6 +43,8 @@ public class BookDto {
 
     @Size(max = 255)
     private String uitgeverij;
+
+    private Leesniveau leesniveau;
 
     private Long schoolId;
 
@@ -158,6 +162,14 @@ public class BookDto {
 
     public void setUitgeverij(String uitgeverij) {
         this.uitgeverij = uitgeverij;
+    }
+
+    public Leesniveau getLeesniveau() {
+        return leesniveau;
+    }
+
+    public void setLeesniveau(Leesniveau leesniveau) {
+        this.leesniveau = leesniveau;
     }
 
     public Long getSchoolId() {

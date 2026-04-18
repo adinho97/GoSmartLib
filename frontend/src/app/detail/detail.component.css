@@ -111,57 +111,86 @@
 .back-btn,
 .edit-btn-detail {
   display: inline-flex;
-  .back-btn:hover {
-    border-radius: 999px;
-    padding: 0.52rem 0.95rem;
-    font-weight: 600;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.52rem 0.95rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.12s ease;
+}
 
-    .edit-btn-detail {
-      cursor: pointer;
-    }
+.back-btn {
+  border: 1px solid #871f42;
+  color: #871f42;
+  background: #ffffff;
+  margin-right: 0.5rem;
+}
 
-    .back-btn {
-      border: 1px solid #871f42;
-      position: relative;
-      color: #871f42;
-      margin-right: 0.5rem;
-    }
-  }
+.back-btn:hover {
+  background: #fff3f7;
+  border-color: #6d1936;
+  color: #6d1936;
+  box-shadow: 0 2px 8px rgba(135, 31, 66, 0.12);
+}
 
-  .book-title {
-    margin: 0.95rem 0 0.6rem;
-    font-size: 2rem;
-    color: #1a1a1a;
-  }
+.edit-btn-detail {
+  border: 1px solid #871f42;
+  background: #871f42;
+  color: #ffffff;
+}
 
-  .availability-bar {
-    margin-bottom: 1rem;
-  }
+.edit-btn-detail:hover {
+  background: #60162f;
+  border-color: #60162f;
+  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.2);
+}
 
-  .avail-badge {
-    display: inline-flex;
-    padding: 0.4rem 0.8rem;
-    border-radius: 999px;
-    font-weight: 600;
-    font-size: 0.88rem;
-    justify-content: flex-end;
-    color: #5f1f38;
-    background: #fff6fa;
-    transform: none;
-    box-shadow: none;
-  }
+.edit-btn-detail svg {
+  width: 14px;
+  height: 14px;
+}
 
-  .action-icon-btn.delete-review-btn:hover,
-  .action-icon-btn.delete-review-btn:focus-visible {
-    border-color: #d8b6c0;
-    color: #8d2949;
-    background: #fff3f7;
-    transform: none;
-    box-shadow: none;
-  }
+.back-btn:focus-visible,
+.edit-btn-detail:focus-visible {
+  outline: 2px solid rgba(135, 31, 66, 0.35);
+  outline-offset: 2px;
+}
+
+.back-btn:active,
+.edit-btn-detail:active {
+  transform: translateY(1px);
+}
+
+.book-title {
+  margin: 0.95rem 0 0.6rem;
+  font-size: 2rem;
+  color: #1a1a1a;
+}
+
+.availability-bar {
+  margin-bottom: 1rem;
+}
+
+.avail-badge {
+  display: inline-flex;
+  padding: 0.4rem 0.8rem;
   border-radius: 999px;
   font-weight: 600;
   font-size: 0.88rem;
+  justify-content: flex-end;
+  color: #5f1f38;
+  background: #fff6fa;
+  transform: none;
+  box-shadow: none;
 }
 
 .avail-badge.available {

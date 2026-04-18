@@ -215,6 +215,7 @@ public class BookController {
         existing.setPaginas(bookDto.getPaginas());
         existing.setTaal(bookDto.getTaal());
         existing.setUitgeverij(bookDto.getUitgeverij());
+        existing.setLeesniveau(bookDto.getLeesniveau());
 
         if (bookDto.getSchoolId() != null) {
             School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());

@@ -24,6 +24,7 @@ public class BookMapper {
         dto.setPaginas(book.getPaginas());
         dto.setTaal(book.getTaal());
         dto.setUitgeverij(book.getUitgeverij());
+        dto.setLeesniveau(book.getLeesniveau());
         if (book.getSchool() != null) {
             dto.setSchoolId(book.getSchool().getId());
             dto.setSchoolNaam(book.getSchool().getNaam());
@@ -68,6 +69,7 @@ public class BookMapper {
         book.setPaginas(dto.getPaginas());
         book.setTaal(dto.getTaal());
         book.setUitgeverij(dto.getUitgeverij());
+        book.setLeesniveau(dto.getLeesniveau());
 
         return book;
     }

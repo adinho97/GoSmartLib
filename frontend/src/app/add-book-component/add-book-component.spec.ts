@@ -3,6 +3,7 @@ import { FormsModule, NgForm } from "@angular/forms";
 import { AddBookComponent } from "./add-book-component";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
+import { LEESNIVEAUS } from "./add-book-component";
 
 class MockBookService {
   addBook = jasmine.createSpy("addBook").and.returnValue(Promise.resolve());
@@ -108,5 +109,33 @@ describe("AddBookComponent", () => {
     expect(component.selectedCoverFile).toBe(file);
     expect(component.coverPreviewUrl).toBe("blob:url");
     expect(component.book.cover).toBe("cover.png");
+  });
+
+  it("exposes all expected leesniveau options", () => {
+    expect(component.leesniveaus).toEqual(LEESNIVEAUS);
+    expect(component.leesniveaus).toContain("1ste-2de leerljaar");
+    expect(component.leesniveaus).toContain("3de-4de leerjaar");
+    expect(component.leesniveaus).toContain("5de-6de leerjaar");
+    expect(component.leesniveaus).toContain("1ste graad");
+    expect(component.leesniveaus).toContain("2de graad");
+    expect(component.leesniveaus).toContain("3de graad");
+  });
+
+  it("sends selected leesniveau in submit payload", async () => {
+    const mockForm = {
+      invalid: false,
+      resetForm: jasmine.createSpy(),
+    } as unknown as NgForm;
+
+    component.book.titel = "Leesboek";
+    component.book.auteur = "Auteur";
+    component.book.leesniveau = "2de graad";
+
+    await component.onSubmit(mockForm);
+
+    expect(bookService.addBook).toHaveBeenCalledWith(
+      jasmine.objectContaining({ leesniveau: "2de graad" }),
+      1,
+    );
   });
 });
