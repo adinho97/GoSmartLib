@@ -40,11 +40,18 @@ export class UserPreferencesService {
     const cached = this.getFromLocalStorage();
     this.preferencesSubject.next(cached);
 
-    // Then sync with backend silently in the background (fire and forget)
-    this.syncWithBackendInBackground();
+    // Only sync with backend if user is authenticated
+    if (this.isUserAuthenticated()) {
+      this.syncWithBackendInBackground();
+    }
   }
 
   async loadPreferencesFromBackend(): Promise<void> {
+    // Skip if user is not authenticated to avoid 401 errors
+    if (!this.isUserAuthenticated()) {
+      return;
+    }
+
     try {
       const backendPrefs = await this.fetchFromBackend();
       if (Object.keys(backendPrefs).length === 0) {
@@ -54,7 +61,16 @@ export class UserPreferencesService {
       const merged = { ...this.preferencesSubject.value, ...backendPrefs };
       this.preferencesSubject.next(merged);
       this.saveToLocalStorage(merged);
-    } catch (error) {
+    } catch (error: any) {
+      // Handle 401 errors by clearing stale auth data and returning silently
+      if (error.response?.status === 401 || error.status === 401) {
+        console.debug(
+          "Authentication failed when loading preferences, clearing stale auth data",
+        );
+        this.clearStaleAuthData();
+        return;
+      }
+
       console.warn("Failed to load preferences from backend:", error);
       // Keep using cached localStorage values if backend is unavailable
     }
@@ -143,5 +159,29 @@ export class UserPreferencesService {
         Authorization: token ? `Bearer ${token}` : "",
       },
     };
+  }
+
+  /**
+   * Check if user has the required authentication data
+   * Returns true only if both user identifier and token are present
+   */
+  private isUserAuthenticated(): boolean {
+    const userSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId");
+    const token = localStorage.getItem("smartschoolToken");
+    return !!(userSub && token);
+  }
+
+  /**
+   * Clear stale authentication data from localStorage
+   * Called when a 401 error indicates the auth tokens are invalid
+   */
+  private clearStaleAuthData(): void {
+    localStorage.removeItem("sub");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("smartschoolToken");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("smartschoolPlatform");
   }
 }
