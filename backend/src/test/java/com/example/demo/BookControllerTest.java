@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -202,6 +203,70 @@ class BookControllerTest {
                 Book saved = captor.getValue();
                 assertNull(saved.getIsbn());
                 assertTrue(saved.getGoNumber().matches("GO-\\d{8}"));
+        }
+
+        @Test
+        void createShouldRetryGoNumberGenerationWhenCandidateAlreadyExists() throws Exception {
+                School school = new School();
+                school.setId(1L);
+
+                when(schoolService.getByIdOrDefault(any())).thenReturn(school);
+                when(bookRepository.existsByGoNumber(anyString())).thenReturn(true, false);
+                when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                String json = """
+                                {
+                                  "titel": "Handmatig boek",
+                                  "auteur": "Auteur"
+                                }
+                                """;
+
+                ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+
+                mockMvc.perform(post("/api/boeken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.goNumber", Matchers.matchesPattern("GO-\\d{8}")));
+
+                verify(bookRepository, times(2)).existsByGoNumber(anyString());
+                verify(bookRepository).save(captor.capture());
+
+                Book saved = captor.getValue();
+                assertTrue(saved.getGoNumber().matches("GO-\\d{8}"));
+        }
+
+        @Test
+        void createShouldNotGenerateGoNumberWhenIsbnIsProvided() throws Exception {
+                School school = new School();
+                school.setId(1L);
+
+                when(schoolService.getByIdOrDefault(any())).thenReturn(school);
+                when(bookRepository.findByIsbnAndSchool_Id("9780132350884", 1L)).thenReturn(Optional.empty());
+                when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                String json = """
+                                {
+                                  "titel": "Boek met ISBN",
+                                  "auteur": "Auteur",
+                                  "isbn": "9780132350884"
+                                }
+                                """;
+
+                ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+
+                mockMvc.perform(post("/api/boeken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.isbn").value("9780132350884"));
+
+                verify(bookRepository, never()).existsByGoNumber(anyString());
+                verify(bookRepository).save(captor.capture());
+
+                Book saved = captor.getValue();
+                assertEquals("9780132350884", saved.getIsbn());
+                assertNull(saved.getGoNumber());
         }
 
         @Test
