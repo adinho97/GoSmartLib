@@ -34,6 +34,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
+import java.security.SecureRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,6 +44,7 @@ public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
     private static final String TEACHER_ROLE = "leerkracht";
+    private static final SecureRandom GO_NUMBER_RANDOM = new SecureRandom();
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
     private final AppUserRepository appUserRepository;
@@ -111,7 +113,9 @@ public class BookController {
         try {
             Book entity = BookMapper.toEntity(bookDto);
             entity.setId(null);
+            entity.setGoNumber(null);
             entity.setSchool(school);
+            assignGoNumberIfNeeded(entity);
             Book saved = repo.save(entity);
             logger.info("Book saved with id: {}", saved.getId());
 
@@ -216,6 +220,7 @@ public class BookController {
         existing.setTaal(bookDto.getTaal());
         existing.setUitgeverij(bookDto.getUitgeverij());
         existing.setLeesniveau(bookDto.getLeesniveau());
+        assignGoNumberIfNeeded(existing);
 
         if (bookDto.getSchoolId() != null) {
             School school = schoolService.getByIdOrDefault(bookDto.getSchoolId());
@@ -606,6 +611,25 @@ public class BookController {
 
     private boolean isTeacher(String userRole) {
         return TEACHER_ROLE.equalsIgnoreCase(userRole);
+    }
+
+    private void assignGoNumberIfNeeded(Book book) {
+        if (book == null || StringUtils.hasText(book.getIsbn())) {
+            return;
+        }
+
+        if (!StringUtils.hasText(book.getGoNumber())) {
+            book.setGoNumber(generateUniqueGoNumber());
+        }
+    }
+
+    private String generateUniqueGoNumber() {
+        String goNumber;
+        do {
+            goNumber = "GO-" + String.format("%08d", GO_NUMBER_RANDOM.nextInt(100_000_000));
+        } while (repo.existsByGoNumber(goNumber));
+
+        return goNumber;
     }
 
     private String resolveReviewerUserName(Review review) {

@@ -20,6 +20,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @EntityGraph(attributePaths = { "copies", "reviews" })
     Optional<Book> findByIsbn(String isbn);
 
+    boolean existsByGoNumber(String goNumber);
+
     @EntityGraph(attributePaths = { "copies", "reviews" })
     Optional<Book> findByIsbnAndSchool_Id(String isbn, Long schoolId);
 

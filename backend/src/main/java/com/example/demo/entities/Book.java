@@ -30,6 +30,10 @@ public class Book {
     @Column(nullable = true)
     private String isbn;
 
+    @Size(max = 11)
+    @Column(name = "go_number", unique = true, nullable = true, length = 11)
+    private String goNumber;
+
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     @Size(max = 10_000_000)
@@ -113,6 +117,14 @@ public class Book {
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
+    }
+
+    public String getGoNumber() {
+        return goNumber;
+    }
+
+    public void setGoNumber(String goNumber) {
+        this.goNumber = goNumber;
     }
 
     public String getCover() {
