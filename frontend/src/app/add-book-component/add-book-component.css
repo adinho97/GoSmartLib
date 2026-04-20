@@ -35,8 +35,9 @@
 
 .isbn-input-row {
   display: flex;
-  gap: 12px;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
 }
 
 .isbn-input-row input {
@@ -44,6 +45,7 @@
 }
 
 .secondary-btn {
+  width: 100%;
   padding: 12px 18px;
   border-radius: 8px;
   border: 1px solid #871f42;
@@ -69,12 +71,23 @@ label {
   margin-bottom: 8px;
 }
 
-input,
-select,
-textarea {
+.book-form .form-row > input,
+.book-form .form-row > select,
+.book-form .form-row > textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #ddd;
+}
+
+#school {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* Cover Upload */
