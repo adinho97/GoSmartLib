@@ -77,6 +77,7 @@ export class LoginComponent implements OnInit {
           localStorage.setItem("role", userInfo.role);
         }
 
+        this.userPreferencesService.clearCache();
         await this.userPreferencesService.loadPreferencesFromBackend();
 
         this.experienceService.refreshForCurrentUser().catch((error) => {
