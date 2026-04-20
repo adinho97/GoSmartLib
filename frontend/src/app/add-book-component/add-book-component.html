@@ -6,6 +6,30 @@
   <div class="main-card">
     <form (ngSubmit)="onSubmit(bookForm)" #bookForm="ngForm" class="book-form">
       <div class="form-row">
+        <label for="goNumberLookup">GO-nummer</label>
+        <div class="isbn-input-row">
+          <input
+            id="goNumberLookup"
+            name="goNumberLookup"
+            [(ngModel)]="goNumberLookup"
+            placeholder="Voer GO-nummer in"
+          />
+          <button
+            type="button"
+            class="secondary-btn"
+            (click)="loadBookFromGoNumber()"
+            [disabled]="isLookupLoading"
+          >
+            {{ isLookupLoading ? "Laden..." : "Boek laden" }}
+          </button>
+        </div>
+        <small class="helper-text"
+          >Gebruik dit om boekgegevens automatisch in te vullen op basis van een
+          bestaand GO-nummer.</small
+        >
+      </div>
+
+      <div class="form-row">
         <label for="school">School</label>
         <select
           id="school"

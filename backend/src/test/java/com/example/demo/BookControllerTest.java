@@ -23,6 +23,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.hamcrest.Matchers;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,7 +36,9 @@ import reactor.core.publisher.Mono;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -169,6 +172,36 @@ class BookControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json))
                                 .andExpect(status().isConflict());
+        }
+
+        @Test
+        void createShouldGenerateGoNumberWhenIsbnIsMissing() throws Exception {
+                School school = new School();
+                school.setId(1L);
+
+                when(schoolService.getByIdOrDefault(any())).thenReturn(school);
+                when(bookRepository.existsByGoNumber(anyString())).thenReturn(false);
+                when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+                String json = """
+                                {
+                                  "titel": "Handmatig boek",
+                                  "auteur": "Auteur"
+                                }
+                                """;
+
+                ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+
+                mockMvc.perform(post("/api/boeken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.goNumber", Matchers.matchesPattern("GO-\\d{8}")));
+
+                verify(bookRepository).save(captor.capture());
+                Book saved = captor.getValue();
+                assertNull(saved.getIsbn());
+                assertTrue(saved.getGoNumber().matches("GO-\\d{8}"));
         }
 
         @Test

@@ -7,6 +7,24 @@ import { LEESNIVEAUS } from "./add-book-component";
 
 class MockBookService {
   addBook = jasmine.createSpy("addBook").and.returnValue(Promise.resolve());
+  fetchBookByGoNumber = jasmine
+    .createSpy("fetchBookByGoNumber")
+    .and.returnValue(
+      Promise.resolve({
+        titel: "GO Boek",
+        auteur: "Auteur",
+        isbn: "",
+        goNumber: "GO-12345678",
+        cover: "data:image/png;base64,abc",
+        beschrijving: "Beschrijving",
+        genre: "Fantasy",
+        uitgaveDatum: "2020-01-01",
+        paginas: 123,
+        taal: "Nederlands",
+        uitgeverij: "Uitgeverij",
+        leesniveau: "2de graad",
+      }),
+    );
 }
 
 class MockSchoolService {
@@ -137,5 +155,18 @@ describe("AddBookComponent", () => {
       jasmine.objectContaining({ leesniveau: "2de graad" }),
       1,
     );
+  });
+
+  it("should load book data from GO number", async () => {
+    component.goNumberLookup = "GO-12345678";
+
+    await component.loadBookFromGoNumber();
+
+    expect(bookService.fetchBookByGoNumber).toHaveBeenCalledWith("GO-12345678");
+    expect(component.book.titel).toBe("GO Boek");
+    expect(component.book.auteur).toBe("Auteur");
+    expect(component.book.goNumber).toBe("GO-12345678");
+    expect(component.coverPreviewUrl).toBe("data:image/png;base64,abc");
+    expect(component.submitState).toBe("success");
   });
 });

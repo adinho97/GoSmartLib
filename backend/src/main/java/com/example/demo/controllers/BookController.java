@@ -142,6 +142,22 @@ public class BookController {
         }
     }
 
+    @GetMapping("/go/{goNumber}")
+    public ResponseEntity<BookDto> getByGoNumber(@PathVariable @NonNull String goNumber,
+            @RequestParam(required = false) Long schoolId) {
+        String trimmedGoNumber = goNumber.trim().toUpperCase(Locale.ROOT);
+        if (!StringUtils.hasText(trimmedGoNumber)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return (schoolId == null
+                ? repo.findByGoNumber(trimmedGoNumber)
+                : repo.findByGoNumberAndSchool_Id(trimmedGoNumber, schoolId))
+                .map(BookMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/preview/{isbn}")
     public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
         BookDto dto;

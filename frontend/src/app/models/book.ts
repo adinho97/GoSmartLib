@@ -11,6 +11,7 @@ export interface Book {
   uitgeverij: string;
   leesniveau?: string | null;
   isbn?: string;
+  goNumber?: string;
   schoolId?: number;
   schoolNaam?: string;
   reviewCount?: number;
