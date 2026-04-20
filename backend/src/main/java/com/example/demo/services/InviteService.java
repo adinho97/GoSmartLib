@@ -7,6 +7,8 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Invite;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.InviteRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class InviteService {
+
+    private static final Logger logger = LoggerFactory.getLogger(InviteService.class);
 
     private final InviteRepository inviteRepository;
     private final AppUserRepository appUserRepository;
@@ -58,15 +62,71 @@ public class InviteService {
     }
 
     public List<TeacherDto> getTeachersBySchool(String schoolId) {
-        List<AppUser> teachers = appUserRepository.findByRoleAndPlatform("leerkracht", schoolId);
+        String requestedSchoolKey = normalizeSchoolKey(schoolId);
+        List<AppUser> allTeachers = appUserRepository.findByRole("leerkracht");
 
-        return teachers.stream()
+        logger.info("Invite teacher lookup started: schoolId='{}', normalizedSchool='{}', totalLeerkrachten={}",
+                schoolId, requestedSchoolKey, allTeachers.size());
+
+        List<TeacherDto> teachers = allTeachers.stream()
+                .filter(teacher -> {
+                    String teacherSchoolKey = normalizeSchoolKey(teacher.getPlatform());
+                    boolean match = requestedSchoolKey != null && requestedSchoolKey.equals(teacherSchoolKey);
+                    if (match) {
+                        logger.debug("Teacher match: userId={}, sub='{}', platform='{}', normalizedPlatform='{}'",
+                                teacher.getId(), teacher.getSub(), teacher.getPlatform(), teacherSchoolKey);
+                    }
+                    return match;
+                })
                 .map(teacher -> new TeacherDto(
                         teacher.getId(),
                         teacher.getSub(),
                         teacher.getSub() // TODO: fetch naam van Smartschool API of user display name
                 ))
                 .collect(Collectors.toList());
+
+        if (teachers.isEmpty()) {
+            String samplePlatforms = allTeachers.stream()
+                    .limit(5)
+                    .map(t -> String.valueOf(t.getPlatform()))
+                    .collect(Collectors.joining(", "));
+            logger.warn("Invite teacher lookup returned 0 results for schoolId='{}' (normalized='{}'). Sample teacher platforms: [{}]",
+                    schoolId, requestedSchoolKey, samplePlatforms);
+        } else {
+            logger.info("Invite teacher lookup completed: found {} matching teachers for schoolId='{}'",
+                    teachers.size(), schoolId);
+        }
+
+        return teachers;
+    }
+
+    private String normalizeSchoolKey(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            String normalized = value.trim().toLowerCase();
+            normalized = normalized.replaceFirst("^https?://", "");
+
+            int slashIndex = normalized.indexOf('/');
+            if (slashIndex >= 0) {
+                normalized = normalized.substring(0, slashIndex);
+            }
+
+            if (normalized.startsWith("www.")) {
+                normalized = normalized.substring(4);
+            }
+
+            if (normalized.endsWith(".smartschool.be")) {
+                normalized = normalized.substring(0, normalized.indexOf(".smartschool.be"));
+            }
+
+            return normalized;
+        } catch (Exception e) {
+            logger.warn("Failed to normalize school value='{}'", value, e);
+            return null;
+        }
     }
 
     @Transactional
@@ -90,7 +150,12 @@ public class InviteService {
             return new ConfirmInviteResponse(false, "Geselecteerde user is geen leerkracht");
         }
 
-        if (!teacher.getPlatform().equals(invite.getSchoolId())) {
+        String inviteSchoolKey = normalizeSchoolKey(invite.getSchoolId());
+        String teacherSchoolKey = normalizeSchoolKey(teacher.getPlatform());
+
+        if (inviteSchoolKey == null || !inviteSchoolKey.equals(teacherSchoolKey)) {
+            logger.warn("Confirm invite blocked: token='{}', inviteSchool='{}' (normalized='{}'), teacherId={}, teacherPlatform='{}' (normalized='{}')",
+                    token, invite.getSchoolId(), inviteSchoolKey, teacher.getId(), teacher.getPlatform(), teacherSchoolKey);
             return new ConfirmInviteResponse(false, "Leerkracht is niet van de juiste school");
         }
 

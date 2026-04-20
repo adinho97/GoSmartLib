@@ -159,9 +159,16 @@
       Details
     </button>
 
-    <!-- Loan date for history variant -->
-    @if (profileVariant === "history" && loanDate) {
-      <p class="loan-date">Ontleend op {{ loanDate }}</p>
+@if (profileVariant === "history" && loanDate) {
+  <p class="loan-date">
+    @if (book.deadline) {
+      Terugbrengen voor {{ loanDate }}
+    } 
+    @else {
+      Ontleend op {{ loanDate }}
     }
+  </p>
+}
+    
   </div>
 </div>

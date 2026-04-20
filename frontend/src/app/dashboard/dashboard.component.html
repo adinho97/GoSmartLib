@@ -14,10 +14,6 @@
       ></app-profile>
     </section>
 
-    @if (currentUsername && !loansLoading && myLoans.length > 0) {
-    <app-active-loans [loans]="myLoans"></app-active-loans>
-}
-
     <!-- Recommendation Sections -->
     @if (recommendationsLoading) {
       <div class="loader-container">

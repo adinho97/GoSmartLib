@@ -395,14 +395,11 @@
 }
 
 .loan-date {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
   font-size: 0.7rem;
   color: #888;
-  margin: 0;
+  margin: 4px 0 0 0;
   font-style: italic;
+  text-align: center;
 }
 
 /* Reduced font sizes for history variant */
@@ -421,4 +418,8 @@
 :host(.history-variant) .book-card .details-btn {
   font-size: 0.85rem;
   padding: 6px 12px;
+}
+.book-card.history-variant {
+  height: auto;
+  min-height: 380px;
 }

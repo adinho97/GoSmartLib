@@ -1,41 +1,27 @@
-<div class="results-section">
-  <div class="result-header">
-    <h3>Mijn huidige uitleningen</h3>
-    <span class="count-badge">{{ loans.length }} boeken</span>
-  </div>
+<header class="section-header">
+  <h2 class="section-title">Mijn huidige uitleningen</h2>
+  <span class="count-tag">{{ loans.length }} boeken</span>
+</header>
 
-  @if (loans.length > 0) {
-    <ul class="history-list">
-      @for (loan of loans; track loan.id) {
-        <li class="history-item clickable" (click)="goToDetail(loan.bookId)">
-          <div class="item-book-info">
-            @if (loan.bookCover) {
-              <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="book-cover" />
-            }
-            <div class="item-details">
-              <div class="item-title">{{ loan.bookTitel }}</div>
-              
-              <div class="item-dates" [class.danger]="isOverdue(loan.dueDate)">
-                Uiterste inleverdatum: {{ loan.dueDate | date: "dd/MM/yyyy" }}
-              </div>
+<div class="loans-container">
+  @for (loan of loans; track loan.id) {
+    <div class="loan-card" (click)="goToDetail(loan.bookId)">
+      <div class="card-content">
+        <div class="cover-wrapper">
+          <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="mini-cover" />
+        </div>
 
-              <div class="status-row">
-                @if (isOverdue(loan.dueDate)) {
-                  <span class="badge overdue">⚠️ Te laat</span>
-                } @else if (isDueToday(loan.dueDate)) {
-                  <span class="badge warning">📅 Vandaag inleveren</span>
-                } @else {
-                  <span class="badge info">In bezit</span>
-                }
-              </div>
-            </div>
-          </div>
-        </li>
-      }
-    </ul>
-  } @else {
-    <div class="empty-state">
-      <p>Je hebt momenteel geen boeken geleend.</p>
+        <div class="book-details">
+          <span class="genre-label">Lening</span>
+          <h4 class="title">{{ loan.bookTitel }}</h4>
+          
+          <p class="due-date" [class.overdue]="isOverdue(loan.dueDate)">
+            {{ isOverdue(loan.dueDate) ? 'TE LAAT' : 'Inleveren: ' + (loan.dueDate | date: 'dd/MM') }}
+          </p>
+          
+          <button class="btn-details">Details</button>
+        </div>
+      </div>
     </div>
   }
 </div>

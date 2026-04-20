@@ -87,6 +87,15 @@
             </option>
           }
         </select>
+        <label for="leesniveauFilter">Leesniveau</label>
+        <select id="leesniveauFilter" [(ngModel)]="selectedLeesniveau">
+          <option value="">Alle leesniveaus</option>
+          @for (leesniveau of leesniveaus; track leesniveau) {
+            <option [value]="leesniveau">
+              {{ leesniveau }}
+            </option>
+          }
+        </select>
         <label for="averageFilter">Gemiddelde score (min.)</label>
         <select id="averageFilter" [(ngModel)]="selectedMinAverageRating">
           <option value="">Alle scores</option>

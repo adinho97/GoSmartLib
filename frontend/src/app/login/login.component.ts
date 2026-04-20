@@ -1,7 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
-import { UserPreferencesService } from "../services/user-preferences.service";
 import { ExperienceService } from "../services/experience.service";
 
 @Component({
@@ -19,7 +18,6 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private http: HttpClient,
-    private userPreferencesService: UserPreferencesService,
     private experienceService: ExperienceService,
   ) {}
 
@@ -27,12 +25,12 @@ export class LoginComponent implements OnInit {
     this.route.queryParams.subscribe((params) => {
       const code = params["code"];
       const inviteToken = params["invite"];
-
+      
       // Store invite token in sessionStorage if present
       if (inviteToken) {
         sessionStorage.setItem("inviteToken", inviteToken);
       }
-
+      
       if (code) {
         this.handleSmartschoolCode(code);
       }
@@ -54,7 +52,7 @@ export class LoginComponent implements OnInit {
     this.isLoading = true;
 
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
-      next: async (userInfo) => {
+      next: (userInfo) => {
         console.log("Logged in user:", userInfo);
         const firstName =
           userInfo.givenName || userInfo.username || userInfo.name || "";
@@ -65,6 +63,7 @@ export class LoginComponent implements OnInit {
           localStorage.setItem("smartschoolToken", userInfo.accessToken);
         }
 
+        this.setRole(userInfo.role);
         if (userInfo.sub) {
           localStorage.setItem("userId", userInfo.sub);
           localStorage.setItem("sub", userInfo.sub);
@@ -86,10 +85,7 @@ export class LoginComponent implements OnInit {
 
         // Check redirectTo field from backend (new invite flow logic)
         const redirectTo = userInfo.redirectTo || "dashboard";
-        const path =
-          redirectTo === "select-teacher"
-            ? `/setup/${redirectTo}`
-            : `/${redirectTo}`;
+        const path = redirectTo === "select-teacher" ? `/setup/${redirectTo}` : `/${redirectTo}`;
         this.router.navigate([path]);
 
         this.isLoading = false;
@@ -106,8 +102,9 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  private configureDevLoginState(role: string): void {
+  setRole(role: string): void {
     localStorage.setItem("role", role);
+    // Set dev token and user ID for dev login flow
     localStorage.setItem("smartschoolToken", "dev-token-" + role);
     localStorage.setItem("sub", "dev-user-" + role + "-" + Date.now());
     localStorage.setItem("userId", "dev-user-" + role + "-" + Date.now());
@@ -118,11 +115,6 @@ export class LoginComponent implements OnInit {
     if (!localStorage.getItem("selectedSchoolId")) {
       localStorage.setItem("selectedSchoolId", "1");
     }
-  }
-
-  async setRole(role: string): Promise<void> {
-    this.configureDevLoginState(role);
-    await this.userPreferencesService.loadPreferencesFromBackend();
     this.router.navigate(["/dashboard"]);
   }
 }

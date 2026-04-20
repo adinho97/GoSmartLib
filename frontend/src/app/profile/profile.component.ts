@@ -146,31 +146,6 @@ export class ProfileComponent {
     }
   }
 
-  private async loadActiveLoans() {
-    try {
-      const activeLoans = await this.loanService.getActiveLoans(
-        localStorage.getItem("sub") || "",
-      );
-      const enriched = await this.bookService.enrichBooksWithDetails(
-        activeLoans.map((loan: any) => ({
-          ...loan,
-          bookId: loan.bookId,
-          titel: loan.bookTitel,
-        })),
-      );
-
-      this.borrowedBooks = enriched.map((item: any) => ({
-        id: item.bookId,
-        title: item.titel,
-        cover: item.cover || "",
-        deadline: item.dueDate ? new Date(item.dueDate) : undefined,
-      }));
-    } catch (error) {
-      console.error("Error loading active loans:", error);
-      this.borrowedBooks = [];
-    }
-  }
-
   private async loadReadingHistory() {
     this.readingHistoryLoading = true;
     try {
@@ -222,6 +197,35 @@ export class ProfileComponent {
       window.removeEventListener("focus", this.windowFocusHandler);
     }
     this.levelInfoSub?.unsubscribe();
+  }
+  private async loadActiveLoans() {
+    try {
+      const activeLoans = await this.loanService.getActiveLoans(
+        localStorage.getItem("sub") || "",
+      );
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        activeLoans.map((loan: any) => ({
+          ...loan,
+          bookId: loan.bookId,
+          titel: loan.bookTitel,
+        })),
+      );
+
+      this.borrowedBooks = enriched.map((item: any) => ({
+        id: item.bookId,
+        title: item.titel,
+        cover: item.cover || "",
+        deadline: item.dueDate ? new Date(item.dueDate) : undefined,
+        eadline: item.dueDate ? new Date(item.dueDate) : undefined,
+        author: item.auteur || "",      
+        genre: item.genre || "",        
+        taal: item.taal || "",          
+        paginas: item.paginas || 0,     
+      }));
+    } catch (error) {
+      console.error("Error loading active loans:", error);
+      this.borrowedBooks = [];
+    }
   }
 
   private async loadWishlistBooks() {

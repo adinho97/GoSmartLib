@@ -16,6 +16,15 @@ export enum Language {
   Latijn = "Latijn",
 }
 
+export const LEESNIVEAUS = [
+  "1ste-2de leerljaar",
+  "3de-4de leerjaar",
+  "5de-6de leerjaar",
+  "1ste graad",
+  "2de graad",
+  "3de graad",
+] as const;
+
 @Component({
   selector: "app-add-book",
   templateUrl: "./add-book-component.html",
@@ -24,6 +33,7 @@ export enum Language {
 })
 export class AddBookComponent implements OnInit {
   readonly languages = Object.values(Language);
+  readonly leesniveaus = LEESNIVEAUS;
   readonly genres = [
     "Fictie algemeen",
     "Literaire roman",
@@ -97,6 +107,7 @@ export class AddBookComponent implements OnInit {
     paginas: null as number | null,
     taal: "" as Language | "",
     uitgeverij: "",
+    leesniveau: "",
   };
 
   constructor(
@@ -239,6 +250,7 @@ export class AddBookComponent implements OnInit {
       paginas: null,
       taal: "",
       uitgeverij: "",
+      leesniveau: "",
     };
     this.isDidactic = false;
     this.aantalExemplaren = 1;

@@ -55,6 +55,9 @@ public class Book {
     @Size(max = 255)
     private String uitgeverij;
 
+    @Enumerated(EnumType.STRING)
+    private Leesniveau leesniveau;
+
     @Column(columnDefinition = "TEXT")
     @Size(max = 500)
     private String lestip;
@@ -166,6 +169,14 @@ public class Book {
 
     public void setUitgeverij(String uitgeverij) {
         this.uitgeverij = uitgeverij;
+    }
+
+    public Leesniveau getLeesniveau() {
+        return leesniveau;
+    }
+
+    public void setLeesniveau(Leesniveau leesniveau) {
+        this.leesniveau = leesniveau;
     }
 
     public String getLestip() {
