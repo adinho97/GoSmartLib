@@ -60,7 +60,7 @@ export class LoginComponent implements OnInit {
           userInfo.fullname ||
           userInfo.fullName ||
           userInfo.name ||
-          [userInfo.actualUserSurname, userInfo.actualUserName]
+          [userInfo.actualUserName, userInfo.actualUserSurname]
             .filter(Boolean)
             .join(" ")
             .trim() ||
