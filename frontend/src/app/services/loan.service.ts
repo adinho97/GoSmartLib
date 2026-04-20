@@ -112,7 +112,7 @@ export class LoanService {
 
   async updateLoanDueDate(loanId: number, newDueDate: string): Promise<void> {
   const token = localStorage.getItem('smartschoolToken');
-  await axios.patch(`/api/loans/${loanId}/due-date`, 
+  await axios.patch(`/api/uitleningen/${loanId}/due-date`, 
     { dueDate: newDueDate }, 
     {
       headers: { Authorization: `Bearer ${token}` }
