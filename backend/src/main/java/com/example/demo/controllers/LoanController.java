@@ -101,9 +101,9 @@ public class LoanController {
 
     @PatchMapping("/{id}/due-date")
     public ResponseEntity<Void> updateLoanDueDate(
-        @PathVariable Long id, 
-        @Valid @RequestBody UpdateDueDateRequest request) {
-        
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateDueDateRequest request) {
+
         try {
             loanService.updateDueDate(id, request.getDueDate());
             return ResponseEntity.ok().build();
