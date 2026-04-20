@@ -144,15 +144,47 @@
                   }
                   <span class="loan-title">{{ loan.bookTitel }}</span>
                 </div>
-                <span
-                  class="loan-due"
-                  [class.overdue]="isOverdue(loan.dueDate)"
-                >
-                  tot {{ loan.dueDate | date: "dd/MM/yyyy" }}
-                  @if (isOverdue(loan.dueDate)) {
-                    <span class="overdue-tag">Te laat</span>
+                <div class="loan-due-actions">
+                  @if (editingLoanId === loan.id) {
+                    <input
+                      type="date"
+                      [(ngModel)]="tempDueDate"
+                      [min]="today"
+                      class="inline-date-input"
+                    />
+                    <button
+                      class="icon-btn save-btn"
+                      (click)="saveDueDate(loan)"
+                      title="Opslaan"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      class="icon-btn cancel-btn"
+                      (click)="cancelEdit()"
+                      title="Annuleren"
+                    >
+                      ✕
+                    </button>
+                  } @else {
+                    <span
+                      class="loan-due"
+                      [class.overdue]="isOverdue(loan.dueDate)"
+                    >
+                      tot {{ loan.dueDate | date: "dd/MM/yyyy" }}
+                      @if (isOverdue(loan.dueDate)) {
+                        <span class="overdue-tag">Te laat</span>
+                      }
+                    </span>
+                    <button
+                      class="edit-due-btn"
+                      (click)="startEditing(loan)"
+                      title="Deadline aanpassen"
+                    >
+                      ✏️
+                    </button>
                   }
-                </span>
+                </div>
                 <button
                   type="button"
                   class="return-btn"

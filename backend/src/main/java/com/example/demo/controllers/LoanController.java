@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/uitleningen")
@@ -95,4 +97,15 @@ public class LoanController {
         }
         return ResponseEntity.ok(loanService.getActiveLoansForBook(bookId));
     }
+
+    @PatchMapping("/{id}/due-date")
+    public ResponseEntity<Void> updateLoanDueDate(
+        @PathVariable Long id, 
+        @RequestBody Map<String, String> payload) {
+    
+        LocalDate newDate = LocalDate.parse(payload.get("dueDate"));
+        loanService.updateDueDate(id, newDate);
+        return ResponseEntity.ok().build();
+    }
+
 }
