@@ -3,7 +3,6 @@ import { FormsModule, NgForm } from "@angular/forms";
 import { AddBookComponent } from "./add-book-component";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
-import { LoanService } from "../services/loan.service";
 import { LEESNIVEAUS } from "./add-book-component";
 
 class MockBookService {
@@ -38,8 +37,6 @@ class MockSchoolService {
   setSelectedSchoolId = jasmine.createSpy("setSelectedSchoolId");
 }
 
-class MockLoanService {}
-
 describe("AddBookComponent", () => {
   let component: AddBookComponent;
   let fixture: ComponentFixture<AddBookComponent>;
@@ -52,7 +49,6 @@ describe("AddBookComponent", () => {
       providers: [
         { provide: BookService, useClass: MockBookService },
         { provide: SchoolService, useClass: MockSchoolService },
-        { provide: LoanService, useClass: MockLoanService },
       ],
     }).compileComponents();
 

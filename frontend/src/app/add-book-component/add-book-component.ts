@@ -2,7 +2,6 @@ import { Component, OnInit } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
-import { LoanService } from "../services/loan.service";
 import { School } from "../models/school";
 
 export enum Language {
@@ -116,7 +115,6 @@ export class AddBookComponent implements OnInit {
   constructor(
     private bookService: BookService,
     private schoolService: SchoolService,
-    private loanService: LoanService,
   ) {}
 
   async ngOnInit() {
