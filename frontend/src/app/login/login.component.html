@@ -9,30 +9,30 @@
     <h1>GO!SmartLib</h1>
     <div class="button-group">
       <!-- Replace with Smartschool login logic -->
-      <button type="button" (click)="setRole('leerling')">
+      <button type="button" (click)="loginAsRole('leerling')">
         Login als leerling
       </button>
-      <button type="button" (click)="setRole('leerkracht')">
+      <button type="button" (click)="loginAsRole('leerkracht')">
         Login als leerkracht
       </button>
-      <button type="button" (click)="setRole('bibbeheerder')">
+      <button type="button" (click)="loginAsRole('bibbeheerder')">
         Login als bibbeheerder
       </button>
     </div>
     <!-- Remove above when development is over -->
-     <div class="button-group">
-    <button
-      (click)="smartschoolLogin()"
-      [disabled]="isLoading"
-      class="smartschool-button"
-    >
-      <div class="ss-logo-container">
-        <img src="assets/s_logo_12x18.png" alt="S" />
-      </div>
-      <div class="ss-text">
-        {{ isLoading ? "Een ogenblik..." : "Login met Smartschool" }}
-      </div>
-    </button>
+    <div class="button-group">
+      <button
+        (click)="smartschoolLogin()"
+        [disabled]="isLoading"
+        class="smartschool-button"
+      >
+        <div class="ss-logo-container">
+          <img src="assets/s_logo_12x18.png" alt="S" />
+        </div>
+        <div class="ss-text">
+          {{ isLoading ? "Een ogenblik..." : "Login met Smartschool" }}
+        </div>
+      </button>
     </div>
   </div>
 </div>

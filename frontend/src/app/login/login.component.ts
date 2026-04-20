@@ -47,6 +47,10 @@ export class LoginComponent implements OnInit {
     window.location.href = authUrl;
   }
 
+  loginAsRole(role: string): void {
+    this.setRole(role, true);
+  }
+
   private handleSmartschoolCode(code: string): void {
     if (this.isLoading) {
       return;
@@ -60,7 +64,7 @@ export class LoginComponent implements OnInit {
           userInfo.fullname ||
           userInfo.fullName ||
           userInfo.name ||
-          [userInfo.actualUserSurname, userInfo.actualUserName]
+          [userInfo.actualUserName, userInfo.actualUserSurname]
             .filter(Boolean)
             .join(" ")
             .trim() ||

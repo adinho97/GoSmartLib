@@ -23,6 +23,9 @@ public class BookDto {
     @Size(max = 20)
     private String isbn;
 
+    @Size(max = 11)
+    private String goNumber;
+
     @Size(max = 10_000_000)
     private String cover;
 
@@ -106,6 +109,14 @@ public class BookDto {
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
+    }
+
+    public String getGoNumber() {
+        return goNumber;
+    }
+
+    public void setGoNumber(String goNumber) {
+        this.goNumber = goNumber;
     }
 
     public String getCover() {

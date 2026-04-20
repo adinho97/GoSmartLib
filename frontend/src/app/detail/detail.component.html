@@ -126,6 +126,9 @@
             <div><span>Pagina's</span>{{ book.paginas }}</div>
             <div><span>Uitgave</span>{{ book.uitgaveDatum | date }}</div>
             <div><span>Uitgeverij</span>{{ book.uitgeverij }}</div>
+            @if (isLibrarian && book.goNumber) {
+              <div><span>GO-nummer</span>{{ book.goNumber }}</div>
+            }
           </div>
 
           <div class="book-description">

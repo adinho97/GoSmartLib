@@ -89,6 +89,8 @@ export class AddBookComponent implements OnInit {
   selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
   coverPreviewUrl: string | null = null;
+  goNumberLookup = "";
+  isLookupLoading = false;
   isSaving = false;
   isSubmitted = false;
   submitMessage = "";
@@ -100,6 +102,7 @@ export class AddBookComponent implements OnInit {
     titel: "",
     auteur: "",
     isbn: "",
+    goNumber: "",
     cover: "",
     beschrijving: "",
     genre: "",
@@ -203,7 +206,7 @@ export class AddBookComponent implements OnInit {
     try {
       const coverData = this.selectedCoverFile
         ? await this.toBase64(this.selectedCoverFile)
-        : "";
+        : this.book.cover;
 
       // Format genre with subgenres if non-fiction or didactic
       let genreToSave = this.book.genre;
@@ -238,11 +241,66 @@ export class AddBookComponent implements OnInit {
     }
   }
 
+  async loadBookFromGoNumber(): Promise<void> {
+    const trimmed = this.goNumberLookup.trim().toUpperCase();
+    if (!trimmed) {
+      this.submitState = "error";
+      this.submitMessage = "Voer een GO-nummer in.";
+      return;
+    }
+
+    this.isLookupLoading = true;
+    this.submitState = "";
+    this.submitMessage = "";
+
+    try {
+      const book = await this.bookService.fetchBookByGoNumber(trimmed);
+      this.book = {
+        titel: book.titel || "",
+        auteur: book.auteur || "",
+        isbn: book.isbn || "",
+        goNumber: book.goNumber || trimmed,
+        cover: book.cover || "",
+        beschrijving: book.beschrijving || "",
+        genre: book.genre || "",
+        uitgaveDatum: book.uitgaveDatum || "",
+        paginas: book.paginas ?? null,
+        taal: book.taal || "",
+        uitgeverij: book.uitgeverij || "",
+        leesniveau: book.leesniveau || "",
+      };
+
+      this.isDidactic = this.book.genre === "Didactiek";
+      this.selectedSubgenres.clear();
+      this.selectedDidacticSubgenre = "";
+
+      if (this.coverPreviewUrl) {
+        URL.revokeObjectURL(this.coverPreviewUrl);
+      }
+      this.coverPreviewUrl = this.book.cover || null;
+      this.selectedCoverFile = null;
+
+      this.submitState = "success";
+      this.submitMessage = `Boekgegevens geladen voor ${trimmed}.`;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        this.submitState = "error";
+        this.submitMessage = "Geen boek gevonden met dit GO-nummer.";
+      } else {
+        this.submitState = "error";
+        this.submitMessage = "Fout bij het ophalen van het boek.";
+      }
+    } finally {
+      this.isLookupLoading = false;
+    }
+  }
+
   private resetForm(bookForm: NgForm) {
     this.book = {
       titel: "",
       auteur: "",
       isbn: "",
+      goNumber: "",
       cover: "",
       beschrijving: "",
       genre: "",
@@ -257,6 +315,7 @@ export class AddBookComponent implements OnInit {
     this.selectedSubgenres.clear();
     this.selectedDidacticSubgenre = "";
     this.selectedCoverFile = null;
+    this.goNumberLookup = "";
     if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
     this.coverPreviewUrl = null;
     bookForm.resetForm();

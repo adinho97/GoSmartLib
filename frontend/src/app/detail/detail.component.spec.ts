@@ -46,6 +46,7 @@ describe("DetailComponent", () => {
         titel: "Boek",
         auteur: "Auteur",
         isbn: "9780140328721",
+        goNumber: "GO-12345678",
         cover: "",
         beschrijving: "",
         genre: "Algemeen",
@@ -189,6 +190,18 @@ describe("DetailComponent", () => {
     expect(bookServiceSpy.deleteBookReview).toHaveBeenCalledWith(1, 5);
     expect(component.reviews.length).toBe(0);
     expect(component.deleteReviewDialogOpen).toBeFalse();
+  });
+
+  it("shows GO-number only for librarians", async () => {
+    localStorage.setItem("role", "bibbeheerder");
+    createComponent();
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const infoText = fixture.nativeElement.textContent as string;
+    expect(infoText).toContain("GO-nummer");
+    expect(infoText).toContain("GO-12345678");
   });
 
   it("startReviewEdit fills edit form when review is manageable", () => {

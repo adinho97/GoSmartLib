@@ -59,7 +59,7 @@ export class BookService {
   wishlistChanged$ = this.wishlistChangedSource.asObservable();
   private favoriteChangedSource = new Subject<void>();
   favoriteChanged$ = this.favoriteChangedSource.asObservable();
-  
+
   private bookCache: Map<number | null, any[]> = new Map();
 
   constructor(private http: HttpClient) {}
@@ -118,6 +118,8 @@ export class BookService {
     book: {
       titel: string;
       auteur: string;
+      isbn?: string;
+      goNumber?: string;
       cover: string;
       beschrijving: string;
       genre: string;
@@ -140,16 +142,16 @@ export class BookService {
 
   async getBooks(schoolId?: number) {
     const cacheKey = schoolId ?? null;
-    
+
     if (this.bookCache.has(cacheKey)) {
       return this.bookCache.get(cacheKey)!;
     }
-    
+
     const res = await axios.get(this.withSchoolId(this.apiUrl, schoolId));
     this.bookCache.set(cacheKey, res.data);
     return res.data;
   }
-  
+
   clearCache(): void {
     this.bookCache.clear();
   }
@@ -169,10 +171,12 @@ export class BookService {
   }
 
   // Batch enrich multiple book sets with a shared book list (for performance)
-  async enrichMultipleBooksWithDetails(bookSets: Record<string, any[]>): Promise<Record<string, any[]>> {
-    const allBooks = await this.getBooks() as any[];
+  async enrichMultipleBooksWithDetails(
+    bookSets: Record<string, any[]>,
+  ): Promise<Record<string, any[]>> {
+    const allBooks = (await this.getBooks()) as any[];
     const bookMap = new Map(allBooks.map((b: any) => [b.id, b]));
-    
+
     const enrichBook = (book: any) => ({
       ...book,
       cover: bookMap.get(book.bookId)?.cover || book.cover || null,
@@ -181,7 +185,7 @@ export class BookService {
       paginas: bookMap.get(book.bookId)?.paginas || book.paginas || null,
       genre: bookMap.get(book.bookId)?.genre || book.genre || null,
     });
-    
+
     const enriched: Record<string, any[]> = {};
     for (const [key, books] of Object.entries(bookSets)) {
       enriched[key] = books.map(enrichBook);
@@ -283,6 +287,28 @@ export class BookService {
   async fetchBookByIsbn(isbn: string) {
     const res = await axios.get(`${this.apiUrl}/preview/${isbn}`);
     return res.data;
+  }
+
+  async fetchBookByGoNumber(goNumber: string) {
+    const res = await axios.get(`${this.apiUrl}/go/${goNumber}`);
+    return res.data;
+  }
+
+  async getBookByGoNumberFromLibrary(
+    goNumber: string,
+    schoolId?: number,
+  ): Promise<Book | null> {
+    try {
+      const res = await axios.get<Book>(
+        this.withSchoolId(`${this.apiUrl}/go/${goNumber}`, schoolId),
+      );
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        return null;
+      }
+      throw err;
+    }
   }
 
   async importBookByIsbn(isbn: string, schoolId?: number) {
