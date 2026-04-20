@@ -38,6 +38,9 @@
         @if (canAccessLoans) {
           <a routerLink="/uitleen" routerLinkActive="active">Boek uitlenen</a>
         }
+        @if (isStudent) {
+          <a routerLink="/info" routerLinkActive="active">Informatie</a>
+        }
         <div class="profile-menu" (click)="$event.stopPropagation()">
           <button
             type="button"
@@ -111,3 +114,4 @@
 </main>
 
 <app-badge-toast></app-badge-toast>
+<app-ui-toast></app-ui-toast>

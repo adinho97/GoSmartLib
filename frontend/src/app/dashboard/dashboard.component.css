@@ -38,6 +38,56 @@
   padding: 40px 20px;
 }
 
+.dashboard-section {
+  margin-bottom: 12px;
+}
+
+.dashboard-inline-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 12px;
+}
+
+.dashboard-inline-title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: 700;
+}
+
+.info-icon-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid #c7ccd1;
+  background: #eef1f4;
+  color: #6b7075;
+  font-weight: 700;
+  font-size: 0.68rem;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.info-icon-btn:hover {
+  background: #e4e8ec;
+  border-color: #b8bec4;
+  transform: translateY(-1px);
+}
+
+.info-icon-btn:focus-visible {
+  outline: 2px solid #aeb5bc;
+  outline-offset: 2px;
+}
+
 .section-title {
   font-size: 1.6rem;
   border-left: 6px solid #871f42;
@@ -305,6 +355,69 @@
   color: #871f42;
 }
 
+.info-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 12, 15, 0.56);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.info-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(135, 31, 66, 0.18);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.2);
+  padding: 20px 22px;
+}
+
+.info-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.info-modal h2 {
+  margin: 0;
+  color: #871f42;
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.info-modal p {
+  margin: 0;
+  color: #333;
+  line-height: 1.55;
+}
+
+.info-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid #d4b3bf;
+  background: #fff;
+  color: #6f2743;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.info-close-btn:hover {
+  background: #fff0f5;
+}
+
 .spinner {
   width: 45px;
   height: 45px;
@@ -331,6 +444,25 @@
 
   .hero p {
     max-width: 400px;
+  }
+
+  .info-icon-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+
+  .dashboard-inline-header {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .dashboard-inline-title {
+    font-size: 1.08rem;
+  }
+
+  .info-modal {
+    padding: 18px;
   }
 }
 .loans-scroll-wrapper {

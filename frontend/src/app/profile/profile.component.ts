@@ -20,6 +20,7 @@ import {
 } from "../services/user-preferences.service";
 import { ExperienceService, LevelInfo } from "../services/experience.service";
 import { BadgeCollectionComponent } from "./badge-collection/badge-collection.component";
+import { UiToastService } from "../services/ui-toast.service";
 
 type ProfileBookCard = {
   title: string;
@@ -50,7 +51,47 @@ export class ProfileComponent {
 
   @Output() logoutRequested = new EventEmitter<void>();
 
+  activeSectionInfoKey: keyof typeof this.sectionInfoContent | null = null;
+  readonly sectionInfoContent = {
+    borrowed: {
+      title: "Geleende boeken",
+      description:
+        "Hier zie je alle boeken die je nu in uitleen hebt. Via deze lijst ga je snel naar details en volg je je deadlines op.",
+    },
+    highlighted: {
+      title: "Klasleeslijst",
+      description:
+        "Dit zijn de boeken die voor jouw klas of leeromgeving extra in de kijker staan. Gebruik dit overzicht om snel relevant lesmateriaal te vinden.",
+    },
+    wishlist: {
+      title: "Verlanglijst",
+      description:
+        "Bewaar hier boeken die je later wilt lezen of ontlenen. Je kunt ze vanuit dit blok ook beheren of meldingen aanpassen.",
+    },
+    favorites: {
+      title: "Favoriete boeken",
+      description:
+        "Deze sectie bevat je persoonlijke favorieten. Handig om snel terug te keren naar boeken die je sterk aanbeveelt of vaker gebruikt.",
+    },
+    history: {
+      title: "Ontleenhistoriek",
+      description:
+        "In de historiek zie je welke boeken je eerder ontleende. Dit helpt je om gelezen titels te herbekijken en leespatronen te volgen.",
+    },
+    badges: {
+      title: "Badges",
+      description:
+        "Hier verzamel je badges op basis van je activiteit in de bibliotheek. Ze tonen je voortgang en belonen je lees- en gebruiksgedrag.",
+    },
+  } as const;
+
   role = localStorage.getItem("role") || "gebruiker";
+  private readonly roleLikeValues = new Set([
+    "leerling",
+    "leerkracht",
+    "bibbeheerder",
+    "gebruiker",
+  ]);
 
   dashboardSettings: Record<string, boolean> = {
     showWishlist: true,
@@ -61,7 +102,32 @@ export class ProfileComponent {
     showDeadline: true,
   };
 
-  userName = localStorage.getItem("userName") || "Gebruiker";
+  get userName(): string {
+    const candidates = [
+      localStorage.getItem("userName"),
+      localStorage.getItem("fullname"),
+      localStorage.getItem("username"),
+      localStorage.getItem("name"),
+    ];
+
+    for (const candidate of candidates) {
+      const normalized = this.normalizeDisplayName(candidate);
+      if (normalized) {
+        return normalized;
+      }
+    }
+
+    return "Gebruiker";
+  }
+
+  private normalizeDisplayName(raw: string | null): string {
+    const value = (raw || "").trim();
+    if (!value) {
+      return "";
+    }
+
+    return this.roleLikeValues.has(value.toLowerCase()) ? "" : value;
+  }
 
   settingsOpen = false;
 
@@ -102,6 +168,7 @@ export class ProfileComponent {
     private userPreferencesService: UserPreferencesService,
     private cdr: ChangeDetectorRef,
     private experienceService: ExperienceService,
+    private uiToastService: UiToastService,
   ) {}
 
   async ngOnInit() {
@@ -217,10 +284,10 @@ export class ProfileComponent {
         cover: item.cover || "",
         deadline: item.dueDate ? new Date(item.dueDate) : undefined,
         eadline: item.dueDate ? new Date(item.dueDate) : undefined,
-        author: item.auteur || "",      
-        genre: item.genre || "",        
-        taal: item.taal || "",          
-        paginas: item.paginas || 0,     
+        author: item.auteur || "",
+        genre: item.genre || "",
+        taal: item.taal || "",
+        paginas: item.paginas || 0,
       }));
     } catch (error) {
       console.error("Error loading active loans:", error);
@@ -310,6 +377,13 @@ export class ProfileComponent {
     return this.readingList.length;
   }
 
+  get activeSectionInfo() {
+    if (!this.activeSectionInfoKey) {
+      return null;
+    }
+    return this.sectionInfoContent[this.activeSectionInfoKey];
+  }
+
   goToFavoritePage(page: number) {
     this.currentFavoritePage = page;
   }
@@ -352,12 +426,14 @@ export class ProfileComponent {
       this.wishlistBooks = this.wishlistBooks.filter(
         (book) => book.id !== bookId,
       );
+      this.uiToastService.success("Boek verwijderd van je verlanglijst.");
 
       if (this.currentWishlistPage > this.totalWishlistPages) {
         this.currentWishlistPage = this.totalWishlistPages;
       }
     } catch {
       // Keep silent here to avoid noisy alerts on dashboard profile cards.
+      this.uiToastService.error("Verlanglijst bijwerken mislukt.");
     }
   }
 
@@ -372,8 +448,10 @@ export class ProfileComponent {
       this.favoriteBooks = this.favoriteBooks.filter(
         (book) => book.id !== bookId,
       );
+      this.uiToastService.success("Boek verwijderd uit je favorieten.");
     } catch {
       // Keep silent here as well.
+      this.uiToastService.error("Favorieten bijwerken mislukt.");
     }
   }
 
@@ -442,6 +520,11 @@ export class ProfileComponent {
       book.notificationEnabled =
         updatedWishlist.notificationEnabled ?? nextValue;
       this.notificationToggleErrors[book.id] = "";
+      this.uiToastService.success(
+        nextValue
+          ? "Melding ingeschakeld voor dit boek."
+          : "Melding uitgeschakeld voor dit boek.",
+      );
     } catch (error) {
       book.notificationEnabled = previousValue;
       console.error("Failed to toggle notification:", error);
@@ -456,6 +539,7 @@ export class ProfileComponent {
         this.notificationToggleErrors[book.id] =
           "Melding aanpassen mislukt. Probeer opnieuw.";
       }
+      this.uiToastService.error(this.notificationToggleErrors[book.id]);
     }
   }
 
@@ -533,6 +617,14 @@ export class ProfileComponent {
     }
 
     section.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  openSectionInfo(key: keyof typeof this.sectionInfoContent) {
+    this.activeSectionInfoKey = key;
+  }
+
+  closeSectionInfo() {
+    this.activeSectionInfoKey = null;
   }
 
   testSmartschoolMessage(): void {

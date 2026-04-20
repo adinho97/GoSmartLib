@@ -1,0 +1,63 @@
+.ui-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2200;
+  min-width: 250px;
+  max-width: min(420px, calc(100vw - 30px));
+  border-radius: 10px;
+  border: 1px solid #d6d9dd;
+  background: #f4f6f8;
+  color: #1f2937;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ui-toast.success {
+  background: #edf8f1;
+  border-color: #b7e0c3;
+  color: #165b2d;
+}
+
+.ui-toast.error {
+  background: #fdeff1;
+  border-color: #f2c0c8;
+  color: #8b1e30;
+}
+
+.ui-toast.info {
+  background: #eef3f8;
+  border-color: #c9d9ea;
+  color: #1d4066;
+}
+
+.ui-toast-close {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid #c8ced6;
+  background: #fff;
+  color: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .ui-toast {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    min-width: 0;
+    max-width: none;
+  }
+}

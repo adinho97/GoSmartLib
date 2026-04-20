@@ -4,8 +4,8 @@ import { FormsModule } from "@angular/forms";
 import { AppRoutingModule } from "./app-routing.module";
 import { provideHttpClient } from "@angular/common/http";
 
-import { registerLocaleData } from '@angular/common';
-import localeNl from '@angular/common/locales/nl';
+import { registerLocaleData } from "@angular/common";
+import localeNl from "@angular/common/locales/nl";
 import { AppComponent } from "./app.component";
 import { LoginComponent } from "./login/login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
@@ -24,8 +24,10 @@ import { BadgeToastComponent } from "./components/badge-toast/badge-toast.compon
 import { RecommendationSectionComponent } from "./recommendation-section/recommendation-section.component";
 import { RecommendationCardComponent } from "./recommendation-card/recommendation-card.component";
 import { ActiveLoansComponent } from "./active-loans/active-loans.component";
+import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
+import { UiToastComponent } from "./components/ui-toast/ui-toast.component";
 
-registerLocaleData(localeNl, 'nl');
+registerLocaleData(localeNl, "nl");
 
 @NgModule({
   declarations: [
@@ -41,6 +43,7 @@ registerLocaleData(localeNl, 'nl');
     ProfileComponent,
     LoanPageComponent,
     LoanHistoryCatalogComponent,
+    LeerlingInfoComponent,
   ],
   imports: [
     BrowserModule,
@@ -51,11 +54,10 @@ registerLocaleData(localeNl, 'nl');
     BadgeToastComponent,
     RecommendationSectionComponent,
     RecommendationCardComponent,
-    ActiveLoansComponent
-],
-  providers: [provideHttpClient(),
-    {provide: LOCALE_ID, useValue: 'nl'}
+    ActiveLoansComponent,
+    UiToastComponent,
   ],
+  providers: [provideHttpClient(), { provide: LOCALE_ID, useValue: "nl" }],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

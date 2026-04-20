@@ -16,6 +16,13 @@
   gap: 20px;
 }
 
+.title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .section-title {
   font-size: 1.6rem;
   border-left: 6px solid #871f42;
@@ -29,6 +36,38 @@
 .section-title.didactic-title {
   color: #d35400;
   border-left-color: #e67e22;
+}
+
+.section-info-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid #c7ccd1;
+  background: #eef1f4;
+  color: #6b7075;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.section-info-btn:hover {
+  background: #e4e8ec;
+  border-color: #b8bec4;
+}
+
+.section-info-btn:focus-visible {
+  outline: 2px solid #aeb5bc;
+  outline-offset: 2px;
 }
 
 .toggle-group {
@@ -133,6 +172,10 @@
 
   .section-title {
     font-size: 1.25rem;
+  }
+
+  .title-group {
+    gap: 8px;
   }
 
   .toggle-group {

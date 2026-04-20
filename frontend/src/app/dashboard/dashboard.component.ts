@@ -27,6 +27,39 @@ type BookResponse = {
   standalone: false,
 })
 export class DashboardComponent implements OnInit {
+  activeInfoKey: keyof typeof this.infoContent | null = null;
+  readonly infoContent = {
+    profileTop: {
+      title: "Profiel en snelle acties",
+      description:
+        "Hier zie je je basisprofiel en snelle acties zoals uitloggen. Dit deel helpt je om snel je account te beheren.",
+    },
+    trending: {
+      title: "Populairste boeken",
+      description:
+        "Deze lijst toont de meest uitgeleende en bekeken boeken. Je kunt hier snel ontdekken wat momenteel het meest gelezen wordt.",
+    },
+    newArrivals: {
+      title: "Nieuwe aankomsten",
+      description:
+        "Hier vind je recent toegevoegde boeken in de bibliotheek. Handig om nieuw materiaal meteen te ontdekken.",
+    },
+    genre: {
+      title: "Aanbevolen op genre",
+      description:
+        "Deze aanbevelingen zijn gebaseerd op jouw voorkeuren en leesgedrag per genre. Zo krijg je suggesties die aansluiten bij wat je graag leest.",
+    },
+    author: {
+      title: "Aanbevolen op auteur",
+      description:
+        "Dit onderdeel toont boeken van auteurs die passen bij jouw eerdere keuzes. Zo vind je snel vergelijkbare schrijfstijlen en thema's.",
+    },
+    profileDetails: {
+      title: "Profielgegevens",
+      description:
+        "In dit profielgedeelte bekijk je uitgebreidere gegevens en persoonlijke onderdelen van je account binnen de website.",
+    },
+  } as const;
   trendingBooks: RecommendedBook[] = [];
   genreBooks: RecommendedBook[] = [];
   authorBooks: RecommendedBook[] = [];
@@ -44,6 +77,13 @@ export class DashboardComponent implements OnInit {
 
   get currentUserSub(): string {
     return localStorage.getItem("sub") || "";
+  }
+
+  get activeInfo() {
+    if (!this.activeInfoKey) {
+      return null;
+    }
+    return this.infoContent[this.activeInfoKey];
   }
 
   constructor(
@@ -204,5 +244,11 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(["/login"]);
   }
 
-  
+  openInfo(key: keyof typeof this.infoContent): void {
+    this.activeInfoKey = key;
+  }
+
+  closeInfo(): void {
+    this.activeInfoKey = null;
+  }
 }
