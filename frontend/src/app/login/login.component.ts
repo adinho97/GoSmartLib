@@ -25,12 +25,12 @@ export class LoginComponent implements OnInit {
     this.route.queryParams.subscribe((params) => {
       const code = params["code"];
       const inviteToken = params["invite"];
-      
+
       // Store invite token in sessionStorage if present
       if (inviteToken) {
         sessionStorage.setItem("inviteToken", inviteToken);
       }
-      
+
       if (code) {
         this.handleSmartschoolCode(code);
       }
@@ -54,10 +54,28 @@ export class LoginComponent implements OnInit {
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: (userInfo) => {
         console.log("Logged in user:", userInfo);
-        const firstName =
-          userInfo.givenName || userInfo.username || userInfo.name || "";
-        const lastName = userInfo.familyName || userInfo.family_name || "";
-        localStorage.setItem("userName", `${firstName} ${lastName}`.trim());
+        const fullName =
+          userInfo.fullname ||
+          userInfo.fullName ||
+          userInfo.name ||
+          [userInfo.actualUserSurname, userInfo.actualUserName]
+            .filter(Boolean)
+            .join(" ")
+            .trim() ||
+          [
+            userInfo.givenName || userInfo.given_name,
+            userInfo.familyName || userInfo.family_name,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .trim() ||
+          userInfo.username ||
+          "Gebruiker";
+
+        localStorage.setItem("userName", fullName);
+        if (userInfo.username) {
+          localStorage.setItem("username", userInfo.username);
+        }
 
         if (userInfo.accessToken) {
           localStorage.setItem("smartschoolToken", userInfo.accessToken);
@@ -78,7 +96,10 @@ export class LoginComponent implements OnInit {
 
         // Check redirectTo field from backend (new invite flow logic)
         const redirectTo = userInfo.redirectTo || "dashboard";
-        const path = redirectTo === "select-teacher" ? `/setup/${redirectTo}` : `/${redirectTo}`;
+        const path =
+          redirectTo === "select-teacher"
+            ? `/setup/${redirectTo}`
+            : `/${redirectTo}`;
         this.router.navigate([path]);
 
         this.isLoading = false;
@@ -95,16 +116,23 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  setRole(role: string): void {
+  setRole(role: string, useDevIdentity = false): void {
     localStorage.setItem("role", role);
-    // Set dev token and user ID for dev login flow
-    localStorage.setItem("smartschoolToken", "dev-token-" + role);
-    localStorage.setItem("sub", "dev-user-" + role + "-" + Date.now());
-    localStorage.setItem("userId", "dev-user-" + role + "-" + Date.now());
-    localStorage.setItem(
-      "userName",
-      role.charAt(0).toUpperCase() + role.slice(1),
-    );
+
+    // Only seed dev identity fields in explicit dev mode.
+    if (useDevIdentity) {
+      const devId = "dev-user-" + role + "-" + Date.now();
+      localStorage.setItem("smartschoolToken", "dev-token-" + role);
+      localStorage.setItem("sub", devId);
+      localStorage.setItem("userId", devId);
+      if (!localStorage.getItem("userName")) {
+        localStorage.setItem(
+          "userName",
+          role.charAt(0).toUpperCase() + role.slice(1),
+        );
+      }
+    }
+
     if (!localStorage.getItem("selectedSchoolId")) {
       localStorage.setItem("selectedSchoolId", "1");
     }

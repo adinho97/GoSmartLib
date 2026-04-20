@@ -86,6 +86,12 @@ export class ProfileComponent {
   } as const;
 
   role = localStorage.getItem("role") || "gebruiker";
+  private readonly roleLikeValues = new Set([
+    "leerling",
+    "leerkracht",
+    "bibbeheerder",
+    "gebruiker",
+  ]);
 
   dashboardSettings: Record<string, boolean> = {
     showWishlist: true,
@@ -96,7 +102,32 @@ export class ProfileComponent {
     showDeadline: true,
   };
 
-  userName = localStorage.getItem("userName") || "Gebruiker";
+  get userName(): string {
+    const candidates = [
+      localStorage.getItem("userName"),
+      localStorage.getItem("fullname"),
+      localStorage.getItem("username"),
+      localStorage.getItem("name"),
+    ];
+
+    for (const candidate of candidates) {
+      const normalized = this.normalizeDisplayName(candidate);
+      if (normalized) {
+        return normalized;
+      }
+    }
+
+    return "Gebruiker";
+  }
+
+  private normalizeDisplayName(raw: string | null): string {
+    const value = (raw || "").trim();
+    if (!value) {
+      return "";
+    }
+
+    return this.roleLikeValues.has(value.toLowerCase()) ? "" : value;
+  }
 
   settingsOpen = false;
 

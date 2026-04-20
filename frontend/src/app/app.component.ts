@@ -22,6 +22,12 @@ import { BookService } from "./services/book.service";
 export class AppComponent implements OnInit {
   profileMenuOpen = false;
   levelInfo$: Observable<LevelInfo>;
+  private readonly roleLikeValues = new Set([
+    "leerling",
+    "leerkracht",
+    "bibbeheerder",
+    "gebruiker",
+  ]);
 
   constructor(
     private router: Router,
@@ -92,7 +98,30 @@ export class AppComponent implements OnInit {
   }
 
   get userName(): string {
-    return localStorage.getItem("userName") || "Gebruiker";
+    const candidates = [
+      localStorage.getItem("userName"),
+      localStorage.getItem("fullname"),
+      localStorage.getItem("username"),
+      localStorage.getItem("name"),
+    ];
+
+    for (const candidate of candidates) {
+      const normalized = this.normalizeDisplayName(candidate);
+      if (normalized) {
+        return normalized;
+      }
+    }
+
+    return "Gebruiker";
+  }
+
+  private normalizeDisplayName(raw: string | null): string {
+    const value = (raw || "").trim();
+    if (!value) {
+      return "";
+    }
+
+    return this.roleLikeValues.has(value.toLowerCase()) ? "" : value;
   }
 
   get userRoleLabel(): string {
