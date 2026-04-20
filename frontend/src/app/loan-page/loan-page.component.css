@@ -34,10 +34,17 @@
   font-size: 1.1rem;
 }
 
-.save-btn { color: #28a745; }
-.cancel-btn { color: #dc3545; }
+.save-btn { 
+  color: #28a745; 
+  font-size: medium;
+}
+.cancel-btn { 
+  color: #dc3545; 
+  font-size: medium;
+}
 
 .edit-due-btn {
+  color: black;
   background: none;
   border: none;
   cursor: pointer;
