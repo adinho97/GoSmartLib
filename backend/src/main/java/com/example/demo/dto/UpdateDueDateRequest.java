@@ -9,6 +9,13 @@ public class UpdateDueDateRequest {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dueDate;
 
+    public UpdateDueDateRequest() {
+    }
+
+    public UpdateDueDateRequest(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+
     public LocalDate getDueDate() {
         return dueDate;
     }

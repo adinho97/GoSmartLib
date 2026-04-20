@@ -64,7 +64,7 @@ export class LoanPageComponent implements OnInit {
   errorMessage = "";
 
   editingLoanId: number | null = null;
-  tempDueDate: string = '';
+  tempDueDate: string = "";
 
   readonly role = localStorage.getItem("role") || "";
   private readonly currentUserSub =
@@ -343,22 +343,22 @@ export class LoanPageComponent implements OnInit {
 
   cancelEdit() {
     this.editingLoanId = null;
-    this.tempDueDate = '';
+    this.tempDueDate = "";
   }
 
   async saveDueDate(loan: any) {
-    try{
+    try {
       await this.loanService.updateLoanDueDate(loan.id, this.tempDueDate);
 
       loan.dueDate = this.tempDueDate;
       this.editingLoanId = null;
       this.successMessage = `Deadline voor "${loan.bookTitel}" bijgewerkt.`;
 
-      setTimeout(() => this.successMessage = "", 3000);
-    }
-    catch {
+      setTimeout(() => (this.successMessage = ""), 3000);
+    } catch (error) {
+      console.error("Error updating due date:", error);
       this.errorMessage = "Bijwerken deadline mislukt.";
-      setTimeout(() => this.errorMessage = "", 3000);
+      setTimeout(() => (this.errorMessage = ""), 3000);
     }
   }
 }

@@ -2,6 +2,7 @@ package com.example.demo.controllers;
 
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanDto;
+import com.example.demo.dto.UpdateDueDateRequest;
 import com.example.demo.services.LoanService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -101,11 +102,16 @@ public class LoanController {
     @PatchMapping("/{id}/due-date")
     public ResponseEntity<Void> updateLoanDueDate(
         @PathVariable Long id, 
-        @RequestBody Map<String, String> payload) {
-    
-        LocalDate newDate = LocalDate.parse(payload.get("dueDate"));
-        loanService.updateDueDate(id, newDate);
-        return ResponseEntity.ok().build();
+        @Valid @RequestBody UpdateDueDateRequest request) {
+        
+        try {
+            loanService.updateDueDate(id, request.getDueDate());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 }
