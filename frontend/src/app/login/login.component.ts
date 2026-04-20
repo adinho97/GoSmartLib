@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { ExperienceService } from "../services/experience.service";
+import { UserPreferencesService } from "../services/user-preferences.service";
 
 @Component({
   selector: "app-login",
@@ -19,6 +20,7 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute,
     private http: HttpClient,
     private experienceService: ExperienceService,
+    private userPreferencesService: UserPreferencesService,
   ) {}
 
   ngOnInit(): void {
@@ -52,7 +54,7 @@ export class LoginComponent implements OnInit {
     this.isLoading = true;
 
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
-      next: (userInfo) => {
+      next: async (userInfo) => {
         console.log("Logged in user:", userInfo);
         const fullName =
           userInfo.fullname ||
@@ -97,7 +99,7 @@ export class LoginComponent implements OnInit {
         this.userPreferencesService.clearCache();
         await this.userPreferencesService.loadPreferencesFromBackend();
 
-        this.experienceService.refreshForCurrentUser().catch((error) => {
+        await this.experienceService.refreshForCurrentUser().catch((error) => {
           console.warn("Failed to hydrate experience after login:", error);
         });
 
