@@ -63,6 +63,9 @@ export class LoanPageComponent implements OnInit {
   successMessage = "";
   errorMessage = "";
 
+  editingLoanId: number | null = null;
+  tempDueDate: string = '';
+
   readonly role = localStorage.getItem("role") || "";
   private readonly currentUserSub =
     localStorage.getItem("sub") || localStorage.getItem("userId") || "";
@@ -330,6 +333,32 @@ export class LoanPageComponent implements OnInit {
     } else if (this.step === "bevestiging") {
       this.step = "boeken";
       this.errorMessage = "";
+    }
+  }
+
+  startEditing(loan: any) {
+    this.editingLoanId = loan.id;
+    this.tempDueDate = new Date(loan.dueDate).toISOString().split("T")[0];
+  }
+
+  cancelEdit() {
+    this.editingLoanId = null;
+    this.tempDueDate = '';
+  }
+
+  async saveDueDate(loan: any) {
+    try{
+      await this.loanService.updateLoanDueDate(loan.id, this.tempDueDate);
+
+      loan.dueDate = this.tempDueDate;
+      this.editingLoanId = null;
+      this.successMessage = `Deadline voor "${loan.bookTitel}" bijgewerkt.`;
+
+      setTimeout(() => this.successMessage = "", 3000);
+    }
+    catch {
+      this.errorMessage = "Bijwerken deadline mislukt.";
+      setTimeout(() => this.errorMessage = "", 3000);
     }
   }
 }

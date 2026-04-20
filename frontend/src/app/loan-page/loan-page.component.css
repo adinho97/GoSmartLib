@@ -14,6 +14,42 @@
   margin-bottom: 1rem;
 }
 
+.loan-due-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-date-input {
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.save-btn { color: #28a745; }
+.cancel-btn { color: #dc3545; }
+
+.edit-due-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.edit-due-btn:hover {
+  opacity: 1;
+}
+
+
 .loan-header h1 {
   color: #1a1a1a;
   margin: 0;

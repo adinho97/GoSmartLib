@@ -132,4 +132,18 @@ public class LoanService {
         dto.setReturnedAt(loan.getReturnedAt());
         return dto;
     }
+
+    @Transactional
+    public void updateDueDate(Long id, LocalDate newDate) {
+        Loan loan = loanRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Loan not found"));
+
+        if (loan.getReturnedAt() != null) {
+            throw new IllegalStateException("Can't edit deadline of the book");
+        }
+
+        loan.setDueDate(newDate);
+        loanRepo.save(loan);
+        logger.info("Updated due date for loan id={} to {}", id, newDate);
+    }
 }
