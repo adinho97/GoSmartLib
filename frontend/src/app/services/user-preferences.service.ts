@@ -54,10 +54,7 @@ export class UserPreferencesService {
 
     try {
       const backendPrefs = await this.fetchFromBackend();
-      if (Object.keys(backendPrefs).length === 0) {
-        return;
-      }
-
+      // Update local state with backend data; backend always wins on conflicts
       const merged = { ...this.preferencesSubject.value, ...backendPrefs };
       this.preferencesSubject.next(merged);
       this.saveToLocalStorage(merged);
@@ -156,6 +153,8 @@ export class UserPreferencesService {
     return {
       headers: {
         "X-User-Sub": userSub,
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
         Authorization: token ? `Bearer ${token}` : "",
       },
     };

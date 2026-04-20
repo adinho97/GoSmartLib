@@ -72,6 +72,13 @@ export class LoginComponent implements OnInit {
           localStorage.setItem("smartschoolPlatform", userInfo.platform);
         }
 
+        if (userInfo.role) {
+          localStorage.setItem("role", userInfo.role);
+        }
+
+        this.userPreferencesService.clearCache();
+        await this.userPreferencesService.loadPreferencesFromBackend();
+
         this.experienceService.refreshForCurrentUser().catch((error) => {
           console.warn("Failed to hydrate experience after login:", error);
         });
