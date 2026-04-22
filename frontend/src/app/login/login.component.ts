@@ -91,27 +91,60 @@ export class LoginComponent implements OnInit {
           rawLastName,
           candidates,
         );
-        const composedFullName = composeFullName(firstName, lastName);
-        const fullNameCandidate =
-          composedFullName ||
+        let storedFirstName = firstName;
+        let storedLastName = lastName;
+
+        if (!storedFirstName || !storedLastName) {
+          const fullNameCandidate =
+            userInfo.fullname ||
+            userInfo.fullName ||
+            userInfo.name ||
+            userInfo.username ||
+            "";
+          if (fullNameCandidate && !storedFirstName && !storedLastName) {
+            const parts = fullNameCandidate.split(/\s+/).filter(Boolean);
+            if (parts.length >= 2) {
+              storedFirstName = parts[0];
+              storedLastName = parts.slice(1).join(" ");
+            } else if (parts.length === 1) {
+              storedFirstName = parts[0];
+            }
+          } else if (fullNameCandidate) {
+            if (!storedFirstName && storedLastName) {
+              const parts = fullNameCandidate.split(/\s+/).filter(Boolean);
+              for (const part of parts) {
+                if (part.toLowerCase() !== storedLastName.toLowerCase()) {
+                  storedFirstName = part;
+                  break;
+                }
+              }
+            } else if (!storedLastName && storedFirstName) {
+              const parts = fullNameCandidate.split(/\s+/).filter(Boolean);
+              for (const part of parts) {
+                if (part.toLowerCase() !== storedFirstName.toLowerCase()) {
+                  storedLastName = part;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        const finalFullName =
+          composeFullName(storedFirstName, storedLastName) ||
           userInfo.fullname ||
           userInfo.fullName ||
           userInfo.name ||
           userInfo.username ||
           "Gebruiker";
-        const fullName =
-          fullNameCandidate.split(" ").filter(Boolean).length === 1 &&
-          composedFullName
-            ? composedFullName
-            : fullNameCandidate;
 
-        localStorage.setItem("userName", fullName);
-        localStorage.setItem("fullname", fullName);
-        if (firstName) {
-          localStorage.setItem("firstName", firstName);
+        localStorage.setItem("userName", finalFullName);
+        localStorage.setItem("fullname", finalFullName);
+        if (storedFirstName) {
+          localStorage.setItem("firstName", storedFirstName);
         }
-        if (lastName) {
-          localStorage.setItem("lastName", lastName);
+        if (storedLastName) {
+          localStorage.setItem("lastName", storedLastName);
         }
         if (userInfo.username) {
           localStorage.setItem("username", userInfo.username);

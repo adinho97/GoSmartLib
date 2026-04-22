@@ -62,20 +62,32 @@ export class DetailComponent implements OnInit, OnDestroy {
   readonly maxCollapsedReviewChars = 220;
   private expandedReviewIds = new Set<number>();
   get smartschoolUserName(): string {
+    const firstName = (localStorage.getItem("firstName") || "").trim();
+    const lastName = (localStorage.getItem("lastName") || "").trim();
+    const composed = composeFullName(firstName, lastName);
+
+    if (composed) {
+      return composed;
+    }
+
     const nameCandidates = [
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
       localStorage.getItem("name"),
     ];
-    const { firstName, lastName } = inferNameParts(
-      localStorage.getItem("firstName"),
-      localStorage.getItem("lastName"),
+    const { firstName: inferredFirst, lastName: inferredLast } = inferNameParts(
+      firstName || null,
+      lastName || null,
       nameCandidates,
     );
-    const composed = composeFullName(firstName, lastName);
+    const inferredComposed = composeFullName(inferredFirst, inferredLast);
+
+    if (inferredComposed) {
+      return inferredComposed;
+    }
 
     const candidates = [
-      composed,
+      firstName || lastName,
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
       localStorage.getItem("username"),

@@ -40,24 +40,29 @@ export class RecommendationService {
 
   private getRoleHeaders() {
     const role = localStorage.getItem("role") || "";
-    const nameCandidates = [
-      localStorage.getItem("userName"),
-      localStorage.getItem("fullname"),
-      localStorage.getItem("name"),
-    ];
-    const { firstName, lastName } = inferNameParts(
-      localStorage.getItem("firstName"),
-      localStorage.getItem("lastName"),
-      nameCandidates,
-    );
+    const firstName = (localStorage.getItem("firstName") || "").trim();
+    const lastName = (localStorage.getItem("lastName") || "").trim();
     const composedName = composeFullName(firstName, lastName);
-    const userName =
-      composedName ||
-      localStorage.getItem("userName") ||
-      localStorage.getItem("fullname") ||
-      localStorage.getItem("username") ||
-      localStorage.getItem("name") ||
-      "Gebruiker";
+
+    let userName = composedName;
+    if (!userName) {
+      const nameCandidates = [
+        localStorage.getItem("userName"),
+        localStorage.getItem("fullname"),
+        localStorage.getItem("name"),
+      ];
+      const { firstName: inferredFirst, lastName: inferredLast } =
+        inferNameParts(firstName || null, lastName || null, nameCandidates);
+      userName =
+        composeFullName(inferredFirst, inferredLast) ||
+        firstName ||
+        lastName ||
+        localStorage.getItem("userName") ||
+        localStorage.getItem("fullname") ||
+        localStorage.getItem("username") ||
+        localStorage.getItem("name") ||
+        "Gebruiker";
+    }
     return {
       headers: {
         "X-User-Role": role,

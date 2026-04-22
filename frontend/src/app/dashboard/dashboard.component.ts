@@ -73,20 +73,33 @@ export class DashboardComponent implements OnInit {
   today = new Date().toISOString().split("T")[0];
 
   get currentUsername(): string {
+    const firstName = (localStorage.getItem("firstName") || "").trim();
+    const lastName = (localStorage.getItem("lastName") || "").trim();
+    const composed = composeFullName(firstName, lastName);
+
+    if (composed) {
+      return composed;
+    }
+
     const nameCandidates = [
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
       localStorage.getItem("name"),
     ];
-    const { firstName, lastName } = inferNameParts(
-      localStorage.getItem("firstName"),
-      localStorage.getItem("lastName"),
+    const { firstName: inferredFirst, lastName: inferredLast } = inferNameParts(
+      firstName || null,
+      lastName || null,
       nameCandidates,
     );
-    const composed = composeFullName(firstName, lastName);
+    const inferredComposed = composeFullName(inferredFirst, inferredLast);
+
+    if (inferredComposed) {
+      return inferredComposed;
+    }
 
     return (
-      composed ||
+      firstName ||
+      lastName ||
       localStorage.getItem("userName") ||
       localStorage.getItem("fullname") ||
       localStorage.getItem("username") ||
