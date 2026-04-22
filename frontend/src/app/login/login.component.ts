@@ -104,17 +104,18 @@ export class LoginComponent implements OnInit {
           if (fullNameCandidate && !storedFirstName && !storedLastName) {
             const parts = fullNameCandidate.split(/\s+/).filter(Boolean);
             if (parts.length >= 2) {
-              storedFirstName = parts[0];
-              storedLastName = parts.slice(1).join(" ");
+              storedLastName = parts[0];
+              storedFirstName = parts.slice(1).join(" ");
             } else if (parts.length === 1) {
               storedFirstName = parts[0];
+              storedLastName = "";
             }
           } else if (fullNameCandidate) {
             if (!storedFirstName && storedLastName) {
               const parts = fullNameCandidate.split(/\s+/).filter(Boolean);
-              for (const part of parts) {
-                if (part.toLowerCase() !== storedLastName.toLowerCase()) {
-                  storedFirstName = part;
+              for (let i = parts.length - 1; i >= 0; i--) {
+                if (parts[i].toLowerCase() !== storedLastName.toLowerCase()) {
+                  storedFirstName = parts.slice(i).join(" ");
                   break;
                 }
               }
