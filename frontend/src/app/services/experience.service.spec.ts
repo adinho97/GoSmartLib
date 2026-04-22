@@ -79,6 +79,6 @@ describe("ExperienceService", () => {
 
     let levelInfo = service["levelInfoSubject"].value;
     expect(levelInfo.level).toBeGreaterThan(1);
-    expect(levelInfo.experienceRequiredForLevel).toBe(225);
+    expect(levelInfo.experienceRequiredForLevel).toBe(97);
   });
 });

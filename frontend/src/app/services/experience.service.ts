@@ -21,8 +21,8 @@ export class ExperienceService {
   private readonly LOAN_XP_SYNCED_COUNT_KEY = "loanXpSyncedCount";
   private readonly API_URL = "/api/user/experience";
   private readonly backendSyncDebounceMs = 350;
-  private readonly BASE_EXPERIENCE = 100;
-  private readonly LEVEL_MULTIPLIER = 1.5; // Each level requires 1.5x more XP
+  private readonly BASE_EXPERIENCE = 40;
+  private readonly LEVEL_MULTIPLIER = 1.25; // Keep progression gentle so early levels come much faster
   private backendSyncTimeoutId?: ReturnType<typeof setTimeout>;
   private initializedFromBackend = false;
   private hydratedForUserSub = "";
