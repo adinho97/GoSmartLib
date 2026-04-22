@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { ExperienceService } from "../services/experience.service";
 import { UserPreferencesService } from "../services/user-preferences.service";
+import { inferNameParts, composeFullName } from "../utils/name-utils";
 
 @Component({
   selector: "app-login",
@@ -60,7 +61,7 @@ export class LoginComponent implements OnInit {
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: async (userInfo) => {
         console.log("Logged in user:", userInfo);
-        const firstName =
+        const rawFirstName =
           userInfo.actualUserName ||
           userInfo.actualUserFirstName ||
           userInfo.givenName ||
@@ -69,7 +70,7 @@ export class LoginComponent implements OnInit {
           userInfo.firstName ||
           userInfo.firstname ||
           "";
-        const lastName =
+        const rawLastName =
           userInfo.actualUserSurname ||
           userInfo.actualUserLastName ||
           userInfo.familyName ||
@@ -78,12 +79,19 @@ export class LoginComponent implements OnInit {
           userInfo.lastname ||
           userInfo.surname ||
           "";
-        const normalizedFirstName = (firstName || "").trim();
-        const normalizedLastName = (lastName || "").trim();
-        const composedFullName =
-          normalizedFirstName && normalizedLastName
-            ? `${normalizedFirstName} ${normalizedLastName}`
-            : "";
+        const candidates = [
+          userInfo.fullname,
+          userInfo.fullName,
+          userInfo.userName,
+          userInfo.username,
+          userInfo.name,
+        ];
+        const { firstName, lastName } = inferNameParts(
+          rawFirstName,
+          rawLastName,
+          candidates,
+        );
+        const composedFullName = composeFullName(firstName, lastName);
         const fullNameCandidate =
           composedFullName ||
           userInfo.fullname ||
@@ -99,11 +107,11 @@ export class LoginComponent implements OnInit {
 
         localStorage.setItem("userName", fullName);
         localStorage.setItem("fullname", fullName);
-        if (normalizedFirstName) {
-          localStorage.setItem("firstName", normalizedFirstName);
+        if (firstName) {
+          localStorage.setItem("firstName", firstName);
         }
-        if (normalizedLastName) {
-          localStorage.setItem("lastName", normalizedLastName);
+        if (lastName) {
+          localStorage.setItem("lastName", lastName);
         }
         if (userInfo.username) {
           localStorage.setItem("username", userInfo.username);

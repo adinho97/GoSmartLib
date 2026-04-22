@@ -13,6 +13,7 @@ import {
 import { ExperienceService } from "../services/experience.service";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
+import { inferNameParts, composeFullName } from "../utils/name-utils";
 import axios from "axios";
 
 @Component({
@@ -61,34 +62,17 @@ export class DetailComponent implements OnInit, OnDestroy {
   readonly maxCollapsedReviewChars = 220;
   private expandedReviewIds = new Set<number>();
   get smartschoolUserName(): string {
-    const lastName = (localStorage.getItem("lastName") || "").trim();
-    const storedFirstName = (localStorage.getItem("firstName") || "").trim();
     const nameCandidates = [
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
       localStorage.getItem("name"),
     ];
-    const inferredFirstName = nameCandidates
-      .map((raw) => {
-        const value = (raw || "").trim();
-        if (!value || !lastName) {
-          return "";
-        }
-        const parts = value.split(/\s+/).filter(Boolean);
-        if (parts.length < 2) {
-          return "";
-        }
-        if (parts[0].toLowerCase() === lastName.toLowerCase()) {
-          return parts.slice(1).join(" ");
-        }
-        if (parts[parts.length - 1].toLowerCase() === lastName.toLowerCase()) {
-          return parts.slice(0, -1).join(" ");
-        }
-        return "";
-      })
-      .find((value) => !!value);
-    const firstName = storedFirstName || inferredFirstName || "";
-    const composed = firstName && lastName ? `${firstName} ${lastName}` : "";
+    const { firstName, lastName } = inferNameParts(
+      localStorage.getItem("firstName"),
+      localStorage.getItem("lastName"),
+      nameCandidates,
+    );
+    const composed = composeFullName(firstName, lastName);
 
     const candidates = [
       composed,

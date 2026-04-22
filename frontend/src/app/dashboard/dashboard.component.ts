@@ -8,6 +8,7 @@ import {
 } from "../services/recommendation.service";
 import { HttpClient } from "@angular/common/http";
 import { UserPreferencesService } from "../services/user-preferences.service";
+import { inferNameParts, composeFullName } from "../utils/name-utils";
 
 type BookResponse = {
   id?: number;
@@ -72,34 +73,17 @@ export class DashboardComponent implements OnInit {
   today = new Date().toISOString().split("T")[0];
 
   get currentUsername(): string {
-    const lastName = (localStorage.getItem("lastName") || "").trim();
-    const storedFirstName = (localStorage.getItem("firstName") || "").trim();
     const nameCandidates = [
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
       localStorage.getItem("name"),
     ];
-    const inferredFirstName = nameCandidates
-      .map((raw) => {
-        const value = (raw || "").trim();
-        if (!value || !lastName) {
-          return "";
-        }
-        const parts = value.split(/\s+/).filter(Boolean);
-        if (parts.length < 2) {
-          return "";
-        }
-        if (parts[0].toLowerCase() === lastName.toLowerCase()) {
-          return parts.slice(1).join(" ");
-        }
-        if (parts[parts.length - 1].toLowerCase() === lastName.toLowerCase()) {
-          return parts.slice(0, -1).join(" ");
-        }
-        return "";
-      })
-      .find((value) => !!value);
-    const firstName = storedFirstName || inferredFirstName || "";
-    const composed = firstName && lastName ? `${firstName} ${lastName}` : "";
+    const { firstName, lastName } = inferNameParts(
+      localStorage.getItem("firstName"),
+      localStorage.getItem("lastName"),
+      nameCandidates,
+    );
+    const composed = composeFullName(firstName, lastName);
 
     return (
       composed ||
