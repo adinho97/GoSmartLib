@@ -33,6 +33,12 @@ export class DetailComponent implements OnInit, OnDestroy {
   readonly userRole = localStorage.getItem("role");
   readonly isLibrarian = this.userRole === "bibbeheerder";
   readonly isTeacher = this.userRole === "leerkracht";
+  private readonly roleLikeValues = new Set([
+    "leerling",
+    "leerkracht",
+    "bibbeheerder",
+    "gebruiker",
+  ]);
 
   // Review-related variables
   currentBookId: number | null = null;
@@ -54,8 +60,19 @@ export class DetailComponent implements OnInit, OnDestroy {
   editReviewComment = "";
   readonly maxCollapsedReviewChars = 220;
   private expandedReviewIds = new Set<number>();
-  readonly smartschoolUserName =
-    localStorage.getItem("userName") || "Gebruiker";
+  get smartschoolUserName(): string {
+    const candidates = [
+      localStorage.getItem("userName"),
+      localStorage.getItem("fullname"),
+      localStorage.getItem("username"),
+      localStorage.getItem("name"),
+    ];
+    for (const candidate of candidates) {
+      const normalized = this.normalizeDisplayName(candidate);
+      if (normalized) return normalized;
+    }
+    return "Gebruiker";
+  }
 
   // Teaching tip variables (teachers only)
   lestipText = "";
@@ -122,6 +139,14 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+  }
+
+  private normalizeDisplayName(raw: string | null): string {
+    const value = (raw || "").trim();
+    if (!value) {
+      return "";
+    }
+    return this.roleLikeValues.has(value.toLowerCase()) ? "" : value;
   }
 
   private async loadWishlistState(bookId: number): Promise<void> {
