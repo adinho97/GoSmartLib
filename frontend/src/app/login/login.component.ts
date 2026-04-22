@@ -60,25 +60,30 @@ export class LoginComponent implements OnInit {
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: async (userInfo) => {
         console.log("Logged in user:", userInfo);
+        const firstName =
+          userInfo.actualUserName ||
+          userInfo.givenName ||
+          userInfo.given_name ||
+          "";
+        const lastName =
+          userInfo.actualUserSurname ||
+          userInfo.familyName ||
+          userInfo.family_name ||
+          "";
+        const composedFullName = [firstName, lastName]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
         const fullName =
           userInfo.fullname ||
           userInfo.fullName ||
+          composedFullName ||
           userInfo.name ||
-          [userInfo.actualUserName, userInfo.actualUserSurname]
-            .filter(Boolean)
-            .join(" ")
-            .trim() ||
-          [
-            userInfo.givenName || userInfo.given_name,
-            userInfo.familyName || userInfo.family_name,
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .trim() ||
           userInfo.username ||
           "Gebruiker";
 
         localStorage.setItem("userName", fullName);
+        localStorage.setItem("fullname", fullName);
         if (userInfo.username) {
           localStorage.setItem("username", userInfo.username);
         }
