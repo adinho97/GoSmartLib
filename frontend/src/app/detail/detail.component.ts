@@ -13,7 +13,11 @@ import {
 import { ExperienceService } from "../services/experience.service";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
-import { inferNameParts, composeFullName } from "../utils/name-utils";
+import {
+  inferNameParts,
+  composeFullName,
+  normalizeReviewAuthorName,
+} from "../utils/name-utils";
 import axios from "axios";
 
 @Component({
@@ -614,7 +618,11 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   getReviewAuthor(review: Review): string {
-    return review.reviewerUserName?.trim() || "Anoniem";
+    const rawName = review.reviewerUserName?.trim() || "Anoniem";
+    if (rawName === "Anoniem") {
+      return rawName;
+    }
+    return normalizeReviewAuthorName(rawName);
   }
 
   setReviewRating(rating: number): void {
