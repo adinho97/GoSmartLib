@@ -82,9 +82,9 @@ export class LoginComponent implements OnInit {
           .join(" ")
           .trim();
         const fullNameCandidate =
+          composedFullName ||
           userInfo.fullname ||
           userInfo.fullName ||
-          composedFullName ||
           userInfo.name ||
           userInfo.username ||
           "Gebruiker";

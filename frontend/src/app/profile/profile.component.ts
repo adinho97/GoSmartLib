@@ -103,7 +103,16 @@ export class ProfileComponent {
   };
 
   get userName(): string {
+    const composed = [
+      localStorage.getItem("firstName"),
+      localStorage.getItem("lastName"),
+    ]
+      .filter((part): part is string => !!part && !!part.trim())
+      .join(" ")
+      .trim();
+
     const candidates = [
+      composed,
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
       localStorage.getItem("username"),

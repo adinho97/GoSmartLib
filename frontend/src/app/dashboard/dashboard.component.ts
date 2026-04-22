@@ -72,7 +72,21 @@ export class DashboardComponent implements OnInit {
   today = new Date().toISOString().split("T")[0];
 
   get currentUsername(): string {
-    return localStorage.getItem("username") || "";
+    const composed = [
+      localStorage.getItem("firstName"),
+      localStorage.getItem("lastName"),
+    ]
+      .filter((part): part is string => !!part && !!part.trim())
+      .join(" ")
+      .trim();
+
+    return (
+      composed ||
+      localStorage.getItem("userName") ||
+      localStorage.getItem("fullname") ||
+      localStorage.getItem("username") ||
+      ""
+    );
   }
 
   get currentUserSub(): string {
