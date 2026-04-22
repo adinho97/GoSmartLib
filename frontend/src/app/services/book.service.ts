@@ -92,8 +92,17 @@ export class BookService {
     const role = localStorage.getItem("role") || "";
     const userSub =
       localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    const composedName = [
+      localStorage.getItem("firstName"),
+      localStorage.getItem("lastName"),
+    ]
+      .filter((part): part is string => !!part && !!part.trim())
+      .join(" ")
+      .trim();
     const userName =
+      composedName ||
       localStorage.getItem("userName") ||
+      localStorage.getItem("fullname") ||
       localStorage.getItem("username") ||
       localStorage.getItem("name") ||
       "Gebruiker";

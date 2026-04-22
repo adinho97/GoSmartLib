@@ -62,28 +62,46 @@ export class LoginComponent implements OnInit {
         console.log("Logged in user:", userInfo);
         const firstName =
           userInfo.actualUserName ||
+          userInfo.actualUserFirstName ||
           userInfo.givenName ||
           userInfo.given_name ||
+          userInfo.firstName ||
+          userInfo.firstname ||
           "";
         const lastName =
           userInfo.actualUserSurname ||
+          userInfo.actualUserLastName ||
           userInfo.familyName ||
           userInfo.family_name ||
+          userInfo.lastName ||
+          userInfo.lastname ||
+          userInfo.surname ||
           "";
         const composedFullName = [firstName, lastName]
           .filter(Boolean)
           .join(" ")
           .trim();
-        const fullName =
+        const fullNameCandidate =
           userInfo.fullname ||
           userInfo.fullName ||
           composedFullName ||
           userInfo.name ||
           userInfo.username ||
           "Gebruiker";
+        const fullName =
+          fullNameCandidate.split(" ").filter(Boolean).length === 1 &&
+          composedFullName
+            ? composedFullName
+            : fullNameCandidate;
 
         localStorage.setItem("userName", fullName);
         localStorage.setItem("fullname", fullName);
+        if (firstName) {
+          localStorage.setItem("firstName", firstName);
+        }
+        if (lastName) {
+          localStorage.setItem("lastName", lastName);
+        }
         if (userInfo.username) {
           localStorage.setItem("username", userInfo.username);
         }
