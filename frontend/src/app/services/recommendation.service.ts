@@ -39,8 +39,39 @@ export class RecommendationService {
 
   private getRoleHeaders() {
     const role = localStorage.getItem("role") || "";
+    const lastName = (localStorage.getItem("lastName") || "").trim();
+    const storedFirstName = (localStorage.getItem("firstName") || "").trim();
+    const nameCandidates = [
+      localStorage.getItem("userName"),
+      localStorage.getItem("fullname"),
+      localStorage.getItem("name"),
+    ];
+    const inferredFirstName = nameCandidates
+      .map((raw) => {
+        const value = (raw || "").trim();
+        if (!value || !lastName) {
+          return "";
+        }
+        const parts = value.split(/\s+/).filter(Boolean);
+        if (parts.length < 2) {
+          return "";
+        }
+        if (parts[0].toLowerCase() === lastName.toLowerCase()) {
+          return parts.slice(1).join(" ");
+        }
+        if (parts[parts.length - 1].toLowerCase() === lastName.toLowerCase()) {
+          return parts.slice(0, -1).join(" ");
+        }
+        return "";
+      })
+      .find((value) => !!value);
+    const firstName = storedFirstName || inferredFirstName || "";
+    const composedName =
+      firstName && lastName ? `${firstName} ${lastName}` : "";
     const userName =
+      composedName ||
       localStorage.getItem("userName") ||
+      localStorage.getItem("fullname") ||
       localStorage.getItem("username") ||
       localStorage.getItem("name") ||
       "Gebruiker";
@@ -69,7 +100,7 @@ export class RecommendationService {
 
   async getGroupedRecommendations(
     limit: number = 10,
-    excludeRead: boolean = true
+    excludeRead: boolean = true,
   ): Promise<GroupedRecommendations> {
     const cacheKey = this.getCacheKey(limit, excludeRead);
     const cachedEntry = this.cache.get(cacheKey);
@@ -82,14 +113,14 @@ export class RecommendationService {
     try {
       const response = await axios.get<GroupedRecommendations>(
         `${this.apiUrl}/grouped?limit=${limit}&excludeRead=${excludeRead}`,
-        this.getRoleHeaders()
+        this.getRoleHeaders(),
       );
 
       this.cache.set(cacheKey, {
         data: response.data,
         timestamp: Date.now(),
       });
-      
+
       return response.data;
     } catch (error) {
       console.error("Error fetching grouped recommendations:", error);
@@ -99,12 +130,12 @@ export class RecommendationService {
 
   async getRecommendations(
     limit: number = 10,
-    excludeRead: boolean = true
+    excludeRead: boolean = true,
   ): Promise<RecommendedBook[]> {
     try {
       const response = await axios.get<RecommendedBook[]>(
         `${this.apiUrl}?limit=${limit}&excludeRead=${excludeRead}`,
-        this.getRoleHeaders()
+        this.getRoleHeaders(),
       );
       return response.data;
     } catch (error) {
@@ -116,13 +147,13 @@ export class RecommendationService {
   async getRecommendationsByStrategy(
     strategyNames: string[],
     limit: number = 10,
-    excludeRead: boolean = true
+    excludeRead: boolean = true,
   ): Promise<RecommendedBook[]> {
     try {
       const strategiesParam = strategyNames.join(",");
       const response = await axios.get<RecommendedBook[]>(
         `${this.apiUrl}/by-strategy?strategies=${strategiesParam}&limit=${limit}&excludeRead=${excludeRead}`,
-        this.getRoleHeaders()
+        this.getRoleHeaders(),
       );
       return response.data;
     } catch (error) {
@@ -133,7 +164,7 @@ export class RecommendationService {
 
   async getTrending(
     limit: number = 10,
-    excludeRead: boolean = true
+    excludeRead: boolean = true,
   ): Promise<RecommendedBook[]> {
     const grouped = await this.getGroupedRecommendations(limit, excludeRead);
     return grouped["TrendingStrategy"] || [];
@@ -141,7 +172,7 @@ export class RecommendationService {
 
   async getByGenre(
     limit: number = 10,
-    excludeRead: boolean = true
+    excludeRead: boolean = true,
   ): Promise<RecommendedBook[]> {
     const grouped = await this.getGroupedRecommendations(limit, excludeRead);
     return grouped["GenreBasedStrategy"] || [];
@@ -149,7 +180,7 @@ export class RecommendationService {
 
   async getByAuthor(
     limit: number = 10,
-    excludeRead: boolean = true
+    excludeRead: boolean = true,
   ): Promise<RecommendedBook[]> {
     const grouped = await this.getGroupedRecommendations(limit, excludeRead);
     return grouped["AuthorBasedStrategy"] || [];
@@ -157,13 +188,16 @@ export class RecommendationService {
 
   async getNewArrivals(
     limit: number = 10,
-    excludeRead: boolean = true
+    excludeRead: boolean = true,
   ): Promise<RecommendedBook[]> {
     const grouped = await this.getGroupedRecommendations(limit, excludeRead);
     return grouped["NewArrivalsStrategy"] || [];
   }
 
-  async getBlended(limit: number = 10, excludeRead: boolean = true): Promise<RecommendedBook[]> {
+  async getBlended(
+    limit: number = 10,
+    excludeRead: boolean = true,
+  ): Promise<RecommendedBook[]> {
     return this.getRecommendations(limit, excludeRead);
   }
 }

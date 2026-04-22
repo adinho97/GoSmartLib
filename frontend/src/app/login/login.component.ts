@@ -65,6 +65,7 @@ export class LoginComponent implements OnInit {
           userInfo.actualUserFirstName ||
           userInfo.givenName ||
           userInfo.given_name ||
+          userInfo.name ||
           userInfo.firstName ||
           userInfo.firstname ||
           "";
@@ -77,10 +78,12 @@ export class LoginComponent implements OnInit {
           userInfo.lastname ||
           userInfo.surname ||
           "";
-        const composedFullName = [firstName, lastName]
-          .filter(Boolean)
-          .join(" ")
-          .trim();
+        const normalizedFirstName = (firstName || "").trim();
+        const normalizedLastName = (lastName || "").trim();
+        const composedFullName =
+          normalizedFirstName && normalizedLastName
+            ? `${normalizedFirstName} ${normalizedLastName}`
+            : "";
         const fullNameCandidate =
           composedFullName ||
           userInfo.fullname ||
@@ -96,11 +99,11 @@ export class LoginComponent implements OnInit {
 
         localStorage.setItem("userName", fullName);
         localStorage.setItem("fullname", fullName);
-        if (firstName) {
-          localStorage.setItem("firstName", firstName);
+        if (normalizedFirstName) {
+          localStorage.setItem("firstName", normalizedFirstName);
         }
-        if (lastName) {
-          localStorage.setItem("lastName", lastName);
+        if (normalizedLastName) {
+          localStorage.setItem("lastName", normalizedLastName);
         }
         if (userInfo.username) {
           localStorage.setItem("username", userInfo.username);

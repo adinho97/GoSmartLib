@@ -92,13 +92,35 @@ export class BookService {
     const role = localStorage.getItem("role") || "";
     const userSub =
       localStorage.getItem("sub") || localStorage.getItem("userId") || "";
-    const composedName = [
-      localStorage.getItem("firstName"),
-      localStorage.getItem("lastName"),
-    ]
-      .filter((part): part is string => !!part && !!part.trim())
-      .join(" ")
-      .trim();
+    const lastName = (localStorage.getItem("lastName") || "").trim();
+    const storedFirstName = (localStorage.getItem("firstName") || "").trim();
+    const nameCandidates = [
+      localStorage.getItem("userName"),
+      localStorage.getItem("fullname"),
+      localStorage.getItem("name"),
+    ];
+    const inferredFirstName = nameCandidates
+      .map((raw) => {
+        const value = (raw || "").trim();
+        if (!value || !lastName) {
+          return "";
+        }
+        const parts = value.split(/\s+/).filter(Boolean);
+        if (parts.length < 2) {
+          return "";
+        }
+        if (parts[0].toLowerCase() === lastName.toLowerCase()) {
+          return parts.slice(1).join(" ");
+        }
+        if (parts[parts.length - 1].toLowerCase() === lastName.toLowerCase()) {
+          return parts.slice(0, -1).join(" ");
+        }
+        return "";
+      })
+      .find((value) => !!value);
+    const firstName = storedFirstName || inferredFirstName || "";
+    const composedName =
+      firstName && lastName ? `${firstName} ${lastName}` : "";
     const userName =
       composedName ||
       localStorage.getItem("userName") ||
