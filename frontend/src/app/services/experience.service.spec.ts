@@ -22,6 +22,25 @@ describe("ExperienceService", () => {
     expect(levelInfo.totalExperience).toBe(50);
   });
 
+  it("should reconcile loan XP from history and include badge XP", () => {
+    service.reconcileLoanExperienceFromHistory(5);
+
+    let levelInfo = service["levelInfoSubject"].value;
+    expect(levelInfo.totalExperience).toBe(370);
+
+    service.reconcileLoanExperienceFromHistory(5);
+    levelInfo = service["levelInfoSubject"].value;
+    expect(levelInfo.totalExperience).toBe(370);
+  });
+
+  it("should not double-count loan XP after direct loan award", () => {
+    service.addExperienceForLoaningBook();
+    service.reconcileLoanExperienceFromHistory(1);
+
+    const levelInfo = service["levelInfoSubject"].value;
+    expect(levelInfo.totalExperience).toBe(90);
+  });
+
   it("should add and remove review XP", () => {
     service.addExperienceForReview();
     service.addExperienceForReview();

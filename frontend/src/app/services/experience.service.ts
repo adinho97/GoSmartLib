@@ -18,6 +18,7 @@ type BadgeCategory = "loan" | "review";
 export class ExperienceService {
   private readonly STORAGE_KEY = "userExperience";
   private readonly CLAIMED_BADGE_REWARDS_KEY = "claimedBadgeRewards";
+  private readonly LOAN_XP_SYNCED_COUNT_KEY = "loanXpSyncedCount";
   private readonly API_URL = "/api/user/experience";
   private readonly backendSyncDebounceMs = 350;
   private readonly BASE_EXPERIENCE = 100;
@@ -101,6 +102,31 @@ export class ExperienceService {
 
   addExperienceForLoaningBook(): void {
     this.addExperience(this.REWARDS.loanCreated);
+    this.persistLoanXpSyncedCount(this.readLoanXpSyncedCount() + 1);
+  }
+
+  reconcileLoanExperienceFromHistory(loanCount: number): void {
+    const normalizedLoanCount = Math.max(0, Math.floor(Number(loanCount) || 0));
+    const previouslySyncedLoanCount = this.readLoanXpSyncedCount();
+    const loanCountDelta = normalizedLoanCount - previouslySyncedLoanCount;
+
+    if (loanCountDelta > 0) {
+      this.addExperience(loanCountDelta * this.REWARDS.loanCreated);
+    } else if (loanCountDelta < 0) {
+      this.removeExperience(
+        Math.abs(loanCountDelta) * this.REWARDS.loanCreated,
+      );
+    }
+
+    this.persistLoanXpSyncedCount(normalizedLoanCount);
+
+    for (const threshold of Object.keys(this.BADGE_THRESHOLD_REWARDS).map(
+      Number,
+    )) {
+      if (normalizedLoanCount >= threshold) {
+        this.addExperienceForBadge(threshold, "loan");
+      }
+    }
   }
 
   removeExperienceForReview(): void {
@@ -350,6 +376,21 @@ export class ExperienceService {
     localStorage.setItem(
       this.getUserScopedKey(this.CLAIMED_BADGE_REWARDS_KEY),
       JSON.stringify(Array.from(claimedRewards)),
+    );
+  }
+
+  private readLoanXpSyncedCount(): number {
+    const rawValue = this.readScopedValueWithLegacyMigration(
+      this.LOAN_XP_SYNCED_COUNT_KEY,
+    );
+    const parsedValue = rawValue ? parseInt(rawValue, 10) : 0;
+    return Number.isFinite(parsedValue) ? Math.max(0, parsedValue) : 0;
+  }
+
+  private persistLoanXpSyncedCount(loanCount: number): void {
+    localStorage.setItem(
+      this.getUserScopedKey(this.LOAN_XP_SYNCED_COUNT_KEY),
+      Math.max(0, Math.floor(Number(loanCount) || 0)).toString(),
     );
   }
 }

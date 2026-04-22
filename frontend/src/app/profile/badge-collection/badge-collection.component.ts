@@ -53,6 +53,9 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     const previousCounts = this.readStoredCounts();
     const currentCounts = await this.loadCounts();
+    this.experienceService.reconcileLoanExperienceFromHistory(
+      currentCounts.loanCount,
+    );
     this.lastKnownCounts = currentCounts;
     this.rebuildBadges(currentCounts, previousCounts);
     this.storeCounts(currentCounts);
@@ -107,6 +110,9 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
 
     try {
       const currentCounts = await this.loadCounts();
+      this.experienceService.reconcileLoanExperienceFromHistory(
+        currentCounts.loanCount,
+      );
       const previousCounts = this.lastKnownCounts;
 
       if (

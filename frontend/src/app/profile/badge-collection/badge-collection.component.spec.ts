@@ -24,12 +24,14 @@ describe("BadgeCollectionComponent", () => {
     experienceServiceSpy = jasmine.createSpyObj("ExperienceService", [
       "addExperienceForBadge",
       "getBadgeExperienceWorth",
+      "reconcileLoanExperienceFromHistory",
     ]);
 
     bookServiceSpy.getMyReviewCount.and.resolveTo(0);
     loanServiceSpy.getMyLoanHistory.and.resolveTo([]);
     experienceServiceSpy.addExperienceForBadge.and.returnValue(0);
     experienceServiceSpy.getBadgeExperienceWorth.and.returnValue(20);
+    experienceServiceSpy.reconcileLoanExperienceFromHistory.and.stub();
 
     await TestBed.configureTestingModule({
       imports: [BadgeCollectionComponent],
@@ -77,5 +79,16 @@ describe("BadgeCollectionComponent", () => {
     resolveLoanHistory?.();
     await firstRefresh;
     await secondRefresh;
+  });
+
+  it("should reconcile loan XP from history on init", async () => {
+    loanServiceSpy.getMyLoanHistory.and.resolveTo([{} as any, {} as any]);
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(
+      experienceServiceSpy.reconcileLoanExperienceFromHistory,
+    ).toHaveBeenCalledWith(2);
   });
 });
