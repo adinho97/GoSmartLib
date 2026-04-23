@@ -117,7 +117,6 @@ export class EditBookComponent implements OnInit {
   copySummary = { total: 0, available: 0 };
   copies: CopyView[] = [];
   isAddingCopy = false;
-  isRemovingCopy = false;
   copyMessage = "";
   copyError = "";
 
@@ -166,12 +165,7 @@ export class EditBookComponent implements OnInit {
   async loadCopies() {
     try {
       const copies = await this.loanService.getCopiesForBook(this.bookId);
-      this.copies = copies
-        .map((copy) => ({
-          ...copy,
-          condition: copy.condition ?? "GOOD",
-        }))
-        .sort((a, b) => a.id - b.id);
+      this.copies = copies.sort((a, b) => a.id - b.id);
     } catch {
       this.copies = [];
     }
@@ -192,22 +186,18 @@ export class EditBookComponent implements OnInit {
     }
   }
 
-  async removeCopy() {
-    if (this.copySummary.available === 0) {
-      this.copyError = "Geen beschikbare exemplaren om te verwijderen.";
-      return;
-    }
-    this.isRemovingCopy = true;
+  async removeCopy(copyId: number) {
     this.copyMessage = "";
     this.copyError = "";
     try {
-      await this.loanService.removeAvailableCopy(this.bookId);
+      await this.loanService.deleteCopy(copyId);
       await this.loadCopyData();
       this.copyMessage = "Exemplaar verwijderd.";
     } catch (err: any) {
-      this.copyError = err?.message || "Verwijderen mislukt.";
-    } finally {
-      this.isRemovingCopy = false;
+      this.copyError =
+        err?.response?.status === 409
+          ? "Dit exemplaar is nog uitgeleend en kan niet verwijderd worden."
+          : err?.message || "Verwijderen mislukt.";
     }
   }
 
@@ -264,13 +254,6 @@ export class EditBookComponent implements OnInit {
 
   isSubgenreSelected(subgenre: string): boolean {
     return this.selectedSubgenres.has(subgenre);
-  }
-
-  getCopyStatusLabel(status: CopyView["status"]): string {
-    if (status === "AVAILABLE") return "Beschikbaar";
-    if (status === "LOANED") return "Uitgeleend";
-    if (status === "DAMAGED") return "Beschadigd";
-    return "Verloren";
   }
 
   getCopyConditionLabel(condition: CopyView["condition"]): string {
