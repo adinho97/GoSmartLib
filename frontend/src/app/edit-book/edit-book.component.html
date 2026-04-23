@@ -38,10 +38,10 @@
         <div class="copy-status-list">
           <h4>Exemplaren en staat</h4>
           <ul>
-            @for (copy of copies; track copy.id) {
+            @for (copy of copies; track copy.id; let copyIndex = $index) {
               <li>
                 <div class="copy-row-main">
-                  <span class="copy-id">Exemplaar #{{ copy.id }}</span>
+                  <span class="copy-id">Exemplaar #{{ copyIndex + 1 }}</span>
                   <span class="copy-condition-text">
                     Staat: {{ getCopyConditionLabel(copy.condition) }}
                   </span>
