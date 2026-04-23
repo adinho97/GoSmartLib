@@ -188,13 +188,89 @@
                 <button
                   type="button"
                   class="return-btn"
-                  (click)="returnLoan(loan, $event)"
+                  (click)="openReturnDialog(loan, $event)"
                 >
                   ✓ Teruggebracht
                 </button>
               </li>
             }
           </ul>
+        </div>
+      }
+
+      @if (returnDialogOpen && returnDialogLoan) {
+        <div
+          class="return-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          (click)="closeReturnDialog()"
+        >
+          <div class="return-modal" (click)="$event.stopPropagation()">
+            <header class="return-modal-header">
+              <h3>Boek terugbrengen</h3>
+              <button
+                type="button"
+                class="return-modal-close"
+                (click)="closeReturnDialog()"
+                aria-label="Sluit dialoog"
+              >
+                ×
+              </button>
+            </header>
+
+            <div class="return-modal-content">
+              <p class="return-modal-intro">
+                Geef aan in welke staat het boek terugkomt. Als het boek
+                verloren is, markeren we het als vermist.
+              </p>
+
+              <div class="return-modal-field">
+                <label for="return-condition">Staat van het boek</label>
+                <select
+                  id="return-condition"
+                  [(ngModel)]="returnCondition"
+                  [disabled]="returnLostBook"
+                >
+                  <option value="GOOD">Goed</option>
+                  <option value="MODERATE">Matig</option>
+                  <option value="BAD">Slecht</option>
+                </select>
+              </div>
+
+              <label class="return-modal-checkbox">
+                <input type="checkbox" [(ngModel)]="returnLostBook" />
+                Boek is verloren
+              </label>
+
+              <p class="return-modal-hint">
+                De uiteindelijke status wordt
+                <strong>{{ returnConditionLabel }}</strong
+                >.
+              </p>
+
+              @if (errorMessage) {
+                <p class="field-error">{{ errorMessage }}</p>
+              }
+            </div>
+
+            <footer class="return-modal-actions">
+              <button
+                type="button"
+                class="cancel-return-btn"
+                (click)="closeReturnDialog()"
+              >
+                Annuleren
+              </button>
+              <button
+                type="button"
+                class="confirm-return-btn"
+                [disabled]="isReturningLoan"
+                (click)="confirmReturnLoan()"
+              >
+                {{ isReturningLoan ? "Bezig..." : "Terugbrengen bevestigen" }}
+              </button>
+            </footer>
+          </div>
         </div>
       }
 
