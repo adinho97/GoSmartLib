@@ -225,6 +225,77 @@
   width: 100%;
 }
 
+.copy-status-list {
+  width: 100%;
+  margin-top: 0.4rem;
+  border-top: 1px solid #eadce2;
+  padding-top: 0.7rem;
+}
+
+.copy-status-list h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.88rem;
+  color: #4b5563;
+  font-weight: 700;
+}
+
+.copy-status-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.copy-status-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #f0dde5;
+  border-radius: 8px;
+  padding: 0.42rem 0.58rem;
+}
+
+.copy-id {
+  color: #374151;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.copy-status-badge {
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.copy-status-badge.available {
+  background: #e8f5e9;
+  color: #1f6f43;
+  border-color: #b6e3c3;
+}
+
+.copy-status-badge.loaned {
+  background: #eef2ff;
+  color: #3730a3;
+  border-color: #d1d9ff;
+}
+
+.copy-status-badge.damaged {
+  background: #fff4e5;
+  color: #92400e;
+  border-color: #ffd8a8;
+}
+
+.copy-status-badge.lost {
+  background: #fdecea;
+  color: #b91c1c;
+  border-color: #f5b7b1;
+}
+
 .loading-message {
   text-align: left;
   color: #5a6472;
