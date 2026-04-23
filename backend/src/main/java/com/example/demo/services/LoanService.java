@@ -2,6 +2,7 @@ package com.example.demo.services;
 
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanDto;
+import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
 import com.example.demo.repositories.BookCopyRepository;
@@ -77,6 +78,11 @@ public class LoanService {
 
     @Transactional
     public LoanDto returnLoan(Long loanId) {
+        return returnLoan(loanId, null);
+    }
+
+    @Transactional
+    public LoanDto returnLoan(Long loanId, ReturnLoanRequest request) {
         Loan loan = loanRepo.findById(loanId)
                 .orElseThrow(() -> new IllegalArgumentException("Uitlening niet gevonden"));
 
@@ -85,6 +91,7 @@ public class LoanService {
         }
 
         LocalDate returnedAt = LocalDate.now();
+        BookCopy.CopyStatus targetStatus = resolveReturnedStatus(request);
 
         // Count available copies BEFORE marking this one available aka a kind of
         // snapshot to check if the book just became available after this return
@@ -93,15 +100,33 @@ public class LoanService {
                 BookCopy.CopyStatus.AVAILABLE);
 
         loan.setReturnedAt(returnedAt);
-        loan.getCopy().setStatus(BookCopy.CopyStatus.AVAILABLE);
+        loan.getCopy().setStatus(targetStatus);
         copyRepo.save(loan.getCopy());
 
         // Check if book just became available (was 0, now 1+)
-        if (availableCopiesBefore == 0) {
+        if (targetStatus == BookCopy.CopyStatus.AVAILABLE && availableCopiesBefore == 0) {
             bookAvailabilityNotificationService.notifyWishlistersThatBookIsAvailable(loan.getCopy().getBook());
         }
 
+        logger.info("Returned loan id={} with copy status {}", loanId, targetStatus);
         return toDto(loanRepo.save(loan));
+    }
+
+    private BookCopy.CopyStatus resolveReturnedStatus(ReturnLoanRequest request) {
+        if (request == null) {
+            return BookCopy.CopyStatus.AVAILABLE;
+        }
+
+        if (request.isLost()) {
+            return BookCopy.CopyStatus.LOST;
+        }
+
+        if (request.getCondition() == ReturnLoanRequest.ReturnCondition.MODERATE
+            || request.getCondition() == ReturnLoanRequest.ReturnCondition.BAD) {
+            return BookCopy.CopyStatus.DAMAGED;
+        }
+
+        return BookCopy.CopyStatus.AVAILABLE;
     }
 
     public List<LoanDto> getActiveLoansForUser(String userSub) {

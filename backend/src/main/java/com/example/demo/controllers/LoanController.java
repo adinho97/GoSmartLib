@@ -2,6 +2,7 @@ package com.example.demo.controllers;
 
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanDto;
+import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.dto.UpdateDueDateRequest;
 import com.example.demo.services.LoanService;
 import jakarta.validation.Valid;
@@ -56,12 +57,13 @@ public class LoanController {
     @PutMapping("/{id}/teruggeven")
     public ResponseEntity<LoanDto> returnLoan(
             @PathVariable Long id,
+            @RequestBody(required = false) ReturnLoanRequest request,
             @RequestHeader(value = "X-User-Role", required = false) String userRole) {
         if (!canLoan(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         try {
-            return ResponseEntity.ok(loanService.returnLoan(id));
+            return ResponseEntity.ok(loanService.returnLoan(id, request));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
