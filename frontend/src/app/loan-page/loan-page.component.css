@@ -1,8 +1,11 @@
 .loan-page {
   max-width: 1000px;
+  width: min(100%, 1000px);
   margin: 2rem auto;
   padding: 0 1rem 2rem;
   font-family: Arial, sans-serif;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .loan-header {
@@ -34,12 +37,12 @@
   font-size: 1.1rem;
 }
 
-.save-btn { 
-  color: #28a745; 
+.save-btn {
+  color: #28a745;
   font-size: medium;
 }
-.cancel-btn { 
-  color: #dc3545; 
+.cancel-btn {
+  color: #dc3545;
   font-size: medium;
 }
 
@@ -55,7 +58,6 @@
 .edit-due-btn:hover {
   opacity: 1;
 }
-
 
 .loan-header h1 {
   color: #1a1a1a;
@@ -693,6 +695,8 @@
   display: flex;
   justify-content: center;
   gap: 0.4rem;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .history-page-btn {
