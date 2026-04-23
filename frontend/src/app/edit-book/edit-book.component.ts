@@ -9,6 +9,7 @@ import { CommonModule } from "@angular/common";
 type CopyView = {
   id: number;
   status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST";
+  condition: "GOOD" | "MODERATE" | "BAD";
 };
 
 export enum Language {
@@ -165,7 +166,12 @@ export class EditBookComponent implements OnInit {
   async loadCopies() {
     try {
       const copies = await this.loanService.getCopiesForBook(this.bookId);
-      this.copies = [...copies].sort((a, b) => a.id - b.id);
+      this.copies = copies
+        .map((copy) => ({
+          ...copy,
+          condition: copy.condition ?? "GOOD",
+        }))
+        .sort((a, b) => a.id - b.id);
     } catch {
       this.copies = [];
     }
@@ -265,6 +271,12 @@ export class EditBookComponent implements OnInit {
     if (status === "LOANED") return "Uitgeleend";
     if (status === "DAMAGED") return "Beschadigd";
     return "Verloren";
+  }
+
+  getCopyConditionLabel(condition: CopyView["condition"]): string {
+    if (condition === "MODERATE") return "Matig";
+    if (condition === "BAD") return "Slecht";
+    return "Goed";
   }
 
   get hasKnownLanguage(): boolean {
