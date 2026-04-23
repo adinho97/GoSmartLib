@@ -562,6 +562,26 @@
   color: #5a6472;
   font-weight: 600;
   cursor: pointer;
+  margin: 0;
+}
+
+.wishlist-nav-btn {
+  min-width: 36px;
+}
+
+.wishlist-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wishlist-page-ellipsis {
+  min-width: 20px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-weight: 700;
 }
 
 .wishlist-page-btn:hover {

@@ -420,16 +420,56 @@
                 </div>
                 @if (totalReadingHistoryPages > 1) {
                   <div class="wishlist-pagination">
-                    @for (page of readingHistoryPageNumbers; track page) {
-                      <button
-                        type="button"
-                        class="wishlist-page-btn"
-                        [class.active]="page === currentReadingHistoryPage"
-                        (click)="goToReadingHistoryPage(page)"
-                      >
-                        {{ page }}
-                      </button>
+                    <button
+                      type="button"
+                      class="wishlist-page-btn wishlist-nav-btn"
+                      [disabled]="currentReadingHistoryPage === 1"
+                      (click)="goToReadingHistoryPage(1)"
+                    >
+                      &lt;&lt;
+                    </button>
+                    <button
+                      type="button"
+                      class="wishlist-page-btn wishlist-nav-btn"
+                      [disabled]="currentReadingHistoryPage === 1"
+                      (click)="goToPreviousReadingHistoryPage()"
+                    >
+                      &lt;
+                    </button>
+                    @for (page of visibleReadingHistoryPages; track $index) {
+                      @if (page === "...") {
+                        <span class="wishlist-page-ellipsis">...</span>
+                      } @else {
+                        <button
+                          type="button"
+                          class="wishlist-page-btn"
+                          [class.active]="page === currentReadingHistoryPage"
+                          (click)="goToReadingHistoryPage(page)"
+                        >
+                          {{ page }}
+                        </button>
+                      }
                     }
+                    <button
+                      type="button"
+                      class="wishlist-page-btn wishlist-nav-btn"
+                      [disabled]="
+                        currentReadingHistoryPage === totalReadingHistoryPages
+                      "
+                      (click)="goToNextReadingHistoryPage()"
+                    >
+                      &gt;
+                    </button>
+                    <button
+                      type="button"
+                      class="wishlist-page-btn wishlist-nav-btn"
+                      [disabled]="
+                        currentReadingHistoryPage === totalReadingHistoryPages
+                      "
+                      (click)="goToReadingHistoryPage(totalReadingHistoryPages)"
+                    >
+                      &gt;&gt;
+                    </button>
                   </div>
                 }
               }

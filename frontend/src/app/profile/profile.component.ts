@@ -39,6 +39,8 @@ type ProfileBookCard = {
   paginas?: number;
 };
 
+type PaginationItem = number | "...";
+
 @Component({
   selector: "app-profile",
   templateUrl: "./profile.component.html",
@@ -428,6 +430,13 @@ export class ProfileComponent {
     );
   }
 
+  get visibleReadingHistoryPages(): PaginationItem[] {
+    return this.buildVisiblePages(
+      this.totalReadingHistoryPages,
+      this.currentReadingHistoryPage,
+    );
+  }
+
   get pagedReadingHistory(): ProfileBookCard[] {
     const start =
       (this.currentReadingHistoryPage - 1) * this.readingHistoryPageSize;
@@ -438,7 +447,55 @@ export class ProfileComponent {
   }
 
   goToReadingHistoryPage(page: number) {
-    this.currentReadingHistoryPage = page;
+    this.currentReadingHistoryPage = Math.min(
+      this.totalReadingHistoryPages,
+      Math.max(1, page),
+    );
+  }
+
+  goToPreviousReadingHistoryPage() {
+    this.goToReadingHistoryPage(this.currentReadingHistoryPage - 1);
+  }
+
+  goToNextReadingHistoryPage() {
+    this.goToReadingHistoryPage(this.currentReadingHistoryPage + 1);
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   async removeFromWishlist(event: MouseEvent | null, bookId: number) {
