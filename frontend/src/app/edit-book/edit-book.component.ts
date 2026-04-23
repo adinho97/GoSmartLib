@@ -6,6 +6,11 @@ import { Book } from "../models/book";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
+type CopyView = {
+  id: number;
+  status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST";
+};
+
 export enum Language {
   Nederlands = "Nederlands",
   Engels = "Engels",
@@ -109,6 +114,7 @@ export class EditBookComponent implements OnInit {
   errorMessage = "";
 
   copySummary = { total: 0, available: 0 };
+  copies: CopyView[] = [];
   isAddingCopy = false;
   isRemovingCopy = false;
   copyMessage = "";
@@ -126,7 +132,7 @@ export class EditBookComponent implements OnInit {
     if (idParam) {
       this.bookId = Number(idParam);
       this.loadBook();
-      this.loadCopySummary();
+      this.loadCopyData();
     }
   }
 
@@ -152,13 +158,26 @@ export class EditBookComponent implements OnInit {
     }
   }
 
+  async loadCopyData() {
+    await Promise.all([this.loadCopySummary(), this.loadCopies()]);
+  }
+
+  async loadCopies() {
+    try {
+      const copies = await this.loanService.getCopiesForBook(this.bookId);
+      this.copies = [...copies].sort((a, b) => a.id - b.id);
+    } catch {
+      this.copies = [];
+    }
+  }
+
   async addCopy() {
     this.isAddingCopy = true;
     this.copyMessage = "";
     this.copyError = "";
     try {
       await this.loanService.addCopy(this.bookId);
-      await this.loadCopySummary();
+      await this.loadCopyData();
       this.copyMessage = "Exemplaar toegevoegd.";
     } catch {
       this.copyError = "Toevoegen mislukt.";
@@ -177,7 +196,7 @@ export class EditBookComponent implements OnInit {
     this.copyError = "";
     try {
       await this.loanService.removeAvailableCopy(this.bookId);
-      await this.loadCopySummary();
+      await this.loadCopyData();
       this.copyMessage = "Exemplaar verwijderd.";
     } catch (err: any) {
       this.copyError = err?.message || "Verwijderen mislukt.";
@@ -239,6 +258,13 @@ export class EditBookComponent implements OnInit {
 
   isSubgenreSelected(subgenre: string): boolean {
     return this.selectedSubgenres.has(subgenre);
+  }
+
+  getCopyStatusLabel(status: CopyView["status"]): string {
+    if (status === "AVAILABLE") return "Beschikbaar";
+    if (status === "LOANED") return "Uitgeleend";
+    if (status === "DAMAGED") return "Beschadigd";
+    return "Verloren";
   }
 
   get hasKnownLanguage(): boolean {

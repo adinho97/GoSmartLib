@@ -21,6 +21,11 @@ export interface ReturnLoanRequest {
   lost: boolean;
 }
 
+export interface BookCopyInfo {
+  id: number;
+  status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST";
+}
+
 @Injectable({ providedIn: "root" })
 export class LoanService {
   private api = "/api/uitleningen";
@@ -97,6 +102,15 @@ export class LoanService {
       return { total: 0, available: 0 };
     }
   }
+
+  async getCopiesForBook(bookId: number): Promise<BookCopyInfo[]> {
+    const res = await axios.get(
+      `${this.copyApi}/boek/${bookId}`,
+      this.headers(),
+    );
+    return (res.data || []) as BookCopyInfo[];
+  }
+
   async addCopy(bookId: number): Promise<void> {
     await axios.post(`${this.copyApi}/boek/${bookId}`, {}, this.headers());
   }

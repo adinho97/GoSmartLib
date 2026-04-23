@@ -41,6 +41,28 @@
       @if (copyError) {
         <p class="copy-error">{{ copyError }}</p>
       }
+
+      @if (copies.length > 0) {
+        <div class="copy-status-list">
+          <h4>Exemplaren en status</h4>
+          <ul>
+            @for (copy of copies; track copy.id) {
+              <li>
+                <span class="copy-id">Exemplaar #{{ copy.id }}</span>
+                <span
+                  class="copy-status-badge"
+                  [class.available]="copy.status === 'AVAILABLE'"
+                  [class.loaned]="copy.status === 'LOANED'"
+                  [class.damaged]="copy.status === 'DAMAGED'"
+                  [class.lost]="copy.status === 'LOST'"
+                >
+                  {{ getCopyStatusLabel(copy.status) }}
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
     </div>
 
     @if (isLoading) {
