@@ -19,7 +19,7 @@ public class BookCopy {
     private CopyStatus status = CopyStatus.AVAILABLE;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = true)
+    @Column(name = "copy_condition", nullable = true)
     private CopyCondition condition = CopyCondition.GOOD;
 
     public enum CopyStatus {
