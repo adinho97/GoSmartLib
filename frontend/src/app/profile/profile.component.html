@@ -127,8 +127,9 @@
                     class="save-btn"
                     type="button"
                     (click)="saveDashboardSettings()"
+                    [disabled]="isSavingSettings"
                   >
-                    Opslaan
+                    {{ isSavingSettings ? "Bezig..." : "Opslaan" }}
                   </button>
                 </div>
               </div>
@@ -444,7 +445,7 @@
                           type="button"
                           class="wishlist-page-btn"
                           [class.active]="page === currentReadingHistoryPage"
-                          (click)="goToReadingHistoryPage(page)"
+                          (click)="page !== '...' && goToReadingHistoryPage($any(page))"
                         >
                           {{ page }}
                         </button>

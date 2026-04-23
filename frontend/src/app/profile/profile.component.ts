@@ -156,6 +156,7 @@ export class ProfileComponent {
   }
 
   settingsOpen = false;
+  isSavingSettings = false;
 
   levelInfo: LevelInfo | null = null;
 
@@ -441,6 +442,40 @@ export class ProfileComponent {
     this.currentReadingHistoryPage = page;
   }
 
+  goToPreviousReadingHistoryPage() {
+    if (this.currentReadingHistoryPage > 1) {
+      this.currentReadingHistoryPage--;
+    }
+  }
+
+  goToNextReadingHistoryPage() {
+    if (this.currentReadingHistoryPage < this.totalReadingHistoryPages) {
+      this.currentReadingHistoryPage++;
+    }
+  }
+
+  get visibleReadingHistoryPages(): (number | string)[] {
+    const total = this.totalReadingHistoryPages;
+    const current = this.currentReadingHistoryPage;
+    const pages: (number | string)[] = [];
+
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (current > 4) pages.push("...");
+
+      const start = Math.max(2, current - 1);
+      const end = Math.min(total - 1, current + 1);
+
+      for (let i = start; i <= end; i++) pages.push(i);
+
+      if (current < total - 3) pages.push("...");
+      pages.push(total);
+    }
+    return pages;
+  }
+
   async removeFromWishlist(event: MouseEvent | null, bookId: number) {
     if (event) {
       event.stopPropagation();
@@ -587,29 +622,38 @@ export class ProfileComponent {
   }
 
   async saveDashboardSettings() {
+    this.isSavingSettings = true;
     const currentPrefs = this.userPreferencesService.getSnapshotForLegacyUse();
-    const settingsToSave: {
-      prop: string;
-      key: PreferenceKey;
-    }[] = [
-      { prop: "showWishlist", key: "dashboard_showWishlist" },
-      { prop: "showFavorites", key: "dashboard_showFavorites" },
-      { prop: "showReadingHistory", key: "dashboard_showReadingHistory" },
-      { prop: "showBorrowed", key: "dashboard_showBorrowed" },
-      { prop: "showHighlighted", key: "dashboard_showHighlighted" },
-      { prop: "showDeadline", key: "dashboard_showDeadline" },
-    ];
+    
+    // Snapshot the current UI state to prevent the reactive preferencesSub 
+    // from overwriting pending changes while we iterate through them.
+    const settingsSnapshot = { ...this.dashboardSettings };
 
-    for (const item of settingsToSave) {
-      const newValue = this.dashboardSettings[item.prop];
-      const oldValue = currentPrefs[item.key];
+    try {
+      const settingsToSave: {
+        prop: string;
+        key: PreferenceKey;
+      }[] = [
+        { prop: "showWishlist", key: "dashboard_showWishlist" },
+        { prop: "showFavorites", key: "dashboard_showFavorites" },
+        { prop: "showReadingHistory", key: "dashboard_showReadingHistory" },
+        { prop: "showBorrowed", key: "dashboard_showBorrowed" },
+        { prop: "showHighlighted", key: "dashboard_showHighlighted" },
+        { prop: "showDeadline", key: "dashboard_showDeadline" },
+      ];
 
-      // Only save if the value has actually changed to minimize network calls
-      if (newValue !== oldValue) {
-        await this.userPreferencesService.savePreference(item.key, newValue);
+      for (const item of settingsToSave) {
+        const newValue = settingsSnapshot[item.prop];
+        const oldValue = currentPrefs[item.key];
+
+        if (newValue !== oldValue) {
+          await this.userPreferencesService.savePreference(item.key, newValue);
+        }
       }
+    } finally {
+      this.isSavingSettings = false;
+      this.settingsOpen = false;
     }
-    this.settingsOpen = false;
   }
 
   @HostListener("document:click", ["$event"])
