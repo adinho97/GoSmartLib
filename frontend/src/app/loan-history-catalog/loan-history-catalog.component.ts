@@ -19,6 +19,8 @@ interface BookStat {
   availableCopies: number;
 }
 
+type PaginationItem = number | "...";
+
 @Component({
   selector: "app-loan-history-catalog",
   templateUrl: "./loan-history-catalog.component.html",
@@ -57,7 +59,7 @@ export class LoanHistoryCatalogComponent implements OnInit {
   switchTab(tab: Tab) {
     this.currentTab = tab;
     this.resetSearches();
-    
+
     // Load books when switching to books tab
     if (tab === "books" && this.allBooks.length === 0) {
       this.loadAllBooks();
@@ -95,9 +97,10 @@ export class LoanHistoryCatalogComponent implements OnInit {
   onStudentSearchInput() {
     const query = this.studentSearch.trim().toLowerCase();
     this.filteredStudents = this.allStudents.filter((s) =>
-      query === '' ? true : 
-      s.displayName.toLowerCase().includes(query) ||
-      s.sub.toLowerCase().includes(query)
+      query === ""
+        ? true
+        : s.displayName.toLowerCase().includes(query) ||
+          s.sub.toLowerCase().includes(query),
     );
   }
 
@@ -132,8 +135,6 @@ export class LoanHistoryCatalogComponent implements OnInit {
     }
   }
 
-
-
   get totalHistoryPages(): number {
     return Math.max(
       1,
@@ -143,6 +144,13 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   get historyPageNumbers(): number[] {
     return Array.from({ length: this.totalHistoryPages }, (_, i) => i + 1);
+  }
+
+  get visibleHistoryPages(): PaginationItem[] {
+    return this.buildVisiblePages(
+      this.totalHistoryPages,
+      this.currentHistoryPage,
+    );
   }
 
   get pagedStudentHistory(): Loan[] {
@@ -156,15 +164,27 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   private async getDisplayNameForSub(sub: string): Promise<string> {
     try {
-      const response = await axios.get(`/api/users/${encodeURIComponent(sub)}/profile`);
+      const response = await axios.get(
+        `/api/users/${encodeURIComponent(sub)}/profile`,
+      );
       const userInfo = response.data as any;
-      
+
       // Try multiple field combinations for maximum compatibility
-      const fullname = userInfo.fullname || 
-        `${userInfo.name || ''} ${userInfo.surname || ''}`.trim();
-      
-      return (fullname || userInfo.name || userInfo.givenName || userInfo.given_name || 
-              userInfo.familyName || userInfo.sub || '').trim() || sub;
+      const fullname =
+        userInfo.fullname ||
+        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim();
+
+      return (
+        (
+          fullname ||
+          userInfo.name ||
+          userInfo.givenName ||
+          userInfo.given_name ||
+          userInfo.familyName ||
+          userInfo.sub ||
+          ""
+        ).trim() || sub
+      );
     } catch {
       // Gracefully fallback to sub if API fails
       return sub;
@@ -172,7 +192,55 @@ export class LoanHistoryCatalogComponent implements OnInit {
   }
 
   goToHistoryPage(page: number) {
-    this.currentHistoryPage = page;
+    this.currentHistoryPage = Math.min(
+      this.totalHistoryPages,
+      Math.max(1, page),
+    );
+  }
+
+  goToPreviousHistoryPage() {
+    this.goToHistoryPage(this.currentHistoryPage - 1);
+  }
+
+  goToNextHistoryPage() {
+    this.goToHistoryPage(this.currentHistoryPage + 1);
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   // Books tab methods
@@ -193,7 +261,9 @@ export class LoanHistoryCatalogComponent implements OnInit {
   }
 
   get maxLoanCount(): number {
-    return this.allBooks.length > 0 ? Math.max(...this.allBooks.map((b) => b.loanCount)) : 1;
+    return this.allBooks.length > 0
+      ? Math.max(...this.allBooks.map((b) => b.loanCount))
+      : 1;
   }
 
   getBarWidth(loanCount: number): number {
@@ -223,7 +293,10 @@ export class LoanHistoryCatalogComponent implements OnInit {
   }
 
   get totalBooksPages(): number {
-    return Math.max(1, Math.ceil(this.filteredBooks.length / this.booksPageSize));
+    return Math.max(
+      1,
+      Math.ceil(this.filteredBooks.length / this.booksPageSize),
+    );
   }
 
   get booksPageNumbers(): number[] {

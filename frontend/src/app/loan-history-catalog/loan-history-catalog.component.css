@@ -1,8 +1,11 @@
 .history-catalog-page {
   max-width: 1000px;
+  width: min(100%, 1000px);
   margin: 2rem auto;
   padding: 0 1rem 2rem;
   font-family: Arial, sans-serif;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .page-header {
@@ -194,6 +197,8 @@
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .result-header {
@@ -233,6 +238,7 @@
   border: 1px solid #f0dde5;
   border-radius: 8px;
   transition: all 0.2s;
+  min-width: 0;
 }
 
 .history-item:hover {
@@ -283,6 +289,8 @@
   justify-content: center;
   gap: 0.4rem;
   margin-top: 1.5rem;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .page-btn {
@@ -296,6 +304,27 @@
   cursor: pointer;
   font-family: Arial, sans-serif;
   transition: all 0.2s;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.page-nav-btn {
+  min-width: 36px;
+}
+
+.page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.page-ellipsis {
+  min-width: 20px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-weight: 700;
 }
 
 .page-btn:hover {
@@ -470,4 +499,6 @@
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  max-width: 100%;
 }

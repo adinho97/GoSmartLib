@@ -109,16 +109,52 @@
 
               @if (totalHistoryPages > 1) {
                 <div class="history-pagination">
-                  @for (page of historyPageNumbers; track page) {
-                    <button
-                      type="button"
-                      class="page-btn"
-                      [class.active]="page === currentHistoryPage"
-                      (click)="goToHistoryPage(page)"
-                    >
-                      {{ page }}
-                    </button>
+                  <button
+                    type="button"
+                    class="page-btn page-nav-btn"
+                    [disabled]="currentHistoryPage === 1"
+                    (click)="goToHistoryPage(1)"
+                  >
+                    &lt;&lt;
+                  </button>
+                  <button
+                    type="button"
+                    class="page-btn page-nav-btn"
+                    [disabled]="currentHistoryPage === 1"
+                    (click)="goToPreviousHistoryPage()"
+                  >
+                    &lt;
+                  </button>
+                  @for (page of visibleHistoryPages; track $index) {
+                    @if (page === "...") {
+                      <span class="page-ellipsis">...</span>
+                    } @else {
+                      <button
+                        type="button"
+                        class="page-btn"
+                        [class.active]="page === currentHistoryPage"
+                        (click)="goToHistoryPage(page)"
+                      >
+                        {{ page }}
+                      </button>
+                    }
                   }
+                  <button
+                    type="button"
+                    class="page-btn page-nav-btn"
+                    [disabled]="currentHistoryPage === totalHistoryPages"
+                    (click)="goToNextHistoryPage()"
+                  >
+                    &gt;
+                  </button>
+                  <button
+                    type="button"
+                    class="page-btn page-nav-btn"
+                    [disabled]="currentHistoryPage === totalHistoryPages"
+                    (click)="goToHistoryPage(totalHistoryPages)"
+                  >
+                    &gt;&gt;
+                  </button>
                 </div>
               }
             </div>
