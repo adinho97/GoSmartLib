@@ -1,6 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 import { BookService } from "../services/book.service";
-import { LoanService, Loan } from "../services/loan.service";
+import {
+  LoanService,
+  Loan,
+  ReturnCondition,
+  ReturnLoanRequest,
+} from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
 import { ExperienceService } from "../services/experience.service";
 import axios from "axios";
@@ -65,6 +70,11 @@ export class LoanPageComponent implements OnInit {
 
   editingLoanId: number | null = null;
   tempDueDate: string = "";
+  returnDialogOpen = false;
+  returnDialogLoan: Loan | null = null;
+  returnCondition: ReturnCondition = "GOOD";
+  returnLostBook = false;
+  isReturningLoan = false;
 
   readonly role = localStorage.getItem("role") || "";
   private readonly currentUserSub =
@@ -305,17 +315,69 @@ export class LoanPageComponent implements OnInit {
     }
   }
 
-  async returnLoan(loan: Loan, event?: MouseEvent) {
+  openReturnDialog(loan: Loan, event?: MouseEvent) {
     event?.stopPropagation();
     event?.preventDefault();
+    this.returnDialogLoan = loan;
+    this.returnCondition = "GOOD";
+    this.returnLostBook = false;
+    this.errorMessage = "";
+    this.returnDialogOpen = true;
+  }
+
+  closeReturnDialog() {
+    this.returnDialogOpen = false;
+    this.returnDialogLoan = null;
+    this.returnCondition = "GOOD";
+    this.returnLostBook = false;
+    this.isReturningLoan = false;
+  }
+
+  get returnConditionLabel(): string {
+    if (this.returnLostBook) {
+      return "verloren";
+    }
+
+    if (this.returnCondition === "MODERATE") {
+      return "matig";
+    }
+
+    if (this.returnCondition === "BAD") {
+      return "slecht";
+    }
+
+    return "goed";
+  }
+
+  async confirmReturnLoan() {
+    if (!this.returnDialogLoan || this.isReturningLoan) {
+      return;
+    }
+
+    const request: ReturnLoanRequest = {
+      condition: this.returnCondition,
+      lost: this.returnLostBook,
+    };
+
+    this.isReturningLoan = true;
     try {
-      await this.loanService.returnLoan(loan.id);
+      const loan = this.returnDialogLoan;
+      await this.loanService.returnLoan(loan.id, request);
       this.activeLoans = this.activeLoans.filter((l) => l.id !== loan.id);
-      this.successMessage = `Boek "${loan.bookTitel}" teruggebracht.`;
+      this.successMessage = request.lost
+        ? `Boek "${loan.bookTitel}" als verloren gemeld.`
+        : request.condition === "MODERATE"
+          ? `Boek "${loan.bookTitel}" teruggebracht als matig.`
+          : request.condition === "BAD"
+            ? `Boek "${loan.bookTitel}" teruggebracht als slecht.`
+            : `Boek "${loan.bookTitel}" teruggebracht.`;
+      this.closeReturnDialog();
       await this.loadLoanHistoryForUser();
       await this.loadBooks();
     } catch {
       this.errorMessage = "Terugbrengen mislukt.";
+    } finally {
+      this.isReturningLoan = false;
     }
   }
 

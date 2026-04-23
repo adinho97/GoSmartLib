@@ -14,6 +14,13 @@ export interface Loan {
   returnedAt: string | null;
 }
 
+export type ReturnCondition = "GOOD" | "MODERATE" | "BAD";
+
+export interface ReturnLoanRequest {
+  condition: ReturnCondition;
+  lost: boolean;
+}
+
 @Injectable({ providedIn: "root" })
 export class LoanService {
   private api = "/api/uitleningen";
@@ -43,14 +50,20 @@ export class LoanService {
     return res.data;
   }
 
-  async returnLoan(loanId: number): Promise<Loan> {
+  async returnLoan(
+    loanId: number,
+    request: ReturnLoanRequest = { condition: "GOOD", lost: false },
+  ): Promise<Loan> {
     const url = `${this.api}/${loanId}/teruggeven`;
-    const res = await axios.put(url, {}, this.headers());
+    const res = await axios.put(url, request, this.headers());
     return res.data;
   }
 
   async getActiveLoans(userSub: string): Promise<Loan[]> {
-    const res = await axios.get(`${this.api}/gebruiker/${userSub}`, this.headers());
+    const res = await axios.get(
+      `${this.api}/gebruiker/${userSub}`,
+      this.headers(),
+    );
     return res.data;
   }
 
@@ -111,13 +124,13 @@ export class LoanService {
   }
 
   async updateLoanDueDate(loanId: number, newDueDate: string): Promise<void> {
-  const token = localStorage.getItem('smartschoolToken');
-  await axios.patch(`/api/uitleningen/${loanId}/due-date`, 
-    { dueDate: newDueDate }, 
-    {
-      headers: { Authorization: `Bearer ${token}` }
-    }
-  );
-}
-
+    const token = localStorage.getItem("smartschoolToken");
+    await axios.patch(
+      `/api/uitleningen/${loanId}/due-date`,
+      { dueDate: newDueDate },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+  }
 }
