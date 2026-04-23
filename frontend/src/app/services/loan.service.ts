@@ -24,6 +24,7 @@ export interface ReturnLoanRequest {
 export interface BookCopyInfo {
   id: number;
   status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST";
+  condition: "GOOD" | "MODERATE" | "BAD";
 }
 
 @Injectable({ providedIn: "root" })

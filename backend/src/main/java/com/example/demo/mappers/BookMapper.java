@@ -45,7 +45,8 @@ public class BookMapper {
         if (book.getCopies() != null) {
             dto.setTotalCopies(book.getCopies().size());
             long available = book.getCopies().stream()
-                    .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE)
+                .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                    || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
                     .count();
             dto.setAvailableCopies((int) available);
         }

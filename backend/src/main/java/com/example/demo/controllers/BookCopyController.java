@@ -39,7 +39,10 @@ public class BookCopyController {
     @GetMapping("/boek/{bookId}/summary")
     public ResponseEntity<Map<String, Long>> getSummary(@PathVariable Long bookId) {
         long total = copyRepo.countByBook_Id(bookId);
-        long available = copyRepo.countByBook_IdAndStatus(bookId, BookCopy.CopyStatus.AVAILABLE);
+        long available = copyRepo.findByBook_Id(bookId).stream()
+            .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+            .count();
         return ResponseEntity.ok(Map.of("total", total, "available", available));
     }
 
@@ -50,6 +53,7 @@ public class BookCopyController {
                     CopyDto dto = new CopyDto();
                     dto.setId(c.getId());
                     dto.setStatus(c.getStatus());
+                    dto.setCondition(c.getCondition());
                     return dto;
                 }).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
@@ -69,11 +73,13 @@ public class BookCopyController {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
+        copy.setCondition(BookCopy.CopyCondition.GOOD);
         BookCopy saved = copyRepo.save(copy);
 
         CopyDto dto = new CopyDto();
         dto.setId(saved.getId());
         dto.setStatus(saved.getStatus());
+        dto.setCondition(saved.getCondition());
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
     @Transactional

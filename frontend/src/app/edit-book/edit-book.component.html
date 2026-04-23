@@ -49,15 +49,20 @@
             @for (copy of copies; track copy.id) {
               <li>
                 <span class="copy-id">Exemplaar #{{ copy.id }}</span>
-                <span
-                  class="copy-status-badge"
-                  [class.available]="copy.status === 'AVAILABLE'"
-                  [class.loaned]="copy.status === 'LOANED'"
-                  [class.damaged]="copy.status === 'DAMAGED'"
-                  [class.lost]="copy.status === 'LOST'"
-                >
-                  {{ getCopyStatusLabel(copy.status) }}
-                </span>
+                <div class="copy-status-meta">
+                  <span
+                    class="copy-status-badge"
+                    [class.available]="copy.status === 'AVAILABLE'"
+                    [class.loaned]="copy.status === 'LOANED'"
+                    [class.damaged]="copy.status === 'DAMAGED'"
+                    [class.lost]="copy.status === 'LOST'"
+                  >
+                    {{ getCopyStatusLabel(copy.status) }}
+                  </span>
+                  <span class="copy-condition-text">
+                    Staat: {{ getCopyConditionLabel(copy.condition) }}
+                  </span>
+                </div>
               </li>
             }
           </ul>

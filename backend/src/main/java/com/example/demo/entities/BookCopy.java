@@ -18,8 +18,16 @@ public class BookCopy {
     @Column(nullable = false)
     private CopyStatus status = CopyStatus.AVAILABLE;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private CopyCondition condition = CopyCondition.GOOD;
+
     public enum CopyStatus {
         AVAILABLE, LOANED, DAMAGED, LOST
+    }
+
+    public enum CopyCondition {
+        GOOD, MODERATE, BAD
     }
 
     public Long getId() { return id; }
@@ -28,4 +36,6 @@ public class BookCopy {
     public void setBook(Book book) { this.book = book; }
     public CopyStatus getStatus() { return status; }
     public void setStatus(CopyStatus status) { this.status = status; }
+    public CopyCondition getCondition() { return condition == null ? CopyCondition.GOOD : condition; }
+    public void setCondition(CopyCondition condition) { this.condition = condition; }
 }

@@ -49,17 +49,24 @@ public class LoanService {
             throw new IllegalArgumentException("Due date is required");
         }
 
-        List<BookCopy> availableCopies = copyRepo.findByBook_Id(request.getBookId())
+        List<BookCopy> lendableCopies = copyRepo.findByBook_Id(request.getBookId())
                 .stream()
-                .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE)
+            .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+            .sorted((a, b) -> {
+                // Prefer a copy in good state before lending out a damaged one.
+                int rankA = a.getStatus() == BookCopy.CopyStatus.AVAILABLE ? 0 : 1;
+                int rankB = b.getStatus() == BookCopy.CopyStatus.AVAILABLE ? 0 : 1;
+                return Integer.compare(rankA, rankB);
+            })
                 .collect(Collectors.toList());
 
-        if (availableCopies.isEmpty()) {
+        if (lendableCopies.isEmpty()) {
             logger.warn("No available copies for bookId={}", request.getBookId());
             throw new IllegalStateException("Geen beschikbare exemplaren");
         }
 
-        BookCopy copy = availableCopies.get(0);
+        BookCopy copy = lendableCopies.get(0);
         copy.setStatus(BookCopy.CopyStatus.LOANED);
         copyRepo.save(copy);
         logger.info("Marked copy {} as LOANED", copy.getId());
@@ -92,23 +99,28 @@ public class LoanService {
 
         LocalDate returnedAt = LocalDate.now();
         BookCopy.CopyStatus targetStatus = resolveReturnedStatus(request);
+        BookCopy.CopyCondition targetCondition = resolveReturnedCondition(request);
 
         // Count available copies BEFORE marking this one available aka a kind of
         // snapshot to check if the book just became available after this return
-        long availableCopiesBefore = copyRepo.countByBook_IdAndStatus(
-                loan.getCopy().getBook().getId(),
-                BookCopy.CopyStatus.AVAILABLE);
+        long availableCopiesBefore = copyRepo.findByBook_Id(loan.getCopy().getBook().getId()).stream()
+            .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+            .count();
 
         loan.setReturnedAt(returnedAt);
         loan.getCopy().setStatus(targetStatus);
+        loan.getCopy().setCondition(targetCondition);
         copyRepo.save(loan.getCopy());
 
         // Check if book just became available (was 0, now 1+)
-        if (targetStatus == BookCopy.CopyStatus.AVAILABLE && availableCopiesBefore == 0) {
+        if ((targetStatus == BookCopy.CopyStatus.AVAILABLE
+            || targetStatus == BookCopy.CopyStatus.DAMAGED)
+            && availableCopiesBefore == 0) {
             bookAvailabilityNotificationService.notifyWishlistersThatBookIsAvailable(loan.getCopy().getBook());
         }
 
-        logger.info("Returned loan id={} with copy status {}", loanId, targetStatus);
+        logger.info("Returned loan id={} with copy status {} and condition {}", loanId, targetStatus, targetCondition);
         return toDto(loanRepo.save(loan));
     }
 
@@ -127,6 +139,22 @@ public class LoanService {
         }
 
         return BookCopy.CopyStatus.AVAILABLE;
+    }
+
+    private BookCopy.CopyCondition resolveReturnedCondition(ReturnLoanRequest request) {
+        if (request == null || request.getCondition() == null) {
+            return BookCopy.CopyCondition.GOOD;
+        }
+
+        if (request.getCondition() == ReturnLoanRequest.ReturnCondition.MODERATE) {
+            return BookCopy.CopyCondition.MODERATE;
+        }
+
+        if (request.getCondition() == ReturnLoanRequest.ReturnCondition.BAD) {
+            return BookCopy.CopyCondition.BAD;
+        }
+
+        return BookCopy.CopyCondition.GOOD;
     }
 
     public List<LoanDto> getActiveLoansForUser(String userSub) {
