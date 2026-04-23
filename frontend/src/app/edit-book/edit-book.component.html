@@ -15,14 +15,6 @@
       <div class="copy-actions">
         <button
           type="button"
-          class="copy-btn remove"
-          (click)="removeCopy()"
-          [disabled]="isRemovingCopy || copySummary.total === 0"
-        >
-          − Verwijderen
-        </button>
-        <button
-          type="button"
           class="copy-btn add"
           (click)="addCopy()"
           [disabled]="isAddingCopy"
@@ -44,24 +36,29 @@
 
       @if (copies.length > 0) {
         <div class="copy-status-list">
-          <h4>Exemplaren en status</h4>
+          <h4>Exemplaren en staat</h4>
           <ul>
             @for (copy of copies; track copy.id) {
               <li>
-                <span class="copy-id">Exemplaar #{{ copy.id }}</span>
-                <div class="copy-status-meta">
-                  <span
-                    class="copy-status-badge"
-                    [class.available]="copy.status === 'AVAILABLE'"
-                    [class.loaned]="copy.status === 'LOANED'"
-                    [class.damaged]="copy.status === 'DAMAGED'"
-                    [class.lost]="copy.status === 'LOST'"
-                  >
-                    {{ getCopyStatusLabel(copy.status) }}
-                  </span>
+                <div class="copy-row-main">
+                  <span class="copy-id">Exemplaar #{{ copy.id }}</span>
                   <span class="copy-condition-text">
                     Staat: {{ getCopyConditionLabel(copy.condition) }}
                   </span>
+                  @if (copy.status === "LOANED") {
+                    <span class="copy-status-note loaned">Uitgeleend</span>
+                  } @else if (copy.status === "LOST") {
+                    <span class="copy-status-note lost">Verloren</span>
+                  }
+                  <button
+                    type="button"
+                    class="copy-delete-btn"
+                    (click)="removeCopy(copy.id)"
+                    [disabled]="copy.status === 'LOANED'"
+                    title="Verwijder dit exemplaar"
+                  >
+                    Verwijderen
+                  </button>
                 </div>
               </li>
             }
