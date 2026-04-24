@@ -400,15 +400,19 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .return-modal {
   width: min(480px, 100%);
+  max-height: calc(100vh - 40px);
   background: #fff;
   border-radius: 14px;
   border: 1px solid #d8dce1;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .return-modal-header {
@@ -451,6 +455,7 @@
 
 .return-modal-content {
   padding: 18px;
+  overflow-y: auto;
 }
 
 .return-modal-intro,
@@ -546,6 +551,10 @@
   width: min(520px, 100%);
 }
 
+.copy-selection-modal .return-modal-content {
+  max-height: min(60vh, 420px);
+}
+
 .copy-selection-list {
   display: grid;
   gap: 10px;
@@ -608,6 +617,52 @@
   outline: none;
   border-color: #c8859d;
   box-shadow: 0 4px 12px rgba(135, 31, 66, 0.08);
+}
+
+.book-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.book-page-numbers {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.book-page-btn,
+.book-page-nav {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #d4c1c9;
+  background: #fff;
+  color: #871f42;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.book-page-btn:hover:not(:disabled),
+.book-page-nav:hover:not(:disabled) {
+  background: #fff0f4;
+  border-color: #871f42;
+}
+
+.book-page-btn.active {
+  background: #871f42;
+  color: #fff;
+  border-color: #871f42;
+}
+
+.book-page-btn:disabled,
+.book-page-nav:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* Boekenlijst */

@@ -53,6 +53,9 @@ export class LoanPageComponent implements OnInit {
   // Stap 2
   books: BookOption[] = [];
   filteredBooks: BookOption[] = [];
+  bookPage = 1;
+  readonly bookPageSize = 5;
+  bookTotalCount = 0;
   searchQuery = "";
   selectedBooks: BookOption[] = [];
   activeLoans: Loan[] = [];
@@ -233,8 +236,13 @@ export class LoanPageComponent implements OnInit {
     this.isLoading = true;
     try {
       const schoolId = this.schoolService.getSelectedSchoolId() ?? undefined;
-      const data = await this.bookService.getBooks(schoolId);
-      this.books = data
+      const pageData = await this.bookService.getBooksPage(
+        this.bookPage - 1,
+        this.bookPageSize,
+        schoolId,
+      );
+      this.bookTotalCount = pageData.total;
+      this.books = pageData.items
         .filter(
           (b: any) =>
             (b.genre || "").toLowerCase() !== "didactiek" ||
@@ -254,6 +262,31 @@ export class LoanPageComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  get totalBookPages(): number {
+    return Math.max(1, Math.ceil(this.bookTotalCount / this.bookPageSize));
+  }
+
+  get bookPageNumbers(): number[] {
+    return Array.from({ length: this.totalBookPages }, (_, i) => i + 1);
+  }
+
+  async goToBookPage(page: number) {
+    if (page < 1 || page > this.totalBookPages || page === this.bookPage) {
+      return;
+    }
+    this.bookPage = page;
+    this.searchQuery = "";
+    await this.loadBooks();
+  }
+
+  async goToPreviousBookPage() {
+    await this.goToBookPage(this.bookPage - 1);
+  }
+
+  async goToNextBookPage() {
+    await this.goToBookPage(this.bookPage + 1);
   }
 
   onSearch() {
@@ -316,6 +349,9 @@ export class LoanPageComponent implements OnInit {
       this.step = "leerling";
       this.selectedLeerling = null;
       this.leerlingSearch = "";
+      this.bookPage = 1;
+      this.bookTotalCount = 0;
+      this.searchQuery = "";
       this.filteredLeerlingen = [...this.leerlingen];
       this.dueDate = this.defaultDueDate;
       await this.loadBooks();
@@ -401,14 +437,38 @@ export class LoanPageComponent implements OnInit {
     return "Beschikbaar";
   }
 
-  openReturnDialog(loan: Loan, event?: MouseEvent) {
+  async openReturnDialog(loan: Loan, event?: MouseEvent) {
     event?.stopPropagation();
     event?.preventDefault();
     this.returnDialogLoan = loan;
-    this.returnCondition = "GOOD";
     this.returnLostBook = false;
     this.errorMessage = "";
+    this.returnCondition = await this.resolveReturnConditionForLoan(loan);
     this.returnDialogOpen = true;
+  }
+
+  private async resolveReturnConditionForLoan(
+    loan: Loan,
+  ): Promise<ReturnCondition> {
+    try {
+      const copies = await this.loanService.getCopiesForBook(loan.bookId);
+      const copy = copies.find((item) => item.id === loan.copyId);
+      if (!copy) {
+        return "GOOD";
+      }
+
+      if (copy.condition === "MODERATE") {
+        return "MODERATE";
+      }
+
+      if (copy.condition === "BAD") {
+        return "BAD";
+      }
+
+      return "GOOD";
+    } catch {
+      return "GOOD";
+    }
   }
 
   closeReturnDialog() {

@@ -51,6 +51,11 @@ export interface LestipResponse {
   magVerwijderen: boolean;
 }
 
+export interface PagedBooksResponse {
+  items: Book[];
+  total: number;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -168,6 +173,26 @@ export class BookService {
 
     const res = await axios.get(this.withSchoolId(this.apiUrl, schoolId));
     this.bookCache.set(cacheKey, res.data);
+    return res.data;
+  }
+
+  async getBooksPage(
+    page: number,
+    size: number,
+    schoolId?: number,
+  ): Promise<PagedBooksResponse> {
+    const params = new URLSearchParams({
+      page: String(page),
+      size: String(size),
+    });
+    const resolvedSchoolId = this.resolveSchoolId(schoolId);
+    if (resolvedSchoolId) {
+      params.set("schoolId", String(resolvedSchoolId));
+    }
+
+    const res = await axios.get<PagedBooksResponse>(
+      `${this.apiUrl}/paged?${params.toString()}`,
+    );
     return res.data;
   }
 

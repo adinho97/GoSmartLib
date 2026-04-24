@@ -344,6 +344,40 @@
         />
       </div>
 
+      @if (totalBookPages > 1) {
+        <div class="book-pagination">
+          <button
+            type="button"
+            class="book-page-nav"
+            (click)="goToPreviousBookPage()"
+            [disabled]="bookPage === 1 || isLoading"
+          >
+            Vorige
+          </button>
+          <div class="book-page-numbers">
+            @for (page of bookPageNumbers; track page) {
+              <button
+                type="button"
+                class="book-page-btn"
+                [class.active]="page === bookPage"
+                (click)="goToBookPage(page)"
+                [disabled]="isLoading"
+              >
+                {{ page }}
+              </button>
+            }
+          </div>
+          <button
+            type="button"
+            class="book-page-nav"
+            (click)="goToNextBookPage()"
+            [disabled]="bookPage === totalBookPages || isLoading"
+          >
+            Volgende
+          </button>
+        </div>
+      }
+
       <!-- Boeken lijst -->
       @if (isLoading) {
         <p class="info-msg">Boeken laden...</p>

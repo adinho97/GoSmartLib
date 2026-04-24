@@ -4,6 +4,7 @@ import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
 import com.example.demo.dto.CreateReviewRequest;
 import com.example.demo.dto.LestipDto;
+import com.example.demo.dto.PagedBookResponse;
 import com.example.demo.dto.ReviewDto;
 import com.example.demo.dto.UpdateLestipRequest;
 import com.example.demo.dto.UpdateReviewRequest;
@@ -26,6 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,6 +78,23 @@ public class BookController {
                 .map(BookMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+            @GetMapping("/paged")
+            public ResponseEntity<PagedBookResponse> getPaged(
+                @RequestParam(required = false) Long schoolId,
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "5") int size) {
+            int safePage = Math.max(page, 0);
+            int safeSize = Math.max(size, 1);
+            Page<Book> books = schoolId == null
+                ? repo.findAll(PageRequest.of(safePage, safeSize))
+                : repo.findAllBySchool_Id(schoolId, PageRequest.of(safePage, safeSize));
+
+            List<BookDto> items = books.stream()
+                .map(BookMapper::toDto)
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(new PagedBookResponse(items, books.getTotalElements()));
+            }
 
     @GetMapping("/stats")
     public List<BookDto> getStatsOrderedByPopularity() {
