@@ -1,4 +1,10 @@
-import { Component, OnInit } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from "@angular/core";
 import { BookService } from "../services/book.service";
 import {
   LoanService,
@@ -10,6 +16,8 @@ import {
 import { SchoolService } from "../services/school.service";
 import { ExperienceService } from "../services/experience.service";
 import axios from "axios";
+import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
+import { BarcodeService } from "../services/barcode.service";
 
 type BookOption = {
   id: number;
@@ -39,8 +47,20 @@ type Step = "leerling" | "boeken" | "bevestiging";
   styleUrls: ["./loan-page.component.css"],
   standalone: false,
 })
-export class LoanPageComponent implements OnInit {
+export class LoanPageComponent implements OnInit, OnDestroy {
   step: Step = "leerling";
+
+  // Scanning properties
+  @ViewChild("scanContainer", { static: true }) scanContainer!: ElementRef;
+  @ViewChild("cameraVideo") cameraVideo?: ElementRef<HTMLVideoElement>;
+  cameraMode = false;
+  isProcessingScan = false;
+  cameraErrorMessage = "";
+  isCameraDecoding = false;
+  private cameraControls: IScannerControls | null = null;
+  private readonly cameraCodeReader = new BrowserMultiFormatReader();
+  private cameraCooldownUntil = 0;
+  private scanSubscription: any;
 
   // Stap 1
   leerlingen: Leerling[] = [];
@@ -95,17 +115,45 @@ export class LoanPageComponent implements OnInit {
   readonly role = localStorage.getItem("role") || "";
   private readonly currentUserSub =
     localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+  private readonly CAMERA_SCAN_COOLDOWN_MS = 1200;
+  private readonly isIosSafari =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+    /Safari/.test(navigator.userAgent) &&
+    !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
 
   constructor(
     private bookService: BookService,
     private loanService: LoanService,
     private schoolService: SchoolService,
     private experienceService: ExperienceService,
+    private barcodeService: BarcodeService,
   ) {}
 
   async ngOnInit() {
+    if (this.scanContainer) {
+      this.barcodeService.setupHiddenInput(this.scanContainer.nativeElement);
+    }
+
     await Promise.all([this.loadBooks(), this.loadLeerlingen()]);
     this.dueDate = this.defaultDueDate;
+    // Setup hardware scanner listener
+    this.scanSubscription = this.barcodeService
+      .getScans()
+      .subscribe((barcode) => {
+        // Add a brief delay to ensure visual feedback, consistent with AddBarcodeComponent
+        setTimeout(() => {
+          void this.processScan(barcode);
+        }, 200);
+      });
+  }
+
+  ngOnDestroy() {
+    this.stopCameraDecoding();
+    this.barcodeService.deactivateScanMode();
+    if (this.scanSubscription) {
+      this.scanSubscription.unsubscribe();
+    }
+    this.barcodeService.cleanup();
   }
 
   private async getDisplayNameForSub(sub: string): Promise<string> {
@@ -181,6 +229,7 @@ export class LoanPageComponent implements OnInit {
     this.showHistory = false;
     this.currentHistoryPage = 1;
     this.loadActiveLoansForUser();
+    this.barcodeService.activateScanMode(); // Activate hardware scanner when moving to books step
     this.loadLoanHistoryForUser();
   }
 
@@ -248,20 +297,27 @@ export class LoanPageComponent implements OnInit {
         return;
       }
       this.bookTotalCount = pageData.total;
-      this.books = pageData.items
-        .filter(
-          (b: any) =>
-            (b.genre || "").toLowerCase() !== "didactiek" ||
-            this.role !== "leerling",
-        )
-        .map((b: any) => ({
-          id: b.id,
-          titel: b.titel,
-          auteur: b.auteur,
-          cover: b.cover || "",
-          availableCopies: b.availableCopies ?? 0,
-          totalCopies: b.totalCopies ?? 0,
-        }));
+
+      const filteredItems = pageData.items.filter(
+        (b: any) =>
+          (b.genre || "").toLowerCase() !== "didactiek" ||
+          this.role !== "leerling",
+      );
+
+      // Fetch copy summaries for each book in the paged results
+      this.books = await Promise.all(
+        filteredItems.map(async (b: any) => {
+          const summary = await this.loanService.getCopySummary(b.id);
+          return {
+            id: b.id,
+            titel: b.titel,
+            auteur: b.auteur,
+            cover: b.cover || "",
+            availableCopies: summary.available,
+            totalCopies: summary.total,
+          };
+        }),
+      );
       this.filteredBooks = [...this.books];
     } catch {
       if (requestId !== this.booksLoadRequestId) {
@@ -548,7 +604,7 @@ export class LoanPageComponent implements OnInit {
     }
   }
 
-  startEditing(loan: any) {
+  startEditing(loan: Loan) {
     this.editingLoanId = loan.id;
     this.tempDueDate = new Date(loan.dueDate).toISOString().split("T")[0];
   }
@@ -558,7 +614,7 @@ export class LoanPageComponent implements OnInit {
     this.tempDueDate = "";
   }
 
-  async saveDueDate(loan: any) {
+  async saveDueDate(loan: Loan) {
     try {
       await this.loanService.updateLoanDueDate(loan.id, this.tempDueDate);
 
@@ -571,6 +627,173 @@ export class LoanPageComponent implements OnInit {
       console.error("Error updating due date:", error);
       this.errorMessage = "Bijwerken deadline mislukt.";
       setTimeout(() => (this.errorMessage = ""), 3000);
+    }
+  }
+
+  // --- Barcode Scanning Logic ---
+  async activateCameraMode() {
+    this.barcodeService.deactivateScanMode(); // Deactivate hardware scanner when camera is active
+    this.cameraMode = true;
+    this.cameraErrorMessage = "";
+    this.errorMessage = "";
+
+    // Brief delay to allow the video element to be rendered in the DOM
+    setTimeout(async () => {
+      await this.waitForViewRender();
+      await this.startCameraDecoding(); // Start camera after view is rendered
+    }, 50);
+  }
+
+  private waitForViewRender(): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(), 0);
+    });
+  }
+
+  deactivateCameraMode() {
+    this.cameraCooldownUntil = 0; // Reset cooldown
+    this.stopCameraDecoding();
+    this.cameraMode = false;
+    this.cameraErrorMessage = "";
+  }
+
+  private async startCameraDecoding() {
+    const videoElement = this.cameraVideo?.nativeElement;
+    if (!videoElement) {
+      this.cameraErrorMessage = "Camera-element niet gevonden.";
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.cameraErrorMessage =
+        "Deze browser ondersteunt geen camera-scanning. Gebruik een recente browser (Safari/Chrome/Edge).";
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      this.cameraErrorMessage =
+        "Camera-scanning werkt alleen op HTTPS of localhost.";
+      return;
+    }
+
+    this.stopCameraDecoding(); // Stop any existing camera stream
+
+    try {
+      this.cameraControls = await this.cameraCodeReader.decodeFromVideoDevice(
+        undefined,
+        videoElement,
+        (result) => {
+          if (!result) {
+            return;
+          }
+
+          const decodedValue = result.getText()?.trim();
+          if (!decodedValue) {
+            return;
+          }
+
+          const now = Date.now();
+          if (now < this.cameraCooldownUntil) {
+            return;
+          }
+
+          this.cameraCooldownUntil = now + this.CAMERA_SCAN_COOLDOWN_MS;
+          void this.processScan(decodedValue);
+        },
+      );
+      this.isCameraDecoding = true;
+    } catch (err: any) {
+      // More detailed error handling from AddBarcodeComponent
+      let errorMessage =
+        "Kan camera niet starten. Controleer toestemming en probeer opnieuw.";
+
+      if (err?.name === "NotAllowedError") {
+        errorMessage = this.isIosSafari
+          ? "Camera-toestemming geweigerd. Open iOS Instellingen > Safari > Camera en sta toegang toe, herlaad daarna de pagina."
+          : "Camera-toestemming geweigerd. Zet deze in instellingen aan.";
+      } else if (err?.name === "NotFoundError") {
+        errorMessage = "Geen camera gevonden op dit apparaat.";
+      } else if (
+        err?.name === "TrackStartError" ||
+        err?.name === "NotReadableError"
+      ) {
+        errorMessage = "Camera wordt al door een ander programma gebruikt.";
+      } else if (err?.name === "AbortError") {
+        errorMessage =
+          "Camera-start onderbroken. Probeer opnieuw en controleer browserrechten.";
+      }
+      this.cameraErrorMessage = errorMessage;
+      console.error("Camera decoding error:", err);
+    }
+  }
+
+  private stopCameraDecoding() {
+    if (this.cameraControls) {
+      this.cameraControls.stop();
+      this.cameraControls = null;
+    }
+    const videoElement = this.cameraVideo?.nativeElement;
+    if (videoElement?.srcObject) {
+      const stream = videoElement.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      videoElement.srcObject = null;
+    }
+    this.isCameraDecoding = false;
+  }
+
+  async processScan(barcode: string) {
+    if (this.isProcessingScan) return;
+    this.isProcessingScan = true;
+    this.errorMessage = "";
+    this.successMessage = "";
+
+    try {
+      const schoolId = this.schoolService.getSelectedSchoolId() ?? undefined;
+
+      // Try finding the book by GO-number in the library first
+      let book = await this.bookService.getBookByGoNumberFromLibrary(
+        barcode,
+        schoolId,
+      );
+
+      // If not found, try searching by ISBN in the library
+      if (!book) {
+        book = await this.bookService.getBookByIsbnFromLibrary(
+          barcode,
+          schoolId,
+        );
+      }
+
+      if (book) {
+        // Fetch copy summary for the scanned book
+        const summary = await this.loanService.getCopySummary(book.id);
+
+        const bookOption: BookOption = {
+          id: book.id,
+          titel: book.titel,
+          auteur: book.auteur,
+          cover: book.cover || "",
+          availableCopies: summary.available,
+          totalCopies: summary.total,
+        };
+
+        if (bookOption.availableCopies > 0) {
+          // Automatically select the book if not already in the selection list
+          if (!this.isSelected(bookOption)) {
+            this.toggleBook(bookOption);
+          }
+          this.successMessage = `Boek "${bookOption.titel}" toegevoegd aan selectie.`;
+          setTimeout(() => (this.successMessage = ""), 3000);
+        } else {
+          this.errorMessage = "Dit boek heeft geen beschikbare exemplaren.";
+        }
+      } else {
+        this.errorMessage = "boek niet gevonden in bibliotheek";
+      }
+    } catch (err: any) {
+      this.errorMessage = "Er ging iets mis bij het zoeken naar het boek.";
+    } finally {
+      this.isProcessingScan = false;
     }
   }
 }

@@ -878,6 +878,142 @@
   cursor: not-allowed;
 }
 
+/* Barcode Scanner Styles */
+.step-card .search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-bar input {
+  flex-grow: 1;
+}
+
+.barcode-scan-btn {
+  background: #871f42;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.barcode-scan-btn:hover {
+  background: #60162f;
+}
+
+.barcode-scan-btn svg {
+  stroke: currentColor;
+}
+
+.camera-scan-section {
+  margin-top: 20px;
+  background: #f9f9f9;
+  border: 1px solid #f0dde5;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.camera-preview-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px; /* Adjust as needed */
+  aspect-ratio: 16 / 9;
+  background-color: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.camera-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scanner-laser {
+  width: 80%;
+  height: 2px;
+  background-color: red;
+  box-shadow: 0 0 10px red;
+  animation: scan-animation 2s infinite alternate;
+}
+
+@keyframes scan-animation {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(50%);
+  }
+}
+
+.camera-exit-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.camera-error-message {
+  color: #c62828;
+  font-weight: 600;
+  text-align: center;
+}
+
+.scan-loader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #5a6472;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #871f42;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .info-msg {
   color: #6b7280;
   font-style: italic;

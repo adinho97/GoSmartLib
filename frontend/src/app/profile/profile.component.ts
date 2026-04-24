@@ -310,7 +310,6 @@ export class ProfileComponent {
         title: item.titel,
         cover: item.cover || "",
         deadline: item.dueDate ? new Date(item.dueDate) : undefined,
-        eadline: item.dueDate ? new Date(item.dueDate) : undefined,
         author: item.auteur || "",
         genre: item.genre || "",
         taal: item.taal || "",
@@ -624,8 +623,8 @@ export class ProfileComponent {
   async saveDashboardSettings() {
     this.isSavingSettings = true;
     const currentPrefs = this.userPreferencesService.getSnapshotForLegacyUse();
-    
-    // Snapshot the current UI state to prevent the reactive preferencesSub 
+
+    // Snapshot the current UI state to prevent the reactive preferencesSub
     // from overwriting pending changes while we iterate through them.
     const settingsSnapshot = { ...this.dashboardSettings };
 

@@ -1,4 +1,4 @@
-<div class="loan-page">
+<div class="loan-page" #scanContainer>
   <header class="loan-header">
     <div class="header-text">
       <h1>Uitlenen</h1>
@@ -342,11 +342,46 @@
           [(ngModel)]="searchQuery"
           (input)="onSearch()"
         />
+        <button
+          type="button"
+          class="barcode-scan-btn"
+          (click)="cameraMode ? deactivateCameraMode() : activateCameraMode(); $event.stopPropagation()"
+          [title]="cameraMode ? 'Sluit camera' : 'Scan barcode'"
+          aria-label="Scan barcode"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 0 0 1 2 2v2"></path><path d="M21 17v2a2 0 0 1-2 2h-2"></path><path d="M5 21H3a2 0 0 1-2-2v-2"></path><line x1="8" y1="12" x2="16" y2="12"></line><line x1="12" y1="8" x2="12" y2="16"></line></svg>
+        </button>
       </div>
+
+      <!-- Camera scanning view -->
+      @if (cameraMode) {
+        <div class="camera-scan-section">
+          <div class="camera-preview-wrapper">
+            <video #cameraVideo class="camera-video-element"></video>
+            <div class="camera-scanner-overlay">
+              <div class="scanner-laser"></div>
+            </div>
+            <button type="button" class="camera-exit-btn" (click)="deactivateCameraMode()">×</button>
+          </div>
+          @if (cameraErrorMessage) {
+            <p class="camera-error-message">{{ cameraErrorMessage }}</p>
+          }
+          @if (isProcessingScan) {
+            <div class="scan-loader">
+              <span class="spinner"></span>
+              Zoeken in bibliotheek...
+            </div>
+          }
+        </div>
+      }
 
       <!-- Boeken lijst -->
       @if (isLoading) {
         <p class="info-msg">Boeken laden...</p>
+      } @else if (filteredBooks.length === 0 && !cameraMode) {
+        <p class="info-msg">Geen boeken gevonden.</p>
+      } @else if (filteredBooks.length === 0 && cameraMode && !isProcessingScan) {
+        <p class="info-msg">Scan een barcode om boeken te vinden.</p>
       } @else {
         <ul class="book-list">
           @for (book of filteredBooks; track book.id) {
