@@ -542,6 +542,53 @@
   cursor: not-allowed;
 }
 
+.copy-selection-modal {
+  width: min(520px, 100%);
+}
+
+.copy-selection-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.copy-selection-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #d8dce1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+}
+
+.copy-selection-item:hover {
+  border-color: #871f42;
+  background: #fff8fb;
+}
+
+.copy-selection-item input {
+  accent-color: #871f42;
+}
+
+.copy-selection-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.copy-selection-label {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.copy-selection-meta {
+  font-size: 0.84rem;
+  color: #5a6472;
+}
+
 /* Zoekbalk */
 .search-bar {
   margin-bottom: 16px;

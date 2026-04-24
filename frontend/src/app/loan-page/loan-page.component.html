@@ -274,6 +274,84 @@
         </div>
       }
 
+      @if (copySelectionOpen && copySelectionState) {
+        <div
+          class="return-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          (click)="closeCopySelectionDialog()"
+        >
+          <div
+            class="return-modal copy-selection-modal"
+            (click)="$event.stopPropagation()"
+          >
+            <header class="return-modal-header">
+              <h3>Kies een exemplaar</h3>
+              <button
+                type="button"
+                class="return-modal-close"
+                (click)="closeCopySelectionDialog()"
+                aria-label="Sluit dialoog"
+              >
+                ×
+              </button>
+            </header>
+
+            <div class="return-modal-content">
+              <p class="return-modal-intro">
+                Er zijn meerdere exemplaren beschikbaar voor
+                <strong>{{ copySelectionState.book.titel }}</strong
+                >. Kies welk exemplaar je wilt uitlenen.
+              </p>
+
+              <div class="copy-selection-list">
+                @for (
+                  copy of copySelectionState.copies;
+                  track copy.id;
+                  let copyIndex = $index
+                ) {
+                  <label class="copy-selection-item">
+                    <input
+                      type="radio"
+                      name="copySelection"
+                      [value]="copy.id"
+                      [(ngModel)]="copySelectionState.selectedCopyId"
+                    />
+                    <span class="copy-selection-main">
+                      <span class="copy-selection-label"
+                        >Exemplaar #{{ copyIndex + 1 }}</span
+                      >
+                      <span class="copy-selection-meta">
+                        {{ getCopyConditionLabel(copy.condition) }} ·
+                        {{ getCopyStatusLabel(copy.status) }}
+                      </span>
+                    </span>
+                  </label>
+                }
+              </div>
+            </div>
+
+            <footer class="return-modal-actions">
+              <button
+                type="button"
+                class="cancel-return-btn"
+                (click)="closeCopySelectionDialog()"
+              >
+                Annuleren
+              </button>
+              <button
+                type="button"
+                class="confirm-return-btn"
+                [disabled]="!copySelectionState.selectedCopyId"
+                (click)="confirmCopySelection()"
+              >
+                Gebruik dit exemplaar
+              </button>
+            </footer>
+          </div>
+        </div>
+      }
+
       <!-- Historiek van deze leerling -->
       @if (loanHistory.length > 0 && !showHistory) {
         <div class="active-loans-section">

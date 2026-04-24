@@ -33,8 +33,8 @@ public class LoanService {
 
     @Transactional
     public LoanDto createLoan(CreateLoanRequest request) {
-        logger.info("Creating loan: bookId={}, userSub={}, dueDate={}",
-                request.getBookId(), request.getUserSub(), request.getDueDate());
+        logger.info("Creating loan: bookId={}, copyId={}, userSub={}, dueDate={}",
+            request.getBookId(), request.getCopyId(), request.getUserSub(), request.getDueDate());
 
         if (request.getBookId() == null) {
             logger.error("Invalid loan request: bookId is null");
@@ -66,7 +66,15 @@ public class LoanService {
             throw new IllegalStateException("Geen beschikbare exemplaren");
         }
 
-        BookCopy copy = lendableCopies.get(0);
+        BookCopy copy;
+        if (request.getCopyId() != null) {
+            copy = lendableCopies.stream()
+                    .filter(c -> c.getId().equals(request.getCopyId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Gekozen exemplaar is niet beschikbaar"));
+        } else {
+            copy = lendableCopies.get(0);
+        }
         copy.setStatus(BookCopy.CopyStatus.LOANED);
         copyRepo.save(copy);
         logger.info("Marked copy {} as LOANED", copy.getId());

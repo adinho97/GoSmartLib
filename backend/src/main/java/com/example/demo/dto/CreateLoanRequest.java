@@ -8,6 +8,7 @@ import java.time.LocalDate;
 public class CreateLoanRequest {
     @NotNull
     private Long bookId;
+    private Long copyId;
     @NotBlank
     private String userSub;
     @NotNull
@@ -20,6 +21,14 @@ public class CreateLoanRequest {
 
     public void setBookId(Long bookId) {
         this.bookId = bookId;
+    }
+
+    public Long getCopyId() {
+        return copyId;
+    }
+
+    public void setCopyId(Long copyId) {
+        this.copyId = copyId;
     }
 
     public String getUserSub() {
