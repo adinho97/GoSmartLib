@@ -239,6 +239,7 @@ export class LoanPageComponent implements OnInit {
       const pageData = await this.bookService.getBooksPage(
         this.bookPage - 1,
         this.bookPageSize,
+        this.searchQuery,
         schoolId,
       );
       this.bookTotalCount = pageData.total;
@@ -277,7 +278,6 @@ export class LoanPageComponent implements OnInit {
       return;
     }
     this.bookPage = page;
-    this.searchQuery = "";
     await this.loadBooks();
   }
 
@@ -289,15 +289,9 @@ export class LoanPageComponent implements OnInit {
     await this.goToBookPage(this.bookPage + 1);
   }
 
-  onSearch() {
-    const q = this.searchQuery.trim().toLowerCase();
-    this.filteredBooks = q
-      ? this.books.filter(
-          (b) =>
-            b.titel.toLowerCase().includes(q) ||
-            b.auteur.toLowerCase().includes(q),
-        )
-      : [...this.books];
+  async onSearch() {
+    this.bookPage = 1;
+    await this.loadBooks();
   }
 
   isSelected(book: BookOption): boolean {
