@@ -47,12 +47,18 @@ export class LoanService {
     bookId: number,
     userSub: string,
     dueDate: string,
+    copyId?: number,
   ): Promise<Loan> {
-    const res = await axios.post(
-      this.api,
-      { bookId, userSub, dueDate },
-      this.headers(),
-    );
+    const payload: {
+      bookId: number;
+      userSub: string;
+      dueDate: string;
+      copyId?: number;
+    } = { bookId, userSub, dueDate };
+    if (copyId !== undefined) {
+      payload.copyId = copyId;
+    }
+    const res = await axios.post(this.api, payload, this.headers());
     return res.data;
   }
 

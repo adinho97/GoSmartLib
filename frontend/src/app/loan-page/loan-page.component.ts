@@ -3,6 +3,7 @@ import { BookService } from "../services/book.service";
 import {
   LoanService,
   Loan,
+  BookCopyInfo,
   ReturnCondition,
   ReturnLoanRequest,
 } from "../services/loan.service";
@@ -17,6 +18,12 @@ type BookOption = {
   cover: string;
   availableCopies: number;
   totalCopies: number;
+};
+
+type CopySelectionState = {
+  book: BookOption;
+  copies: BookCopyInfo[];
+  selectedCopyId: number | null;
 };
 
 type Leerling = {
@@ -75,6 +82,11 @@ export class LoanPageComponent implements OnInit {
   returnCondition: ReturnCondition = "GOOD";
   returnLostBook = false;
   isReturningLoan = false;
+
+  copySelectionOpen = false;
+  copySelectionState: CopySelectionState | null = null;
+  isResolvingCopySelection = false;
+  private copySelectionResolve: ((copyId: number | null) => void) | null = null;
 
   readonly role = localStorage.getItem("role") || "";
   private readonly currentUserSub =
@@ -288,10 +300,12 @@ export class LoanPageComponent implements OnInit {
         this.selectedLeerling.sub === this.currentUserSub;
 
       for (const book of this.selectedBooks) {
+        const copyId = await this.resolveCopyForLoan(book);
         await this.loanService.createLoan(
           book.id,
           this.selectedLeerling.sub,
           this.dueDate,
+          copyId ?? undefined,
         );
         if (shouldAwardLoanXp) {
           this.experienceService.addExperienceForLoaningBook();
@@ -313,6 +327,78 @@ export class LoanPageComponent implements OnInit {
     } finally {
       this.isLoaning = false;
     }
+  }
+
+  private async resolveCopyForLoan(book: BookOption): Promise<number | null> {
+    if (book.availableCopies <= 1) {
+      return null;
+    }
+
+    const copies = await this.loanService.getCopiesForBook(book.id);
+    const lendableCopies = copies
+      .filter(
+        (copy) => copy.status === "AVAILABLE" || copy.status === "DAMAGED",
+      )
+      .sort((a, b) => a.id - b.id);
+
+    if (lendableCopies.length <= 1) {
+      return lendableCopies[0]?.id ?? null;
+    }
+
+    return this.openCopySelectionDialog(book, lendableCopies);
+  }
+
+  private openCopySelectionDialog(
+    book: BookOption,
+    copies: BookCopyInfo[],
+  ): Promise<number | null> {
+    this.copySelectionState = {
+      book,
+      copies,
+      selectedCopyId: copies[0]?.id ?? null,
+    };
+    this.copySelectionOpen = true;
+
+    return new Promise<number | null>((resolve) => {
+      this.copySelectionResolve = resolve;
+    });
+  }
+
+  closeCopySelectionDialog() {
+    this.copySelectionOpen = false;
+    this.copySelectionState = null;
+    if (this.copySelectionResolve) {
+      this.copySelectionResolve(null);
+      this.copySelectionResolve = null;
+    }
+  }
+
+  confirmCopySelection() {
+    if (
+      !this.copySelectionState?.selectedCopyId ||
+      !this.copySelectionResolve
+    ) {
+      return;
+    }
+
+    const selectedCopyId = this.copySelectionState.selectedCopyId;
+    this.copySelectionOpen = false;
+    this.copySelectionResolve(selectedCopyId);
+    this.copySelectionResolve = null;
+    this.copySelectionState = null;
+  }
+
+  getCopyConditionLabel(condition: BookCopyInfo["condition"]): string {
+    if (condition === "MODERATE") return "Matig";
+    if (condition === "BAD") return "Slecht";
+    return "Goed";
+  }
+
+  getCopyStatusLabel(status: BookCopyInfo["status"]): string {
+    if (status === "DAMAGED") return "Beschadigd";
+    if (status === "LOST") return "Verloren";
+    if (status === "LOANED") return "Uitgeleend";
+    return "Beschikbaar";
   }
 
   openReturnDialog(loan: Loan, event?: MouseEvent) {
