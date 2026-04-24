@@ -90,6 +90,7 @@ export class LoanPageComponent implements OnInit {
   copySelectionState: CopySelectionState | null = null;
   isResolvingCopySelection = false;
   private copySelectionResolve: ((copyId: number | null) => void) | null = null;
+  private booksLoadRequestId = 0;
 
   readonly role = localStorage.getItem("role") || "";
   private readonly currentUserSub =
@@ -233,6 +234,7 @@ export class LoanPageComponent implements OnInit {
   }
 
   async loadBooks() {
+    const requestId = ++this.booksLoadRequestId;
     this.isLoading = true;
     try {
       const schoolId = this.schoolService.getSelectedSchoolId() ?? undefined;
@@ -242,6 +244,9 @@ export class LoanPageComponent implements OnInit {
         this.searchQuery,
         schoolId,
       );
+      if (requestId !== this.booksLoadRequestId) {
+        return;
+      }
       this.bookTotalCount = pageData.total;
       this.books = pageData.items
         .filter(
@@ -259,9 +264,14 @@ export class LoanPageComponent implements OnInit {
         }));
       this.filteredBooks = [...this.books];
     } catch {
+      if (requestId !== this.booksLoadRequestId) {
+        return;
+      }
       this.errorMessage = "Boeken laden mislukt.";
     } finally {
-      this.isLoading = false;
+      if (requestId === this.booksLoadRequestId) {
+        this.isLoading = false;
+      }
     }
   }
 
