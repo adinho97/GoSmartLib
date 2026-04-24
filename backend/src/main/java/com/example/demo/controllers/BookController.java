@@ -83,12 +83,16 @@ public class BookController {
             public ResponseEntity<PagedBookResponse> getPaged(
                 @RequestParam(required = false) Long schoolId,
                 @RequestParam(defaultValue = "0") int page,
-                @RequestParam(defaultValue = "5") int size) {
+                    @RequestParam(defaultValue = "5") int size,
+                    @RequestParam(required = false) String query) {
             int safePage = Math.max(page, 0);
             int safeSize = Math.max(size, 1);
-            Page<Book> books = schoolId == null
-                ? repo.findAll(PageRequest.of(safePage, safeSize))
-                : repo.findAllBySchool_Id(schoolId, PageRequest.of(safePage, safeSize));
+                String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
+
+                Page<Book> books = repo.searchPaged(
+                    schoolId,
+                    normalizedQuery,
+                    PageRequest.of(safePage, safeSize));
 
             List<BookDto> items = books.stream()
                 .map(BookMapper::toDto)

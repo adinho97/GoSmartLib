@@ -179,6 +179,7 @@ export class BookService {
   async getBooksPage(
     page: number,
     size: number,
+    query?: string,
     schoolId?: number,
   ): Promise<PagedBooksResponse> {
     const params = new URLSearchParams({
@@ -188,6 +189,9 @@ export class BookService {
     const resolvedSchoolId = this.resolveSchoolId(schoolId);
     if (resolvedSchoolId) {
       params.set("schoolId", String(resolvedSchoolId));
+    }
+    if (query && query.trim().length > 0) {
+      params.set("query", query.trim());
     }
 
     const res = await axios.get<PagedBooksResponse>(
