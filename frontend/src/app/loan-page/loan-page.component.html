@@ -115,14 +115,6 @@
           Boeken voor <strong>{{ selectedLeerling?.displayName }}</strong>
         </h2>
         <button
-          type="button"
-          class="ghost-btn"
-          (click)="cameraMode ? deactivateCameraMode() : activateCameraMode()"
-          [class.active-camera]="cameraMode"
-        >
-          {{ cameraMode ? "📷 Sluit Camera" : "📷 Scan Barcode" }}
-        </button>
-        <button
           class="primary-btn"
           (click)="proceedToConfirm()"
           [disabled]="selectedBooks.length === 0"
