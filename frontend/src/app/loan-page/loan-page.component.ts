@@ -26,6 +26,7 @@ type BookOption = {
   cover: string;
   availableCopies: number;
   totalCopies: number;
+  scannedBarcode?: string;
 };
 
 type CopySelectionState = {
@@ -426,6 +427,13 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   }
 
   private async resolveCopyForLoan(book: BookOption): Promise<number | null> {
+    // If a specific GO-number was scanned, automatically find and select that copy
+    if (book.scannedBarcode) {
+      const copies = await this.loanService.getCopiesForBook(book.id);
+      const match = (copies as any[]).find(c => c.goNumber === book.scannedBarcode);
+      if (match) return match.id;
+    }
+
     if (book.availableCopies <= 1) {
       return null;
     }
@@ -750,13 +758,11 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     try {
       const schoolId = this.schoolService.getSelectedSchoolId() ?? undefined;
 
-      // Try finding the book by GO-number in the library first
-      let book = await this.bookService.getBookByGoNumberFromLibrary(
-        barcode,
-        schoolId,
-      );
+      // 1. Try finding the book by GO-number in the library first (unique copy)
+      const bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(barcode, schoolId);
+      let book = bookFoundByGo;
 
-      // If not found, try searching by ISBN in the library
+      // 2. If not found, try searching by ISBN in the library
       if (!book) {
         book = await this.bookService.getBookByIsbnFromLibrary(
           barcode,
@@ -775,6 +781,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
           cover: book.cover || "",
           availableCopies: summary.available,
           totalCopies: summary.total,
+          scannedBarcode: bookFoundByGo ? barcode : undefined
         };
 
         if (bookOption.availableCopies > 0) {
