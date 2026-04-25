@@ -394,6 +394,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
         this.selectedLeerling.sub === this.currentUserSub;
 
       for (const book of this.selectedBooks) {
+        this.barcodeService.deactivateScanMode();
         const copyId = await this.resolveCopyForLoan(book);
         await this.loanService.createLoan(
           book.id,
@@ -601,6 +602,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
 
   goBack() {
     if (this.step === "boeken") {
+      this.barcodeService.deactivateScanMode();
       this.step = "leerling";
       this.selectedBooks = [];
       this.loanHistory = [];

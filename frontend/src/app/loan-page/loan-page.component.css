@@ -270,6 +270,11 @@
   white-space: nowrap;
 }
 
+.ghost-btn.active-camera {
+  background: #871f42;
+  color: white;
+}
+
 .ghost-btn:hover {
   background: #fff0f4;
 }
@@ -949,23 +954,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.scanner-laser {
-  width: 80%;
-  height: 2px;
-  background-color: red;
-  box-shadow: 0 0 10px red;
-  animation: scan-animation 2s infinite alternate;
-}
-
-@keyframes scan-animation {
-  0% {
-    transform: translateY(-50%);
-  }
-  100% {
-    transform: translateY(50%);
-  }
 }
 
 .camera-exit-btn {
