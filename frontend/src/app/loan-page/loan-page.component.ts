@@ -138,7 +138,9 @@ export class LoanPageComponent implements OnInit {
         rawFirstName,
         rawLastName,
         [
+          userInfo.fullName,
           userInfo.fullname,
+          userInfo.actualUserFullName,
           userInfo.displayName,
           `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
           `${userInfo.givenName || userInfo.given_name || ""} ${
@@ -155,12 +157,16 @@ export class LoanPageComponent implements OnInit {
       }
 
       const fallbackFullNameCandidates = [
+        userInfo.fullName,
         userInfo.fullname,
+        userInfo.actualUserFullName,
         userInfo.displayName,
+        userInfo.name,
         `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
         `${userInfo.givenName || userInfo.given_name || ""} ${
           userInfo.familyName || userInfo.family_name || ""
         }`.trim(),
+        `${rawFirstName || ""} ${rawLastName || ""}`.trim(),
       ];
 
       const fallbackFullName = fallbackFullNameCandidates.find((candidate) => {
@@ -178,9 +184,12 @@ export class LoanPageComponent implements OnInit {
 
       return (
         (
+          userInfo.name ||
+          userInfo.displayName ||
+          userInfo.fullName ||
+          userInfo.fullname ||
           rawFirstName ||
           rawLastName ||
-          userInfo.name ||
           userInfo.givenName ||
           userInfo.given_name ||
           ""
