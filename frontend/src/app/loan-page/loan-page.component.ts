@@ -9,6 +9,7 @@ import {
 } from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
 import { ExperienceService } from "../services/experience.service";
+import { composeFullName, inferNameParts } from "../utils/name-utils";
 import axios from "axios";
 
 type BookOption = {
@@ -114,6 +115,40 @@ export class LoanPageComponent implements OnInit {
         `/api/users/${encodeURIComponent(sub)}/profile`,
       );
       const userInfo = profile.data as any;
+
+      const rawFirstName =
+        userInfo.actualUserFirstName ||
+        userInfo.givenName ||
+        userInfo.given_name ||
+        userInfo.firstName ||
+        userInfo.firstname ||
+        "";
+
+      const rawLastName =
+        userInfo.actualUserSurname ||
+        userInfo.actualUserLastName ||
+        userInfo.familyName ||
+        userInfo.family_name ||
+        userInfo.lastName ||
+        userInfo.lastname ||
+        userInfo.surname ||
+        "";
+
+      const { firstName, lastName } = inferNameParts(
+        rawFirstName,
+        rawLastName,
+        [
+          userInfo.fullname,
+          userInfo.name,
+          userInfo.displayName,
+          userInfo.preferred_username,
+        ],
+      );
+
+      const composedFullName = composeFullName(firstName, lastName);
+      if (composedFullName) {
+        return composedFullName;
+      }
 
       const fullname =
         userInfo.fullname ||
