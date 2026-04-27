@@ -16,9 +16,11 @@ import { AddBarcodeComponent } from "./add-barcode/add-barcode.component";
 import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
+import { LoanConditionOverviewComponent } from "./loan-condition-overview/loan-condition-overview.component";
 import { SetupInviteComponent } from "./setup/setup-invite/setup-invite.component";
 import { SelectBibbeheerderComponent } from "./setup/select-bibbeheerder/select-bibbeheerder.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
+import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -106,6 +108,12 @@ export const appRoutes: Routes = [
     data: { roles: ["leerkracht", "bibbeheerder"] },
   },
   {
+    path: "uitleen-conditie",
+    component: LoanConditionOverviewComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
     path: "setup/invite/:token",
     component: SetupInviteComponent,
   },
@@ -113,6 +121,12 @@ export const appRoutes: Routes = [
     path: "setup/select-teacher",
     component: SelectBibbeheerderComponent,
   },
+  {
+  path: "faq-beheer",
+  component: BibFaqBeheerComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ["bibbeheerder"] },
+},
 ];
 
 @NgModule({

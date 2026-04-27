@@ -15,6 +15,7 @@ import {
 } from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
 import { ExperienceService } from "../services/experience.service";
+import { composeFullName, inferNameParts } from "../utils/name-utils";
 import axios from "axios";
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 import { BarcodeService } from "../services/barcode.service";
@@ -107,6 +108,13 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   returnLostBook = false;
   isReturningLoan = false;
 
+  bookNotFoundDialogOpen = false;
+  scannedBarcodeNotFound = "";
+
+  bookUnavailableDialogOpen = false;
+  scanConfirmationOpen = false;
+  pendingScannedBook: BookOption | null = null;
+
   copySelectionOpen = false;
   copySelectionState: CopySelectionState | null = null;
   isResolvingCopySelection = false;
@@ -164,17 +172,73 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       );
       const userInfo = profile.data as any;
 
-      const fullname =
-        userInfo.fullname ||
-        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim();
+      const rawFirstName =
+        userInfo.actualUserFirstName ||
+        userInfo.givenName ||
+        userInfo.given_name ||
+        userInfo.firstName ||
+        userInfo.firstname ||
+        "";
+
+      const rawLastName =
+        userInfo.actualUserSurname ||
+        userInfo.actualUserLastName ||
+        userInfo.familyName ||
+        userInfo.family_name ||
+        userInfo.lastName ||
+        userInfo.lastname ||
+        userInfo.surname ||
+        "";
+
+      const { firstName, lastName } = inferNameParts(
+        rawFirstName,
+        rawLastName,
+        [
+          userInfo.fullname,
+          userInfo.displayName,
+          `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+          `${userInfo.givenName || userInfo.given_name || ""} ${
+            userInfo.familyName || userInfo.family_name || ""
+          }`.trim(),
+          userInfo.name,
+          userInfo.preferred_username,
+        ],
+      );
+
+      const composedFullName = composeFullName(firstName, lastName);
+      if (composedFullName) {
+        return composedFullName;
+      }
+
+      const fallbackFullNameCandidates = [
+        userInfo.fullname,
+        userInfo.displayName,
+        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+        `${userInfo.givenName || userInfo.given_name || ""} ${
+          userInfo.familyName || userInfo.family_name || ""
+        }`.trim(),
+      ];
+
+      const fallbackFullName = fallbackFullNameCandidates.find((candidate) => {
+        const normalized = (candidate || "").trim();
+        if (!normalized) {
+          return false;
+        }
+        const parts = normalized.split(/\s+/).filter(Boolean);
+        return parts.length >= 2;
+      });
+
+      if (fallbackFullName) {
+        return fallbackFullName.trim();
+      }
+
       return (
         (
-          fullname ||
+          rawFirstName ||
+          rawLastName ||
           userInfo.name ||
           userInfo.givenName ||
           userInfo.given_name ||
-          userInfo.familyName ||
-          userInfo.sub ||
           ""
         ).trim() || sub
       );
@@ -548,6 +612,11 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     this.isReturningLoan = false;
   }
 
+  closeBookNotFoundDialog() {
+    this.bookNotFoundDialogOpen = false;
+    this.scannedBarcodeNotFound = "";
+  }
+
   get returnConditionLabel(): string {
     if (this.returnLostBook) {
       return "verloren";
@@ -752,7 +821,12 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   }
 
   async processScan(barcode: string) {
-    if (this.isProcessingScan) return;
+    if (
+      this.isProcessingScan || 
+      this.bookNotFoundDialogOpen || 
+      this.bookUnavailableDialogOpen || 
+      this.scanConfirmationOpen
+    ) return;
     this.isProcessingScan = true;
     this.errorMessage = "";
     this.successMessage = "";
@@ -761,7 +835,13 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       const schoolId = this.schoolService.getSelectedSchoolId() ?? undefined;
 
       // 1. Try finding the book by GO-number in the library first (unique copy)
-      const bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(barcode, schoolId);
+      let bookFoundByGo = null;
+      try {
+        bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(barcode, schoolId);
+      } catch (e) {
+        // Ignore 404/errors here to allow fallback to ISBN search
+        console.debug("Book not found by GO-number, trying ISBN...");
+      }
       let book = bookFoundByGo;
 
       // 2. If not found, try searching by ISBN in the library
@@ -776,7 +856,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
         // Fetch copy summary for the scanned book
         const summary = await this.loanService.getCopySummary(book.id);
 
-        const bookOption: BookOption = {
+        this.pendingScannedBook = {
           id: book.id,
           titel: book.titel,
           auteur: book.auteur,
@@ -786,23 +866,49 @@ export class LoanPageComponent implements OnInit, OnDestroy {
           scannedBarcode: bookFoundByGo ? barcode : undefined
         };
 
-        if (bookOption.availableCopies > 0) {
-          // Automatically select the book if not already in the selection list
-          if (!this.isSelected(bookOption)) {
-            this.toggleBook(bookOption);
-          }
-          this.successMessage = `Boek "${bookOption.titel}" toegevoegd aan selectie.`;
-          setTimeout(() => (this.successMessage = ""), 3000);
+        if (summary.available <= 0) {
+          this.bookUnavailableDialogOpen = true;
         } else {
-          this.errorMessage = "Dit boek heeft geen beschikbare exemplaren.";
+          this.scanConfirmationOpen = true;
         }
       } else {
-        this.errorMessage = "boek niet gevonden in bibliotheek";
+        this.scannedBarcodeNotFound = barcode;
+        this.bookNotFoundDialogOpen = true;
       }
     } catch (err: any) {
       this.errorMessage = "Er ging iets mis bij het zoeken naar het boek.";
     } finally {
       this.isProcessingScan = false;
     }
+  }
+
+  confirmScannedBook() {
+    if (this.pendingScannedBook) {
+      if (this.pendingScannedBook.availableCopies > 0) {
+        if (!this.isSelected(this.pendingScannedBook)) {
+          this.toggleBook(this.pendingScannedBook);
+        }
+        this.successMessage = `Boek "${this.pendingScannedBook.titel}" toegevoegd aan selectie.`;
+        setTimeout(() => (this.successMessage = ""), 3000);
+      } else {
+        this.errorMessage = "Dit boek heeft geen beschikbare exemplaren.";
+        setTimeout(() => (this.errorMessage = ""), 3000);
+      }
+    }
+    this.closeScanConfirmation();
+  }
+
+  cancelScannedBook() {
+    this.closeScanConfirmation();
+  }
+
+  private closeScanConfirmation() {
+    this.scanConfirmationOpen = false;
+    this.pendingScannedBook = null;
+  }
+
+  closeBookUnavailableDialog() {
+    this.bookUnavailableDialogOpen = false;
+    this.pendingScannedBook = null;
   }
 }

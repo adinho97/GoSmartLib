@@ -21,12 +21,14 @@ import { BadgeCollectionComponent } from "./profile/badge-collection/badge-colle
 import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
+import { LoanConditionOverviewComponent } from "./loan-condition-overview/loan-condition-overview.component";
 import { BadgeToastComponent } from "./components/badge-toast/badge-toast.component";
 import { RecommendationSectionComponent } from "./recommendation-section/recommendation-section.component";
 import { RecommendationCardComponent } from "./recommendation-card/recommendation-card.component";
 import { ActiveLoansComponent } from "./active-loans/active-loans.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { UiToastComponent } from "./components/ui-toast/ui-toast.component";
+import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -45,7 +47,9 @@ registerLocaleData(localeNl, "nl");
     ProfileComponent,
     LoanPageComponent,
     LoanHistoryCatalogComponent,
+    LoanConditionOverviewComponent,
     LeerlingInfoComponent,
+    BibFaqBeheerComponent,
   ],
   imports: [
     BrowserModule,

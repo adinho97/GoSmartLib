@@ -42,13 +42,41 @@
               <li>
                 <div class="copy-row-main">
                   <span class="copy-id">Exemplaar #{{ copyIndex + 1 }}</span>
-                  <span class="copy-condition-text">
-                    Staat: {{ getCopyConditionLabel(copy.condition) }}
-                  </span>
                   @if (copy.status === "LOANED") {
+                    <span class="copy-condition-text">
+                      Staat: {{ getCopyConditionLabel(copy.condition) }}
+                    </span>
                     <span class="copy-status-note loaned">Uitgeleend</span>
-                  } @else if (copy.status === "LOST") {
-                    <span class="copy-status-note lost">Verloren</span>
+                  } @else {
+                    <div class="copy-edit-controls">
+                      <label>
+                        Status
+                        <select [(ngModel)]="copy.editStatus">
+                          <option value="AVAILABLE">Beschikbaar</option>
+                          <option value="DAMAGED">Beschadigd</option>
+                          <option value="LOST">Verloren</option>
+                        </select>
+                      </label>
+                      <label>
+                        Conditie
+                        <select [(ngModel)]="copy.editCondition">
+                          <option value="GOOD">Goed</option>
+                          <option value="MODERATE">Matig</option>
+                          <option value="BAD">Slecht</option>
+                        </select>
+                      </label>
+                    </div>
+                    <button
+                      type="button"
+                      class="copy-update-btn"
+                      (click)="updateCopyState(copy)"
+                      [disabled]="copy.isUpdating"
+                    >
+                      {{ copy.isUpdating ? "Opslaan..." : "Opslaan" }}
+                    </button>
+                    @if (copy.status === "LOST") {
+                      <span class="copy-status-note lost">Verloren</span>
+                    }
                   }
                   <button
                     type="button"

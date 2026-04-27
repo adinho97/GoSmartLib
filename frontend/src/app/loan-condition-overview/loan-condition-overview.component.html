@@ -1,0 +1,243 @@
+<div class="condition-overview-page">
+  <header class="page-header">
+    <div>
+      <h1>Conditie-overzicht</h1>
+      <p>
+        Overzicht van achteruitgegaan teruggebrachte boeken, huidige
+        exemplaarstatussen en vermiste exemplaren.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="reload-btn"
+      (click)="loadOverview()"
+      [disabled]="loading"
+    >
+      {{ loading ? "Laden..." : "Vernieuwen" }}
+    </button>
+  </header>
+
+  @if (error) {
+    <p class="error-banner">{{ error }}</p>
+  }
+
+  <section class="stats-grid">
+    <article class="stat-card">
+      <p class="stat-label">Achteruitgegaan teruggebrachte boeken</p>
+      <p class="stat-value">{{ worsenedReturnsCount }}</p>
+    </article>
+    <article class="stat-card">
+      <p class="stat-label">Boeken met beschadigde/verloren exemplaren</p>
+      <p class="stat-value">{{ booksWithIssuesCount }}</p>
+    </article>
+    <article class="stat-card">
+      <p class="stat-label">Vermiste exemplaren</p>
+      <p class="stat-value">{{ lostCopiesCount }}</p>
+    </article>
+  </section>
+
+  <section class="card-section">
+    <h2>1. Teruggebracht in slechtere staat</h2>
+
+    @if (!loading && worsenedReturns.length === 0) {
+      <p class="empty-state">
+        Nog geen registraties van teruggebrachte boeken in slechtere staat.
+      </p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Boek</th>
+              <th>Gebruiker</th>
+              <th>Uitgeleend als</th>
+              <th>Teruggebracht als</th>
+              <th>Terug op</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of worsenedReturns; track item.loanId) {
+              <tr>
+                <td>
+                  <div class="book-cell">
+                    @if (item.bookCover) {
+                      <img
+                        [src]="item.bookCover"
+                        [alt]="item.bookTitel"
+                        class="book-cover"
+                      />
+                    }
+                    <span>{{ item.bookTitel }}</span>
+                  </div>
+                </td>
+                <td>{{ getUserName(item.userSub) }}</td>
+                <td>{{ conditionLabel(item.loanedCondition) }}</td>
+                <td>
+                  @if (isLostReturn(item)) {
+                    Vermist
+                  } @else {
+                    {{ conditionLabel(item.returnedCondition) }}
+                  }
+                </td>
+                <td>{{ item.returnedAt | date: "dd/MM/yyyy" }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <section class="card-section">
+    <h2>2. Huidige staat per boek</h2>
+
+    @if (!loading && bookStates.length === 0) {
+      <p class="empty-state">Geen exemplaargegevens beschikbaar.</p>
+    } @else {
+      <div class="search-and-filter">
+        <input
+          type="text"
+          placeholder="Zoek naar boeken..."
+          [(ngModel)]="bookSearch"
+          (input)="onBookSearch()"
+          class="search-input"
+        />
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Boek</th>
+              <th>Totaal</th>
+              <th>Beschikbaar</th>
+              <th>Uitgeleend</th>
+              <th>Beschadigd</th>
+              <th>Vermist</th>
+              <th>Goed</th>
+              <th>Matig</th>
+              <th>Slecht</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (state of filteredBookStates; track state.bookId) {
+              <tr>
+                <td>
+                  <div class="book-cell">
+                    @if (state.bookCover) {
+                      <img
+                        [src]="state.bookCover"
+                        [alt]="state.bookTitel"
+                        class="book-cover"
+                      />
+                    }
+                    <span>{{ state.bookTitel }}</span>
+                  </div>
+                </td>
+                <td>{{ state.totalCopies }}</td>
+                <td>{{ state.availableCopies }}</td>
+                <td>{{ state.loanedCopies }}</td>
+                <td>{{ state.damagedCopies }}</td>
+                <td>{{ state.lostCopies }}</td>
+                <td>{{ state.goodConditionCopies }}</td>
+                <td>{{ state.moderateConditionCopies }}</td>
+                <td>{{ state.badConditionCopies }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (bookStatesTotalPages > 1) {
+        <div class="book-pagination">
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === 1"
+            (click)="goToFirstBookPage()"
+          >
+            &lt;&lt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === 1"
+            (click)="goToPreviousBookPage()"
+          >
+            &lt;
+          </button>
+          @for (page of visibleBookPages; track $index) {
+            @if (page === "...") {
+              <span class="page-ellipsis">...</span>
+            } @else {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="page === bookPage"
+                (click)="goToBookPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          }
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === bookStatesTotalPages"
+            (click)="goToNextBookPage()"
+          >
+            &gt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === bookStatesTotalPages"
+            (click)="goToLastBookPage()"
+          >
+            &gt;&gt;
+          </button>
+        </div>
+      }
+    }
+  </section>
+
+  <section class="card-section">
+    <h2>3. Vermiste exemplaren</h2>
+
+    @if (!loading && lostCopies.length === 0) {
+      <p class="empty-state">Er zijn momenteel geen vermiste exemplaren.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Boek</th>
+              <th>Exemplaar ID</th>
+              <th>Laatste gekende conditie</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (lost of lostCopies; track lost.copyId) {
+              <tr>
+                <td>
+                  <div class="book-cell">
+                    @if (lost.bookCover) {
+                      <img
+                        [src]="lost.bookCover"
+                        [alt]="lost.bookTitel"
+                        class="book-cover"
+                      />
+                    }
+                    <span>{{ lost.bookTitel }}</span>
+                  </div>
+                </td>
+                <td>#{{ lost.copyId }}</td>
+                <td>{{ conditionLabel(lost.condition) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>
