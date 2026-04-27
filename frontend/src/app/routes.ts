@@ -4,6 +4,7 @@ import { AuthGuard } from "./auth.guard";
 import { AdminGuard } from "./admin.guard";
 import { LoginComponent } from "./login/login.component";
 import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.component";
+import { AdminDashboardComponent } from "./admin-dashboard/admin-dashboard.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
@@ -27,7 +28,7 @@ export const appRoutes: Routes = [
   { path: "super-admin-login", component: SuperAdminLoginComponent },
   {
     path: "admin/dashboard",
-    component: DashboardComponent, // Placeholder - will create dedicated admin dashboard later
+    component: AdminDashboardComponent,
     canActivate: [AdminGuard],
   },
   
