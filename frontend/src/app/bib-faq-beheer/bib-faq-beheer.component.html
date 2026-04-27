@@ -1,7 +1,7 @@
 <div class="faq-beheer-page">
   <header class="faq-beheer-hero">
-    <h1>FAQ Beheer</h1>
-    <p>Voeg vragen toe, bewerk of verwijder ze per school.</p>
+    <h1>Infopagina Beheer</h1>
+    <p>Beheer de FAQ en inhoud van de infopagina per school.</p>
   </header>
 
   <main class="faq-beheer-content">
@@ -9,70 +9,116 @@
       <p class="faq-error">{{ errorMessage }}</p>
     }
 
-    <div class="faq-beheer-toolbar">
+    <div class="beheer-toolbar">
       <label class="school-label">
         School
-        <select
-          class="school-select"
-          [ngModel]="selectedSchoolId"
-          (ngModelChange)="onSchoolChange($event)"
-        >
+        <select class="school-select" [ngModel]="selectedSchoolId" (ngModelChange)="onSchoolChange($event)">
           @for (school of schools; track school.id) {
             <option [value]="school.id">{{ school.naam }}</option>
           }
         </select>
       </label>
-      <button class="btn-add" type="button" (click)="startAdd()" [disabled]="isAdding">
-        + Nieuwe vraag toevoegen
-      </button>
     </div>
 
-    @if (isAdding) {
-      <article class="faq-form-card">
-        <h2>Nieuwe FAQ</h2>
-        <label>
-          Vraag
-          <input type="text" [(ngModel)]="newItem.question" placeholder="Vraag..." />
-        </label>
-        <label>
-          Antwoord
-          <textarea [(ngModel)]="newItem.answer" rows="3" placeholder="Antwoord..."></textarea>
-        </label>
-        <div class="faq-form-actions">
-          <button class="btn-save" type="button" (click)="saveNew()" [disabled]="isSaving">Opslaan</button>
-          <button class="btn-cancel" type="button" (click)="cancelAdd()">Annuleren</button>
-        </div>
-      </article>
-    }
+    <nav class="tab-nav">
+      <button class="tab-btn" [class.active]="activeTab === 'faq'" (click)="setTab('faq')">Veelgestelde vragen</button>
+      <button class="tab-btn" [class.active]="activeTab === 'stappen'" (click)="setTab('stappen')">Uitleen stappen</button>
+      <button class="tab-btn" [class.active]="activeTab === 'features'" (click)="setTab('features')">Website features</button>
+      <button class="tab-btn" [class.active]="activeTab === 'tips'" (click)="setTab('tips')">Handige tips</button>
+    </nav>
 
-    <div class="faq-list">
-      @for (item of faqItems; track item.id) {
-        <article class="faq-manage-item">
-          @if (editingItem?.id === item.id) {
-            <label>
-              Vraag
-              <input type="text" [(ngModel)]="editingItem!.question" />
-            </label>
-            <label>
-              Antwoord
-              <textarea [(ngModel)]="editingItem!.answer" rows="3"></textarea>
-            </label>
-            <div class="faq-form-actions">
-              <button class="btn-save" type="button" (click)="saveEdit()" [disabled]="isSaving">Opslaan</button>
-              <button class="btn-cancel" type="button" (click)="cancelEdit()">Annuleren</button>
-            </div>
-          } @else {
-            <div class="faq-item-content">
-              <strong class="faq-item-question">{{ item.question }}</strong>
-              <p class="faq-item-answer">{{ item.answer }}</p>
-            </div>
-            <div class="faq-item-actions">
-              <button class="btn-edit" type="button" (click)="startEdit(item)">Bewerken</button>
-              <button class="btn-delete" type="button" (click)="delete(item)">Verwijderen</button>
-            </div>
-          }
+    <!-- FAQ TAB -->
+    @if (activeTab === 'faq') {
+      <div class="tab-toolbar">
+        <button class="btn-add" type="button" (click)="startAddFaq()" [disabled]="isAdding">+ Nieuwe vraag</button>
+      </div>
+      @if (isAdding) {
+        <article class="faq-form-card">
+          <h2>Nieuwe FAQ</h2>
+          <label>Vraag<input type="text" [(ngModel)]="newFaq.question" placeholder="Vraag..." /></label>
+          <label>Antwoord<textarea [(ngModel)]="newFaq.answer" rows="3" placeholder="Antwoord..."></textarea></label>
+          <div class="faq-form-actions">
+            <button class="btn-save" type="button" (click)="saveNewFaq()" [disabled]="isSaving">Opslaan</button>
+            <button class="btn-cancel" type="button" (click)="isAdding = false">Annuleren</button>
+          </div>
         </article>
       }
-    </div>
+      <div class="faq-list">
+        @for (item of faqItems; track item.id) {
+          <article class="faq-manage-item">
+            @if (editingFaq?.id === item.id) {
+              <label>Vraag<input type="text" [(ngModel)]="editingFaq!.question" /></label>
+              <label>Antwoord<textarea [(ngModel)]="editingFaq!.answer" rows="3"></textarea></label>
+              <div class="faq-form-actions">
+                <button class="btn-save" type="button" (click)="saveEditFaq()" [disabled]="isSaving">Opslaan</button>
+                <button class="btn-cancel" type="button" (click)="editingFaq = null">Annuleren</button>
+              </div>
+            } @else {
+              <div class="faq-item-content">
+                <strong class="faq-item-question">{{ item.question }}</strong>
+                <p class="faq-item-answer">{{ item.answer }}</p>
+              </div>
+              <div class="faq-item-actions">
+                <button class="btn-edit" type="button" (click)="startEditFaq(item)">Bewerken</button>
+                <button class="btn-delete" type="button" (click)="deleteFaq(item)">Verwijderen</button>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    }
+
+    <!-- STAPPEN / FEATURES / TIPS TAB -->
+    @if (activeTab !== 'faq') {
+      <div class="tab-toolbar">
+        <p class="fallback-note">
+          Als er geen items zijn ingevuld, wordt de standaardtekst getoond aan leerlingen.
+        </p>
+        <button class="btn-add" type="button" (click)="startAddInfo()" [disabled]="isAdding">+ Nieuw item</button>
+      </div>
+      @if (isAdding) {
+        <article class="faq-form-card">
+          <h2>Nieuw item</h2>
+          @if (showTitelField) {
+            <label>Titel<input type="text" [(ngModel)]="newInfo.titel" placeholder="bv. Dashboard" /></label>
+          }
+          <label>Inhoud<textarea [(ngModel)]="newInfo.inhoud" rows="3" placeholder="Tekst..."></textarea></label>
+          <div class="faq-form-actions">
+            <button class="btn-save" type="button" (click)="saveNewInfo()" [disabled]="isSaving">Opslaan</button>
+            <button class="btn-cancel" type="button" (click)="isAdding = false">Annuleren</button>
+          </div>
+        </article>
+      }
+      <div class="faq-list">
+        @for (item of infoItems; track item.id) {
+          <article class="faq-manage-item">
+            @if (editingInfo?.id === item.id) {
+              @if (showTitelField) {
+                <label>Titel<input type="text" [(ngModel)]="editingInfo!.titel" /></label>
+              }
+              <label>Inhoud<textarea [(ngModel)]="editingInfo!.inhoud" rows="3"></textarea></label>
+              <div class="faq-form-actions">
+                <button class="btn-save" type="button" (click)="saveEditInfo()" [disabled]="isSaving">Opslaan</button>
+                <button class="btn-cancel" type="button" (click)="editingInfo = null">Annuleren</button>
+              </div>
+            } @else {
+              <div class="faq-item-content">
+                @if (item.titel) {
+                  <strong class="faq-item-question">{{ item.titel }}</strong>
+                }
+                <p class="faq-item-answer">{{ item.inhoud }}</p>
+              </div>
+              <div class="faq-item-actions">
+                <button class="btn-edit" type="button" (click)="startEditInfo(item)">Bewerken</button>
+                <button class="btn-delete" type="button" (click)="deleteInfo(item)">Verwijderen</button>
+              </div>
+            }
+          </article>
+        }
+        @if (infoItems.length === 0 && !isAdding) {
+          <p class="empty-state">Geen aangepaste inhoud — standaardtekst wordt getoond.</p>
+        }
+      </div>
+    }
   </main>
 </div>
