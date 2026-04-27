@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FaqService, FaqItem } from '../services/faq.service';
+import { SchoolService } from '../services/school.service';
+import { School } from '../models/school';
 
 @Component({
   selector: 'app-bib-faq-beheer',
@@ -9,30 +11,44 @@ import { FaqService, FaqItem } from '../services/faq.service';
 })
 export class BibFaqBeheerComponent implements OnInit {
   faqItems: FaqItem[] = [];
+  schools: School[] = [];
+  selectedSchoolId: number | null = null;
   editingItem: FaqItem | null = null;
   isAdding = false;
   isSaving = false;
   errorMessage = '';
-
   newItem: FaqItem = { question: '', answer: '' };
 
-  constructor(private faqService: FaqService) {}
+  constructor(
+    private faqService: FaqService,
+    private schoolService: SchoolService,
+  ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    this.schools = await this.schoolService.getSchools();
+    this.selectedSchoolId = this.schoolService.getSelectedSchoolId()
+      ?? (this.schools[0]?.id ?? null);
     this.loadFaqs();
   }
 
   loadFaqs(): void {
-    this.faqService.getAll().subscribe({
+    if (!this.selectedSchoolId) return;
+    this.faqService.getAll(this.selectedSchoolId).subscribe({
       next: (items) => (this.faqItems = items),
       error: () => (this.errorMessage = 'Kon FAQ niet laden.'),
     });
   }
 
+  onSchoolChange(schoolId: number): void {
+    this.selectedSchoolId = Number(schoolId);
+    this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
+    this.loadFaqs();
+  }
+
   startAdd(): void {
     this.isAdding = true;
     this.editingItem = null;
-    this.newItem = { question: '', answer: '' };
+    this.newItem = { question: '', answer: '', schoolId: this.selectedSchoolId ?? undefined };
   }
 
   cancelAdd(): void {
@@ -43,16 +59,10 @@ export class BibFaqBeheerComponent implements OnInit {
     if (!this.newItem.question.trim() || !this.newItem.answer.trim()) return;
     this.isSaving = true;
     this.newItem.sortOrder = this.faqItems.length;
+    this.newItem.schoolId = this.selectedSchoolId ?? undefined;
     this.faqService.create(this.newItem).subscribe({
-      next: () => {
-        this.isAdding = false;
-        this.isSaving = false;
-        this.loadFaqs();
-      },
-      error: () => {
-        this.errorMessage = 'Kon FAQ niet opslaan.';
-        this.isSaving = false;
-      },
+      next: () => { this.isAdding = false; this.isSaving = false; this.loadFaqs(); },
+      error: () => { this.errorMessage = 'Kon FAQ niet opslaan.'; this.isSaving = false; },
     });
   }
 
@@ -66,19 +76,12 @@ export class BibFaqBeheerComponent implements OnInit {
   }
 
   saveEdit(): void {
-    if (!this.editingItem || !this.editingItem.id) return;
+    if (!this.editingItem?.id) return;
     if (!this.editingItem.question.trim() || !this.editingItem.answer.trim()) return;
     this.isSaving = true;
     this.faqService.update(this.editingItem.id, this.editingItem).subscribe({
-      next: () => {
-        this.editingItem = null;
-        this.isSaving = false;
-        this.loadFaqs();
-      },
-      error: () => {
-        this.errorMessage = 'Kon FAQ niet bijwerken.';
-        this.isSaving = false;
-      },
+      next: () => { this.editingItem = null; this.isSaving = false; this.loadFaqs(); },
+      error: () => { this.errorMessage = 'Kon FAQ niet bijwerken.'; this.isSaving = false; },
     });
   }
 

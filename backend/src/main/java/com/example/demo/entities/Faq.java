@@ -19,6 +19,10 @@ public class Faq {
     @Column(name = "sort_order")
     private int sortOrder = 0;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id", nullable = false)
+    private School school;
+
     public Faq() {}
 
     public Long getId() { return id; }
@@ -28,4 +32,6 @@ public class Faq {
     public void setAnswer(String answer) { this.answer = answer; }
     public int getSortOrder() { return sortOrder; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
+    public School getSchool() { return school; }
+    public void setSchool(School school) { this.school = school; }
 }

@@ -1,7 +1,7 @@
 <div class="faq-beheer-page">
   <header class="faq-beheer-hero">
     <h1>FAQ Beheer</h1>
-    <p>Voeg vragen toe, bewerk of verwijder ze.</p>
+    <p>Voeg vragen toe, bewerk of verwijder ze per school.</p>
   </header>
 
   <main class="faq-beheer-content">
@@ -10,6 +10,18 @@
     }
 
     <div class="faq-beheer-toolbar">
+      <label class="school-label">
+        School
+        <select
+          class="school-select"
+          [ngModel]="selectedSchoolId"
+          (ngModelChange)="onSchoolChange($event)"
+        >
+          @for (school of schools; track school.id) {
+            <option [value]="school.id">{{ school.naam }}</option>
+          }
+        </select>
+      </label>
       <button class="btn-add" type="button" (click)="startAdd()" [disabled]="isAdding">
         + Nieuwe vraag toevoegen
       </button>
@@ -27,9 +39,7 @@
           <textarea [(ngModel)]="newItem.answer" rows="3" placeholder="Antwoord..."></textarea>
         </label>
         <div class="faq-form-actions">
-          <button class="btn-save" type="button" (click)="saveNew()" [disabled]="isSaving">
-            Opslaan
-          </button>
+          <button class="btn-save" type="button" (click)="saveNew()" [disabled]="isSaving">Opslaan</button>
           <button class="btn-cancel" type="button" (click)="cancelAdd()">Annuleren</button>
         </div>
       </article>
@@ -48,9 +58,7 @@
               <textarea [(ngModel)]="editingItem!.answer" rows="3"></textarea>
             </label>
             <div class="faq-form-actions">
-              <button class="btn-save" type="button" (click)="saveEdit()" [disabled]="isSaving">
-                Opslaan
-              </button>
+              <button class="btn-save" type="button" (click)="saveEdit()" [disabled]="isSaving">Opslaan</button>
               <button class="btn-cancel" type="button" (click)="cancelEdit()">Annuleren</button>
             </div>
           } @else {

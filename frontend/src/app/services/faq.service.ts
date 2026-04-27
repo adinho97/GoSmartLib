@@ -1,22 +1,27 @@
-import { Injectable } from "@angular/core";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 export type FaqItem = {
   id?: number;
   question: string;
   answer: string;
   sortOrder?: number;
+  schoolId?: number;
 };
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class FaqService {
-  private readonly apiUrl = "/api/faq";
+  private readonly apiUrl = '/api/faq';
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<FaqItem[]> {
-    return this.http.get<FaqItem[]>(this.apiUrl);
+  getAll(schoolId?: number): Observable<FaqItem[]> {
+    let params = new HttpParams();
+    if (schoolId) {
+      params = params.set('schoolId', schoolId.toString());
+    }
+    return this.http.get<FaqItem[]>(this.apiUrl, { params });
   }
 
   create(faq: FaqItem): Observable<FaqItem> {
@@ -38,11 +43,11 @@ export class FaqService {
   }
 
   private authHeaders(): HttpHeaders {
-    const sub = localStorage.getItem("sub") || "";
-    const role = localStorage.getItem("role") || "";
+    const sub = localStorage.getItem('sub') || '';
+    const role = localStorage.getItem('role') || '';
     return new HttpHeaders({
-      "X-User-Sub": sub,
-      "X-User-Role": role,
+      'X-User-Sub': sub,
+      'X-User-Role': role,
     });
   }
 }
