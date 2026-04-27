@@ -1,9 +1,13 @@
-<div class="super-admin-login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <h1>Super Admin Portal</h1>
-      <p>Administrative Access</p>
-    </div>
+<div>
+  <img
+    src="assets/backgroundImage.jpg"
+    alt="Achtergrond"
+    class="background-image"
+  />
+  <div class="login-container">
+    <img src="assets/GOAntwerpen.png" alt="GoSmartLib Logo" class="logo" />
+    <h1>GO!SmartLib</h1>
+    <p class="subtitle">Beheerder Inloggen</p>
 
     <form class="login-form" (ngSubmit)="login()">
       <!-- Error Message -->
@@ -13,14 +17,14 @@
 
       <!-- Username Field -->
       <div class="form-group">
-        <label for="username">Username</label>
+        <label for="username">Gebruikersnaam</label>
         <input
           type="text"
           id="username"
           class="form-control"
           [(ngModel)]="username"
           name="username"
-          placeholder="Enter your username"
+          placeholder="Voer uw gebruikersnaam in"
           [disabled]="isLoading"
           autocomplete="username"
           required
@@ -29,7 +33,7 @@
 
       <!-- Password Field -->
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="password">Wachtwoord</label>
         <div class="password-input-group">
           <input
             [type]="showPassword ? 'text' : 'password'"
@@ -37,7 +41,7 @@
             class="form-control"
             [(ngModel)]="password"
             name="password"
-            placeholder="Enter your password"
+            placeholder="Voer uw wachtwoord in"
             [disabled]="isLoading"
             (keypress)="onKeyPress($event)"
             autocomplete="current-password"
@@ -48,7 +52,7 @@
             class="toggle-password"
             (click)="togglePasswordVisibility()"
             [disabled]="isLoading"
-            aria-label="Toggle password visibility"
+            aria-label="Wachtwoord zichtbaarheid in-/uitschakelen"
           >
             {{ showPassword ? '🙈' : '👁️' }}
           </button>
@@ -61,24 +65,19 @@
         class="btn-login"
         [disabled]="isLoading"
       >
-        <span *ngIf="!isLoading">Sign In</span>
+        <span *ngIf="!isLoading">Inloggen</span>
         <span *ngIf="isLoading" class="loading-spinner">
-          <span class="spinner"></span> Logging in...
+          <span class="spinner"></span> Aan het inloggen...
         </span>
       </button>
     </form>
 
     <!-- Footer Links -->
     <div class="login-footer">
-      <p>Not a super admin?</p>
+      <p>Bent u geen beheerder?</p>
       <a href="javascript:void(0)" (click)="goToUserLogin()" class="link-secondary">
-        Go to user login
+        Ga naar gebruiker inloggen
       </a>
-    </div>
-
-    <!-- Warning Banner -->
-    <div class="warning-banner">
-      <p>⚠️ This portal is for administrative use only. Keep your credentials secure.</p>
     </div>
   </div>
 </div>
