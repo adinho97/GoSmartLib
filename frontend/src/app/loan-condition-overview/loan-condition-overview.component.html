@@ -74,7 +74,11 @@
                     <span>{{ item.bookTitel }}</span>
                   </div>
                 </td>
-                <td>#{{ item.copyId }}</td>
+                <td>
+                  #{{
+                    getBookSpecificCopyNumber(item.bookId, item.copyId) ?? "..."
+                  }}
+                </td>
                 <td>{{ getUserName(item.userSub) }}</td>
                 <td>{{ conditionLabel(item.loanedCondition) }}</td>
                 <td>
@@ -237,14 +241,18 @@
                     <span>{{ lost.bookTitel }}</span>
                   </div>
                 </td>
-                <td>#{{ lost.copyId }}</td>
+                <td>
+                  #{{
+                    getBookSpecificCopyNumber(lost.bookId, lost.copyId) ?? "..."
+                  }}
+                </td>
                 <td>{{ conditionLabel(lost.condition) }}</td>
                 <td>
                   <button
                     type="button"
                     class="recover-btn"
                     [disabled]="isRecoveringCopy(lost.copyId)"
-                    (click)="markLostCopyAsFound(lost)"
+                    (click)="openFoundCopyDialog(lost)"
                   >
                     {{
                       isRecoveringCopy(lost.copyId)
@@ -260,4 +268,70 @@
       </div>
     }
   </section>
+
+  @if (foundCopyDialogOpen && foundCopyDialogItem) {
+    <div
+      class="return-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeFoundCopyDialog()"
+    >
+      <div class="return-modal" (click)="$event.stopPropagation()">
+        <header class="return-modal-header">
+          <h3>Exemplaar opnieuw gevonden</h3>
+          <button
+            type="button"
+            class="return-modal-close"
+            (click)="closeFoundCopyDialog()"
+            aria-label="Sluit dialoog"
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="return-modal-content">
+          <p class="return-modal-intro">
+            Geef aan in welke staat het boek is teruggevonden. Daarna zetten we
+            het exemplaar opnieuw op beschikbaar.
+          </p>
+
+          <div class="return-modal-field">
+            <label for="found-copy-condition">Staat van het boek</label>
+            <select
+              id="found-copy-condition"
+              [(ngModel)]="foundCopyCondition"
+              [disabled]="isRecoveringCopy(foundCopyDialogItem.copyId)"
+            >
+              <option value="GOOD">Goed</option>
+              <option value="MODERATE">Matig</option>
+              <option value="BAD">Slecht</option>
+            </select>
+          </div>
+        </div>
+
+        <footer class="return-modal-actions">
+          <button
+            type="button"
+            class="cancel-return-btn"
+            (click)="closeFoundCopyDialog()"
+            [disabled]="isRecoveringCopy(foundCopyDialogItem.copyId)"
+          >
+            Annuleren
+          </button>
+          <button
+            type="button"
+            class="confirm-return-btn"
+            [disabled]="isRecoveringCopy(foundCopyDialogItem.copyId)"
+            (click)="confirmFoundCopyDialog()"
+          >
+            {{
+              isRecoveringCopy(foundCopyDialogItem.copyId)
+                ? "Bezig..."
+                : "Beschikbaar maken"
+            }}
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
 </div>

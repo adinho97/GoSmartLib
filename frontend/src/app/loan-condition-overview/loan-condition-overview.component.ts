@@ -22,6 +22,9 @@ export class LoanConditionOverviewComponent implements OnInit {
   loading = true;
   error = "";
   successMessage = "";
+  foundCopyDialogOpen = false;
+  foundCopyDialogItem: LostCopyOverview | null = null;
+  foundCopyCondition: ReturnCondition = "GOOD";
 
   worsenedReturns: WorsenedReturn[] = [];
   bookStates: BookStateOverview[] = [];
@@ -35,6 +38,8 @@ export class LoanConditionOverviewComponent implements OnInit {
   private userNames = new Map<string, string>();
   private loadingUserSubs = new Set<string>();
   private recoveringCopyIds = new Set<number>();
+  private bookSpecificCopyNumbers = new Map<string, number>();
+  private loadingCopyNumberBooks = new Set<number>();
 
   constructor(private loanService: LoanService) {}
 
@@ -52,6 +57,7 @@ export class LoanConditionOverviewComponent implements OnInit {
       this.bookStates = overview.bookStates || [];
       this.lostCopies = overview.lostCopies || [];
       await this.populateUserNames(this.worsenedReturns);
+      await this.prefetchBookSpecificCopyNumbers();
     } catch {
       this.error = "Overzicht laden mislukt.";
     } finally {
@@ -59,12 +65,26 @@ export class LoanConditionOverviewComponent implements OnInit {
     }
   }
 
-  async markLostCopyAsFound(lost: LostCopyOverview): Promise<void> {
-    const selectedCondition = this.askConditionForFoundCopy(lost);
-    if (!selectedCondition) {
+  openFoundCopyDialog(lost: LostCopyOverview): void {
+    this.error = "";
+    this.successMessage = "";
+    this.foundCopyDialogItem = lost;
+    this.foundCopyCondition = this.defaultReturnConditionFromLost(lost);
+    this.foundCopyDialogOpen = true;
+  }
+
+  closeFoundCopyDialog(): void {
+    this.foundCopyDialogOpen = false;
+    this.foundCopyDialogItem = null;
+    this.foundCopyCondition = "GOOD";
+  }
+
+  async confirmFoundCopyDialog(): Promise<void> {
+    if (!this.foundCopyDialogItem) {
       return;
     }
 
+    const lost = this.foundCopyDialogItem;
     this.error = "";
     this.successMessage = "";
     this.recoveringCopyIds.add(lost.copyId);
@@ -72,9 +92,17 @@ export class LoanConditionOverviewComponent implements OnInit {
     try {
       await this.loanService.updateCopyState(lost.copyId, {
         status: "AVAILABLE",
-        condition: selectedCondition,
+        condition: this.foundCopyCondition,
       });
-      this.successMessage = `Exemplaar #${lost.copyId} is opnieuw beschikbaar.`;
+      await this.populateBookSpecificCopyNumbers(lost.bookId);
+      const copyNumber = this.getBookSpecificCopyNumber(
+        lost.bookId,
+        lost.copyId,
+      );
+      this.successMessage = copyNumber
+        ? `Exemplaar #${copyNumber} is opnieuw beschikbaar.`
+        : "Exemplaar is opnieuw beschikbaar.";
+      this.closeFoundCopyDialog();
       await this.loadOverview();
     } catch {
       this.error = "Exemplaar kon niet als beschikbaar worden ingesteld.";
@@ -85,6 +113,30 @@ export class LoanConditionOverviewComponent implements OnInit {
 
   isRecoveringCopy(copyId: number): boolean {
     return this.recoveringCopyIds.has(copyId);
+  }
+
+  getBookSpecificCopyNumber(
+    bookId: number | null | undefined,
+    copyId: number | null | undefined,
+  ): number | null {
+    if (!bookId || !copyId) {
+      return null;
+    }
+
+    const key = this.toBookCopyKey(bookId, copyId);
+    const cached = this.bookSpecificCopyNumbers.get(key);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    if (!this.loadingCopyNumberBooks.has(bookId)) {
+      this.loadingCopyNumberBooks.add(bookId);
+      this.populateBookSpecificCopyNumbers(bookId).finally(() => {
+        this.loadingCopyNumberBooks.delete(bookId);
+      });
+    }
+
+    return null;
   }
 
   get worsenedReturnsCount(): number {
@@ -245,25 +297,54 @@ export class LoanConditionOverviewComponent implements OnInit {
     return result;
   }
 
-  private askConditionForFoundCopy(
+  private defaultReturnConditionFromLost(
     lost: LostCopyOverview,
-  ): ReturnCondition | null {
-    const input = window.prompt(
-      `In welke staat werd "${lost.bookTitel}" opnieuw gevonden? Typ: goed, matig of slecht.`,
-      "goed",
-    );
-
-    if (input === null) {
-      return null;
+  ): ReturnCondition {
+    if (lost.condition === "MODERATE") {
+      return "MODERATE";
     }
+    if (lost.condition === "BAD") {
+      return "BAD";
+    }
+    return "GOOD";
+  }
 
-    const normalized = input.trim().toLowerCase();
-    if (normalized === "goed") return "GOOD";
-    if (normalized === "matig") return "MODERATE";
-    if (normalized === "slecht") return "BAD";
+  private async prefetchBookSpecificCopyNumbers(): Promise<void> {
+    this.bookSpecificCopyNumbers.clear();
 
-    window.alert("Ongeldige keuze. Gebruik: goed, matig of slecht.");
-    return null;
+    const uniqueBookIds = Array.from(
+      new Set([
+        ...this.worsenedReturns.map((item) => item.bookId),
+        ...this.lostCopies.map((item) => item.bookId),
+      ]),
+    ).filter((bookId): bookId is number => typeof bookId === "number");
+
+    await Promise.all(
+      uniqueBookIds.map((bookId) =>
+        this.populateBookSpecificCopyNumbers(bookId),
+      ),
+    );
+  }
+
+  private async populateBookSpecificCopyNumbers(bookId: number): Promise<void> {
+    try {
+      const copies = await this.loanService.getCopiesForBook(bookId);
+      const sortedCopies = [...copies].sort(
+        (left, right) => left.id - right.id,
+      );
+      sortedCopies.forEach((copy, index) => {
+        this.bookSpecificCopyNumbers.set(
+          this.toBookCopyKey(bookId, copy.id),
+          index + 1,
+        );
+      });
+    } catch {
+      // Keep table usable even if resolving a copy number fails.
+    }
+  }
+
+  private toBookCopyKey(bookId: number, copyId: number): string {
+    return `${bookId}:${copyId}`;
   }
 
   private async populateUserNames(rows: WorsenedReturn[]) {
