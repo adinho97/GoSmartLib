@@ -23,6 +23,11 @@ export class LoanConditionOverviewComponent implements OnInit {
   bookStates: BookStateOverview[] = [];
   lostCopies: LostCopyOverview[] = [];
 
+  // Search and pagination for bookStates section
+  bookSearch = "";
+  bookPage = 1;
+  readonly bookPageSize = 10;
+
   private userNames = new Map<string, string>();
 
   constructor(private loanService: LoanService) {}
@@ -62,6 +67,34 @@ export class LoanConditionOverviewComponent implements OnInit {
     ).length;
   }
 
+  get filteredBookStates(): BookStateOverview[] {
+    const query = this.bookSearch.trim().toLowerCase();
+    const filtered = query
+      ? this.bookStates.filter((book) =>
+          book.bookTitel.toLowerCase().includes(query),
+        )
+      : this.bookStates;
+
+    // Reset to page 1 if search changes
+    if (query && this.bookPage > 1) {
+      this.bookPage = 1;
+    }
+
+    const start = (this.bookPage - 1) * this.bookPageSize;
+    const end = start + this.bookPageSize;
+    return filtered.slice(start, end);
+  }
+
+  get bookStatesTotalPages(): number {
+    const query = this.bookSearch.trim().toLowerCase();
+    const filtered = query
+      ? this.bookStates.filter((book) =>
+          book.bookTitel.toLowerCase().includes(query),
+        )
+      : this.bookStates;
+    return Math.ceil(filtered.length / this.bookPageSize);
+  }
+
   conditionLabel(
     condition: "GOOD" | "MODERATE" | "BAD" | null | undefined,
   ): string {
@@ -95,6 +128,16 @@ export class LoanConditionOverviewComponent implements OnInit {
 
   isLostReturn(item: WorsenedReturn): boolean {
     return item.returnedStatus === "LOST";
+  }
+
+  onBookSearch(): void {
+    this.bookPage = 1;
+  }
+
+  goToBookPage(page: number): void {
+    if (page >= 1 && page <= this.bookStatesTotalPages) {
+      this.bookPage = page;
+    }
   }
 
   private async populateUserNames(rows: WorsenedReturn[]) {

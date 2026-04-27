@@ -94,6 +94,16 @@
     @if (!loading && bookStates.length === 0) {
       <p class="empty-state">Geen exemplaargegevens beschikbaar.</p>
     } @else {
+      <div class="search-and-filter">
+        <input
+          type="text"
+          placeholder="Zoek naar boeken..."
+          [(ngModel)]="bookSearch"
+          (input)="onBookSearch()"
+          class="search-input"
+        />
+      </div>
+
       <div class="table-wrap">
         <table>
           <thead>
@@ -110,7 +120,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (state of bookStates; track state.bookId) {
+            @for (state of filteredBookStates; track state.bookId) {
               <tr>
                 <td>
                   <div class="book-cell">
@@ -137,6 +147,28 @@
           </tbody>
         </table>
       </div>
+
+      @if (bookStatesTotalPages > 1) {
+        <div class="pagination-controls">
+          <button
+            class="pagination-btn"
+            [disabled]="bookPage === 1"
+            (click)="goToBookPage(bookPage - 1)"
+          >
+            ← Vorige
+          </button>
+          <span class="pagination-info">
+            Pagina {{ bookPage }} van {{ bookStatesTotalPages }}
+          </span>
+          <button
+            class="pagination-btn"
+            [disabled]="bookPage === bookStatesTotalPages"
+            (click)="goToBookPage(bookPage + 1)"
+          >
+            Volgende →
+          </button>
+        </div>
+      }
     }
   </section>
 
