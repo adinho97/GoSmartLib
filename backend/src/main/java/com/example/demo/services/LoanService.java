@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.dto.CreateLoanRequest;
+import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.entities.BookCopy;
@@ -13,7 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,6 +89,7 @@ public class LoanService {
         loan.setUserSub(request.getUserSub());
         loan.setLoanedAt(LocalDate.now());
         loan.setDueDate(request.getDueDate());
+        loan.setLoanedCondition(copy.getCondition());
 
         Loan savedLoan = loanRepo.save(loan);
         logger.info("Loan created: id={}, bookId={}, userSub={}", savedLoan.getId(), request.getBookId(),
@@ -117,6 +123,8 @@ public class LoanService {
             .count();
 
         loan.setReturnedAt(returnedAt);
+        loan.setReturnedStatus(targetStatus);
+        loan.setReturnedCondition(targetCondition);
         loan.getCopy().setStatus(targetStatus);
         loan.getCopy().setCondition(targetCondition);
         copyRepo.save(loan.getCopy());
@@ -180,6 +188,103 @@ public class LoanService {
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    public LoanConditionOverviewDto getConditionOverview() {
+        List<LoanConditionOverviewDto.WorsenedReturnDto> worsenedReturns = loanRepo.findByReturnedAtIsNotNull()
+                .stream()
+                .filter(this::isWorsenedReturn)
+                .map(loan -> {
+                    LoanConditionOverviewDto.WorsenedReturnDto dto = new LoanConditionOverviewDto.WorsenedReturnDto();
+                    dto.setLoanId(loan.getId());
+                    dto.setCopyId(loan.getCopy().getId());
+                    dto.setBookId(loan.getCopy().getBook().getId());
+                    dto.setBookTitel(loan.getCopy().getBook().getTitel());
+                    dto.setBookCover(loan.getCopy().getBook().getCover());
+                    dto.setUserSub(loan.getUserSub());
+                    dto.setLoanedAt(loan.getLoanedAt());
+                    dto.setReturnedAt(loan.getReturnedAt());
+                    dto.setLoanedCondition(loan.getLoanedCondition());
+                    dto.setReturnedCondition(loan.getReturnedCondition());
+                    dto.setReturnedStatus(loan.getReturnedStatus());
+                    return dto;
+                })
+                .sorted(Comparator.comparing(LoanConditionOverviewDto.WorsenedReturnDto::getReturnedAt,
+                        Comparator.nullsLast(LocalDate::compareTo)).reversed())
+                .collect(Collectors.toList());
+
+        Map<Long, LoanConditionOverviewDto.BookStateDto> groupedStates = new LinkedHashMap<>();
+        copyRepo.findAll().forEach(copy -> {
+            Long bookId = copy.getBook().getId();
+            LoanConditionOverviewDto.BookStateDto state = groupedStates.computeIfAbsent(bookId, ignored -> {
+                LoanConditionOverviewDto.BookStateDto newState = new LoanConditionOverviewDto.BookStateDto();
+                newState.setBookId(copy.getBook().getId());
+                newState.setBookTitel(copy.getBook().getTitel());
+                newState.setBookCover(copy.getBook().getCover());
+                return newState;
+            });
+
+            state.setTotalCopies(state.getTotalCopies() + 1);
+
+            switch (copy.getStatus()) {
+                case AVAILABLE -> state.setAvailableCopies(state.getAvailableCopies() + 1);
+                case LOANED -> state.setLoanedCopies(state.getLoanedCopies() + 1);
+                case DAMAGED -> state.setDamagedCopies(state.getDamagedCopies() + 1);
+                case LOST -> state.setLostCopies(state.getLostCopies() + 1);
+            }
+
+            switch (copy.getCondition()) {
+                case GOOD -> state.setGoodConditionCopies(state.getGoodConditionCopies() + 1);
+                case MODERATE -> state.setModerateConditionCopies(state.getModerateConditionCopies() + 1);
+                case BAD -> state.setBadConditionCopies(state.getBadConditionCopies() + 1);
+            }
+        });
+
+        List<LoanConditionOverviewDto.BookStateDto> bookStates = new ArrayList<>(groupedStates.values());
+        bookStates.sort(Comparator.comparing(LoanConditionOverviewDto.BookStateDto::getBookTitel, String.CASE_INSENSITIVE_ORDER));
+
+        List<LoanConditionOverviewDto.LostCopyDto> lostCopies = copyRepo.findAll().stream()
+                .filter(copy -> copy.getStatus() == BookCopy.CopyStatus.LOST)
+                .map(copy -> {
+                    LoanConditionOverviewDto.LostCopyDto dto = new LoanConditionOverviewDto.LostCopyDto();
+                    dto.setCopyId(copy.getId());
+                    dto.setBookId(copy.getBook().getId());
+                    dto.setBookTitel(copy.getBook().getTitel());
+                    dto.setBookCover(copy.getBook().getCover());
+                    dto.setCondition(copy.getCondition());
+                    return dto;
+                })
+                .sorted(Comparator.comparing(LoanConditionOverviewDto.LostCopyDto::getBookTitel, String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList());
+
+        LoanConditionOverviewDto overview = new LoanConditionOverviewDto();
+        overview.setWorsenedReturns(worsenedReturns);
+        overview.setBookStates(bookStates);
+        overview.setLostCopies(lostCopies);
+        return overview;
+    }
+
+    private boolean isWorsenedReturn(Loan loan) {
+        if (loan.getReturnedStatus() == BookCopy.CopyStatus.LOST) {
+            return true;
+        }
+
+        if (loan.getLoanedCondition() == null || loan.getReturnedCondition() == null) {
+            return false;
+        }
+
+        return conditionSeverity(loan.getReturnedCondition()) > conditionSeverity(loan.getLoanedCondition());
+    }
+
+    private int conditionSeverity(BookCopy.CopyCondition condition) {
+        if (condition == null) {
+            return 0;
+        }
+        return switch (condition) {
+            case GOOD -> 0;
+            case MODERATE -> 1;
+            case BAD -> 2;
+        };
+    }
+
     private LoanDto toDto(Loan loan) {
         LoanDto dto = new LoanDto();
         dto.setId(loan.getId());
@@ -191,6 +296,9 @@ public class LoanService {
         dto.setLoanedAt(loan.getLoanedAt());
         dto.setDueDate(loan.getDueDate());
         dto.setReturnedAt(loan.getReturnedAt());
+        dto.setLoanedCondition(loan.getLoanedCondition());
+        dto.setReturnedCondition(loan.getReturnedCondition());
+        dto.setReturnedStatus(loan.getReturnedStatus());
         return dto;
     }
 

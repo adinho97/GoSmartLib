@@ -27,6 +27,53 @@ export interface BookCopyInfo {
   condition: "GOOD" | "MODERATE" | "BAD";
 }
 
+export interface UpdateBookCopyStateRequest {
+  status: "AVAILABLE" | "DAMAGED" | "LOST";
+  condition: "GOOD" | "MODERATE" | "BAD";
+}
+
+export interface WorsenedReturn {
+  loanId: number;
+  copyId: number;
+  bookId: number;
+  bookTitel: string;
+  bookCover: string;
+  userSub: string;
+  loanedAt: string;
+  returnedAt: string;
+  loanedCondition: "GOOD" | "MODERATE" | "BAD" | null;
+  returnedCondition: "GOOD" | "MODERATE" | "BAD" | null;
+  returnedStatus: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST" | null;
+}
+
+export interface BookStateOverview {
+  bookId: number;
+  bookTitel: string;
+  bookCover: string;
+  totalCopies: number;
+  availableCopies: number;
+  loanedCopies: number;
+  damagedCopies: number;
+  lostCopies: number;
+  goodConditionCopies: number;
+  moderateConditionCopies: number;
+  badConditionCopies: number;
+}
+
+export interface LostCopyOverview {
+  copyId: number;
+  bookId: number;
+  bookTitel: string;
+  bookCover: string;
+  condition: "GOOD" | "MODERATE" | "BAD";
+}
+
+export interface LoanConditionOverview {
+  worsenedReturns: WorsenedReturn[];
+  bookStates: BookStateOverview[];
+  lostCopies: LostCopyOverview[];
+}
+
 @Injectable({ providedIn: "root" })
 export class LoanService {
   private api = "/api/uitleningen";
@@ -97,6 +144,14 @@ export class LoanService {
     return res.data;
   }
 
+  async getConditionOverview(): Promise<LoanConditionOverview> {
+    const res = await axios.get(
+      `${this.api}/inspectie/conditie`,
+      this.headers(),
+    );
+    return res.data as LoanConditionOverview;
+  }
+
   async getCopySummary(
     bookId: number,
   ): Promise<{ total: number; available: number }> {
@@ -120,6 +175,13 @@ export class LoanService {
 
   async addCopy(bookId: number): Promise<void> {
     await axios.post(`${this.copyApi}/boek/${bookId}`, {}, this.headers());
+  }
+
+  async updateCopyState(
+    copyId: number,
+    request: UpdateBookCopyStateRequest,
+  ): Promise<void> {
+    await axios.patch(`${this.copyApi}/${copyId}`, request, this.headers());
   }
 
   async deleteCopy(copyId: number): Promise<void> {
