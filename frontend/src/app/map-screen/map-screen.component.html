@@ -1,17 +1,31 @@
 <div class="map-page">
-  <header class="map-header">
-    <div class="header-text">
-      <h1>Scholenoverzicht</h1>
-      <p>Bekijk de locaties van alle scholen binnen het GoSmartLib netwerk.</p>
-    </div>
-  </header>
-
   <div class="map-layout">
     <!-- Sidebar: School List -->
     <aside class="school-sidebar">
       <div class="sidebar-header">
         <h2>Geregistreerde Scholen</h2>
-        <span class="school-count">{{ schools.length }}</span>
+        <span class="school-count">{{ totalSchools }}</span>
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          placeholder="Zoek op naam of adres..."
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()"
+        />
+        <svg
+          class="search-icon"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
       </div>
 
       <ul class="school-list">
@@ -21,7 +35,6 @@
             [class.selected]="selectedSchool?.id === school.id"
             (click)="zoomToSchool(school)"
           >
-            <div class="school-icon">🏫</div>
             <div class="school-details">
               <span class="school-name">{{ school.naam }}</span>
               <span class="school-address">{{
@@ -33,6 +46,34 @@
           <li class="empty-msg">Geen scholen gevonden.</li>
         }
       </ul>
+
+      @if (totalPages > 1) {
+        <div class="history-pagination">
+          <button
+            class="history-page-btn"
+            [disabled]="currentPage === 0"
+            (click)="goToPage(currentPage - 1)"
+          >
+            &larr;
+          </button>
+          @for (page of getPageNumbers(); track page) {
+            <button
+              class="history-page-btn"
+              [class.active]="currentPage === page"
+              (click)="goToPage(page)"
+            >
+              {{ page + 1 }}
+            </button>
+          }
+          <button
+            class="history-page-btn"
+            [disabled]="currentPage >= totalPages - 1"
+            (click)="goToPage(currentPage + 1)"
+          >
+            &rarr;
+          </button>
+        </div>
+      }
     </aside>
 
     <!-- Main Content: Map Container -->

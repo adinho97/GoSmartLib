@@ -22,6 +22,21 @@ export class SchoolService {
     return from(axios.get<School[]>(this.apiUrl)).pipe(map((res) => res.data));
   }
 
+  /**
+   * Returns a paged list of schools
+   */
+  getPagedSchools(
+    page: number,
+    size: number,
+    query: string = "",
+  ): Observable<{ items: School[]; total: number }> {
+    return from(
+      axios.get<any>(`${this.apiUrl}/paged`, {
+        params: { page, size, query },
+      }),
+    ).pipe(map((res) => ({ items: res.data.items, total: res.data.total })));
+  }
+
   getSelectedSchoolId(): number | null {
     const value = localStorage.getItem(this.selectedSchoolIdKey);
     if (!value) {
