@@ -1,0 +1,70 @@
+<div class="faq-beheer-page">
+  <header class="faq-beheer-hero">
+    <h1>FAQ Beheer</h1>
+    <p>Voeg vragen toe, bewerk of verwijder ze.</p>
+  </header>
+
+  <main class="faq-beheer-content">
+    @if (errorMessage) {
+      <p class="faq-error">{{ errorMessage }}</p>
+    }
+
+    <div class="faq-beheer-toolbar">
+      <button class="btn-add" type="button" (click)="startAdd()" [disabled]="isAdding">
+        + Nieuwe vraag toevoegen
+      </button>
+    </div>
+
+    @if (isAdding) {
+      <article class="faq-form-card">
+        <h2>Nieuwe FAQ</h2>
+        <label>
+          Vraag
+          <input type="text" [(ngModel)]="newItem.question" placeholder="Vraag..." />
+        </label>
+        <label>
+          Antwoord
+          <textarea [(ngModel)]="newItem.answer" rows="3" placeholder="Antwoord..."></textarea>
+        </label>
+        <div class="faq-form-actions">
+          <button class="btn-save" type="button" (click)="saveNew()" [disabled]="isSaving">
+            Opslaan
+          </button>
+          <button class="btn-cancel" type="button" (click)="cancelAdd()">Annuleren</button>
+        </div>
+      </article>
+    }
+
+    <div class="faq-list">
+      @for (item of faqItems; track item.id) {
+        <article class="faq-manage-item">
+          @if (editingItem?.id === item.id) {
+            <label>
+              Vraag
+              <input type="text" [(ngModel)]="editingItem!.question" />
+            </label>
+            <label>
+              Antwoord
+              <textarea [(ngModel)]="editingItem!.answer" rows="3"></textarea>
+            </label>
+            <div class="faq-form-actions">
+              <button class="btn-save" type="button" (click)="saveEdit()" [disabled]="isSaving">
+                Opslaan
+              </button>
+              <button class="btn-cancel" type="button" (click)="cancelEdit()">Annuleren</button>
+            </div>
+          } @else {
+            <div class="faq-item-content">
+              <strong class="faq-item-question">{{ item.question }}</strong>
+              <p class="faq-item-answer">{{ item.answer }}</p>
+            </div>
+            <div class="faq-item-actions">
+              <button class="btn-edit" type="button" (click)="startEdit(item)">Bewerken</button>
+              <button class="btn-delete" type="button" (click)="delete(item)">Verwijderen</button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  </main>
+</div>

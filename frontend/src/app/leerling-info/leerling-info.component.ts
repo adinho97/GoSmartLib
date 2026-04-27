@@ -1,4 +1,5 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
+import { FaqService, FaqItem } from "../services/faq.service";
 
 type QuickAction = {
   label: string;
@@ -10,19 +11,15 @@ type SiteFeature = {
   description: string;
 };
 
-type FaqItem = {
-  question: string;
-  answer: string;
-};
-
 @Component({
   selector: "app-leerling-info",
   templateUrl: "./leerling-info.component.html",
   styleUrls: ["./leerling-info.component.css"],
   standalone: false,
 })
-export class LeerlingInfoComponent {
+export class LeerlingInfoComponent implements OnInit {
   openFaqIndex: number | null = 0;
+  faqItems: FaqItem[] = [];
 
   readonly quickActions: QuickAction[] = [
     { label: "Naar Boekencatalogus", link: "/books" },
@@ -66,28 +63,14 @@ export class LeerlingInfoComponent {
     "Voeg interessante titels toe aan je verlanglijst, zodat je ze later makkelijk terugvindt.",
   ];
 
-  readonly faqItems: FaqItem[] = [
-    {
-      question: "Ik vind een boek online, maar niet in de bib. Wat nu?",
-      answer:
-        "Vraag aan de bib-verantwoordelijke of het boek momenteel uitgeleend, verplaatst of niet aanwezig is. Je kunt het boek intussen op je verlanglijst zetten.",
-    },
-    {
-      question: "Hoe zie ik wanneer ik een boek moet terugbrengen?",
-      answer:
-        "Open je dashboard en kijk bij Geleende boeken. Daar zie je je actieve uitleningen en de relevante datums.",
-    },
-    {
-      question: "Wat is het verschil tussen Verlanglijst en Favorieten?",
-      answer:
-        "Verlanglijst is voor boeken die je nog wilt lezen. Favorieten zijn boeken die je extra goed vond en snel wilt terugvinden.",
-    },
-    {
-      question: "Hoe krijg ik betere aanbevelingen?",
-      answer:
-        "Geef voorkeur aan genres die je graag leest, gebruik favorieten en werk je profielgebruik regelmatig bij. Dan worden aanbevelingen persoonlijker.",
-    },
-  ];
+  constructor(private faqService: FaqService) {}
+
+  ngOnInit(): void {
+    this.faqService.getAll().subscribe({
+      next: (items) => (this.faqItems = items),
+      error: () => (this.faqItems = []),
+    });
+  }
 
   toggleFaq(index: number): void {
     this.openFaqIndex = this.openFaqIndex === index ? null : index;
