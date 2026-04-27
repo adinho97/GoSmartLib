@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.CreateLoanRequest;
+import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.dto.UpdateDueDateRequest;
@@ -31,6 +32,10 @@ public class LoanController {
     private boolean canLoan(String userRole) {
         return userRole != null && LOAN_ROLES.stream()
                 .anyMatch(r -> r.equalsIgnoreCase(userRole));
+    }
+
+    private boolean isLibrarian(String userRole) {
+        return userRole != null && "bibbeheerder".equalsIgnoreCase(userRole);
     }
 
     @PostMapping
@@ -99,6 +104,15 @@ public class LoanController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(loanService.getActiveLoansForBook(bookId));
+    }
+
+    @GetMapping("/inspectie/conditie")
+    public ResponseEntity<LoanConditionOverviewDto> getConditionOverview(
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        if (!isLibrarian(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(loanService.getConditionOverview());
     }
 
     @PatchMapping("/{id}/due-date")

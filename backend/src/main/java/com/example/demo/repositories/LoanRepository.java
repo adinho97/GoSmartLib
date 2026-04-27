@@ -17,6 +17,8 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     List<Loan> findByUserSubAndReturnedAtIsNotNull(String userSub);
 
+    List<Loan> findByReturnedAtIsNotNull();
+
     List<Loan> findByCopy_Book_IdAndReturnedAtIsNull(Long bookId);
 
     Optional<Loan> findByCopy_IdAndReturnedAtIsNull(Long copyId);
