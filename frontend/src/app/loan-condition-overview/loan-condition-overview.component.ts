@@ -9,6 +9,8 @@ import {
 } from "../services/loan.service";
 import { composeFullName, inferNameParts } from "../utils/name-utils";
 
+type PaginationItem = number | "...";
+
 @Component({
   selector: "app-loan-condition-overview",
   templateUrl: "./loan-condition-overview.component.html",
@@ -22,6 +24,11 @@ export class LoanConditionOverviewComponent implements OnInit {
   worsenedReturns: WorsenedReturn[] = [];
   bookStates: BookStateOverview[] = [];
   lostCopies: LostCopyOverview[] = [];
+
+  // Search and pagination for bookStates section
+  bookSearch = "";
+  bookPage = 1;
+  readonly bookPageSize = 10;
 
   private userNames = new Map<string, string>();
 
@@ -62,6 +69,38 @@ export class LoanConditionOverviewComponent implements OnInit {
     ).length;
   }
 
+  get filteredBookStates(): BookStateOverview[] {
+    const query = this.bookSearch.trim().toLowerCase();
+    const filtered = query
+      ? this.bookStates.filter((book) =>
+          book.bookTitel.toLowerCase().includes(query),
+        )
+      : this.bookStates;
+
+    // Reset to page 1 if search changes
+    if (query && this.bookPage > 1) {
+      this.bookPage = 1;
+    }
+
+    const start = (this.bookPage - 1) * this.bookPageSize;
+    const end = start + this.bookPageSize;
+    return filtered.slice(start, end);
+  }
+
+  get bookStatesTotalPages(): number {
+    const query = this.bookSearch.trim().toLowerCase();
+    const filtered = query
+      ? this.bookStates.filter((book) =>
+          book.bookTitel.toLowerCase().includes(query),
+        )
+      : this.bookStates;
+    return Math.ceil(filtered.length / this.bookPageSize);
+  }
+
+  get visibleBookPages(): PaginationItem[] {
+    return this.buildVisiblePages(this.bookStatesTotalPages, this.bookPage);
+  }
+
   conditionLabel(
     condition: "GOOD" | "MODERATE" | "BAD" | null | undefined,
   ): string {
@@ -82,11 +121,90 @@ export class LoanConditionOverviewComponent implements OnInit {
   }
 
   getUserName(sub: string): string {
-    return this.userNames.get(sub) || sub;
+    const cached = this.userNames.get(sub);
+    if (cached) {
+      return cached;
+    }
+    // If not cached, fetch it asynchronously
+    this.getDisplayNameForSub(sub).then((name) => {
+      this.userNames.set(sub, name);
+    });
+    return sub;
   }
 
   isLostReturn(item: WorsenedReturn): boolean {
     return item.returnedStatus === "LOST";
+  }
+
+  onBookSearch(): void {
+    this.bookPage = 1;
+  }
+
+  goToBookPage(page: number | string): void {
+    if (
+      typeof page === "number" &&
+      page >= 1 &&
+      page <= this.bookStatesTotalPages
+    ) {
+      this.bookPage = page;
+    }
+  }
+
+  goToFirstBookPage(): void {
+    this.goToBookPage(1);
+  }
+
+  goToPreviousBookPage(): void {
+    if (this.bookPage > 1) {
+      this.goToBookPage(this.bookPage - 1);
+    }
+  }
+
+  goToNextBookPage(): void {
+    if (this.bookPage < this.bookStatesTotalPages) {
+      this.goToBookPage(this.bookPage + 1);
+    }
+  }
+
+  goToLastBookPage(): void {
+    this.goToBookPage(this.bookStatesTotalPages);
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   private async populateUserNames(rows: WorsenedReturn[]) {
