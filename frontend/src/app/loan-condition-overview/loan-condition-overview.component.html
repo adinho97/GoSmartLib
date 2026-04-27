@@ -20,6 +20,9 @@
   @if (error) {
     <p class="error-banner">{{ error }}</p>
   }
+  @if (successMessage) {
+    <p class="success-banner">{{ successMessage }}</p>
+  }
 
   <section class="stats-grid">
     <article class="stat-card">
@@ -216,6 +219,7 @@
               <th>Boek</th>
               <th>Exemplaar ID</th>
               <th>Laatste gekende conditie</th>
+              <th>Actie</th>
             </tr>
           </thead>
           <tbody>
@@ -235,6 +239,20 @@
                 </td>
                 <td>#{{ lost.copyId }}</td>
                 <td>{{ conditionLabel(lost.condition) }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="recover-btn"
+                    [disabled]="isRecoveringCopy(lost.copyId)"
+                    (click)="markLostCopyAsFound(lost)"
+                  >
+                    {{
+                      isRecoveringCopy(lost.copyId)
+                        ? "Bezig..."
+                        : "Opnieuw gevonden"
+                    }}
+                  </button>
+                </td>
               </tr>
             }
           </tbody>
