@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import axios from "axios";
 import { LoanService, Loan } from "../services/loan.service";
+import { composeFullName, inferNameParts } from "../utils/name-utils";
 
 type Tab = "students" | "books";
 
@@ -169,24 +170,77 @@ export class LoanHistoryCatalogComponent implements OnInit {
       );
       const userInfo = response.data as any;
 
-      // Try multiple field combinations for maximum compatibility
-      const fullname =
-        userInfo.fullname ||
-        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim();
+      const rawFirstName =
+        userInfo.actualUserFirstName ||
+        userInfo.givenName ||
+        userInfo.given_name ||
+        userInfo.firstName ||
+        userInfo.firstname ||
+        "";
+
+      const rawLastName =
+        userInfo.actualUserSurname ||
+        userInfo.actualUserLastName ||
+        userInfo.familyName ||
+        userInfo.family_name ||
+        userInfo.lastName ||
+        userInfo.lastname ||
+        userInfo.surname ||
+        "";
+
+      const { firstName, lastName } = inferNameParts(
+        rawFirstName,
+        rawLastName,
+        [
+          userInfo.fullname,
+          userInfo.displayName,
+          `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+          `${userInfo.givenName || userInfo.given_name || ""} ${
+            userInfo.familyName || userInfo.family_name || ""
+          }`.trim(),
+          userInfo.name,
+          userInfo.preferred_username,
+        ],
+      );
+
+      const composedFullName = composeFullName(firstName, lastName);
+      if (composedFullName) {
+        return composedFullName;
+      }
+
+      const fallbackFullNameCandidates = [
+        userInfo.fullname,
+        userInfo.displayName,
+        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+        `${userInfo.givenName || userInfo.given_name || ""} ${
+          userInfo.familyName || userInfo.family_name || ""
+        }`.trim(),
+      ];
+
+      const fallbackFullName = fallbackFullNameCandidates.find((candidate) => {
+        const normalized = (candidate || "").trim();
+        if (!normalized) {
+          return false;
+        }
+        const parts = normalized.split(/\s+/).filter(Boolean);
+        return parts.length >= 2;
+      });
+
+      if (fallbackFullName) {
+        return fallbackFullName.trim();
+      }
 
       return (
         (
-          fullname ||
+          rawFirstName ||
+          rawLastName ||
           userInfo.name ||
           userInfo.givenName ||
           userInfo.given_name ||
-          userInfo.familyName ||
-          userInfo.sub ||
           ""
         ).trim() || sub
       );
     } catch {
-      // Gracefully fallback to sub if API fails
       return sub;
     }
   }
