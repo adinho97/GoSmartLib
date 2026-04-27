@@ -1,0 +1,50 @@
+<div class="map-page">
+  <header class="map-header">
+    <div class="header-text">
+      <h1>Scholenoverzicht</h1>
+      <p>Bekijk de locaties van alle scholen binnen het GoSmartLib netwerk.</p>
+    </div>
+  </header>
+
+  <div class="map-layout">
+    <!-- Sidebar: School List -->
+    <aside class="school-sidebar">
+      <div class="sidebar-header">
+        <h2>Geregistreerde Scholen</h2>
+        <span class="school-count">{{ schools.length }}</span>
+      </div>
+
+      <ul class="school-list">
+        @for (school of schools; track school.id) {
+          <li
+            class="school-item"
+            [class.selected]="selectedSchool?.id === school.id"
+            (click)="zoomToSchool(school)"
+          >
+            <div class="school-icon">🏫</div>
+            <div class="school-details">
+              <span class="school-name">{{ school.naam }}</span>
+              <span class="school-address">{{
+                school.adres || "Geen adres beschikbaar"
+              }}</span>
+            </div>
+          </li>
+        } @empty {
+          <li class="empty-msg">Geen scholen gevonden.</li>
+        }
+      </ul>
+    </aside>
+
+    <!-- Main Content: Map Container -->
+    <main class="map-main">
+      <div id="map" class="map-canvas"></div>
+
+      @if (isLoading) {
+        <div class="map-loader">
+          <span class="spinner"></span>
+          <p>Kaart en locaties worden geladen...</p>
+        </div>
+      }
+    </main>
+  </div>
+</div>
