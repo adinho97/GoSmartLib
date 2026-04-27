@@ -110,6 +110,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   bookNotFoundDialogOpen = false;
   scannedBarcodeNotFound = "";
 
+  bookUnavailableDialogOpen = false;
   scanConfirmationOpen = false;
   pendingScannedBook: BookOption | null = null;
 
@@ -763,7 +764,12 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   }
 
   async processScan(barcode: string) {
-    if (this.isProcessingScan || this.bookNotFoundDialogOpen || this.scanConfirmationOpen) return;
+    if (
+      this.isProcessingScan || 
+      this.bookNotFoundDialogOpen || 
+      this.bookUnavailableDialogOpen || 
+      this.scanConfirmationOpen
+    ) return;
     this.isProcessingScan = true;
     this.errorMessage = "";
     this.successMessage = "";
@@ -772,7 +778,13 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       const schoolId = this.schoolService.getSelectedSchoolId() ?? undefined;
 
       // 1. Try finding the book by GO-number in the library first (unique copy)
-      const bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(barcode, schoolId);
+      let bookFoundByGo = null;
+      try {
+        bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(barcode, schoolId);
+      } catch (e) {
+        // Ignore 404/errors here to allow fallback to ISBN search
+        console.debug("Book not found by GO-number, trying ISBN...");
+      }
       let book = bookFoundByGo;
 
       // 2. If not found, try searching by ISBN in the library
@@ -796,7 +808,12 @@ export class LoanPageComponent implements OnInit, OnDestroy {
           totalCopies: summary.total,
           scannedBarcode: bookFoundByGo ? barcode : undefined
         };
-        this.scanConfirmationOpen = true;
+
+        if (summary.available <= 0) {
+          this.bookUnavailableDialogOpen = true;
+        } else {
+          this.scanConfirmationOpen = true;
+        }
       } else {
         this.scannedBarcodeNotFound = barcode;
         this.bookNotFoundDialogOpen = true;
@@ -830,6 +847,11 @@ export class LoanPageComponent implements OnInit, OnDestroy {
 
   private closeScanConfirmation() {
     this.scanConfirmationOpen = false;
+    this.pendingScannedBook = null;
+  }
+
+  closeBookUnavailableDialog() {
+    this.bookUnavailableDialogOpen = false;
     this.pendingScannedBook = null;
   }
 }
