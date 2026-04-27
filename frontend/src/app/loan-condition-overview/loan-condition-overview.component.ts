@@ -82,7 +82,15 @@ export class LoanConditionOverviewComponent implements OnInit {
   }
 
   getUserName(sub: string): string {
-    return this.userNames.get(sub) || sub;
+    const cached = this.userNames.get(sub);
+    if (cached) {
+      return cached;
+    }
+    // If not cached, fetch it asynchronously
+    this.getDisplayNameForSub(sub).then((name) => {
+      this.userNames.set(sub, name);
+    });
+    return sub;
   }
 
   isLostReturn(item: WorsenedReturn): boolean {
