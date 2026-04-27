@@ -8,30 +8,6 @@
   ); /* Assuming a variable for light background */
 }
 
-.map-header {
-  background-color: var(
-    --primary-color
-  ); /* Assuming a primary color variable */
-  color: white;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.map-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-
-.map-header p {
-  margin: 0.5rem 0 0;
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
-
 .map-layout {
   display: flex;
   flex-grow: 1; /* Allows it to take remaining vertical space */
@@ -76,10 +52,80 @@
   font-weight: 600;
 }
 
+/* Search Bar */
+.search-bar {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+.search-bar input {
+  width: 100%;
+  padding: 0.8rem 1rem 0.8rem 2.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+.search-icon {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-color-medium);
+  pointer-events: none;
+}
+
+/* Pagination (using history-pagination style) */
+.history-pagination {
+  margin-top: 1.2rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  max-width: 100%;
+  padding: 1.5rem 0 0.5rem; /* Added padding to match previous sidebar-pagination */
+  border-top: 1px solid var(--border-color-light); /* Added border-top */
+}
+
+.history-page-btn {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 999px; /* Changed to 999px for full circle */
+  border: 1px solid var(--border-color); /* Using var for consistency */
+  background: white;
+  color: var(--text-color-medium); /* Using var for consistency */
+  font-weight: 600;
+  cursor: pointer;
+  font-family: Arial, sans-serif; /* Explicitly set font */
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-page-btn:hover {
+  background: var(--hover-color); /* Using var for consistency */
+}
+
+.history-page-btn.active {
+  background: var(--primary-color); /* Using var for consistency */
+  border-color: var(--primary-color); /* Using var for consistency */
+  color: #ffffff;
+}
+
+.history-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .school-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  flex-grow: 1;
 }
 
 .school-item {
@@ -104,12 +150,6 @@
   border: 2px solid var(--primary-color);
   background-color: var(--primary-color-light); /* Lighter shade of primary */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-.school-icon {
-  font-size: 1.8rem;
-  margin-right: 1rem;
-  color: var(--primary-color);
 }
 
 .school-details {
@@ -215,6 +255,7 @@
   .school-sidebar {
     flex: none; /* Remove fixed width */
     width: 100%;
+    max-height: 40vh; /* Limit height on small screens */
     max-height: 40vh; /* Limit height on small screens */
     border-right: none;
     border-bottom: 1px solid var(--border-color);
