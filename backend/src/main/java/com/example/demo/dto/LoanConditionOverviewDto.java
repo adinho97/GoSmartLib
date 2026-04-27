@@ -38,6 +38,7 @@ public class LoanConditionOverviewDto {
     public static class WorsenedReturnDto {
         private Long loanId;
         private Long copyId;
+        private Integer copyNumber;
         private Long bookId;
         private String bookTitel;
         private String bookCover;
@@ -62,6 +63,14 @@ public class LoanConditionOverviewDto {
 
         public void setCopyId(Long copyId) {
             this.copyId = copyId;
+        }
+
+        public Integer getCopyNumber() {
+            return copyNumber;
+        }
+
+        public void setCopyNumber(Integer copyNumber) {
+            this.copyNumber = copyNumber;
         }
 
         public Long getBookId() {
@@ -241,6 +250,7 @@ public class LoanConditionOverviewDto {
 
     public static class LostCopyDto {
         private Long copyId;
+        private Integer copyNumber;
         private Long bookId;
         private String bookTitel;
         private String bookCover;
@@ -252,6 +262,14 @@ public class LoanConditionOverviewDto {
 
         public void setCopyId(Long copyId) {
             this.copyId = copyId;
+        }
+
+        public Integer getCopyNumber() {
+            return copyNumber;
+        }
+
+        public void setCopyNumber(Integer copyNumber) {
+            this.copyNumber = copyNumber;
         }
 
         public Long getBookId() {
