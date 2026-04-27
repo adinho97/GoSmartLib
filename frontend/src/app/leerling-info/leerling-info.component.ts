@@ -66,10 +66,18 @@ export class LeerlingInfoComponent implements OnInit {
   constructor(private faqService: FaqService) {}
 
   ngOnInit(): void {
-    this.faqService.getAll().subscribe({
+    const schoolId = this.getSchoolId();
+    this.faqService.getAll(schoolId).subscribe({
       next: (items) => (this.faqItems = items),
       error: () => (this.faqItems = []),
     });
+  }
+
+  private getSchoolId(): number | undefined {
+    const value = localStorage.getItem("selectedSchoolId");
+    if (!value) return undefined;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
   }
 
   toggleFaq(index: number): void {
