@@ -1,4 +1,7 @@
 /* Global styles */
+
+@import "leaflet/dist/leaflet.css";
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;

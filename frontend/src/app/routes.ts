@@ -22,6 +22,7 @@ import { SetupInviteComponent } from "./setup/setup-invite/setup-invite.componen
 import { SelectBibbeheerderComponent } from "./setup/select-bibbeheerder/select-bibbeheerder.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
+import { MapScreenComponent } from "./map-screen/map-screen.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -99,6 +100,12 @@ export const appRoutes: Routes = [
   {
     path: "uitleen",
     component: LoanPageComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "map",
+    component: MapScreenComponent,
     canActivate: [AuthGuard],
     data: { roles: ["leerkracht", "bibbeheerder"] },
   },

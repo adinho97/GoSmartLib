@@ -169,3 +169,73 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+.faq-beheer-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.school-label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+.school-select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+  min-width: 200px;
+}
+.beheer-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.tab-nav {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #374151;
+  transition: background 0.2s, border-color 0.2s;
+}
+.tab-btn:hover { background: #e5e7eb; }
+.tab-btn.active {
+  background: #2f6fdb;
+  border-color: #2f6fdb;
+  color: #fff;
+}
+.tab-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.fallback-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-style: italic;
+}
+.empty-state {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 20px;
+}

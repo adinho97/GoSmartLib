@@ -1,5 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FaqService, FaqItem } from '../services/faq.service';
+import { InfoContentService, InfoContentItem, Sectie } from '../services/info-content.service';
+import { SchoolService } from '../services/school.service';
+import { School } from '../models/school';
+
+type ActiveTab = 'faq' | 'stappen' | 'features' | 'tips';
 
 @Component({
   selector: 'app-bib-faq-beheer',
@@ -8,85 +13,160 @@ import { FaqService, FaqItem } from '../services/faq.service';
   standalone: false,
 })
 export class BibFaqBeheerComponent implements OnInit {
-  faqItems: FaqItem[] = [];
-  editingItem: FaqItem | null = null;
-  isAdding = false;
-  isSaving = false;
+  activeTab: ActiveTab = 'faq';
+  schools: School[] = [];
+  selectedSchoolId: number | null = null;
   errorMessage = '';
+  isSaving = false;
+  isAdding = false;
 
-  newItem: FaqItem = { question: '', answer: '' };
+  // FAQ
+  faqItems: FaqItem[] = [];
+  editingFaq: FaqItem | null = null;
+  newFaq: FaqItem = { question: '', answer: '' };
 
-  constructor(private faqService: FaqService) {}
+  // Info content (stappen / features / tips)
+  infoItems: InfoContentItem[] = [];
+  editingInfo: InfoContentItem | null = null;
+  newInfo: InfoContentItem = { sectie: 'STAP', inhoud: '', titel: '' };
 
-  ngOnInit(): void {
-    this.loadFaqs();
+  constructor(
+    private faqService: FaqService,
+    private infoContentService: InfoContentService,
+    private schoolService: SchoolService,
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    this.schools = await this.schoolService.getSchools();
+    this.selectedSchoolId = this.schoolService.getSelectedSchoolId()
+      ?? (this.schools[0]?.id ?? null);
+    this.loadTab();
   }
 
-  loadFaqs(): void {
-    this.faqService.getAll().subscribe({
+  setTab(tab: ActiveTab): void {
+    this.activeTab = tab;
+    this.isAdding = false;
+    this.editingFaq = null;
+    this.editingInfo = null;
+    this.loadTab();
+  }
+
+  onSchoolChange(schoolId: number): void {
+    this.selectedSchoolId = Number(schoolId);
+    this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
+    this.loadTab();
+  }
+
+  loadTab(): void {
+    this.errorMessage = '';
+    if (this.activeTab === 'faq') this.loadFaq();
+    else this.loadInfo(this.tabToSectie());
+  }
+
+  private tabToSectie(): Sectie {
+    if (this.activeTab === 'stappen') return 'STAP';
+    if (this.activeTab === 'features') return 'FEATURE';
+    return 'TIP';
+  }
+
+  // ── FAQ ──────────────────────────────────────────────────
+  loadFaq(): void {
+    this.faqService.getAll(this.selectedSchoolId ?? undefined).subscribe({
       next: (items) => (this.faqItems = items),
       error: () => (this.errorMessage = 'Kon FAQ niet laden.'),
     });
   }
 
-  startAdd(): void {
+  startAddFaq(): void {
     this.isAdding = true;
-    this.editingItem = null;
-    this.newItem = { question: '', answer: '' };
+    this.editingFaq = null;
+    this.newFaq = { question: '', answer: '', schoolId: this.selectedSchoolId ?? undefined };
   }
 
-  cancelAdd(): void {
-    this.isAdding = false;
-  }
-
-  saveNew(): void {
-    if (!this.newItem.question.trim() || !this.newItem.answer.trim()) return;
+  saveNewFaq(): void {
+    if (!this.newFaq.question.trim() || !this.newFaq.answer.trim()) return;
     this.isSaving = true;
-    this.newItem.sortOrder = this.faqItems.length;
-    this.faqService.create(this.newItem).subscribe({
-      next: () => {
-        this.isAdding = false;
-        this.isSaving = false;
-        this.loadFaqs();
-      },
-      error: () => {
-        this.errorMessage = 'Kon FAQ niet opslaan.';
-        this.isSaving = false;
-      },
+    this.newFaq.sortOrder = this.faqItems.length;
+    this.faqService.create(this.newFaq).subscribe({
+      next: () => { this.isAdding = false; this.isSaving = false; this.loadFaq(); },
+      error: () => { this.errorMessage = 'Kon FAQ niet opslaan.'; this.isSaving = false; },
     });
   }
 
-  startEdit(item: FaqItem): void {
-    this.editingItem = { ...item };
+  startEditFaq(item: FaqItem): void {
+    this.editingFaq = { ...item };
     this.isAdding = false;
   }
 
-  cancelEdit(): void {
-    this.editingItem = null;
-  }
-
-  saveEdit(): void {
-    if (!this.editingItem || !this.editingItem.id) return;
-    if (!this.editingItem.question.trim() || !this.editingItem.answer.trim()) return;
+  saveEditFaq(): void {
+    if (!this.editingFaq?.id) return;
     this.isSaving = true;
-    this.faqService.update(this.editingItem.id, this.editingItem).subscribe({
-      next: () => {
-        this.editingItem = null;
-        this.isSaving = false;
-        this.loadFaqs();
-      },
-      error: () => {
-        this.errorMessage = 'Kon FAQ niet bijwerken.';
-        this.isSaving = false;
-      },
+    this.faqService.update(this.editingFaq.id, this.editingFaq).subscribe({
+      next: () => { this.editingFaq = null; this.isSaving = false; this.loadFaq(); },
+      error: () => { this.errorMessage = 'Kon FAQ niet bijwerken.'; this.isSaving = false; },
     });
   }
 
-  delete(item: FaqItem): void {
+  deleteFaq(item: FaqItem): void {
     if (!item.id || !confirm(`"${item.question}" verwijderen?`)) return;
     this.faqService.delete(item.id).subscribe({
-      next: () => this.loadFaqs(),
+      next: () => this.loadFaq(),
       error: () => (this.errorMessage = 'Kon FAQ niet verwijderen.'),
     });
+  }
+
+  // ── Info content ─────────────────────────────────────────
+  loadInfo(sectie: Sectie): void {
+    this.infoContentService.getAll(sectie, this.selectedSchoolId ?? undefined).subscribe({
+      next: (items) => (this.infoItems = items),
+      error: () => (this.errorMessage = 'Kon inhoud niet laden.'),
+    });
+  }
+
+  startAddInfo(): void {
+    this.isAdding = true;
+    this.editingInfo = null;
+    this.newInfo = {
+      sectie: this.tabToSectie(),
+      inhoud: '',
+      titel: '',
+      schoolId: this.selectedSchoolId ?? undefined,
+      sortOrder: this.infoItems.length,
+    };
+  }
+
+  saveNewInfo(): void {
+    if (!this.newInfo.inhoud.trim()) return;
+    this.isSaving = true;
+    this.infoContentService.create(this.newInfo).subscribe({
+      next: () => { this.isAdding = false; this.isSaving = false; this.loadInfo(this.tabToSectie()); },
+      error: () => { this.errorMessage = 'Kon item niet opslaan.'; this.isSaving = false; },
+    });
+  }
+
+  startEditInfo(item: InfoContentItem): void {
+    this.editingInfo = { ...item };
+    this.isAdding = false;
+  }
+
+  saveEditInfo(): void {
+    if (!this.editingInfo?.id) return;
+    this.isSaving = true;
+    this.infoContentService.update(this.editingInfo.id, this.editingInfo).subscribe({
+      next: () => { this.editingInfo = null; this.isSaving = false; this.loadInfo(this.tabToSectie()); },
+      error: () => { this.errorMessage = 'Kon item niet bijwerken.'; this.isSaving = false; },
+    });
+  }
+
+  deleteInfo(item: InfoContentItem): void {
+    if (!item.id || !confirm(`Dit item verwijderen?`)) return;
+    this.infoContentService.delete(item.id).subscribe({
+      next: () => this.loadInfo(this.tabToSectie()),
+      error: () => (this.errorMessage = 'Kon item niet verwijderen.'),
+    });
+  }
+
+  get showTitelField(): boolean {
+    return this.activeTab === 'features';
   }
 }

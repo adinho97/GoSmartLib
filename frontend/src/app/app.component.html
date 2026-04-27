@@ -15,6 +15,11 @@
         <a routerLink="/books" [class.active]="isBooksListActive">
           Boekencatalogus
         </a>
+        @if (isLibrarian || isTeacher) {
+          <a routerLink="/map" routerLinkActive="active">
+            Scholenoverzicht
+          </a>
+        }
         @if (isLibrarian) {
           <a routerLink="/add-general" routerLinkActive="active">
             Boek toevoegen
