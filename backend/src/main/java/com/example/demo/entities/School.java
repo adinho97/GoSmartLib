@@ -1,21 +1,24 @@
 package com.example.demo.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "scholen")
 public class School {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Size(max = 255)
-    @Column(nullable = false, unique = true)
     private String naam;
 
+    private String adres;
+
+    private Double latitude;
+
+    private Double longitude;
+
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -30,5 +33,29 @@ public class School {
 
     public void setNaam(String naam) {
         this.naam = naam;
+    }
+
+    public String getAdres() {
+        return adres;
+    }
+
+    public void setAdres(String adres) {
+        this.adres = adres;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import axios from "axios";
 import { School } from "../models/school";
+import { from, Observable, map } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -12,6 +13,13 @@ export class SchoolService {
   async getSchools(): Promise<School[]> {
     const res = await axios.get<School[]>(this.apiUrl);
     return res.data;
+  }
+
+  /**
+   * Returns schools as an Observable for the Map Component
+   */
+  getAllSchools(): Observable<School[]> {
+    return from(axios.get<School[]>(this.apiUrl)).pipe(map((res) => res.data));
   }
 
   getSelectedSchoolId(): number | null {

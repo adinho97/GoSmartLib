@@ -28,6 +28,7 @@ import { RecommendationCardComponent } from "./recommendation-card/recommendatio
 import { ActiveLoansComponent } from "./active-loans/active-loans.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { UiToastComponent } from "./components/ui-toast/ui-toast.component";
+import { MapScreenComponent } from "./map-screen/map-screen.component";
 import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 
 registerLocaleData(localeNl, "nl");
@@ -61,6 +62,7 @@ registerLocaleData(localeNl, "nl");
     RecommendationSectionComponent,
     RecommendationCardComponent,
     ActiveLoansComponent,
+    MapScreenComponent,
     UiToastComponent,
   ],
   providers: [provideHttpClient(), { provide: LOCALE_ID, useValue: "nl" }],
