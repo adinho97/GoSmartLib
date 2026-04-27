@@ -17,6 +17,7 @@ import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history
 import { SetupInviteComponent } from "./setup/setup-invite/setup-invite.component";
 import { SelectBibbeheerderComponent } from "./setup/select-bibbeheerder/select-bibbeheerder.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
+import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 
 export const appRoutes: Routes = [
   { path: "login", component: LoginComponent },
@@ -102,6 +103,12 @@ export const appRoutes: Routes = [
     path: "setup/select-teacher",
     component: SelectBibbeheerderComponent,
   },
+  {
+  path: "faq-beheer",
+  component: BibFaqBeheerComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ["bibbeheerder"] },
+},
 ];
 
 @NgModule({
