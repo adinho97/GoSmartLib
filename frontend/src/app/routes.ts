@@ -1,7 +1,9 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { AuthGuard } from "./auth.guard";
+import { AdminGuard } from "./admin.guard";
 import { LoginComponent } from "./login/login.component";
+import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
@@ -19,6 +21,15 @@ import { SelectBibbeheerderComponent } from "./setup/select-bibbeheerder/select-
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 
 export const appRoutes: Routes = [
+  // Super Admin Routes
+  { path: "super-admin-login", component: SuperAdminLoginComponent },
+  {
+    path: "admin/dashboard",
+    component: DashboardComponent, // Placeholder - will create dedicated admin dashboard later
+    canActivate: [AdminGuard],
+  },
+  
+  // Regular User Routes
   { path: "login", component: LoginComponent },
   { path: "auth/callback", component: LoginComponent },
   {
