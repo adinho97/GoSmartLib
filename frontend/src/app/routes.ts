@@ -1,7 +1,9 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { AuthGuard } from "./auth.guard";
+import { AdminGuard } from "./admin.guard";
 import { LoginComponent } from "./login/login.component";
+import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
@@ -18,8 +20,18 @@ import { LoanConditionOverviewComponent } from "./loan-condition-overview/loan-c
 import { SetupInviteComponent } from "./setup/setup-invite/setup-invite.component";
 import { SelectBibbeheerderComponent } from "./setup/select-bibbeheerder/select-bibbeheerder.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
+import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 
 export const appRoutes: Routes = [
+  // Super Admin Routes
+  { path: "super-admin-login", component: SuperAdminLoginComponent },
+  {
+    path: "admin/dashboard",
+    component: DashboardComponent, // Placeholder - will create dedicated admin dashboard later
+    canActivate: [AdminGuard],
+  },
+  
+  // Regular User Routes
   { path: "login", component: LoginComponent },
   { path: "auth/callback", component: LoginComponent },
   {
@@ -109,6 +121,12 @@ export const appRoutes: Routes = [
     path: "setup/select-teacher",
     component: SelectBibbeheerderComponent,
   },
+  {
+  path: "faq-beheer",
+  component: BibFaqBeheerComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ["bibbeheerder"] },
+},
 ];
 
 @NgModule({

@@ -94,6 +94,16 @@
     @if (!loading && bookStates.length === 0) {
       <p class="empty-state">Geen exemplaargegevens beschikbaar.</p>
     } @else {
+      <div class="search-and-filter">
+        <input
+          type="text"
+          placeholder="Zoek naar boeken..."
+          [(ngModel)]="bookSearch"
+          (input)="onBookSearch()"
+          class="search-input"
+        />
+      </div>
+
       <div class="table-wrap">
         <table>
           <thead>
@@ -110,7 +120,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (state of bookStates; track state.bookId) {
+            @for (state of filteredBookStates; track state.bookId) {
               <tr>
                 <td>
                   <div class="book-cell">
@@ -137,6 +147,57 @@
           </tbody>
         </table>
       </div>
+
+      @if (bookStatesTotalPages > 1) {
+        <div class="book-pagination">
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === 1"
+            (click)="goToFirstBookPage()"
+          >
+            &lt;&lt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === 1"
+            (click)="goToPreviousBookPage()"
+          >
+            &lt;
+          </button>
+          @for (page of visibleBookPages; track $index) {
+            @if (page === "...") {
+              <span class="page-ellipsis">...</span>
+            } @else {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="page === bookPage"
+                (click)="goToBookPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          }
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === bookStatesTotalPages"
+            (click)="goToNextBookPage()"
+          >
+            &gt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === bookStatesTotalPages"
+            (click)="goToLastBookPage()"
+          >
+            &gt;&gt;
+          </button>
+        </div>
+      }
     }
   </section>
 

@@ -2,12 +2,13 @@ import { LOCALE_ID, NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
 import { AppRoutingModule } from "./app-routing.module";
-import { provideHttpClient } from "@angular/common/http";
+import { provideHttpClient, withInterceptors } from "@angular/common/http";
 
 import { registerLocaleData } from "@angular/common";
 import localeNl from "@angular/common/locales/nl";
 import { AppComponent } from "./app.component";
 import { LoginComponent } from "./login/login.component";
+import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
@@ -28,6 +29,7 @@ import { ActiveLoansComponent } from "./active-loans/active-loans.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { UiToastComponent } from "./components/ui-toast/ui-toast.component";
 import { MapScreenComponent } from "./map-screen/map-screen.component";
+import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -35,6 +37,7 @@ registerLocaleData(localeNl, "nl");
   declarations: [
     AppComponent,
     LoginComponent,
+    SuperAdminLoginComponent,
     DashboardComponent,
     AddBookComponent,
     AddIsbnComponent,
@@ -47,6 +50,7 @@ registerLocaleData(localeNl, "nl");
     LoanHistoryCatalogComponent,
     LoanConditionOverviewComponent,
     LeerlingInfoComponent,
+    BibFaqBeheerComponent,
   ],
   imports: [
     BrowserModule,
