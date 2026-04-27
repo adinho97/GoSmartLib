@@ -13,9 +13,9 @@ class LeesniveauTest {
 
     @Test
     void fromValueReturnsMatchingEnumForKnownLabel() {
-        Leesniveau result = Leesniveau.fromValue("1ste-2de leerljaar");
+        Leesniveau result = Leesniveau.fromValue("A");
 
-        assertEquals(Leesniveau.EERSTE_TWEEDE_LEERJAAR, result);
+        assertEquals(Leesniveau.A, result);
     }
 
     @Test
@@ -26,15 +26,15 @@ class LeesniveauTest {
 
     @Test
     void getLabelReturnsApiValue() {
-        assertEquals("3de-4de leerjaar", Leesniveau.DERDE_VIERDE_LEERJAAR.getLabel());
+        assertEquals("B", Leesniveau.B.getLabel());
     }
 
     @Test
     void jacksonSerializesAndDeserializesUsingLabel() throws Exception {
-        String serialized = objectMapper.writeValueAsString(Leesniveau.EERSTE_GRAAD);
-        Leesniveau deserialized = objectMapper.readValue("\"1ste graad\"", Leesniveau.class);
+        String serialized = objectMapper.writeValueAsString(Leesniveau.C);
+        Leesniveau deserialized = objectMapper.readValue("\"C\"", Leesniveau.class);
 
-        assertEquals("\"1ste graad\"", serialized);
-        assertEquals(Leesniveau.EERSTE_GRAAD, deserialized);
+        assertEquals("\"C\"", serialized);
+        assertEquals(Leesniveau.C, deserialized);
     }
 }
