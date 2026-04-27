@@ -74,11 +74,7 @@
                     <span>{{ item.bookTitel }}</span>
                   </div>
                 </td>
-                <td>
-                  #{{
-                    getBookSpecificCopyNumber(item.bookId, item.copyId) ?? "..."
-                  }}
-                </td>
+                <td>#{{ item.copyNumber ?? "..." }}</td>
                 <td>{{ getUserName(item.userSub) }}</td>
                 <td>{{ conditionLabel(item.loanedCondition) }}</td>
                 <td>
@@ -241,11 +237,7 @@
                     <span>{{ lost.bookTitel }}</span>
                   </div>
                 </td>
-                <td>
-                  #{{
-                    getBookSpecificCopyNumber(lost.bookId, lost.copyId) ?? "..."
-                  }}
-                </td>
+                <td>#{{ lost.copyNumber ?? "..." }}</td>
                 <td>{{ conditionLabel(lost.condition) }}</td>
                 <td>
                   <button

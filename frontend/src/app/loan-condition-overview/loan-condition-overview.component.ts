@@ -34,12 +34,11 @@ export class LoanConditionOverviewComponent implements OnInit {
   bookSearch = "";
   bookPage = 1;
   readonly bookPageSize = 10;
+  private filteredBookStatesAll: BookStateOverview[] = [];
 
   private userNames = new Map<string, string>();
   private loadingUserSubs = new Set<string>();
   private recoveringCopyIds = new Set<number>();
-  private bookSpecificCopyNumbers = new Map<string, number>();
-  private loadingCopyNumberBooks = new Set<number>();
 
   constructor(private loanService: LoanService) {}
 
@@ -56,8 +55,8 @@ export class LoanConditionOverviewComponent implements OnInit {
       this.worsenedReturns = overview.worsenedReturns || [];
       this.bookStates = overview.bookStates || [];
       this.lostCopies = overview.lostCopies || [];
+      this.applyBookFilter();
       await this.populateUserNames(this.worsenedReturns);
-      await this.prefetchBookSpecificCopyNumbers();
     } catch {
       this.error = "Overzicht laden mislukt.";
     } finally {
@@ -94,11 +93,7 @@ export class LoanConditionOverviewComponent implements OnInit {
         status: "AVAILABLE",
         condition: this.foundCopyCondition,
       });
-      await this.populateBookSpecificCopyNumbers(lost.bookId);
-      const copyNumber = this.getBookSpecificCopyNumber(
-        lost.bookId,
-        lost.copyId,
-      );
+      const copyNumber = lost.copyNumber;
       this.successMessage = copyNumber
         ? `Exemplaar #${copyNumber} is opnieuw beschikbaar.`
         : "Exemplaar is opnieuw beschikbaar.";
@@ -113,30 +108,6 @@ export class LoanConditionOverviewComponent implements OnInit {
 
   isRecoveringCopy(copyId: number): boolean {
     return this.recoveringCopyIds.has(copyId);
-  }
-
-  getBookSpecificCopyNumber(
-    bookId: number | null | undefined,
-    copyId: number | null | undefined,
-  ): number | null {
-    if (!bookId || !copyId) {
-      return null;
-    }
-
-    const key = this.toBookCopyKey(bookId, copyId);
-    const cached = this.bookSpecificCopyNumbers.get(key);
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    if (!this.loadingCopyNumberBooks.has(bookId)) {
-      this.loadingCopyNumberBooks.add(bookId);
-      this.populateBookSpecificCopyNumbers(bookId).finally(() => {
-        this.loadingCopyNumberBooks.delete(bookId);
-      });
-    }
-
-    return null;
   }
 
   get worsenedReturnsCount(): number {
@@ -154,31 +125,13 @@ export class LoanConditionOverviewComponent implements OnInit {
   }
 
   get filteredBookStates(): BookStateOverview[] {
-    const query = this.bookSearch.trim().toLowerCase();
-    const filtered = query
-      ? this.bookStates.filter((book) =>
-          book.bookTitel.toLowerCase().includes(query),
-        )
-      : this.bookStates;
-
-    // Reset to page 1 if search changes
-    if (query && this.bookPage > 1) {
-      this.bookPage = 1;
-    }
-
     const start = (this.bookPage - 1) * this.bookPageSize;
     const end = start + this.bookPageSize;
-    return filtered.slice(start, end);
+    return this.filteredBookStatesAll.slice(start, end);
   }
 
   get bookStatesTotalPages(): number {
-    const query = this.bookSearch.trim().toLowerCase();
-    const filtered = query
-      ? this.bookStates.filter((book) =>
-          book.bookTitel.toLowerCase().includes(query),
-        )
-      : this.bookStates;
-    return Math.ceil(filtered.length / this.bookPageSize);
+    return Math.ceil(this.filteredBookStatesAll.length / this.bookPageSize);
   }
 
   get visibleBookPages(): PaginationItem[] {
@@ -228,6 +181,7 @@ export class LoanConditionOverviewComponent implements OnInit {
 
   onBookSearch(): void {
     this.bookPage = 1;
+    this.applyBookFilter();
   }
 
   goToBookPage(page: number | string): void {
@@ -309,42 +263,20 @@ export class LoanConditionOverviewComponent implements OnInit {
     return "GOOD";
   }
 
-  private async prefetchBookSpecificCopyNumbers(): Promise<void> {
-    this.bookSpecificCopyNumbers.clear();
+  private applyBookFilter(): void {
+    const query = this.bookSearch.trim().toLowerCase();
+    this.filteredBookStatesAll = query
+      ? this.bookStates.filter((book) =>
+          book.bookTitel.toLowerCase().includes(query),
+        )
+      : this.bookStates;
 
-    const uniqueBookIds = Array.from(
-      new Set([
-        ...this.worsenedReturns.map((item) => item.bookId),
-        ...this.lostCopies.map((item) => item.bookId),
-      ]),
-    ).filter((bookId): bookId is number => typeof bookId === "number");
-
-    await Promise.all(
-      uniqueBookIds.map((bookId) =>
-        this.populateBookSpecificCopyNumbers(bookId),
-      ),
+    const totalPages = Math.ceil(
+      this.filteredBookStatesAll.length / this.bookPageSize,
     );
-  }
-
-  private async populateBookSpecificCopyNumbers(bookId: number): Promise<void> {
-    try {
-      const copies = await this.loanService.getCopiesForBook(bookId);
-      const sortedCopies = [...copies].sort(
-        (left, right) => left.id - right.id,
-      );
-      sortedCopies.forEach((copy, index) => {
-        this.bookSpecificCopyNumbers.set(
-          this.toBookCopyKey(bookId, copy.id),
-          index + 1,
-        );
-      });
-    } catch {
-      // Keep table usable even if resolving a copy number fails.
+    if (this.bookPage > Math.max(totalPages, 1)) {
+      this.bookPage = 1;
     }
-  }
-
-  private toBookCopyKey(bookId: number, copyId: number): string {
-    return `${bookId}:${copyId}`;
   }
 
   private async populateUserNames(rows: WorsenedReturn[]) {
