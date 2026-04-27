@@ -31,6 +31,7 @@ export class LoanConditionOverviewComponent implements OnInit {
   readonly bookPageSize = 10;
 
   private userNames = new Map<string, string>();
+  private loadingUserSubs = new Set<string>();
 
   constructor(private loanService: LoanService) {}
 
@@ -125,10 +126,16 @@ export class LoanConditionOverviewComponent implements OnInit {
     if (cached) {
       return cached;
     }
-    // If not cached, fetch it asynchronously
-    this.getDisplayNameForSub(sub).then((name) => {
-      this.userNames.set(sub, name);
-    });
+    if (!this.loadingUserSubs.has(sub)) {
+      this.loadingUserSubs.add(sub);
+      this.getDisplayNameForSub(sub)
+        .then((name) => {
+          this.userNames.set(sub, name);
+        })
+        .finally(() => {
+          this.loadingUserSubs.delete(sub);
+        });
+    }
     return sub;
   }
 
@@ -250,14 +257,53 @@ export class LoanConditionOverviewComponent implements OnInit {
         rawLastName,
         [
           userInfo.fullname,
-          userInfo.name,
           userInfo.displayName,
+          `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+          `${userInfo.givenName || userInfo.given_name || ""} ${
+            userInfo.familyName || userInfo.family_name || ""
+          }`.trim(),
+          userInfo.name,
           userInfo.preferred_username,
         ],
       );
 
       const fullName = composeFullName(firstName, lastName);
-      return fullName || sub;
+      if (fullName) {
+        return fullName;
+      }
+
+      const fallbackFullNameCandidates = [
+        userInfo.fullname,
+        userInfo.displayName,
+        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+        `${userInfo.givenName || userInfo.given_name || ""} ${
+          userInfo.familyName || userInfo.family_name || ""
+        }`.trim(),
+      ];
+
+      const fallbackFullName = fallbackFullNameCandidates.find((candidate) => {
+        const normalized = (candidate || "").trim();
+        if (!normalized) {
+          return false;
+        }
+        const parts = normalized.split(/\s+/).filter(Boolean);
+        return parts.length >= 2;
+      });
+
+      if (fallbackFullName) {
+        return fallbackFullName.trim();
+      }
+
+      return (
+        (
+          rawFirstName ||
+          rawLastName ||
+          userInfo.name ||
+          userInfo.givenName ||
+          userInfo.given_name ||
+          ""
+        ).trim() || sub
+      );
     } catch {
       return sub;
     }

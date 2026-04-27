@@ -139,8 +139,12 @@ export class LoanPageComponent implements OnInit {
         rawLastName,
         [
           userInfo.fullname,
-          userInfo.name,
           userInfo.displayName,
+          `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+          `${userInfo.givenName || userInfo.given_name || ""} ${
+            userInfo.familyName || userInfo.family_name || ""
+          }`.trim(),
+          userInfo.name,
           userInfo.preferred_username,
         ],
       );
@@ -150,17 +154,35 @@ export class LoanPageComponent implements OnInit {
         return composedFullName;
       }
 
-      const fullname =
-        userInfo.fullname ||
-        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim();
+      const fallbackFullNameCandidates = [
+        userInfo.fullname,
+        userInfo.displayName,
+        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+        `${userInfo.givenName || userInfo.given_name || ""} ${
+          userInfo.familyName || userInfo.family_name || ""
+        }`.trim(),
+      ];
+
+      const fallbackFullName = fallbackFullNameCandidates.find((candidate) => {
+        const normalized = (candidate || "").trim();
+        if (!normalized) {
+          return false;
+        }
+        const parts = normalized.split(/\s+/).filter(Boolean);
+        return parts.length >= 2;
+      });
+
+      if (fallbackFullName) {
+        return fallbackFullName.trim();
+      }
+
       return (
         (
-          fullname ||
+          rawFirstName ||
+          rawLastName ||
           userInfo.name ||
           userInfo.givenName ||
           userInfo.given_name ||
-          userInfo.familyName ||
-          userInfo.sub ||
           ""
         ).trim() || sub
       );
