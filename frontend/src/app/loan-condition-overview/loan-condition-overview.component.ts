@@ -22,6 +22,9 @@ export class LoanConditionOverviewComponent implements OnInit {
   loading = true;
   error = "";
   successMessage = "";
+  foundCopyDialogOpen = false;
+  foundCopyDialogItem: LostCopyOverview | null = null;
+  foundCopyCondition: ReturnCondition = "GOOD";
 
   worsenedReturns: WorsenedReturn[] = [];
   bookStates: BookStateOverview[] = [];
@@ -59,12 +62,26 @@ export class LoanConditionOverviewComponent implements OnInit {
     }
   }
 
-  async markLostCopyAsFound(lost: LostCopyOverview): Promise<void> {
-    const selectedCondition = this.askConditionForFoundCopy(lost);
-    if (!selectedCondition) {
+  openFoundCopyDialog(lost: LostCopyOverview): void {
+    this.error = "";
+    this.successMessage = "";
+    this.foundCopyDialogItem = lost;
+    this.foundCopyCondition = this.defaultReturnConditionFromLost(lost);
+    this.foundCopyDialogOpen = true;
+  }
+
+  closeFoundCopyDialog(): void {
+    this.foundCopyDialogOpen = false;
+    this.foundCopyDialogItem = null;
+    this.foundCopyCondition = "GOOD";
+  }
+
+  async confirmFoundCopyDialog(): Promise<void> {
+    if (!this.foundCopyDialogItem) {
       return;
     }
 
+    const lost = this.foundCopyDialogItem;
     this.error = "";
     this.successMessage = "";
     this.recoveringCopyIds.add(lost.copyId);
@@ -72,9 +89,10 @@ export class LoanConditionOverviewComponent implements OnInit {
     try {
       await this.loanService.updateCopyState(lost.copyId, {
         status: "AVAILABLE",
-        condition: selectedCondition,
+        condition: this.foundCopyCondition,
       });
       this.successMessage = `Exemplaar #${lost.copyId} is opnieuw beschikbaar.`;
+      this.closeFoundCopyDialog();
       await this.loadOverview();
     } catch {
       this.error = "Exemplaar kon niet als beschikbaar worden ingesteld.";
@@ -245,25 +263,16 @@ export class LoanConditionOverviewComponent implements OnInit {
     return result;
   }
 
-  private askConditionForFoundCopy(
+  private defaultReturnConditionFromLost(
     lost: LostCopyOverview,
-  ): ReturnCondition | null {
-    const input = window.prompt(
-      `In welke staat werd "${lost.bookTitel}" opnieuw gevonden? Typ: goed, matig of slecht.`,
-      "goed",
-    );
-
-    if (input === null) {
-      return null;
+  ): ReturnCondition {
+    if (lost.condition === "MODERATE") {
+      return "MODERATE";
     }
-
-    const normalized = input.trim().toLowerCase();
-    if (normalized === "goed") return "GOOD";
-    if (normalized === "matig") return "MODERATE";
-    if (normalized === "slecht") return "BAD";
-
-    window.alert("Ongeldige keuze. Gebruik: goed, matig of slecht.");
-    return null;
+    if (lost.condition === "BAD") {
+      return "BAD";
+    }
+    return "GOOD";
   }
 
   private async populateUserNames(rows: WorsenedReturn[]) {
