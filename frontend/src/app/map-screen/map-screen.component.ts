@@ -1,6 +1,5 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from "@angular/core";
 import * as L from "leaflet";
-import { MaptilerLayer, MapStyle } from "@maptiler/leaflet-maptilersdk";
 import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
 
@@ -41,9 +40,10 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
       zoom: this.defaultZoom,
     });
 
-    new MaptilerLayer({
-      apiKey: "YOUR_MAPTILER_API_KEY_HERE",
-      style: MapStyle.BASIC,
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
   }
 
