@@ -20,6 +20,7 @@ import { BadgeCollectionComponent } from "./profile/badge-collection/badge-colle
 import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
+import { LoanConditionOverviewComponent } from "./loan-condition-overview/loan-condition-overview.component";
 import { BadgeToastComponent } from "./components/badge-toast/badge-toast.component";
 import { RecommendationSectionComponent } from "./recommendation-section/recommendation-section.component";
 import { RecommendationCardComponent } from "./recommendation-card/recommendation-card.component";
@@ -43,6 +44,7 @@ registerLocaleData(localeNl, "nl");
     ProfileComponent,
     LoanPageComponent,
     LoanHistoryCatalogComponent,
+    LoanConditionOverviewComponent,
     LeerlingInfoComponent,
   ],
   imports: [
