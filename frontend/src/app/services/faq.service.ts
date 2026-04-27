@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Injectable } from "@angular/core";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { Observable } from "rxjs";
 
 export type FaqItem = {
   id?: number;
@@ -9,9 +9,9 @@ export type FaqItem = {
   sortOrder?: number;
 };
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class FaqService {
-  private readonly apiUrl = '/api/faq';
+  private readonly apiUrl = "/api/faq";
 
   constructor(private http: HttpClient) {}
 
@@ -38,7 +38,11 @@ export class FaqService {
   }
 
   private authHeaders(): HttpHeaders {
-    const sub = localStorage.getItem('sub') || '';
-    return new HttpHeaders({ 'X-User-Sub': sub });
+    const sub = localStorage.getItem("sub") || "";
+    const role = localStorage.getItem("role") || "";
+    return new HttpHeaders({
+      "X-User-Sub": sub,
+      "X-User-Role": role,
+    });
   }
 }

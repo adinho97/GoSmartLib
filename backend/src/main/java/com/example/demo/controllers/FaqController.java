@@ -19,7 +19,7 @@ public class FaqController {
     private final AppUserRepository appUserRepository;
 
     public FaqController(FaqRepository faqRepository,
-                         AppUserRepository appUserRepository) {
+            AppUserRepository appUserRepository) {
         this.faqRepository = faqRepository;
         this.appUserRepository = appUserRepository;
     }
@@ -30,22 +30,22 @@ public class FaqController {
         return faqRepository.findAllByOrderBySortOrderAsc();
     }
 
-    // POST — alleen bibbeheerder
     @PostMapping
     public ResponseEntity<?> createFaq(@RequestBody Faq faq,
-                                       @RequestHeader("X-User-Sub") String sub) {
-        if (!isBibbeheerder(sub)) {
+            @RequestHeader("X-User-Sub") String sub,
+            @RequestHeader("X-User-Role") String role) {
+        if (!isBibbeheerder(sub, role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Geen toegang.");
         }
         return ResponseEntity.ok(faqRepository.save(faq));
     }
 
-    // PUT — alleen bibbeheerder
     @PutMapping("/{id}")
     public ResponseEntity<?> updateFaq(@PathVariable Long id,
-                                       @RequestBody Faq updated,
-                                       @RequestHeader("X-User-Sub") String sub) {
-        if (!isBibbeheerder(sub)) {
+            @RequestBody Faq updated,
+            @RequestHeader("X-User-Sub") String sub,
+            @RequestHeader("X-User-Role") String role) {
+        if (!isBibbeheerder(sub, role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Geen toegang.");
         }
         return faqRepository.findById(id).map(faq -> {
@@ -56,11 +56,11 @@ public class FaqController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // DELETE — alleen bibbeheerder
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteFaq(@PathVariable Long id,
-                                       @RequestHeader("X-User-Sub") String sub) {
-        if (!isBibbeheerder(sub)) {
+            @RequestHeader("X-User-Sub") String sub,
+            @RequestHeader("X-User-Role") String role) {
+        if (!isBibbeheerder(sub, role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Geen toegang.");
         }
         if (!faqRepository.existsById(id)) {
@@ -70,8 +70,14 @@ public class FaqController {
         return ResponseEntity.noContent().build();
     }
 
-    private boolean isBibbeheerder(String sub) {
-        Optional<AppUser> user = appUserRepository.findBySub(sub);
-        return user.map(u -> "bibbeheerder".equals(u.getRole())).orElse(false);
+    private boolean isBibbeheerder(String sub, String role) {
+        // Dev login: rol zit in de header
+        if ("bibbeheerder".equals(role)) {
+            return true;
+        }
+        // Echte Smartschool login: rol ophalen uit database
+        return appUserRepository.findBySub(sub)
+                .map(u -> "bibbeheerder".equals(u.getRole()))
+                .orElse(false);
     }
 }
