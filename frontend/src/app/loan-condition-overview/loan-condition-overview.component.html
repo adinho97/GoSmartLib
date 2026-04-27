@@ -49,6 +49,7 @@
           <thead>
             <tr>
               <th>Boek</th>
+              <th>Exemplaar ID</th>
               <th>Gebruiker</th>
               <th>Uitgeleend als</th>
               <th>Teruggebracht als</th>
@@ -70,6 +71,7 @@
                     <span>{{ item.bookTitel }}</span>
                   </div>
                 </td>
+                <td>#{{ item.copyId }}</td>
                 <td>{{ getUserName(item.userSub) }}</td>
                 <td>{{ conditionLabel(item.loanedCondition) }}</td>
                 <td>
