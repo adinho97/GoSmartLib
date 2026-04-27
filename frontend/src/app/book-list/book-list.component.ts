@@ -85,14 +85,7 @@ export class BookListComponent implements OnInit {
     "Portugees",
     "Latijn",
   ];
-  readonly leesniveaus = [
-    "1ste-2de leerljaar",
-    "3de-4de leerjaar",
-    "5de-6de leerjaar",
-    "1ste graad",
-    "2de graad",
-    "3de graad",
-  ];
+  readonly leesniveaus = ["A", "B", "C", "D"];
   readonly nonFictionSubgenres = [
     "Biografie / autobiografie",
     "Wetenschap & technologie",
