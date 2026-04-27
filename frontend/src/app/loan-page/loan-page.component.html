@@ -623,4 +623,48 @@
       </div>
     </div>
   }
+
+  @if (bookNotFoundDialogOpen) {
+    <div
+      class="return-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeBookNotFoundDialog()"
+    >
+      <div class="return-modal" (click)="$event.stopPropagation()">
+        <header class="return-modal-header error-header">
+          <div class="header-title-group">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h3>Boek niet gevonden</h3>
+          </div>
+          <button
+            type="button"
+            class="return-modal-close"
+            (click)="closeBookNotFoundDialog()"
+            aria-label="Sluit dialoog"
+          >
+            ×
+          </button>
+        </header>
+        <div class="return-modal-content">
+          <p class="return-modal-intro">
+            Het gescande boek met barcode <strong>{{ scannedBarcodeNotFound }}</strong> werd niet gevonden in de bibliotheek van deze school.
+          </p>
+        </div>
+        <footer class="return-modal-actions">
+          <button
+            type="button"
+            class="confirm-return-btn"
+            (click)="closeBookNotFoundDialog()"
+          >
+            Begrepen
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
 </div>

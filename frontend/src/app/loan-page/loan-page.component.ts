@@ -107,6 +107,12 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   returnLostBook = false;
   isReturningLoan = false;
 
+  bookNotFoundDialogOpen = false;
+  scannedBarcodeNotFound = "";
+
+  scanConfirmationOpen = false;
+  pendingScannedBook: BookOption | null = null;
+
   copySelectionOpen = false;
   copySelectionState: CopySelectionState | null = null;
   isResolvingCopySelection = false;
@@ -548,6 +554,11 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     this.isReturningLoan = false;
   }
 
+  closeBookNotFoundDialog() {
+    this.bookNotFoundDialogOpen = false;
+    this.scannedBarcodeNotFound = "";
+  }
+
   get returnConditionLabel(): string {
     if (this.returnLostBook) {
       return "verloren";
@@ -752,7 +763,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   }
 
   async processScan(barcode: string) {
-    if (this.isProcessingScan) return;
+    if (this.isProcessingScan || this.bookNotFoundDialogOpen || this.scanConfirmationOpen) return;
     this.isProcessingScan = true;
     this.errorMessage = "";
     this.successMessage = "";
@@ -776,7 +787,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
         // Fetch copy summary for the scanned book
         const summary = await this.loanService.getCopySummary(book.id);
 
-        const bookOption: BookOption = {
+        this.pendingScannedBook = {
           id: book.id,
           titel: book.titel,
           auteur: book.auteur,
@@ -785,24 +796,40 @@ export class LoanPageComponent implements OnInit, OnDestroy {
           totalCopies: summary.total,
           scannedBarcode: bookFoundByGo ? barcode : undefined
         };
-
-        if (bookOption.availableCopies > 0) {
-          // Automatically select the book if not already in the selection list
-          if (!this.isSelected(bookOption)) {
-            this.toggleBook(bookOption);
-          }
-          this.successMessage = `Boek "${bookOption.titel}" toegevoegd aan selectie.`;
-          setTimeout(() => (this.successMessage = ""), 3000);
-        } else {
-          this.errorMessage = "Dit boek heeft geen beschikbare exemplaren.";
-        }
+        this.scanConfirmationOpen = true;
       } else {
-        this.errorMessage = "boek niet gevonden in bibliotheek";
+        this.scannedBarcodeNotFound = barcode;
+        this.bookNotFoundDialogOpen = true;
       }
     } catch (err: any) {
       this.errorMessage = "Er ging iets mis bij het zoeken naar het boek.";
     } finally {
       this.isProcessingScan = false;
     }
+  }
+
+  confirmScannedBook() {
+    if (this.pendingScannedBook) {
+      if (this.pendingScannedBook.availableCopies > 0) {
+        if (!this.isSelected(this.pendingScannedBook)) {
+          this.toggleBook(this.pendingScannedBook);
+        }
+        this.successMessage = `Boek "${this.pendingScannedBook.titel}" toegevoegd aan selectie.`;
+        setTimeout(() => (this.successMessage = ""), 3000);
+      } else {
+        this.errorMessage = "Dit boek heeft geen beschikbare exemplaren.";
+        setTimeout(() => (this.errorMessage = ""), 3000);
+      }
+    }
+    this.closeScanConfirmation();
+  }
+
+  cancelScannedBook() {
+    this.closeScanConfirmation();
+  }
+
+  private closeScanConfirmation() {
+    this.scanConfirmationOpen = false;
+    this.pendingScannedBook = null;
   }
 }
