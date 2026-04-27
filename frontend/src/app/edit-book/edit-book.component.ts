@@ -26,14 +26,7 @@ export enum Language {
   Latijn = "Latijn",
 }
 
-export const LEESNIVEAUS = [
-  "1ste-2de leerljaar",
-  "3de-4de leerjaar",
-  "5de-6de leerjaar",
-  "1ste graad",
-  "2de graad",
-  "3de graad",
-] as const;
+export const LEESNIVEAUS = ["A", "B", "C", "D"] as const;
 
 @Component({
   selector: "app-edit-book",
