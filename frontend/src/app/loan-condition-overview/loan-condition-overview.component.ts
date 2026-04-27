@@ -9,6 +9,8 @@ import {
 } from "../services/loan.service";
 import { composeFullName, inferNameParts } from "../utils/name-utils";
 
+type PaginationItem = number | "...";
+
 @Component({
   selector: "app-loan-condition-overview",
   templateUrl: "./loan-condition-overview.component.html",
@@ -95,6 +97,10 @@ export class LoanConditionOverviewComponent implements OnInit {
     return Math.ceil(filtered.length / this.bookPageSize);
   }
 
+  get visibleBookPages(): PaginationItem[] {
+    return this.buildVisiblePages(this.bookStatesTotalPages, this.bookPage);
+  }
+
   conditionLabel(
     condition: "GOOD" | "MODERATE" | "BAD" | null | undefined,
   ): string {
@@ -134,10 +140,71 @@ export class LoanConditionOverviewComponent implements OnInit {
     this.bookPage = 1;
   }
 
-  goToBookPage(page: number): void {
-    if (page >= 1 && page <= this.bookStatesTotalPages) {
+  goToBookPage(page: number | string): void {
+    if (
+      typeof page === "number" &&
+      page >= 1 &&
+      page <= this.bookStatesTotalPages
+    ) {
       this.bookPage = page;
     }
+  }
+
+  goToFirstBookPage(): void {
+    this.goToBookPage(1);
+  }
+
+  goToPreviousBookPage(): void {
+    if (this.bookPage > 1) {
+      this.goToBookPage(this.bookPage - 1);
+    }
+  }
+
+  goToNextBookPage(): void {
+    if (this.bookPage < this.bookStatesTotalPages) {
+      this.goToBookPage(this.bookPage + 1);
+    }
+  }
+
+  goToLastBookPage(): void {
+    this.goToBookPage(this.bookStatesTotalPages);
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   private async populateUserNames(rows: WorsenedReturn[]) {

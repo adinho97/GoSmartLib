@@ -149,23 +149,52 @@
       </div>
 
       @if (bookStatesTotalPages > 1) {
-        <div class="pagination-controls">
+        <div class="book-pagination">
           <button
-            class="pagination-btn"
+            type="button"
+            class="page-btn page-nav-btn"
             [disabled]="bookPage === 1"
-            (click)="goToBookPage(bookPage - 1)"
+            (click)="goToFirstBookPage()"
           >
-            ← Vorige
+            &lt;&lt;
           </button>
-          <span class="pagination-info">
-            Pagina {{ bookPage }} van {{ bookStatesTotalPages }}
-          </span>
           <button
-            class="pagination-btn"
-            [disabled]="bookPage === bookStatesTotalPages"
-            (click)="goToBookPage(bookPage + 1)"
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === 1"
+            (click)="goToPreviousBookPage()"
           >
-            Volgende →
+            &lt;
+          </button>
+          @for (page of visibleBookPages; track $index) {
+            @if (page === "...") {
+              <span class="page-ellipsis">...</span>
+            } @else {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="page === bookPage"
+                (click)="goToBookPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          }
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === bookStatesTotalPages"
+            (click)="goToNextBookPage()"
+          >
+            &gt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === bookStatesTotalPages"
+            (click)="goToLastBookPage()"
+          >
+            &gt;&gt;
           </button>
         </div>
       }
