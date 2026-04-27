@@ -5,6 +5,7 @@ import {
   LoanConditionOverview,
   LoanService,
   LostCopyOverview,
+  ReturnCondition,
   WorsenedReturn,
 } from "../services/loan.service";
 import { composeFullName, inferNameParts } from "../utils/name-utils";
@@ -20,6 +21,7 @@ type PaginationItem = number | "...";
 export class LoanConditionOverviewComponent implements OnInit {
   loading = true;
   error = "";
+  successMessage = "";
 
   worsenedReturns: WorsenedReturn[] = [];
   bookStates: BookStateOverview[] = [];
@@ -32,6 +34,7 @@ export class LoanConditionOverviewComponent implements OnInit {
 
   private userNames = new Map<string, string>();
   private loadingUserSubs = new Set<string>();
+  private recoveringCopyIds = new Set<number>();
 
   constructor(private loanService: LoanService) {}
 
@@ -54,6 +57,34 @@ export class LoanConditionOverviewComponent implements OnInit {
     } finally {
       this.loading = false;
     }
+  }
+
+  async markLostCopyAsFound(lost: LostCopyOverview): Promise<void> {
+    const selectedCondition = this.askConditionForFoundCopy(lost);
+    if (!selectedCondition) {
+      return;
+    }
+
+    this.error = "";
+    this.successMessage = "";
+    this.recoveringCopyIds.add(lost.copyId);
+
+    try {
+      await this.loanService.updateCopyState(lost.copyId, {
+        status: "AVAILABLE",
+        condition: selectedCondition,
+      });
+      this.successMessage = `Exemplaar #${lost.copyId} is opnieuw beschikbaar.`;
+      await this.loadOverview();
+    } catch {
+      this.error = "Exemplaar kon niet als beschikbaar worden ingesteld.";
+    } finally {
+      this.recoveringCopyIds.delete(lost.copyId);
+    }
+  }
+
+  isRecoveringCopy(copyId: number): boolean {
+    return this.recoveringCopyIds.has(copyId);
   }
 
   get worsenedReturnsCount(): number {
@@ -212,6 +243,27 @@ export class LoanConditionOverviewComponent implements OnInit {
     }
 
     return result;
+  }
+
+  private askConditionForFoundCopy(
+    lost: LostCopyOverview,
+  ): ReturnCondition | null {
+    const input = window.prompt(
+      `In welke staat werd "${lost.bookTitel}" opnieuw gevonden? Typ: goed, matig of slecht.`,
+      "goed",
+    );
+
+    if (input === null) {
+      return null;
+    }
+
+    const normalized = input.trim().toLowerCase();
+    if (normalized === "goed") return "GOOD";
+    if (normalized === "matig") return "MODERATE";
+    if (normalized === "slecht") return "BAD";
+
+    window.alert("Ongeldige keuze. Gebruik: goed, matig of slecht.");
+    return null;
   }
 
   private async populateUserNames(rows: WorsenedReturn[]) {

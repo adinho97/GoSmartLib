@@ -46,6 +46,15 @@
   color: #842029;
 }
 
+.success-banner {
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #badbcc;
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -214,4 +223,20 @@ th {
   background: #871f42;
   border-color: #871f42;
   color: #ffffff;
+}
+
+.recover-btn {
+  border: 1px solid #0f5132;
+  background: #0f5132;
+  color: #ffffff;
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recover-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
