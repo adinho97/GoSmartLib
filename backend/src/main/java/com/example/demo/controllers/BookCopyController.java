@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.CopyDto;
+import com.example.demo.dto.UpdateCopyStateRequest;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.repositories.BookCopyRepository;
@@ -82,6 +83,44 @@ public class BookCopyController {
         dto.setCondition(saved.getCondition());
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<CopyDto> updateCopyState(
+            @PathVariable Long id,
+            @RequestBody UpdateCopyStateRequest request,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        if (!canLoan(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        BookCopy copy = copyRepo.findById(id).orElse(null);
+        if (copy == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (copy.getStatus() == BookCopy.CopyStatus.LOANED) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        if (request == null || request.getStatus() == null || request.getCondition() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (request.getStatus() == BookCopy.CopyStatus.LOANED) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        copy.setStatus(request.getStatus());
+        copy.setCondition(request.getCondition());
+        BookCopy updated = copyRepo.save(copy);
+
+        CopyDto dto = new CopyDto();
+        dto.setId(updated.getId());
+        dto.setStatus(updated.getStatus());
+        dto.setCondition(updated.getCondition());
+        return ResponseEntity.ok(dto);
+    }
+
     @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCopy(

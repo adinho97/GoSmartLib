@@ -354,6 +354,51 @@
   font-weight: 600;
 }
 
+.copy-edit-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.copy-edit-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+.copy-edit-controls select {
+  border: 1px solid #d9dee6;
+  border-radius: 8px;
+  padding: 0.2rem 0.38rem;
+  font-size: 0.76rem;
+  min-width: 8.2rem;
+}
+
+.copy-update-btn {
+  border: 1px solid #0f766e;
+  background: #ecfeff;
+  color: #0f766e;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-update-btn:hover:not(:disabled) {
+  background: #cffafe;
+}
+
+.copy-update-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .loading-message {
   text-align: left;
   color: #5a6472;
