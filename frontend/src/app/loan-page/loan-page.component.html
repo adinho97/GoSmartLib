@@ -319,15 +319,21 @@
 
           @if (totalHistoryPages > 1) {
             <div class="history-pagination">
-              @for (page of historyPageNumbers; track page) {
-                <button
-                  type="button"
-                  class="history-page-btn"
-                  [class.active]="page === currentHistoryPage"
-                  (click)="goToHistoryPage(page)"
-                >
-                  {{ page }}
-                </button>
+              @for (page of visibleHistoryPages; track $index) {
+                @if (page === "...") {
+                  <button type="button" class="history-page-ellipsis" disabled>
+                    ...
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="history-page-btn"
+                    [class.active]="page === currentHistoryPage"
+                    (click)="goToHistoryPage(page)"
+                  >
+                    {{ page }}
+                  </button>
+                }
               }
             </div>
           }
@@ -455,16 +461,22 @@
             Vorige
           </button>
           <div class="book-page-numbers">
-            @for (page of bookPageNumbers; track page) {
-              <button
-                type="button"
-                class="book-page-btn"
-                [class.active]="page === bookPage"
-                (click)="goToBookPage(page)"
-                [disabled]="isLoading"
-              >
-                {{ page }}
-              </button>
+            @for (page of visibleBookPages; track $index) {
+              @if (page === "...") {
+                <button type="button" class="book-page-ellipsis" disabled>
+                  ...
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="book-page-btn"
+                  [class.active]="page === bookPage"
+                  (click)="goToBookPage(page)"
+                  [disabled]="isLoading"
+                >
+                  {{ page }}
+                </button>
+              }
             }
           </div>
           <button
@@ -634,7 +646,18 @@
       <div class="return-modal" (click)="$event.stopPropagation()">
         <header class="return-modal-header error-header">
           <div class="header-title-group">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#f44336"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="error-icon"
+            >
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -652,7 +675,9 @@
         </header>
         <div class="return-modal-content">
           <p class="return-modal-intro">
-            Het gescande boek met barcode <strong>{{ scannedBarcodeNotFound }}</strong> werd niet gevonden in de bibliotheek van deze school.
+            Het gescande boek met barcode
+            <strong>{{ scannedBarcodeNotFound }}</strong> werd niet gevonden in
+            de bibliotheek van deze school.
           </p>
         </div>
         <footer class="return-modal-actions">
@@ -679,8 +704,21 @@
       <div class="return-modal" (click)="$event.stopPropagation()">
         <header class="return-modal-header warning-header">
           <div class="header-title-group">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="warning-icon">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ff9800"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="warning-icon"
+            >
+              <path
+                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+              ></path>
               <line x1="12" y1="9" x2="12" y2="13"></line>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
@@ -697,11 +735,14 @@
         </header>
         <div class="return-modal-content">
           <p class="return-modal-intro">
-            Het boek <strong>"{{ pendingScannedBook.titel }}"</strong> is gevonden, maar alle 
-            <strong>{{ pendingScannedBook.totalCopies }}</strong> exemplaren zijn momenteel al uitgeleend.
+            Het boek <strong>"{{ pendingScannedBook.titel }}"</strong> is
+            gevonden, maar alle
+            <strong>{{ pendingScannedBook.totalCopies }}</strong> exemplaren
+            zijn momenteel al uitgeleend.
           </p>
           <p class="return-modal-hint">
-            Het boek moet eerst worden teruggebracht voordat het opnieuw kan worden uitgeleend.
+            Het boek moet eerst worden teruggebracht voordat het opnieuw kan
+            worden uitgeleend.
           </p>
         </div>
         <footer class="return-modal-actions">
@@ -728,7 +769,17 @@
       <div class="return-modal" (click)="$event.stopPropagation()">
         <header class="return-modal-header success-header">
           <div class="header-title-group">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#4caf50"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
@@ -748,10 +799,13 @@
               <img [src]="pendingScannedBook.cover" class="preview-cover" />
             }
             <div class="preview-details">
-              <p class="preview-title"><strong>{{ pendingScannedBook.titel }}</strong></p>
+              <p class="preview-title">
+                <strong>{{ pendingScannedBook.titel }}</strong>
+              </p>
               <p class="preview-author">{{ pendingScannedBook.auteur }}</p>
               <p class="preview-copies">
-                {{ pendingScannedBook.availableCopies }} van de {{ pendingScannedBook.totalCopies }} exemplaren beschikbaar.
+                {{ pendingScannedBook.availableCopies }} van de
+                {{ pendingScannedBook.totalCopies }} exemplaren beschikbaar.
               </p>
             </div>
           </div>
