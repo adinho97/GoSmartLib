@@ -22,6 +22,7 @@ import { inferNameParts, composeFullName } from "./utils/name-utils";
 })
 export class AppComponent implements OnInit {
   profileMenuOpen = false;
+  overviewMenuOpen = false;
   levelInfo$: Observable<LevelInfo>;
   private readonly roleLikeValues = new Set([
     "leerling",
@@ -183,6 +184,11 @@ export class AppComponent implements OnInit {
     this.profileMenuOpen = !this.profileMenuOpen;
   }
 
+  toggleOverviewMenu(event: Event): void {
+    event.stopPropagation();
+    this.overviewMenuOpen = !this.overviewMenuOpen;
+  }
+
   logout(): void {
     const accessToken = localStorage.getItem("smartschoolToken");
     this.profileMenuOpen = false;
@@ -216,5 +222,6 @@ export class AppComponent implements OnInit {
   @HostListener("document:click")
   onDocumentClick(): void {
     this.profileMenuOpen = false;
+    this.overviewMenuOpen = false;
   }
 }

@@ -20,6 +20,7 @@ import { GeneralAddComponent } from "./general-add/general-add.component";
 import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
 import { LoanConditionOverviewComponent } from "./loan-condition-overview/loan-condition-overview.component";
+import { LoanOverviewComponent } from "./loan-overview/loan-overview.component";
 import { SetupInviteComponent } from "./setup/setup-invite/setup-invite.component";
 import { SelectBibbeheerderComponent } from "./setup/select-bibbeheerder/select-bibbeheerder.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
@@ -39,7 +40,7 @@ export const appRoutes: Routes = [
     component: AdminDashboardComponent,
     canActivate: [AdminGuard],
   },
-  
+
   // Regular User Routes
   { path: "login", component: LoginComponent },
   { path: "auth/callback", component: LoginComponent },
@@ -129,6 +130,12 @@ export const appRoutes: Routes = [
     data: { roles: ["bibbeheerder"] },
   },
   {
+    path: "uitleen-overzicht",
+    component: LoanOverviewComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
     path: "setup/invite/:token",
     component: SetupInviteComponent,
   },
@@ -137,11 +144,11 @@ export const appRoutes: Routes = [
     component: SelectBibbeheerderComponent,
   },
   {
-  path: "faq-beheer",
-  component: BibFaqBeheerComponent,
-  canActivate: [AuthGuard],
-  data: { roles: ["bibbeheerder"] },
-},
+    path: "faq-beheer",
+    component: BibFaqBeheerComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
 ];
 
 @NgModule({

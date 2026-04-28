@@ -5,9 +5,14 @@ import {
   LoanConditionOverview,
   LoanService,
   LostCopyOverview,
+  ReturnCondition,
   WorsenedReturn,
 } from "../services/loan.service";
-import { composeFullName, inferNameParts } from "../utils/name-utils";
+import {
+  composeFullName,
+  inferNameParts,
+  formatUserInfoDisplayName,
+} from "../utils/name-utils";
 
 type PaginationItem = number | "...";
 
@@ -20,6 +25,10 @@ type PaginationItem = number | "...";
 export class LoanConditionOverviewComponent implements OnInit {
   loading = true;
   error = "";
+  successMessage = "";
+  foundCopyDialogOpen = false;
+  foundCopyDialogItem: LostCopyOverview | null = null;
+  foundCopyCondition: ReturnCondition = "GOOD";
 
   worsenedReturns: WorsenedReturn[] = [];
   bookStates: BookStateOverview[] = [];
@@ -29,9 +38,11 @@ export class LoanConditionOverviewComponent implements OnInit {
   bookSearch = "";
   bookPage = 1;
   readonly bookPageSize = 10;
+  private filteredBookStatesAll: BookStateOverview[] = [];
 
   private userNames = new Map<string, string>();
   private loadingUserSubs = new Set<string>();
+  private recoveringCopyIds = new Set<number>();
 
   constructor(private loanService: LoanService) {}
 
@@ -48,12 +59,59 @@ export class LoanConditionOverviewComponent implements OnInit {
       this.worsenedReturns = overview.worsenedReturns || [];
       this.bookStates = overview.bookStates || [];
       this.lostCopies = overview.lostCopies || [];
+      this.applyBookFilter();
       await this.populateUserNames(this.worsenedReturns);
     } catch {
       this.error = "Overzicht laden mislukt.";
     } finally {
       this.loading = false;
     }
+  }
+
+  openFoundCopyDialog(lost: LostCopyOverview): void {
+    this.error = "";
+    this.successMessage = "";
+    this.foundCopyDialogItem = lost;
+    this.foundCopyCondition = this.defaultReturnConditionFromLost(lost);
+    this.foundCopyDialogOpen = true;
+  }
+
+  closeFoundCopyDialog(): void {
+    this.foundCopyDialogOpen = false;
+    this.foundCopyDialogItem = null;
+    this.foundCopyCondition = "GOOD";
+  }
+
+  async confirmFoundCopyDialog(): Promise<void> {
+    if (!this.foundCopyDialogItem) {
+      return;
+    }
+
+    const lost = this.foundCopyDialogItem;
+    this.error = "";
+    this.successMessage = "";
+    this.recoveringCopyIds.add(lost.copyId);
+
+    try {
+      await this.loanService.updateCopyState(lost.copyId, {
+        status: "AVAILABLE",
+        condition: this.foundCopyCondition,
+      });
+      const copyNumber = lost.copyNumber;
+      this.successMessage = copyNumber
+        ? `Exemplaar #${copyNumber} is opnieuw beschikbaar.`
+        : "Exemplaar is opnieuw beschikbaar.";
+      this.closeFoundCopyDialog();
+      await this.loadOverview();
+    } catch {
+      this.error = "Exemplaar kon niet als beschikbaar worden ingesteld.";
+    } finally {
+      this.recoveringCopyIds.delete(lost.copyId);
+    }
+  }
+
+  isRecoveringCopy(copyId: number): boolean {
+    return this.recoveringCopyIds.has(copyId);
   }
 
   get worsenedReturnsCount(): number {
@@ -71,31 +129,13 @@ export class LoanConditionOverviewComponent implements OnInit {
   }
 
   get filteredBookStates(): BookStateOverview[] {
-    const query = this.bookSearch.trim().toLowerCase();
-    const filtered = query
-      ? this.bookStates.filter((book) =>
-          book.bookTitel.toLowerCase().includes(query),
-        )
-      : this.bookStates;
-
-    // Reset to page 1 if search changes
-    if (query && this.bookPage > 1) {
-      this.bookPage = 1;
-    }
-
     const start = (this.bookPage - 1) * this.bookPageSize;
     const end = start + this.bookPageSize;
-    return filtered.slice(start, end);
+    return this.filteredBookStatesAll.slice(start, end);
   }
 
   get bookStatesTotalPages(): number {
-    const query = this.bookSearch.trim().toLowerCase();
-    const filtered = query
-      ? this.bookStates.filter((book) =>
-          book.bookTitel.toLowerCase().includes(query),
-        )
-      : this.bookStates;
-    return Math.ceil(filtered.length / this.bookPageSize);
+    return Math.ceil(this.filteredBookStatesAll.length / this.bookPageSize);
   }
 
   get visibleBookPages(): PaginationItem[] {
@@ -145,6 +185,7 @@ export class LoanConditionOverviewComponent implements OnInit {
 
   onBookSearch(): void {
     this.bookPage = 1;
+    this.applyBookFilter();
   }
 
   goToBookPage(page: number | string): void {
@@ -214,6 +255,34 @@ export class LoanConditionOverviewComponent implements OnInit {
     return result;
   }
 
+  private defaultReturnConditionFromLost(
+    lost: LostCopyOverview,
+  ): ReturnCondition {
+    if (lost.condition === "MODERATE") {
+      return "MODERATE";
+    }
+    if (lost.condition === "BAD") {
+      return "BAD";
+    }
+    return "GOOD";
+  }
+
+  private applyBookFilter(): void {
+    const query = this.bookSearch.trim().toLowerCase();
+    this.filteredBookStatesAll = query
+      ? this.bookStates.filter((book) =>
+          book.bookTitel.toLowerCase().includes(query),
+        )
+      : this.bookStates;
+
+    const totalPages = Math.ceil(
+      this.filteredBookStatesAll.length / this.bookPageSize,
+    );
+    if (this.bookPage > Math.max(totalPages, 1)) {
+      this.bookPage = 1;
+    }
+  }
+
   private async populateUserNames(rows: WorsenedReturn[]) {
     const uniqueSubs = Array.from(
       new Set(rows.map((row) => row.userSub).filter(Boolean)),
@@ -233,86 +302,7 @@ export class LoanConditionOverviewComponent implements OnInit {
         `/api/users/${encodeURIComponent(sub)}/profile`,
       );
       const userInfo = response.data as any;
-
-      const rawFirstName =
-        userInfo.actualUserFirstName ||
-        userInfo.givenName ||
-        userInfo.given_name ||
-        userInfo.firstName ||
-        userInfo.firstname ||
-        "";
-
-      const rawLastName =
-        userInfo.actualUserSurname ||
-        userInfo.actualUserLastName ||
-        userInfo.familyName ||
-        userInfo.family_name ||
-        userInfo.lastName ||
-        userInfo.lastname ||
-        userInfo.surname ||
-        "";
-
-      const { firstName, lastName } = inferNameParts(
-        rawFirstName,
-        rawLastName,
-        [
-          userInfo.fullName,
-          userInfo.fullname,
-          userInfo.actualUserFullName,
-          userInfo.displayName,
-          `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
-          `${userInfo.givenName || userInfo.given_name || ""} ${
-            userInfo.familyName || userInfo.family_name || ""
-          }`.trim(),
-          userInfo.name,
-          userInfo.preferred_username,
-        ],
-      );
-
-      const fullName = composeFullName(firstName, lastName);
-      if (fullName) {
-        return fullName;
-      }
-
-      const fallbackFullNameCandidates = [
-        userInfo.fullName,
-        userInfo.fullname,
-        userInfo.actualUserFullName,
-        userInfo.displayName,
-        userInfo.name,
-        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
-        `${userInfo.givenName || userInfo.given_name || ""} ${
-          userInfo.familyName || userInfo.family_name || ""
-        }`.trim(),
-        `${rawFirstName || ""} ${rawLastName || ""}`.trim(),
-      ];
-
-      const fallbackFullName = fallbackFullNameCandidates.find((candidate) => {
-        const normalized = (candidate || "").trim();
-        if (!normalized) {
-          return false;
-        }
-        const parts = normalized.split(/\s+/).filter(Boolean);
-        return parts.length >= 2;
-      });
-
-      if (fallbackFullName) {
-        return fallbackFullName.trim();
-      }
-
-      return (
-        (
-          userInfo.name ||
-          userInfo.displayName ||
-          userInfo.fullName ||
-          userInfo.fullname ||
-          rawFirstName ||
-          rawLastName ||
-          userInfo.givenName ||
-          userInfo.given_name ||
-          ""
-        ).trim() || sub
-      );
+      return formatUserInfoDisplayName(userInfo, sub);
     } catch {
       return sub;
     }

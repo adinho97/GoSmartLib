@@ -15,7 +15,11 @@ import {
 } from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
 import { ExperienceService } from "../services/experience.service";
-import { composeFullName, inferNameParts } from "../utils/name-utils";
+import {
+  composeFullName,
+  inferNameParts,
+  formatUserInfoDisplayName,
+} from "../utils/name-utils";
 import axios from "axios";
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 import { BarcodeService } from "../services/barcode.service";
@@ -42,6 +46,8 @@ type Leerling = {
 };
 
 type Step = "leerling" | "boeken" | "bevestiging";
+
+type PaginationItem = number | "...";
 
 @Component({
   selector: "app-loan-page",
@@ -171,86 +177,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
         `/api/users/${encodeURIComponent(sub)}/profile`,
       );
       const userInfo = profile.data as any;
-
-      const rawFirstName =
-        userInfo.actualUserFirstName ||
-        userInfo.givenName ||
-        userInfo.given_name ||
-        userInfo.firstName ||
-        userInfo.firstname ||
-        "";
-
-      const rawLastName =
-        userInfo.actualUserSurname ||
-        userInfo.actualUserLastName ||
-        userInfo.familyName ||
-        userInfo.family_name ||
-        userInfo.lastName ||
-        userInfo.lastname ||
-        userInfo.surname ||
-        "";
-
-      const { firstName, lastName } = inferNameParts(
-        rawFirstName,
-        rawLastName,
-        [
-          userInfo.fullName,
-          userInfo.fullname,
-          userInfo.actualUserFullName,
-          userInfo.displayName,
-          `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
-          `${userInfo.givenName || userInfo.given_name || ""} ${
-            userInfo.familyName || userInfo.family_name || ""
-          }`.trim(),
-          userInfo.name,
-          userInfo.preferred_username,
-        ],
-      );
-
-      const composedFullName = composeFullName(firstName, lastName);
-      if (composedFullName) {
-        return composedFullName;
-      }
-
-      const fallbackFullNameCandidates = [
-        userInfo.fullName,
-        userInfo.fullname,
-        userInfo.actualUserFullName,
-        userInfo.displayName,
-        userInfo.name,
-        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
-        `${userInfo.givenName || userInfo.given_name || ""} ${
-          userInfo.familyName || userInfo.family_name || ""
-        }`.trim(),
-        `${rawFirstName || ""} ${rawLastName || ""}`.trim(),
-      ];
-
-      const fallbackFullName = fallbackFullNameCandidates.find((candidate) => {
-        const normalized = (candidate || "").trim();
-        if (!normalized) {
-          return false;
-        }
-        const parts = normalized.split(/\s+/).filter(Boolean);
-        return parts.length >= 2;
-      });
-
-      if (fallbackFullName) {
-        return fallbackFullName.trim();
-      }
-
-      return (
-        (
-          userInfo.name ||
-          userInfo.displayName ||
-          userInfo.fullName ||
-          userInfo.fullname ||
-          rawFirstName ||
-          rawLastName ||
-          userInfo.givenName ||
-          userInfo.given_name ||
-          ""
-        ).trim() || sub
-      );
+      return formatUserInfoDisplayName(userInfo, sub);
     } catch {
       return sub;
     }
@@ -356,6 +283,16 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     this.currentHistoryPage = page;
   }
 
+  goToPreviousHistoryPage() {
+    this.goToHistoryPage(Math.max(1, this.currentHistoryPage - 1));
+  }
+
+  goToNextHistoryPage() {
+    this.goToHistoryPage(
+      Math.min(this.totalHistoryPages, this.currentHistoryPage + 1),
+    );
+  }
+
   async loadBooks() {
     const requestId = ++this.booksLoadRequestId;
     this.isLoading = true;
@@ -409,8 +346,52 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     return Math.max(1, Math.ceil(this.bookTotalCount / this.bookPageSize));
   }
 
-  get bookPageNumbers(): number[] {
-    return Array.from({ length: this.totalBookPages }, (_, i) => i + 1);
+  get visibleBookPages(): PaginationItem[] {
+    return this.buildVisiblePages(this.totalBookPages, this.bookPage);
+  }
+
+  get visibleHistoryPages(): PaginationItem[] {
+    return this.buildVisiblePages(
+      this.totalHistoryPages,
+      this.currentHistoryPage,
+    );
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   async goToBookPage(page: number) {
@@ -427,6 +408,14 @@ export class LoanPageComponent implements OnInit, OnDestroy {
 
   async goToNextBookPage() {
     await this.goToBookPage(this.bookPage + 1);
+  }
+
+  async goToFirstBookPage() {
+    await this.goToBookPage(1);
+  }
+
+  async goToLastBookPage() {
+    await this.goToBookPage(this.totalBookPages);
   }
 
   async onSearch() {
@@ -504,7 +493,9 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     // If a specific GO-number was scanned, automatically find and select that copy
     if (book.scannedBarcode) {
       const copies = await this.loanService.getCopiesForBook(book.id);
-      const match = (copies as any[]).find(c => c.goNumber === book.scannedBarcode);
+      const match = (copies as any[]).find(
+        (c) => c.goNumber === book.scannedBarcode,
+      );
       if (match) return match.id;
     }
 
@@ -831,11 +822,12 @@ export class LoanPageComponent implements OnInit, OnDestroy {
 
   async processScan(barcode: string) {
     if (
-      this.isProcessingScan || 
-      this.bookNotFoundDialogOpen || 
-      this.bookUnavailableDialogOpen || 
+      this.isProcessingScan ||
+      this.bookNotFoundDialogOpen ||
+      this.bookUnavailableDialogOpen ||
       this.scanConfirmationOpen
-    ) return;
+    )
+      return;
     this.isProcessingScan = true;
     this.errorMessage = "";
     this.successMessage = "";
@@ -846,7 +838,10 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       // 1. Try finding the book by GO-number in the library first (unique copy)
       let bookFoundByGo = null;
       try {
-        bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(barcode, schoolId);
+        bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(
+          barcode,
+          schoolId,
+        );
       } catch (e) {
         // Ignore 404/errors here to allow fallback to ISBN search
         console.debug("Book not found by GO-number, trying ISBN...");
@@ -872,7 +867,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
           cover: book.cover || "",
           availableCopies: summary.available,
           totalCopies: summary.total,
-          scannedBarcode: bookFoundByGo ? barcode : undefined
+          scannedBarcode: bookFoundByGo ? barcode : undefined,
         };
 
         if (summary.available <= 0) {

@@ -115,6 +115,15 @@ public class LoanController {
         return ResponseEntity.ok(loanService.getConditionOverview());
     }
 
+    @GetMapping("/all-active")
+    public ResponseEntity<List<LoanDto>> getAllActiveLoans(
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        if (!isLibrarian(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(loanService.getAllActiveLoans());
+    }
+
     @PatchMapping("/{id}/due-date")
     public ResponseEntity<Void> updateLoanDueDate(
             @PathVariable Long id,

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -188,7 +189,15 @@ public class LoanService {
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    public List<LoanDto> getAllActiveLoans() {
+        return loanRepo.findByReturnedAtIsNull()
+                .stream().map(this::toDto).collect(Collectors.toList());
+    }
+
     public LoanConditionOverviewDto getConditionOverview() {
+        List<BookCopy> copies = copyRepo.findAll();
+        Map<Long, Integer> copyNumbersByCopyId = buildCopyNumbersByCopyId(copies);
+
         List<LoanConditionOverviewDto.WorsenedReturnDto> worsenedReturns = loanRepo.findByReturnedAtIsNotNull()
                 .stream()
                 .filter(this::isWorsenedReturn)
@@ -196,6 +205,7 @@ public class LoanService {
                     LoanConditionOverviewDto.WorsenedReturnDto dto = new LoanConditionOverviewDto.WorsenedReturnDto();
                     dto.setLoanId(loan.getId());
                     dto.setCopyId(loan.getCopy().getId());
+                    dto.setCopyNumber(copyNumbersByCopyId.get(loan.getCopy().getId()));
                     dto.setBookId(loan.getCopy().getBook().getId());
                     dto.setBookTitel(loan.getCopy().getBook().getTitel());
                     dto.setBookCover(loan.getCopy().getBook().getCover());
@@ -212,7 +222,9 @@ public class LoanService {
                 .collect(Collectors.toList());
 
         Map<Long, LoanConditionOverviewDto.BookStateDto> groupedStates = new LinkedHashMap<>();
-        copyRepo.findAll().forEach(copy -> {
+            List<BookCopy> lostCopyEntities = new ArrayList<>();
+
+            copies.forEach(copy -> {
             Long bookId = copy.getBook().getId();
             LoanConditionOverviewDto.BookStateDto state = groupedStates.computeIfAbsent(bookId, ignored -> {
                 LoanConditionOverviewDto.BookStateDto newState = new LoanConditionOverviewDto.BookStateDto();
@@ -228,7 +240,10 @@ public class LoanService {
                 case AVAILABLE -> state.setAvailableCopies(state.getAvailableCopies() + 1);
                 case LOANED -> state.setLoanedCopies(state.getLoanedCopies() + 1);
                 case DAMAGED -> state.setDamagedCopies(state.getDamagedCopies() + 1);
-                case LOST -> state.setLostCopies(state.getLostCopies() + 1);
+                case LOST -> {
+                    state.setLostCopies(state.getLostCopies() + 1);
+                    lostCopyEntities.add(copy);
+                }
             }
 
             switch (copy.getCondition()) {
@@ -241,11 +256,11 @@ public class LoanService {
         List<LoanConditionOverviewDto.BookStateDto> bookStates = new ArrayList<>(groupedStates.values());
         bookStates.sort(Comparator.comparing(LoanConditionOverviewDto.BookStateDto::getBookTitel, String.CASE_INSENSITIVE_ORDER));
 
-        List<LoanConditionOverviewDto.LostCopyDto> lostCopies = copyRepo.findAll().stream()
-                .filter(copy -> copy.getStatus() == BookCopy.CopyStatus.LOST)
+        List<LoanConditionOverviewDto.LostCopyDto> lostCopies = lostCopyEntities.stream()
                 .map(copy -> {
                     LoanConditionOverviewDto.LostCopyDto dto = new LoanConditionOverviewDto.LostCopyDto();
                     dto.setCopyId(copy.getId());
+                dto.setCopyNumber(copyNumbersByCopyId.get(copy.getId()));
                     dto.setBookId(copy.getBook().getId());
                     dto.setBookTitel(copy.getBook().getTitel());
                     dto.setBookCover(copy.getBook().getCover());
@@ -260,6 +275,22 @@ public class LoanService {
         overview.setBookStates(bookStates);
         overview.setLostCopies(lostCopies);
         return overview;
+    }
+
+    private Map<Long, Integer> buildCopyNumbersByCopyId(List<BookCopy> copies) {
+        Map<Long, List<BookCopy>> copiesByBook = copies.stream()
+                .collect(Collectors.groupingBy(copy -> copy.getBook().getId()));
+        Map<Long, Integer> copyNumbersByCopyId = new HashMap<>();
+
+        copiesByBook.values().forEach(bookCopies -> {
+            bookCopies.sort(Comparator.comparing(BookCopy::getId));
+            for (int index = 0; index < bookCopies.size(); index++) {
+                BookCopy copy = bookCopies.get(index);
+                copyNumbersByCopyId.put(copy.getId(), index + 1);
+            }
+        });
+
+        return copyNumbersByCopyId;
     }
 
     private boolean isWorsenedReturn(Loan loan) {

@@ -35,6 +35,7 @@ export interface UpdateBookCopyStateRequest {
 export interface WorsenedReturn {
   loanId: number;
   copyId: number;
+  copyNumber: number | null;
   bookId: number;
   bookTitel: string;
   bookCover: string;
@@ -62,6 +63,7 @@ export interface BookStateOverview {
 
 export interface LostCopyOverview {
   copyId: number;
+  copyNumber: number | null;
   bookId: number;
   bookTitel: string;
   bookCover: string;
@@ -150,6 +152,11 @@ export class LoanService {
       this.headers(),
     );
     return res.data as LoanConditionOverview;
+  }
+
+  async getAllActiveLoans(): Promise<Loan[]> {
+    const res = await axios.get(`${this.api}/all-active`, this.headers());
+    return res.data;
   }
 
   async getCopySummary(

@@ -1,7 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 import axios from "axios";
 import { LoanService, Loan } from "../services/loan.service";
-import { composeFullName, inferNameParts } from "../utils/name-utils";
+import {
+  composeFullName,
+  inferNameParts,
+  formatUserInfoDisplayName,
+} from "../utils/name-utils";
 
 type Tab = "students" | "books";
 
@@ -169,86 +173,7 @@ export class LoanHistoryCatalogComponent implements OnInit {
         `/api/users/${encodeURIComponent(sub)}/profile`,
       );
       const userInfo = response.data as any;
-
-      const rawFirstName =
-        userInfo.actualUserFirstName ||
-        userInfo.givenName ||
-        userInfo.given_name ||
-        userInfo.firstName ||
-        userInfo.firstname ||
-        "";
-
-      const rawLastName =
-        userInfo.actualUserSurname ||
-        userInfo.actualUserLastName ||
-        userInfo.familyName ||
-        userInfo.family_name ||
-        userInfo.lastName ||
-        userInfo.lastname ||
-        userInfo.surname ||
-        "";
-
-      const { firstName, lastName } = inferNameParts(
-        rawFirstName,
-        rawLastName,
-        [
-          userInfo.fullName,
-          userInfo.fullname,
-          userInfo.actualUserFullName,
-          userInfo.displayName,
-          `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
-          `${userInfo.givenName || userInfo.given_name || ""} ${
-            userInfo.familyName || userInfo.family_name || ""
-          }`.trim(),
-          userInfo.name,
-          userInfo.preferred_username,
-        ],
-      );
-
-      const composedFullName = composeFullName(firstName, lastName);
-      if (composedFullName) {
-        return composedFullName;
-      }
-
-      const fallbackFullNameCandidates = [
-        userInfo.fullName,
-        userInfo.fullname,
-        userInfo.actualUserFullName,
-        userInfo.displayName,
-        userInfo.name,
-        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
-        `${userInfo.givenName || userInfo.given_name || ""} ${
-          userInfo.familyName || userInfo.family_name || ""
-        }`.trim(),
-        `${rawFirstName || ""} ${rawLastName || ""}`.trim(),
-      ];
-
-      const fallbackFullName = fallbackFullNameCandidates.find((candidate) => {
-        const normalized = (candidate || "").trim();
-        if (!normalized) {
-          return false;
-        }
-        const parts = normalized.split(/\s+/).filter(Boolean);
-        return parts.length >= 2;
-      });
-
-      if (fallbackFullName) {
-        return fallbackFullName.trim();
-      }
-
-      return (
-        (
-          userInfo.name ||
-          userInfo.displayName ||
-          userInfo.fullName ||
-          userInfo.fullname ||
-          rawFirstName ||
-          rawLastName ||
-          userInfo.givenName ||
-          userInfo.given_name ||
-          ""
-        ).trim() || sub
-      );
+      return formatUserInfoDisplayName(userInfo, sub);
     } catch {
       return sub;
     }
