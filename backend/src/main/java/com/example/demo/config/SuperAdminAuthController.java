@@ -57,6 +57,15 @@ public class SuperAdminAuthController {
     }
 
     /**
+     * Check if setup is allowed (only when no super admin exists)
+     */
+    @GetMapping("/setup-status")
+    public ResponseEntity<?> setupStatus() {
+        boolean allowed = superAdminAuthService.isSetupAllowed();
+        return ResponseEntity.ok(new SetupStatusResponse(allowed));
+    }
+
+    /**
      * Validate JWT token (protected endpoint - caller must include token in header)
      */
     @GetMapping("/validate-token")
@@ -152,6 +161,16 @@ public class SuperAdminAuthController {
         public Long getUserId() { return userId; }
         public String getUsername() { return username; }
         public String getRole() { return role; }
+    }
+
+    public static class SetupStatusResponse {
+        private boolean allowed;
+
+        public SetupStatusResponse(boolean allowed) {
+            this.allowed = allowed;
+        }
+
+        public boolean isAllowed() { return allowed; }
     }
 
     /**

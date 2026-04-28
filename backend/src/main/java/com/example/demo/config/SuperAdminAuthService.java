@@ -112,6 +112,10 @@ public class SuperAdminAuthService {
         return admin;
     }
 
+    public boolean isSetupAllowed() {
+        return superAdminRepository.count() == 0;
+    }
+
     private boolean isPasswordStrong(String password) {
         if (password == null || password.length() < 8) {
             return false;
