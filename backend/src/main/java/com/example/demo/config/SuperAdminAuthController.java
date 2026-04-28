@@ -32,6 +32,31 @@ public class SuperAdminAuthController {
     }
 
     /**
+     * One-time setup endpoint for first super admin
+     */
+    @PostMapping("/setup")
+    public ResponseEntity<?> setup(@RequestBody SuperAdminSetupRequest request) {
+        try {
+            if (request.getToken() == null || request.getToken().isEmpty() ||
+                request.getEmail() == null || request.getEmail().isEmpty() ||
+                request.getPassword() == null || request.getPassword().isEmpty()) {
+                return ResponseEntity.badRequest().body("Token, email, and password are required");
+            }
+
+            superAdminAuthService.createSuperAdminFromSetupToken(
+                    request.getToken(),
+                    request.getEmail(),
+                    request.getPassword());
+
+            return ResponseEntity.ok("Super admin created successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Setup failed: " + e.getMessage());
+        }
+    }
+
+    /**
      * Validate JWT token (protected endpoint - caller must include token in header)
      */
     @GetMapping("/validate-token")
@@ -127,6 +152,24 @@ public class SuperAdminAuthController {
         public Long getUserId() { return userId; }
         public String getUsername() { return username; }
         public String getRole() { return role; }
+    }
+
+    /**
+     * DTO for one-time setup request
+     */
+    public static class SuperAdminSetupRequest {
+        private String token;
+        private String email;
+        private String password;
+
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
     }
 }
 
