@@ -475,6 +475,14 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     await this.goToBookPage(this.bookPage + 1);
   }
 
+  async goToFirstBookPage() {
+    await this.goToBookPage(1);
+  }
+
+  async goToLastBookPage() {
+    await this.goToBookPage(this.totalBookPages);
+  }
+
   async onSearch() {
     this.bookPage = 1;
     await this.loadBooks();
