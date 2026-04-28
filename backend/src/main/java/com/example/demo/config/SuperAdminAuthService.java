@@ -147,6 +147,10 @@ public class SuperAdminAuthService {
             throw new RuntimeException("Invalid current password");
         }
 
+        if (!isPasswordStrong(newPassword)) {
+            throw new RuntimeException("Password must be at least 8 characters and include uppercase, lowercase, and a number");
+        }
+
         // Update password
         admin.setPasswordHash(passwordEncoder.encode(newPassword));
         superAdminRepository.save(admin);
