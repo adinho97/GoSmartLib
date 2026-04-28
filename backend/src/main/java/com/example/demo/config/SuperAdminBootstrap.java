@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.SuperAdminRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
 public class SuperAdminBootstrap implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(SuperAdminBootstrap.class);
-    private final AppUserRepository appUserRepository;
+    private final SuperAdminRepository superAdminRepository;
     private final SuperAdminAuthService superAdminAuthService;
 
-    public SuperAdminBootstrap(AppUserRepository appUserRepository,
+    public SuperAdminBootstrap(SuperAdminRepository superAdminRepository,
                              SuperAdminAuthService superAdminAuthService) {
-        this.appUserRepository = appUserRepository;
+        this.superAdminRepository = superAdminRepository;
         this.superAdminAuthService = superAdminAuthService;
     }
 
@@ -28,10 +28,7 @@ public class SuperAdminBootstrap implements CommandLineRunner {
         logger.info("Starting Super Admin bootstrap check...");
 
         // Check if any super admin exists
-        boolean superAdminExists = appUserRepository
-                .findAll()
-                .stream()
-                .anyMatch(user -> user.getIsSuperAdmin() != null && user.getIsSuperAdmin());
+        boolean superAdminExists = superAdminRepository.count() > 0;
 
         if (!superAdminExists) {
             logger.warn("No super admin found. Creating default super admin...");

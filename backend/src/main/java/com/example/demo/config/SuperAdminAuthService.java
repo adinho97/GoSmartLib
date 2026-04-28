@@ -1,7 +1,7 @@
 package com.example.demo.config;
 
-import com.example.demo.entities.AppUser;
-import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.entities.SuperAdmin;
+import com.example.demo.repositories.SuperAdminRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,13 +13,13 @@ import java.util.Optional;
 public class SuperAdminAuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(SuperAdminAuthService.class);
-    private final AppUserRepository appUserRepository;
+    private final SuperAdminRepository superAdminRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public SuperAdminAuthService(AppUserRepository appUserRepository,
+    public SuperAdminAuthService(SuperAdminRepository superAdminRepository,
                                JwtTokenProvider jwtTokenProvider) {
-        this.appUserRepository = appUserRepository;
+        this.superAdminRepository = superAdminRepository;
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
@@ -31,59 +31,50 @@ public class SuperAdminAuthService {
         String username = request.getUsername();
         String password = request.getPassword();
 
-        logger.info("Super admin login attempt for username: {}", username);
+        logger.info("Super admin login attempt for identifier: {}", username);
 
-        // Find user by username
-        Optional<AppUser> userOpt = appUserRepository.findByUsername(username);
+        // Find super admin by identifier (email/username)
+        Optional<SuperAdmin> adminOpt = superAdminRepository.findByEmail(username);
 
-        if (userOpt.isEmpty()) {
-            logger.warn("Super admin login failed: user not found for username: {}", username);
+        if (adminOpt.isEmpty()) {
+            logger.warn("Super admin login failed: user not found for identifier: {}", username);
             throw new RuntimeException("Invalid username or password");
         }
 
-        AppUser user = userOpt.get();
-
-        // Check if user is super admin
-        if (!user.getIsSuperAdmin()) {
-            logger.warn("Login attempt by non-super-admin user: {}", username);
-            throw new RuntimeException("User is not a super admin");
-        }
+        SuperAdmin admin = adminOpt.get();
 
         // Verify password
-        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
-            logger.warn("Super admin login failed: invalid password for username: {}", username);
+        if (!passwordEncoder.matches(password, admin.getPasswordHash())) {
+            logger.warn("Super admin login failed: invalid password for identifier: {}", username);
             throw new RuntimeException("Invalid username or password");
         }
 
         // Generate JWT token
-        String token = jwtTokenProvider.generateToken(username, user.getId(), user.getRole());
-        logger.info("Super admin login successful for username: {}, userId: {}", username, user.getId());
+        String token = jwtTokenProvider.generateToken(admin.getEmail(), admin.getId(), "super_admin");
+        logger.info("Super admin login successful for identifier: {}, userId: {}", admin.getEmail(), admin.getId());
 
-        return new SuperAdminLoginResponse(token, username, user.getId(), user.getRole());
+        return new SuperAdminLoginResponse(token, admin.getEmail(), admin.getId(), "super_admin");
     }
 
     /**
      * Create a new super admin (typically only called during setup/bootstrap)
      */
-    public AppUser createSuperAdmin(String username, String password) {
-        logger.info("Creating new super admin with username: {}", username);
+    public SuperAdmin createSuperAdmin(String username, String password) {
+        logger.info("Creating new super admin with identifier: {}", username);
 
         // Check if user already exists
-        if (appUserRepository.findByUsername(username).isPresent()) {
-            logger.warn("Super admin creation failed: username already exists: {}", username);
+        if (superAdminRepository.findByEmail(username).isPresent()) {
+            logger.warn("Super admin creation failed: identifier already exists: {}", username);
             throw new RuntimeException("Username already exists");
         }
 
-        AppUser user = new AppUser();
-        user.setUsername(username);
-        user.setPasswordHash(passwordEncoder.encode(password));
-        user.setAuthType("local");
-        user.setRole("super_admin");
-        user.setIsSuperAdmin(true);
+        SuperAdmin admin = new SuperAdmin();
+        admin.setEmail(username);
+        admin.setPasswordHash(passwordEncoder.encode(password));
 
-        AppUser savedUser = appUserRepository.save(user);
-        logger.info("Super admin created successfully with id: {}, username: {}", savedUser.getId(), username);
-        return savedUser;
+        SuperAdmin savedAdmin = superAdminRepository.save(admin);
+        logger.info("Super admin created successfully with id: {}, identifier: {}", savedAdmin.getId(), username);
+        return savedAdmin;
     }
 
     /**
@@ -92,24 +83,24 @@ public class SuperAdminAuthService {
     public void changeSuperAdminPassword(Long userId, String oldPassword, String newPassword) {
         logger.info("Password change attempt for userId: {}", userId);
 
-        Optional<AppUser> userOpt = appUserRepository.findById(userId);
+        Optional<SuperAdmin> adminOpt = superAdminRepository.findById(userId);
 
-        if (userOpt.isEmpty()) {
+        if (adminOpt.isEmpty()) {
             logger.warn("Password change failed: user not found for userId: {}", userId);
             throw new RuntimeException("User not found");
         }
 
-        AppUser user = userOpt.get();
+        SuperAdmin admin = adminOpt.get();
 
         // Verify old password
-        if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+        if (!passwordEncoder.matches(oldPassword, admin.getPasswordHash())) {
             logger.warn("Password change failed: invalid old password for userId: {}", userId);
             throw new RuntimeException("Invalid current password");
         }
 
         // Update password
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-        appUserRepository.save(user);
+        admin.setPasswordHash(passwordEncoder.encode(newPassword));
+        superAdminRepository.save(admin);
         logger.info("Password changed successfully for userId: {}", userId);
     }
 
