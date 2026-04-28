@@ -55,8 +55,7 @@ export class LoanOverviewComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = "";
     try {
-      const response = await axios.get("/api/uitleningen/all-active");
-      const loans: Loan[] = response.data;
+      const loans = await this.loanService.getAllActiveLoans();
 
       // Enrich with user names and calculate days until due
       this.allLoans = await Promise.all(
