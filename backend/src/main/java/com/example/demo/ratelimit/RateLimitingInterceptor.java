@@ -17,12 +17,15 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
             @NonNull Object handler) {
-        // Only limit the ISBN import endpoint and only POSTs
+        // Only limit specific endpoints and only POSTs
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        // Controller maps POST /api/boeken/isbn/{isbn}
-        if (!"POST".equalsIgnoreCase(method) || !path.startsWith("/api/boeken/isbn/")) {
+        boolean isIsbnImport = "POST".equalsIgnoreCase(method) && path.startsWith("/api/boeken/isbn/");
+        boolean isAdminAuth = "POST".equalsIgnoreCase(method)
+                && ("/api/admin/login".equals(path) || "/api/admin/setup".equals(path));
+
+        if (!isIsbnImport && !isAdminAuth) {
             return true;
         }
 
