@@ -129,6 +129,12 @@
   padding-right: 45px;
 }
 
+.password-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
 .toggle-password {
   position: absolute;
   right: 12px;

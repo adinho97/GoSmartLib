@@ -34,7 +34,7 @@ export class SuperAdminLoginComponent implements OnInit {
     this.errorMessage = '';
 
     if (!this.username.trim() || !this.password.trim()) {
-      this.errorMessage = 'Username and password are required';
+      this.errorMessage = 'E-mailadres en wachtwoord zijn verplicht';
       return;
     }
 
@@ -50,11 +50,11 @@ export class SuperAdminLoginComponent implements OnInit {
         console.error('Super admin login failed:', error);
         
         if (error.status === 401) {
-          this.errorMessage = 'Invalid username or password';
+          this.errorMessage = 'Ongeldig e-mailadres of wachtwoord';
         } else if (error.error && typeof error.error === 'string') {
           this.errorMessage = error.error;
         } else {
-          this.errorMessage = 'Login failed. Please try again.';
+          this.errorMessage = 'Inloggen mislukt. Probeer het opnieuw.';
         }
       },
       complete: () => {

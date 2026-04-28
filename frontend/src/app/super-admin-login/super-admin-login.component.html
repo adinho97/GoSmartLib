@@ -15,18 +15,18 @@
         <span>⚠️ {{ errorMessage }}</span>
       </div>
 
-      <!-- Username Field -->
+      <!-- Email Field -->
       <div class="form-group">
-        <label for="username">Gebruikersnaam</label>
+        <label for="username">E-mailadres</label>
         <input
           type="text"
           id="username"
           class="form-control"
           [(ngModel)]="username"
           name="username"
-          placeholder="Voer uw gebruikersnaam in"
+          placeholder="Voer uw e-mailadres in"
           [disabled]="isLoading"
-          autocomplete="username"
+          autocomplete="email"
           required
         />
       </div>
@@ -57,6 +57,9 @@
             {{ showPassword ? '🙈' : '👁️' }}
           </button>
         </div>
+        <small class="password-hint">
+          Min. 8 tekens, 1 hoofdletter, 1 kleine letter en 1 cijfer.
+        </small>
       </div>
 
       <!-- Login Button -->
