@@ -11,8 +11,8 @@ public class SuperAdminSetupToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 128)
-    private String token;
+    @Column(name = "token", unique = true, nullable = false, length = 128)
+    private String tokenHash;
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;
@@ -35,12 +35,12 @@ public class SuperAdminSetupToken {
         this.id = id;
     }
 
-    public String getToken() {
-        return token;
+    public String getTokenHash() {
+        return tokenHash;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setTokenHash(String tokenHash) {
+        this.tokenHash = tokenHash;
     }
 
     public LocalDateTime getExpiresAt() {

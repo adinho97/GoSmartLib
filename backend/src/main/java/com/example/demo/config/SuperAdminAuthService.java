@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -95,7 +97,7 @@ public class SuperAdminAuthService {
             throw new RuntimeException("Password must be at least 8 characters and include uppercase, lowercase, and a number");
         }
 
-        SuperAdminSetupToken setupToken = setupTokenRepository.findByToken(token)
+        SuperAdminSetupToken setupToken = setupTokenRepository.findByTokenHash(hashToken(token))
                 .orElseThrow(() -> new RuntimeException("Invalid setup token"));
 
         if (setupToken.getUsedAt() != null) {
@@ -124,6 +126,20 @@ public class SuperAdminAuthService {
         boolean hasLower = password.chars().anyMatch(Character::isLowerCase);
         boolean hasDigit = password.chars().anyMatch(Character::isDigit);
         return hasUpper && hasLower && hasDigit;
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to hash setup token", e);
+        }
     }
 
     /**

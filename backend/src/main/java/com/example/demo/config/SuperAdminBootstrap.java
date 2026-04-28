@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -42,13 +44,14 @@ public class SuperAdminBootstrap implements CommandLineRunner {
             long activeTokenCount = setupTokenRepository.countByUsedAtIsNullAndExpiresAtAfter(LocalDateTime.now());
             if (activeTokenCount == 0) {
                 SuperAdminSetupToken setupToken = new SuperAdminSetupToken();
-                setupToken.setToken(generateToken());
+                String rawToken = generateToken();
+                setupToken.setTokenHash(hashToken(rawToken));
                 setupToken.setExpiresAt(LocalDateTime.now().plusHours(24));
                 setupTokenRepository.save(setupToken);
 
                 logger.warn("No super admin found. Setup token generated.");
                 logger.warn("Use this token once to create the first super admin:");
-                logger.warn("/api/admin/setup (token: {})", setupToken.getToken());
+                logger.warn("/api/admin/setup (token: {})", rawToken);
                 logger.warn("Token expires in 24 hours.");
             } else {
                 logger.warn("No super admin found, but a setup token already exists.");
@@ -62,6 +65,20 @@ public class SuperAdminBootstrap implements CommandLineRunner {
         byte[] randomBytes = new byte[32];
         new SecureRandom().nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to hash setup token", e);
+        }
     }
 }
 

@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface SuperAdminSetupTokenRepository extends JpaRepository<SuperAdminSetupToken, Long> {
-    Optional<SuperAdminSetupToken> findByToken(String token);
+    Optional<SuperAdminSetupToken> findByTokenHash(String tokenHash);
 
     long countByUsedAtIsNullAndExpiresAtAfter(LocalDateTime now);
 }
