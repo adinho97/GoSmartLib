@@ -2,8 +2,10 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { AuthGuard } from "./auth.guard";
 import { AdminGuard } from "./admin.guard";
+import { AdminSetupGuard } from "./admin-setup.guard";
 import { LoginComponent } from "./login/login.component";
 import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.component";
+import { AdminSetupComponent } from "./admin-setup/admin-setup.component";
 import { AdminDashboardComponent } from "./admin-dashboard/admin-dashboard.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
@@ -27,6 +29,11 @@ import { MapScreenComponent } from "./map-screen/map-screen.component";
 export const appRoutes: Routes = [
   // Super Admin Routes
   { path: "super-admin-login", component: SuperAdminLoginComponent },
+  {
+    path: "admin/setup",
+    component: AdminSetupComponent,
+    canActivate: [AdminSetupGuard],
+  },
   {
     path: "admin/dashboard",
     component: AdminDashboardComponent,
