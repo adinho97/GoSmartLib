@@ -62,7 +62,10 @@ public class SuperAdminAuthController {
     @GetMapping("/setup-status")
     public ResponseEntity<?> setupStatus() {
         boolean allowed = superAdminAuthService.isSetupAllowed();
-        return ResponseEntity.ok(new SetupStatusResponse(allowed));
+        if (!allowed) {
+            return ResponseEntity.status(404).body("Not found");
+        }
+        return ResponseEntity.ok(new SetupStatusResponse(true));
     }
 
     /**
