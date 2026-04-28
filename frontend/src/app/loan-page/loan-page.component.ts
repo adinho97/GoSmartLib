@@ -283,6 +283,16 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     this.currentHistoryPage = page;
   }
 
+  goToPreviousHistoryPage() {
+    this.goToHistoryPage(Math.max(1, this.currentHistoryPage - 1));
+  }
+
+  goToNextHistoryPage() {
+    this.goToHistoryPage(
+      Math.min(this.totalHistoryPages, this.currentHistoryPage + 1),
+    );
+  }
+
   async loadBooks() {
     const requestId = ++this.booksLoadRequestId;
     this.isLoading = true;

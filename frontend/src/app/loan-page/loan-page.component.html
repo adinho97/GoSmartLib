@@ -319,15 +319,30 @@
 
           @if (totalHistoryPages > 1) {
             <div class="history-pagination">
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentHistoryPage === 1"
+                (click)="goToHistoryPage(1)"
+              >
+                &lt;&lt;
+              </button>
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentHistoryPage === 1"
+                (click)="goToPreviousHistoryPage()"
+              >
+                &lt;
+              </button>
+
               @for (page of visibleHistoryPages; track $index) {
                 @if (page === "...") {
-                  <button type="button" class="history-page-ellipsis" disabled>
-                    ...
-                  </button>
+                  <span class="page-ellipsis">...</span>
                 } @else {
                   <button
                     type="button"
-                    class="history-page-btn"
+                    class="page-btn"
                     [class.active]="page === currentHistoryPage"
                     (click)="goToHistoryPage(page)"
                   >
@@ -335,6 +350,23 @@
                   </button>
                 }
               }
+
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentHistoryPage === totalHistoryPages"
+                (click)="goToNextHistoryPage()"
+              >
+                &gt;
+              </button>
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentHistoryPage === totalHistoryPages"
+                (click)="goToHistoryPage(totalHistoryPages)"
+              >
+                &gt;&gt;
+              </button>
             </div>
           }
         </div>
@@ -454,22 +486,29 @@
         <div class="book-pagination">
           <button
             type="button"
-            class="book-page-nav"
-            (click)="goToPreviousBookPage()"
+            class="page-btn page-nav-btn"
             [disabled]="bookPage === 1 || isLoading"
+            (click)="goToFirstBookPage()"
           >
-            Vorige
+            &lt;&lt;
           </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === 1 || isLoading"
+            (click)="goToPreviousBookPage()"
+          >
+            &lt;
+          </button>
+
           <div class="book-page-numbers">
             @for (page of visibleBookPages; track $index) {
               @if (page === "...") {
-                <button type="button" class="book-page-ellipsis" disabled>
-                  ...
-                </button>
+                <span class="page-ellipsis">...</span>
               } @else {
                 <button
                   type="button"
-                  class="book-page-btn"
+                  class="page-btn"
                   [class.active]="page === bookPage"
                   (click)="goToBookPage(page)"
                   [disabled]="isLoading"
@@ -479,13 +518,22 @@
               }
             }
           </div>
+
           <button
             type="button"
-            class="book-page-nav"
-            (click)="goToNextBookPage()"
+            class="page-btn page-nav-btn"
             [disabled]="bookPage === totalBookPages || isLoading"
+            (click)="goToNextBookPage()"
           >
-            Volgende
+            &gt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === totalBookPages || isLoading"
+            (click)="goToLastBookPage()"
+          >
+            &gt;&gt;
           </button>
         </div>
       }
