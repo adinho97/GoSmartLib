@@ -1123,11 +1123,15 @@
 /* History Pagination */
 .history-pagination {
   margin-top: 1.2rem;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
+  width: fit-content;
   max-width: 100%;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .history-page-btn {
