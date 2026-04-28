@@ -31,6 +31,20 @@ export class SuperAdminAuthService {
   }
 
   /**
+   * Check if setup is allowed
+   */
+  getSetupStatus(): Observable<any> {
+    return this.http.get<any>('/api/admin/setup-status');
+  }
+
+  /**
+   * One-time setup to create the first super admin
+   */
+  setupSuperAdmin(token: string, email: string, password: string): Observable<any> {
+    return this.http.post<any>('/api/admin/setup', { token, email, password });
+  }
+
+  /**
    * Get current admin info
    */
   getCurrentAdmin(): Observable<any> {
