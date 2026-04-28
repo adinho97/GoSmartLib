@@ -681,17 +681,18 @@
 .book-pagination {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: center;
+  gap: 0.35rem;
   margin-top: 16px;
   flex-wrap: wrap;
 }
 
 .book-page-numbers {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
   justify-content: center;
+  align-items: center;
 }
 
 .book-page-btn,
@@ -1123,15 +1124,11 @@
 /* History Pagination */
 .history-pagination {
   margin-top: 1.2rem;
-  display: inline-flex;
+  display: flex;
   justify-content: center;
-  gap: 0.25rem;
-  flex-wrap: nowrap;
-  width: fit-content;
+  gap: 0.4rem;
+  flex-wrap: wrap;
   max-width: 100%;
-  align-items: center;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .history-page-btn {
