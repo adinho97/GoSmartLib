@@ -53,6 +53,9 @@ export class AdminSetupComponent implements OnInit {
       next: () => {
         this.successMessage = 'Super admin aangemaakt. U kan nu inloggen.';
         this.isLoading = false;
+        setTimeout(() => {
+          this.router.navigate(['/super-admin-login']);
+        }, 1500);
       },
       error: (error) => {
         this.isLoading = false;

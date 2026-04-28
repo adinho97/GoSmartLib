@@ -1,3 +1,14 @@
+.super-admin-login-host {
+  height: 100vh;
+  overflow: hidden;
+}
+
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
 .background-image {
   position: fixed;
   top: 0;
@@ -13,7 +24,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
   font-family: Arial, sans-serif;
   padding: 20px;
   box-sizing: border-box;
@@ -27,18 +38,20 @@
 }
 
 .login-container h1 {
-  color: #333;
+  color: #1f1f1f;
   margin-bottom: 8px;
   text-align: center;
   font-size: 32px;
   font-weight: 600;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .subtitle {
-  color: #666;
+  color: #2a2a2a;
   margin-bottom: 30px;
   text-align: center;
   font-size: 16px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .login-form {
@@ -132,7 +145,7 @@
 .password-hint {
   margin-top: 8px;
   font-size: 12px;
-  color: #666;
+  color: #444;
 }
 
 .toggle-password {
@@ -219,7 +232,8 @@
 .login-footer p {
   margin: 0 0 8px 0;
   font-size: 14px;
-  color: #666;
+  color: #2a2a2a;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .link-secondary {
