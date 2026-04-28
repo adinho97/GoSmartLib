@@ -1,12 +1,15 @@
 package com.example.demo.config;
 
 import com.example.demo.entities.SuperAdmin;
+import com.example.demo.entities.SuperAdminSetupToken;
 import com.example.demo.repositories.SuperAdminRepository;
+import com.example.demo.repositories.SuperAdminSetupTokenRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -14,12 +17,15 @@ public class SuperAdminAuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(SuperAdminAuthService.class);
     private final SuperAdminRepository superAdminRepository;
+    private final SuperAdminSetupTokenRepository setupTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final BCryptPasswordEncoder passwordEncoder;
 
     public SuperAdminAuthService(SuperAdminRepository superAdminRepository,
+                               SuperAdminSetupTokenRepository setupTokenRepository,
                                JwtTokenProvider jwtTokenProvider) {
         this.superAdminRepository = superAdminRepository;
+        this.setupTokenRepository = setupTokenRepository;
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
@@ -78,6 +84,45 @@ public class SuperAdminAuthService {
     }
 
     /**
+     * Create the first super admin using a one-time setup token
+     */
+    public SuperAdmin createSuperAdminFromSetupToken(String token, String email, String password) {
+        if (superAdminRepository.count() > 0) {
+            throw new RuntimeException("Super admin already exists");
+        }
+
+        if (!isPasswordStrong(password)) {
+            throw new RuntimeException("Password must be at least 8 characters and include uppercase, lowercase, and a number");
+        }
+
+        SuperAdminSetupToken setupToken = setupTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid setup token"));
+
+        if (setupToken.getUsedAt() != null) {
+            throw new RuntimeException("Setup token already used");
+        }
+
+        if (setupToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Setup token expired");
+        }
+
+        SuperAdmin admin = createSuperAdmin(email, password);
+        setupToken.setUsedAt(LocalDateTime.now());
+        setupTokenRepository.save(setupToken);
+        return admin;
+    }
+
+    private boolean isPasswordStrong(String password) {
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+        boolean hasUpper = password.chars().anyMatch(Character::isUpperCase);
+        boolean hasLower = password.chars().anyMatch(Character::isLowerCase);
+        boolean hasDigit = password.chars().anyMatch(Character::isDigit);
+        return hasUpper && hasLower && hasDigit;
+    }
+
+    /**
      * Change super admin password
      */
     public void changeSuperAdminPassword(Long userId, String oldPassword, String newPassword) {
@@ -132,3 +177,4 @@ public class SuperAdminAuthService {
         return jwtTokenProvider.getRoleFromToken(token);
     }
 }
+
