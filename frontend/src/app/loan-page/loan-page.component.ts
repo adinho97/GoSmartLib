@@ -43,6 +43,8 @@ type Leerling = {
 
 type Step = "leerling" | "boeken" | "bevestiging";
 
+type PaginationItem = number | "...";
+
 @Component({
   selector: "app-loan-page",
   templateUrl: "./loan-page.component.html",
@@ -409,8 +411,52 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     return Math.max(1, Math.ceil(this.bookTotalCount / this.bookPageSize));
   }
 
-  get bookPageNumbers(): number[] {
-    return Array.from({ length: this.totalBookPages }, (_, i) => i + 1);
+  get visibleBookPages(): PaginationItem[] {
+    return this.buildVisiblePages(this.totalBookPages, this.bookPage);
+  }
+
+  get visibleHistoryPages(): PaginationItem[] {
+    return this.buildVisiblePages(
+      this.totalHistoryPages,
+      this.currentHistoryPage,
+    );
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   async goToBookPage(page: number) {
@@ -504,7 +550,9 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     // If a specific GO-number was scanned, automatically find and select that copy
     if (book.scannedBarcode) {
       const copies = await this.loanService.getCopiesForBook(book.id);
-      const match = (copies as any[]).find(c => c.goNumber === book.scannedBarcode);
+      const match = (copies as any[]).find(
+        (c) => c.goNumber === book.scannedBarcode,
+      );
       if (match) return match.id;
     }
 
@@ -831,11 +879,12 @@ export class LoanPageComponent implements OnInit, OnDestroy {
 
   async processScan(barcode: string) {
     if (
-      this.isProcessingScan || 
-      this.bookNotFoundDialogOpen || 
-      this.bookUnavailableDialogOpen || 
+      this.isProcessingScan ||
+      this.bookNotFoundDialogOpen ||
+      this.bookUnavailableDialogOpen ||
       this.scanConfirmationOpen
-    ) return;
+    )
+      return;
     this.isProcessingScan = true;
     this.errorMessage = "";
     this.successMessage = "";
@@ -846,7 +895,10 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       // 1. Try finding the book by GO-number in the library first (unique copy)
       let bookFoundByGo = null;
       try {
-        bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(barcode, schoolId);
+        bookFoundByGo = await this.bookService.getBookByGoNumberFromLibrary(
+          barcode,
+          schoolId,
+        );
       } catch (e) {
         // Ignore 404/errors here to allow fallback to ISBN search
         console.debug("Book not found by GO-number, trying ISBN...");
@@ -872,7 +924,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
           cover: book.cover || "",
           availableCopies: summary.available,
           totalCopies: summary.total,
-          scannedBarcode: bookFoundByGo ? barcode : undefined
+          scannedBarcode: bookFoundByGo ? barcode : undefined,
         };
 
         if (summary.available <= 0) {
