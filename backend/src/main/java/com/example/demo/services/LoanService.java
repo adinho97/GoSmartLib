@@ -189,6 +189,11 @@ public class LoanService {
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    public List<LoanDto> getAllActiveLoans() {
+        return loanRepo.findByReturnedAtIsNull()
+                .stream().map(this::toDto).collect(Collectors.toList());
+    }
+
     public LoanConditionOverviewDto getConditionOverview() {
         List<BookCopy> copies = copyRepo.findAll();
         Map<Long, Integer> copyNumbersByCopyId = buildCopyNumbersByCopyId(copies);
