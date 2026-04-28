@@ -164,6 +164,35 @@ class LoanServiceTest {
         verify(loanRepository, times(1)).findByReturnedAtIsNotNull();
     }
 
+    @Test
+    void getAllActiveLoansReturnsDtosForOpenLoans() {
+        Book book = buildBook(1L, "Dune");
+        BookCopy copy = buildCopy(11L, book, BookCopy.CopyStatus.LOANED, BookCopy.CopyCondition.GOOD);
+
+        Loan activeLoan = new Loan();
+        activeLoan.setId(99L);
+        activeLoan.setCopy(copy);
+        activeLoan.setUserSub("student-1");
+        activeLoan.setLoanedAt(LocalDate.of(2026, 4, 10));
+        activeLoan.setDueDate(LocalDate.of(2026, 4, 24));
+
+        when(loanRepository.findByReturnedAtIsNull()).thenReturn(List.of(activeLoan));
+
+        List<LoanDto> result = loanService.getAllActiveLoans();
+
+        assertEquals(1, result.size());
+        LoanDto dto = result.get(0);
+        assertEquals(99L, dto.getId());
+        assertEquals(11L, dto.getCopyId());
+        assertEquals(1L, dto.getBookId());
+        assertEquals("Dune", dto.getBookTitel());
+        assertEquals("student-1", dto.getUserSub());
+        assertEquals(LocalDate.of(2026, 4, 10), dto.getLoanedAt());
+        assertEquals(LocalDate.of(2026, 4, 24), dto.getDueDate());
+
+        verify(loanRepository, times(1)).findByReturnedAtIsNull();
+    }
+
     private Book buildBook(Long id, String title) {
         Book book = new Book();
         book.setId(id);
