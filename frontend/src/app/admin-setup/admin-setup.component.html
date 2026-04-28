@@ -1,0 +1,103 @@
+<div>
+  <img
+    src="assets/backgroundImage.jpg"
+    alt="Achtergrond"
+    class="background-image"
+  />
+  <div class="login-container">
+    <img src="assets/GOAntwerpen.png" alt="GoSmartLib Logo" class="logo" />
+    <h1>GO!SmartLib</h1>
+    <p class="subtitle">Super Admin Setup</p>
+
+    <form class="login-form" (ngSubmit)="submitSetup()">
+      <div *ngIf="errorMessage" class="error-message">
+        <span>⚠️ {{ errorMessage }}</span>
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">
+        <span>✅ {{ successMessage }}</span>
+      </div>
+
+      <div class="form-group">
+        <label for="token">Setup token</label>
+        <input
+          type="text"
+          id="token"
+          class="form-control"
+          [(ngModel)]="token"
+          name="token"
+          placeholder="Plak de setup token"
+          [disabled]="isLoading"
+          autocomplete="off"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">E-mailadres</label>
+        <input
+          type="email"
+          id="email"
+          class="form-control"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="Voer uw e-mailadres in"
+          [disabled]="isLoading"
+          autocomplete="email"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Wachtwoord</label>
+        <input
+          type="password"
+          id="password"
+          class="form-control"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Kies een sterk wachtwoord"
+          [disabled]="isLoading"
+          autocomplete="new-password"
+          required
+        />
+        <small class="password-hint">
+          Min. 8 tekens, 1 hoofdletter, 1 kleine letter en 1 cijfer.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Bevestig wachtwoord</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          class="form-control"
+          [(ngModel)]="confirmPassword"
+          name="confirmPassword"
+          placeholder="Herhaal uw wachtwoord"
+          [disabled]="isLoading"
+          autocomplete="new-password"
+          required
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="btn-login"
+        [disabled]="isLoading"
+      >
+        <span *ngIf="!isLoading">Super admin aanmaken</span>
+        <span *ngIf="isLoading" class="loading-spinner">
+          <span class="spinner"></span> Bezig met aanmaken...
+        </span>
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>Setup al afgerond?</p>
+      <a href="javascript:void(0)" (click)="goToLogin()" class="link-secondary">
+        Ga naar inloggen
+      </a>
+    </div>
+  </div>
+</div>
