@@ -2,7 +2,7 @@
   <header class="page-header">
     <div>
       <h1>Uitleningsoverzicht</h1>
-      <p>Overzicht van alle huidige uitleningen met status te laat / in tijd</p>
+      <p>Overzicht van alle huidige uitleningen met status te laat / op tijd</p>
     </div>
     <button
       type="button"
@@ -34,7 +34,7 @@
       >
         <option value="all">Alle uitleningen</option>
         <option value="overdue">Te laat</option>
-        <option value="ontime">In tijd</option>
+        <option value="ontime">Op tijd</option>
       </select>
     </div>
   </div>
@@ -46,7 +46,7 @@
   } @else {
     <div class="summary-stats">
       <div class="stat-card">
-        <p class="stat-label">Totaal uitleen</p>
+        <p class="stat-label">Totaal uitgeleend</p>
         <p class="stat-value">{{ filteredLoans.length }}</p>
       </div>
       <div class="stat-card overdue">
@@ -71,7 +71,7 @@
               <th>Boek</th>
               <th>Gebruiker</th>
               <th>Uitgeleend op</th>
-              <th>Terugbringdatum</th>
+              <th>Terugbrengdatum</th>
               <th>Status</th>
             </tr>
           </thead>
