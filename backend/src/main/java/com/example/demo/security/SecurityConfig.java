@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/validate-token").permitAll()
                         .requestMatchers("/api/admin/login").permitAll()
+                        .requestMatchers("/api/admin/setup").permitAll()
+                        .requestMatchers("/api/admin/setup-status").permitAll()
                         // Protected admin endpoints - require JWT token
                         .requestMatchers("/api/admin/**").authenticated()
                         // All other endpoints for now (can be restricted later)
