@@ -1,3 +1,9 @@
+.login-page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
 .super-admin-login-host {
   height: 100vh;
   overflow: hidden;
@@ -20,11 +26,13 @@
 }
 
 .login-container {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  height: 100%;
   font-family: Arial, sans-serif;
   padding: 20px;
   box-sizing: border-box;
@@ -47,11 +55,12 @@
 }
 
 .subtitle {
-  color: #2a2a2a;
+  color: #f7f8fb;
   margin-bottom: 30px;
   text-align: center;
   font-size: 16px;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
 }
 
 .login-form {
@@ -158,6 +167,9 @@
   padding: 0;
   color: #999;
   transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .toggle-password:hover:not(:disabled) {
@@ -222,6 +234,16 @@
   }
 }
 
+.eye-icon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .login-footer {
   text-align: center;
   margin-top: 24px;
@@ -232,8 +254,9 @@
 .login-footer p {
   margin: 0 0 8px 0;
   font-size: 14px;
-  color: #2a2a2a;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  color: #f7f8fb;
+  font-weight: 700;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
 }
 
 .link-secondary {
