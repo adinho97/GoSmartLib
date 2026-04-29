@@ -8,6 +8,10 @@ import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
+import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.config.SmartschoolMessageService;
+import com.example.demo.config.AuthService;
+import com.example.demo.config.SmartschoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,12 +33,21 @@ public class LoanService {
     private final LoanRepository loanRepo;
     private final BookCopyRepository copyRepo;
     private final BookAvailabilityNotificationService bookAvailabilityNotificationService;
+    private final SmartschoolMessageService smartschoolMessageService;
+    private final AuthService authService;
+    private final SmartschoolProperties smartschoolProperties;
 
     public LoanService(LoanRepository loanRepo, BookCopyRepository copyRepo,
-            BookAvailabilityNotificationService bookAvailabilityNotificationService) {
+            BookAvailabilityNotificationService bookAvailabilityNotificationService,
+            SmartschoolMessageService smartschoolMessageService,
+            AuthService authService,
+            SmartschoolProperties smartschoolProperties) {
         this.loanRepo = loanRepo;
         this.copyRepo = copyRepo;
         this.bookAvailabilityNotificationService = bookAvailabilityNotificationService;
+        this.smartschoolMessageService = smartschoolMessageService;
+        this.authService = authService;
+        this.smartschoolProperties = smartschoolProperties;
     }
 
     @Transactional
@@ -94,7 +107,36 @@ public class LoanService {
 
         Loan savedLoan = loanRepo.save(loan);
         logger.info("Loan created: id={}, bookId={}, userSub={}", savedLoan.getId(), request.getBookId(),
-                request.getUserSub());
+            request.getUserSub());
+
+        // Send Smartschool confirmation message to the borrower (non-blocking)
+        try {
+            authService.getUserInfoBySub(savedLoan.getUserSub())
+                .flatMap(userInfo -> {
+                SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                    : smartschoolProperties.getApiBaseUrl();
+
+                req.setPlatformUrl(platform);
+                req.setSubject("Bevestiging: uitlening bibliotheekboek");
+                req.setBody(String.format(
+                    "Beste %s,\n\nU hebt het boek '%s' geleend. Gelieve het terug te brengen op %s.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                    userInfo.getName() != null ? userInfo.getName() : "Lezer",
+                    savedLoan.getCopy().getBook().getTitel(),
+                    savedLoan.getDueDate() != null ? savedLoan.getDueDate().toString() : ""));
+
+                return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                })
+                .doOnSuccess(res -> logger.info("Sent loan confirmation to {} for {}", savedLoan.getUserSub(),
+                    savedLoan.getCopy().getBook().getTitel()))
+                .doOnError(err -> logger.error("Failed to send loan confirmation for {}: {}", savedLoan.getUserSub(),
+                    err.getMessage()))
+                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                .subscribe();
+        } catch (Exception ex) {
+            logger.warn("Exception while attempting to send Smartschool confirmation: {}", ex.getMessage());
+        }
+
         return toDto(savedLoan);
     }
 
