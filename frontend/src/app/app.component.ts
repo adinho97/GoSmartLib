@@ -1,6 +1,7 @@
 import {
   Component,
   HostListener,
+  NgZone,
   ChangeDetectorRef,
   OnInit,
 } from "@angular/core";
@@ -9,6 +10,7 @@ import { HttpClient } from "@angular/common/http";
 import { filter } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { ExperienceService, LevelInfo } from "./services/experience.service";
+import { SchoolService } from "./services/school.service";
 import { UserPreferencesService } from "./services/user-preferences.service";
 import { RecommendationService } from "./services/recommendation.service";
 import { BookService } from "./services/book.service";
@@ -25,11 +27,13 @@ export class AppComponent implements OnInit {
   overviewMenuOpen = false;
   levelInfo$: Observable<LevelInfo>;
   private readonly roleLikeValues = new Set([
-    "leerling",
-    "leerkracht",
-    "bibbeheerder",
-    "gebruiker",
+    "leerling", // student
+    "leerkracht", // teacher
+    "bibbeheerder", // librarian
+    "gebruiker", // generic user
   ]);
+
+  // Inject SchoolService
 
   constructor(
     private router: Router,
@@ -38,6 +42,8 @@ export class AppComponent implements OnInit {
     private experienceService: ExperienceService,
     private userPreferencesService: UserPreferencesService,
     private recommendationService: RecommendationService,
+    private schoolService: SchoolService, // Inject SchoolService
+    private ngZone: NgZone, // Inject NgZone
     private bookService: BookService,
   ) {
     this.levelInfo$ = this.experienceService.levelInfo$;
@@ -217,6 +223,14 @@ export class AppComponent implements OnInit {
     // Prevent back button access
     window.history.replaceState(null, "", "/login");
     this.router.navigate(["/login"]);
+  }
+
+  async navigateToMySchoolBooks(): Promise<void> {
+    // Use ngZone.run to ensure Angular change detection runs after async operation
+    this.ngZone.run(async () => {
+      await this.schoolService.selectUserDefaultSchool();
+      this.router.navigate(["/books"]);
+    });
   }
 
   @HostListener("document:click")

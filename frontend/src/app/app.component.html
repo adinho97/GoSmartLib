@@ -12,7 +12,11 @@
         >
           Dashboard
         </a>
-        <a routerLink="/books" [class.active]="isBooksListActive">
+        <a
+          href="javascript:void(0)"
+          (click)="navigateToMySchoolBooks()"
+          [class.active]="isBooksListActive"
+        >
           Boekencatalogus
         </a>
         @if (isLibrarian || isTeacher) {

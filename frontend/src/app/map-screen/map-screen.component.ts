@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 import * as L from "leaflet";
 import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
@@ -45,7 +46,10 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
     shadowSize: [41, 41],
   });
 
-  constructor(private schoolService: SchoolService) {}
+  constructor(
+    private schoolService: SchoolService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     // Any initial data loading that doesn't depend on the DOM
@@ -70,6 +74,22 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
+
+    // Listen for when a popup is opened to attach logic to the plain HTML buttons
+    this.map.on("popupopen", (e) => {
+      const container = e.popup.getElement();
+      if (container) {
+        const btn = container.querySelector(".popup-nav-btn");
+        if (btn) {
+          btn.addEventListener("click", () => {
+            const schoolId = btn.getAttribute("data-id");
+            if (schoolId) {
+              this.selectSchoolAndNavigate(Number(schoolId));
+            }
+          });
+        }
+      }
+    });
 
     // Ensure the map container size is correctly calculated after the view settles
     setTimeout(() => {
@@ -118,6 +138,14 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
     return Array.from({ length: this.totalPages }, (_, i) => i);
   }
 
+  /**
+   * Sets the active school and navigates to the book catalog
+   */
+  private selectSchoolAndNavigate(schoolId: number): void {
+    this.schoolService.setSelectedSchoolId(schoolId);
+    this.router.navigate(["/books"]);
+  }
+
   private addSchoolMarkers(): void {
     // Clear existing markers before adding new ones
     this.schoolMarkers.forEach((marker) => marker.remove());
@@ -125,12 +153,22 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.schools.forEach((school) => {
       if (school.latitude !== undefined && school.longitude !== undefined) {
+        const popupContent = `
+          <div class="map-popup-card">
+            <h3 class="popup-title">${school.naam}</h3>
+            <p class="popup-address">${school.adres || ""}</p>
+            <button class="popup-nav-btn" data-id="${school.id}">
+              Bekijk Boekencatalogus →
+            </button>
+          </div>
+        `;
+
         const marker = L.marker(
           [school.latitude as number, school.longitude as number],
           { icon: this.defaultIcon },
         )
           .addTo(this.map)
-          .bindPopup(`<b>${school.naam}</b><br>${school.adres}`);
+          .bindPopup(popupContent);
 
         marker.on("click", () => {
           this.selectedSchool = school;
