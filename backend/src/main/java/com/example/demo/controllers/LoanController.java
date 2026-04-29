@@ -59,6 +59,31 @@ public class LoanController {
         }
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<List<LoanDto>> createLoans(
+            @Valid @RequestBody List<CreateLoanRequest> requests,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        if (!canLoan(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        try {
+            if (requests == null || requests.isEmpty()) {
+                return ResponseEntity.badRequest().body(List.of());
+            }
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(loanService.createLoans(requests));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Bulk loan validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (IllegalStateException e) {
+            logger.warn("Bulk loan creation conflict: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (Exception e) {
+            logger.error("Unexpected error creating bulk loans", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @PutMapping("/{id}/teruggeven")
     public ResponseEntity<LoanDto> returnLoan(
             @PathVariable Long id,

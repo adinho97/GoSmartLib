@@ -3,6 +3,8 @@ package com.example.demo;
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
+import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
@@ -15,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -23,6 +27,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -94,6 +99,53 @@ class LoanServiceTest {
         // Verificatie
         verify(loanRepository, times(1)).save(any(Loan.class));
         verify(bookCopyRepository, times(1)).findByBook_Id(1L);
+    }
+
+    @Test
+    void testCreateLoans_SendsOneCombinedSmartschoolMessage() {
+        CreateLoanRequest request1 = new CreateLoanRequest();
+        request1.setBookId(1L);
+        request1.setUserSub("student-1");
+        request1.setDueDate(LocalDate.of(2026, 5, 10));
+
+        CreateLoanRequest request2 = new CreateLoanRequest();
+        request2.setBookId(2L);
+        request2.setUserSub("student-1");
+        request2.setDueDate(LocalDate.of(2026, 5, 10));
+
+        Book book1 = buildBook(1L, "Dune");
+        Book book2 = buildBook(2L, "Foundation");
+
+        BookCopy copy1 = buildCopy(101L, book1, BookCopy.CopyStatus.AVAILABLE, BookCopy.CopyCondition.GOOD);
+        BookCopy copy2 = buildCopy(102L, book2, BookCopy.CopyStatus.AVAILABLE, BookCopy.CopyCondition.GOOD);
+
+        when(bookCopyRepository.findByBook_Id(1L)).thenReturn(Collections.singletonList(copy1));
+        when(bookCopyRepository.findByBook_Id(2L)).thenReturn(Collections.singletonList(copy2));
+        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(loanRepository.save(any(Loan.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SmartschoolUserInfo userInfo = new SmartschoolUserInfo();
+        userInfo.setName("Test Leerling");
+        userInfo.setAccessToken("access-token");
+        userInfo.setPlatform("https://school.example");
+
+        when(authService.getUserInfoBySub("student-1")).thenReturn(Mono.just(userInfo));
+        when(smartschoolMessageService.sendMessage(eq("access-token"), any(SmartschoolMessageRequest.class)))
+                .thenReturn(Mono.just("ok"));
+
+        List<LoanDto> loans = loanService.createLoans(List.of(request1, request2));
+
+        assertEquals(2, loans.size());
+        verify(smartschoolMessageService, times(1)).sendMessage(eq("access-token"), any(SmartschoolMessageRequest.class));
+
+        ArgumentCaptor<SmartschoolMessageRequest> requestCaptor = ArgumentCaptor.forClass(SmartschoolMessageRequest.class);
+        verify(smartschoolMessageService).sendMessage(eq("access-token"), requestCaptor.capture());
+
+        String body = requestCaptor.getValue().getBody();
+        assertTrue(body.contains("Dune"));
+        assertTrue(body.contains("Foundation"));
+        assertTrue(body.contains("2026-05-10"));
+        assertTrue(requestCaptor.getValue().getSubject().contains("2 boeken"));
     }
 
     @Test
