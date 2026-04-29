@@ -279,6 +279,55 @@
   line-height: 1.5;
 }
 
+.schools-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.schools-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.schools-header h2 {
+  margin: 0;
+}
+
+.error-message {
+  color: #8a1f2d;
+  background: #fde8e8;
+  border: 1px solid #f5b4b4;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.school-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.school-card {
+  border: 1px solid #e3e5e8;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.school-card h3 {
+  margin: 0 0 6px;
+}
+
+.subdomain {
+  color: #666;
+  font-size: 13px;
+  margin-top: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-header {

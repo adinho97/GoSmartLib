@@ -12,6 +12,7 @@ import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.
 import { AdminSetupComponent } from "./admin-setup/admin-setup.component";
 import { AdminDashboardComponent } from "./admin-dashboard/admin-dashboard.component";
 import { AdminChangePasswordComponent } from "./admin-change-password/admin-change-password.component";
+import { AdminSchoolWizardComponent } from "./admin-school-wizard/admin-school-wizard.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
@@ -45,6 +46,7 @@ registerLocaleData(localeNl, "nl");
     AdminSetupComponent,
     AdminDashboardComponent,
     AdminChangePasswordComponent,
+    AdminSchoolWizardComponent,
     DashboardComponent,
     AddBookComponent,
     AddIsbnComponent,

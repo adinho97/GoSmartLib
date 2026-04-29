@@ -36,7 +36,7 @@
   </div>
 
   <!-- Welcome Section -->
-  <div class="welcome-section" *ngIf="adminInfo">
+  @if (adminInfo) {
     <div class="admin-info-card">
       <h2>Hallo, {{ adminInfo.username || "Beheerder" }}!</h2>
       <p>Je bent ingelogd als Super Administrator</p>
@@ -45,5 +45,42 @@
         <p><strong>Gebruikersnaam:</strong> {{ adminInfo.username }}</p>
       </div>
     </div>
+  }
+
+  <div class="schools-section">
+    <div class="schools-header">
+      <h2>Scholen</h2>
+      <button type="button" class="btn-primary" (click)="goToSchoolWizard()">
+        School toevoegen
+      </button>
+    </div>
+
+    @if (schoolError) {
+      <p class="error-message">{{ schoolError }}</p>
+    }
+    @if (isLoadingSchools) {
+      <p>Scholen laden...</p>
+    }
+
+    @if (!isLoadingSchools) {
+      <div class="school-grid">
+        @for (school of schools; track school.id) {
+          <div class="school-card">
+        <h3>{{ school.naam || school.subdomain }}</h3>
+        <p class="subdomain">{{ school.subdomain }}.smartschool.be</p>
+        <p><strong>Status:</strong> {{ school.status }}</p>
+        <p><strong>Gebruikers:</strong> {{ school.userCount }}</p>
+        <p><strong>Klassen:</strong> {{ school.klasCount }}</p>
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="toggleSchoolStatus(school)"
+        >
+          {{ school.status === "INACTIVE" ? "Activeren" : "Deactiveren" }}
+        </button>
+      </div>
+        }
+      </div>
+    }
   </div>
 </div>
