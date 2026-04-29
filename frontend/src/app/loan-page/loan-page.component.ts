@@ -9,6 +9,7 @@ import { BookService } from "../services/book.service";
 import {
   LoanService,
   Loan,
+  CreateLoanRequest,
   BookCopyInfo,
   ReturnCondition,
   ReturnLoanRequest,
@@ -455,19 +456,27 @@ export class LoanPageComponent implements OnInit, OnDestroy {
         !!this.currentUserSub &&
         this.selectedLeerling.sub === this.currentUserSub;
 
+      const requests: CreateLoanRequest[] = [];
+
       for (const book of this.selectedBooks) {
         this.barcodeService.deactivateScanMode();
         const copyId = await this.resolveCopyForLoan(book);
-        await this.loanService.createLoan(
-          book.id,
-          this.selectedLeerling.sub,
-          this.dueDate,
-          copyId ?? undefined,
-        );
-        if (shouldAwardLoanXp) {
+        requests.push({
+          bookId: book.id,
+          userSub: this.selectedLeerling.sub,
+          dueDate: this.dueDate,
+          copyId: copyId ?? undefined,
+        });
+      }
+
+      const createdLoans = await this.loanService.createLoans(requests);
+
+      if (shouldAwardLoanXp) {
+        for (let i = 0; i < createdLoans.length; i++) {
           this.experienceService.addExperienceForLoaningBook();
         }
       }
+
       this.successMessage = `${this.selectedBooks.length} boek(en) uitgeleend aan ${this.selectedLeerling.displayName}.`;
       this.selectedBooks = [];
       this.step = "leerling";

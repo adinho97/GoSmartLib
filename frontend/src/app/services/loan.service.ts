@@ -14,6 +14,13 @@ export interface Loan {
   returnedAt: string | null;
 }
 
+export interface CreateLoanRequest {
+  bookId: number;
+  userSub: string;
+  dueDate: string;
+  copyId?: number;
+}
+
 export type ReturnCondition = "GOOD" | "MODERATE" | "BAD";
 
 export interface ReturnLoanRequest {
@@ -98,16 +105,16 @@ export class LoanService {
     dueDate: string,
     copyId?: number,
   ): Promise<Loan> {
-    const payload: {
-      bookId: number;
-      userSub: string;
-      dueDate: string;
-      copyId?: number;
-    } = { bookId, userSub, dueDate };
+    const payload: CreateLoanRequest = { bookId, userSub, dueDate };
     if (copyId !== undefined) {
       payload.copyId = copyId;
     }
     const res = await axios.post(this.api, payload, this.headers());
+    return res.data;
+  }
+
+  async createLoans(requests: CreateLoanRequest[]): Promise<Loan[]> {
+    const res = await axios.post(`${this.api}/bulk`, requests, this.headers());
     return res.data;
   }
 
