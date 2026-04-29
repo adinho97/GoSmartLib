@@ -209,6 +209,41 @@
   margin: 0;
 }
 
+/* Popup Custom Styling */
+.map-popup-card {
+  padding: 4px;
+  min-width: 180px;
+}
+
+.popup-title {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  color: var(--text-color-dark);
+}
+
+.popup-address {
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: var(--text-color-medium);
+}
+
+.popup-nav-btn {
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: opacity 0.2s;
+}
+
+.popup-nav-btn:hover {
+  opacity: 0.9;
+}
+
 /* Loading Spinner */
 .map-loader {
   position: absolute;

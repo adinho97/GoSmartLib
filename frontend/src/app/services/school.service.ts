@@ -50,4 +50,19 @@ export class SchoolService {
   setSelectedSchoolId(schoolId: number): void {
     localStorage.setItem(this.selectedSchoolIdKey, String(schoolId));
   }
+
+  /**
+   * Fetches the logged-in user's assigned school from the database
+   * and sets it as the active selection.
+   */
+  async selectUserDefaultSchool(): Promise<void> {
+    try {
+      const res = await axios.get<{ schoolId: number }>(
+        "/api/gebruikers/me/school",
+      );
+      this.setSelectedSchoolId(res.data.schoolId);
+    } catch (err) {
+      console.error("Could not fetch user's assigned school:", err);
+    }
+  }
 }
