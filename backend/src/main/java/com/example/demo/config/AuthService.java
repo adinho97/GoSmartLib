@@ -1,10 +1,17 @@
 package com.example.demo.config;
 
 import com.example.demo.entities.AppUser;
+import com.example.demo.entities.Klas;
+import com.example.demo.entities.School;
+import com.example.demo.entities.SchoolStatus;
+import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.KlasRepository;
+import com.example.demo.repositories.SchoolRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -12,10 +19,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
@@ -26,15 +36,21 @@ public class AuthService {
         private final WebClient webClient;
         private final SmartschoolProperties smartschoolProperties;
         private final AppUserRepository appUserRepository;
+        private final SchoolRepository schoolRepository;
+        private final KlasRepository klasRepository;
         private final ObjectMapper objectMapper;
 
         public AuthService(WebClient.Builder webClientBuilder,
                         SmartschoolProperties smartschoolProperties,
                         AppUserRepository appUserRepository,
+                        SchoolRepository schoolRepository,
+                        KlasRepository klasRepository,
                         ObjectMapper objectMapper) {
                 this.webClient = webClientBuilder.build();
                 this.smartschoolProperties = smartschoolProperties;
                 this.appUserRepository = appUserRepository;
+                this.schoolRepository = schoolRepository;
+                this.klasRepository = klasRepository;
                 this.objectMapper = objectMapper;
         }
 
@@ -69,7 +85,7 @@ public class AuthService {
         public Mono<AuthLoginResponse> processSmartschoolCallback(String code) {
                 return getAccessToken(code)
                                 .flatMap(tokenResponse -> getUserInfo(tokenResponse, null))
-                                .map(this::saveUserAndBuildResponse);
+                                .flatMap(this::saveUserAndBuildResponse);
         }
 
         public Mono<Void> logout(String accessToken) {
@@ -106,13 +122,13 @@ public class AuthService {
                                 .then(); // Return empty Mono<Void>
         }
 
-        private AuthLoginResponse saveUserAndBuildResponse(SmartschoolUserInfo userInfo) {
+        private Mono<AuthLoginResponse> saveUserAndBuildResponse(SmartschoolUserInfo userInfo) {
                 String sub = userInfo.getSub();
                 String smartschoolRole = userInfo.getRole();
                 String displayName = userInfo.getName(); // Renamed to clarify it's for display only
 
                 // Check if user already exists
-                var existingUserOpt = appUserRepository.findBySub(sub);
+                Optional<AppUser> existingUserOpt = appUserRepository.findBySub(sub);
                 String finalRole;
 
                 if (existingUserOpt.isPresent()) {
@@ -132,21 +148,133 @@ public class AuthService {
                         return newUser;
                 });
 
-                // Always update tokens and platform (regardless of existing or new)
-                user.setRole(finalRole);
-                user.setSmartschoolRefreshToken(userInfo.getRefreshToken());
-                user.setAccessToken(userInfo.getAccessToken());
-                user.setPlatform(userInfo.getPlatform());
-                appUserRepository.save(user);
+                String normalizedPlatform = normalizePlatformUrl(userInfo.getPlatform());
+                String subdomain = extractSubdomain(normalizedPlatform);
+                School school = resolveSchoolForLogin(existingUserOpt, normalizedPlatform, subdomain);
 
-                AuthLoginResponse response = new AuthLoginResponse(
-                                sub,
-                                finalRole,
-                                displayName,
-                                userInfo.getGivenName(),
-                                userInfo.getFamilyName());
-                response.setAccessToken(userInfo.getAccessToken());
-                return response;
+                if (school.getStatus() == SchoolStatus.INACTIVE) {
+                        throw new ApiException("School is gedeactiveerd", HttpStatus.FORBIDDEN, "SCHOOL_INACTIVE");
+                }
+                if (school.getStatus() == SchoolStatus.PENDING) {
+                        school.setStatus(SchoolStatus.ACTIVE);
+                        school = schoolRepository.save(school);
+                }
+
+                final School resolvedSchool = school;
+                final String roleToPersist = finalRole;
+                final AppUser targetUser = user;
+                final String platformForUser = normalizedPlatform;
+
+                return getGroupInfo(userInfo.getAccessToken(), normalizedPlatform)
+                                .onErrorResume(error -> {
+                                        logger.warn("Failed to fetch groups during login, continuing without class sync",
+                                                        error);
+                                        return Mono.just(new SmartschoolGroupInfo());
+                                })
+                                .map(groupInfo -> {
+                                        Klas primaryKlas = upsertKlasData(resolvedSchool, groupInfo.getGroups());
+
+                                        targetUser.setRole(roleToPersist);
+                                        targetUser.setSmartschoolRefreshToken(userInfo.getRefreshToken());
+                                        targetUser.setAccessToken(userInfo.getAccessToken());
+                                        targetUser.setPlatform(platformForUser);
+                                        targetUser.setSchool(resolvedSchool);
+                                        if (primaryKlas != null) {
+                                                targetUser.setKlas(primaryKlas);
+                                        }
+                                        appUserRepository.save(targetUser);
+
+                                        AuthLoginResponse response = new AuthLoginResponse(
+                                                        sub,
+                                                        roleToPersist,
+                                                        displayName,
+                                                        userInfo.getGivenName(),
+                                                        userInfo.getFamilyName());
+                                        response.setAccessToken(userInfo.getAccessToken());
+                                        return response;
+                                });
+        }
+
+        private School resolveSchoolForLogin(Optional<AppUser> existingUserOpt, String normalizedPlatform, String subdomain) {
+                Optional<School> schoolOpt = schoolRepository.findBySubdomeinIgnoreCase(subdomain);
+                if (schoolOpt.isPresent()) {
+                        return schoolOpt.get();
+                }
+
+                // Compatibility bridge: keep legacy users (with existing app data like loans)
+                // able to log in even before manual school registration migration is complete.
+                if (existingUserOpt.isPresent()) {
+                        logger.warn("Legacy user login without registered school for subdomain {}, auto-creating school",
+                                        subdomain);
+                        School legacySchool = new School();
+                        legacySchool.setSubdomein(subdomain);
+                        legacySchool.setSmartschoolUrl(normalizedPlatform);
+                        legacySchool.setNaam(subdomain);
+                        legacySchool.setStatus(SchoolStatus.ACTIVE);
+                        return schoolRepository.save(legacySchool);
+                }
+
+                throw new ApiException("Jouw school is nog niet geregistreerd", HttpStatus.FORBIDDEN,
+                                "SCHOOL_NOT_REGISTERED");
+        }
+
+        private String normalizePlatformUrl(String platform) {
+                if (platform == null || platform.isBlank()) {
+                        throw new ApiException("Ongeldige schoolplatform informatie ontvangen", HttpStatus.BAD_REQUEST,
+                                        "INVALID_PLATFORM");
+                }
+                String trimmed = platform.trim();
+                if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+                        trimmed = "https://" + trimmed;
+                }
+                return trimmed.endsWith("/") ? trimmed.substring(0, trimmed.length() - 1) : trimmed;
+        }
+
+        private String extractSubdomain(String platformUrl) {
+                try {
+                        URI uri = URI.create(platformUrl);
+                        String host = uri.getHost();
+                        if (host == null || !host.toLowerCase(Locale.ROOT).endsWith(".smartschool.be")) {
+                                throw new ApiException("Ongeldig Smartschool platform domein", HttpStatus.BAD_REQUEST,
+                                                "INVALID_PLATFORM");
+                        }
+                        return host.substring(0, host.length() - ".smartschool.be".length()).toLowerCase(Locale.ROOT);
+                } catch (IllegalArgumentException ex) {
+                        throw new ApiException("Ongeldig Smartschool platform domein", HttpStatus.BAD_REQUEST,
+                                        "INVALID_PLATFORM");
+                }
+        }
+
+        private Klas upsertKlasData(School school, List<SmartschoolGroup> groups) {
+                if (groups == null || groups.isEmpty()) {
+                        return null;
+                }
+
+                Klas primary = null;
+                for (SmartschoolGroup group : groups) {
+                        if (group == null || group.getGroupID() == null || group.getGroupID().isBlank()) {
+                                continue;
+                        }
+                        String cleanedGroupId = group.getGroupID().trim();
+                        String klasNaam = group.getName() == null || group.getName().isBlank()
+                                        ? cleanedGroupId
+                                        : group.getName().trim();
+
+                        Klas klas = klasRepository.findBySchool_IdAndGroupId(school.getId(), cleanedGroupId)
+                                        .orElseGet(() -> {
+                                                Klas created = new Klas();
+                                                created.setSchool(school);
+                                                created.setGroupId(cleanedGroupId);
+                                                return created;
+                                        });
+                        klas.setNaam(klasNaam);
+                        Klas saved = klasRepository.save(klas);
+
+                        if (primary == null) {
+                                primary = saved;
+                        }
+                }
+                return primary;
         }
 
         private Mono<SmartschoolTokenResponse> getAccessToken(String code) {
