@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
+import com.example.demo.dto.LoanDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
