@@ -111,7 +111,7 @@ public class LoanReminderService {
                     request.setPlatformUrl(platform);
                     request.setSubject("URGENT: Inleveren bibliotheekboek nu nodig");
                     request.setBody(String.format(
-                            "Beste %s,\n\nHet boek '%s' was fällig op %s en moet dringend ingeleverd worden. Gelieve het boek zo snel mogelijk terug te brengen naar de bibliotheek.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                            "Beste %s,\n\nHet boek '%s' moest terug zijn op %s en moet dringend ingeleverd worden. Gelieve het boek zo snel mogelijk terug te brengen naar de bibliotheek.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
                             userInfo.getName() != null ? userInfo.getName() : "Lezer",
                             loan.getCopy().getBook().getTitel(),
                             loan.getDueDate()));
