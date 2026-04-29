@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 @Table(name = "info_content")
 public class InfoContent {
 
-    public enum Sectie { STAP, FEATURE, TIP }
+    public enum Sectie { STAP, FEATURE, TIP, FAQ }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,4 +42,4 @@ public class InfoContent {
     public void setInhoud(String inhoud) { this.inhoud = inhoud; }
     public int getSortOrder() { return sortOrder; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
-}
+}   

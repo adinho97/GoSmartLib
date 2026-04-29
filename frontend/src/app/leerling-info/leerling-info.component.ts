@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FaqService, FaqItem } from '../services/faq.service';
 import { InfoContentService, InfoContentItem } from '../services/info-content.service';
 
-type QuickAction = { label: string; link: string; };
 type SiteFeature = { title: string; description: string; };
 
 @Component({
@@ -13,15 +11,10 @@ type SiteFeature = { title: string; description: string; };
 })
 export class LeerlingInfoComponent implements OnInit {
   openFaqIndex: number | null = 0;
-  faqItems: FaqItem[] = [];
+  faqItems: InfoContentItem[] = [];
   loanSteps: string[] = [];
   siteFeatures: SiteFeature[] = [];
   tips: string[] = [];
-
-  readonly quickActions: QuickAction[] = [
-    { label: 'Naar Boekencatalogus', link: '/books' },
-    { label: 'Naar Dashboard', link: '/dashboard' },
-  ];
 
   private readonly defaultLoanSteps: string[] = [
     'Zoek een boek via Boekencatalogus en open de detailpagina.',
@@ -44,10 +37,30 @@ export class LeerlingInfoComponent implements OnInit {
     'Voeg interessante titels toe aan je verlanglijst, zodat je ze later makkelijk terugvindt.',
   ];
 
-  constructor(
-    private faqService: FaqService,
-    private infoContentService: InfoContentService,
-  ) {}
+  private readonly defaultFaqItems: InfoContentItem[] = [
+    {
+      sectie: 'FAQ',
+      titel: 'Ik vind een boek online, maar niet in de bib. Wat nu?',
+      inhoud: 'Vraag aan de bib-verantwoordelijke of het boek momenteel uitgeleend, verplaatst of niet aanwezig is. Je kunt het boek intussen op je verlanglijst zetten.',
+    },
+    {
+      sectie: 'FAQ',
+      titel: 'Hoe zie ik wanneer ik een boek moet terugbrengen?',
+      inhoud: 'Open je dashboard en kijk bij Geleende boeken. Daar zie je je actieve uitleningen en de relevante datums.',
+    },
+    {
+      sectie: 'FAQ',
+      titel: 'Wat is het verschil tussen Verlanglijst en Favorieten?',
+      inhoud: 'Verlanglijst is voor boeken die je nog wilt lezen. Favorieten zijn boeken die je extra goed vond en snel wilt terugvinden.',
+    },
+    {
+      sectie: 'FAQ',
+      titel: 'Hoe krijg ik betere aanbevelingen?',
+      inhoud: 'Geef voorkeur aan genres die je graag leest, gebruik favorieten en werk je profielgebruik regelmatig bij. Dan worden aanbevelingen persoonlijker.',
+    },
+  ];
+
+  constructor(private infoContentService: InfoContentService) {}
 
   ngOnInit(): void {
     const schoolId = this.getSchoolId();
@@ -65,19 +78,22 @@ export class LeerlingInfoComponent implements OnInit {
   }
 
   private loadFaq(schoolId?: number): void {
-    this.faqService.getAll(schoolId).subscribe({
-      next: (items) => (this.faqItems = items),
-      error: () => (this.faqItems = []),
+    this.infoContentService.hasContent('FAQ', schoolId).subscribe({
+      next: (hasContent) => {
+        if (!hasContent) { this.faqItems = this.defaultFaqItems; return; }
+        this.infoContentService.getAll('FAQ', schoolId).subscribe({
+          next: (items) => (this.faqItems = items),
+          error: () => (this.faqItems = this.defaultFaqItems),
+        });
+      },
+      error: () => (this.faqItems = this.defaultFaqItems),
     });
   }
 
   private loadStappen(schoolId?: number): void {
     this.infoContentService.hasContent('STAP', schoolId).subscribe({
       next: (hasContent) => {
-        if (!hasContent) {
-          this.loanSteps = this.defaultLoanSteps;
-          return;
-        }
+        if (!hasContent) { this.loanSteps = this.defaultLoanSteps; return; }
         this.infoContentService.getAll('STAP', schoolId).subscribe({
           next: (items) => (this.loanSteps = items.map(i => i.inhoud)),
           error: () => (this.loanSteps = this.defaultLoanSteps),
@@ -90,10 +106,7 @@ export class LeerlingInfoComponent implements OnInit {
   private loadFeatures(schoolId?: number): void {
     this.infoContentService.hasContent('FEATURE', schoolId).subscribe({
       next: (hasContent) => {
-        if (!hasContent) {
-          this.siteFeatures = this.defaultSiteFeatures;
-          return;
-        }
+        if (!hasContent) { this.siteFeatures = this.defaultSiteFeatures; return; }
         this.infoContentService.getAll('FEATURE', schoolId).subscribe({
           next: (items) => (this.siteFeatures = items.map(i => ({
             title: i.titel ?? '',
@@ -109,10 +122,7 @@ export class LeerlingInfoComponent implements OnInit {
   private loadTips(schoolId?: number): void {
     this.infoContentService.hasContent('TIP', schoolId).subscribe({
       next: (hasContent) => {
-        if (!hasContent) {
-          this.tips = this.defaultTips;
-          return;
-        }
+        if (!hasContent) { this.tips = this.defaultTips; return; }
         this.infoContentService.getAll('TIP', schoolId).subscribe({
           next: (items) => (this.tips = items.map(i => i.inhoud)),
           error: () => (this.tips = this.defaultTips),
