@@ -30,7 +30,11 @@
   margin: 0;
 }
 
-.btn-logout {
+.account-dropdown {
+  position: relative;
+}
+
+.btn-account {
   background-color: #871f42;
   color: white;
   border: none;
@@ -43,15 +47,55 @@
   white-space: nowrap;
 }
 
-.btn-logout:hover:not(:disabled) {
+.btn-account:hover {
   background-color: #6b183a;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(135, 31, 66, 0.3);
 }
 
-.btn-logout:disabled {
+.account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: white;
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  display: none;
+  z-index: 20;
+}
+
+.account-menu.show {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.account-menu-item:hover:not(:disabled) {
+  background: #f6f6f7;
+}
+
+.account-menu-item:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.logout-item {
+  color: #871f42;
 }
 
 /* Welcome Section */
@@ -242,9 +286,18 @@
     align-items: flex-start;
   }
 
-  .btn-logout {
+  .account-dropdown {
+    width: 100%;
+  }
+
+  .btn-account {
     width: 100%;
     text-align: center;
+  }
+
+  .account-menu {
+    left: 0;
+    right: auto;
   }
 
   .header-content h1 {
