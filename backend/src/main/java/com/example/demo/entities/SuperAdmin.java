@@ -26,6 +26,9 @@ public class SuperAdmin {
     @Column(nullable = true)
     private LocalDateTime lastLogin;
 
+    @Column(nullable = false)
+    private Long tokenVersion = 0L;
+
     public SuperAdmin() {
         this.createdAt = LocalDateTime.now();
     }
@@ -76,5 +79,13 @@ public class SuperAdmin {
 
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public Long getTokenVersion() {
+        return tokenVersion;
+    }
+
+    public void setTokenVersion(Long tokenVersion) {
+        this.tokenVersion = tokenVersion;
     }
 }

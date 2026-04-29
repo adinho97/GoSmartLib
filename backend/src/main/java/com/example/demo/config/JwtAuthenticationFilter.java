@@ -1,5 +1,7 @@
 package com.example.demo.config;
 
+import com.example.demo.entities.SuperAdmin;
+import com.example.demo.repositories.SuperAdminRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,9 +22,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtTokenProvider jwtTokenProvider;
+    private final SuperAdminRepository superAdminRepository;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, SuperAdminRepository superAdminRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.superAdminRepository = superAdminRepository;
     }
 
     @Override
@@ -36,6 +40,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = jwtTokenProvider.getUsernameFromToken(token);
                 Long userId = jwtTokenProvider.getUserIdFromToken(token);
                 String role = jwtTokenProvider.getRoleFromToken(token);
+                Long tokenVersion = jwtTokenProvider.getTokenVersionFromToken(token);
+
+                SuperAdmin admin = superAdminRepository.findById(userId).orElse(null);
+                Long currentTokenVersion = admin == null || admin.getTokenVersion() == null
+                        ? 0L
+                        : admin.getTokenVersion();
+                if (admin == null || !currentTokenVersion.equals(tokenVersion)) {
+                    logger.debug("JWT rejected due to stale token version for userId: {}", userId);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
                     String authority = "ROLE_" + role.toUpperCase();

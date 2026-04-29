@@ -58,7 +58,12 @@ public class SuperAdminAuthService {
         }
 
         // Generate JWT token
-        String token = jwtTokenProvider.generateToken(admin.getEmail(), admin.getId(), "super_admin");
+        String token = jwtTokenProvider.generateToken(
+                admin.getEmail(),
+                admin.getId(),
+                "super_admin",
+                admin.getTokenVersion()
+        );
         logger.info("Super admin login successful for identifier: {}, userId: {}", admin.getEmail(), admin.getId());
 
         return new SuperAdminLoginResponse(token, admin.getEmail(), admin.getId(), "super_admin");
@@ -79,6 +84,7 @@ public class SuperAdminAuthService {
         SuperAdmin admin = new SuperAdmin();
         admin.setEmail(username);
         admin.setPasswordHash(passwordEncoder.encode(password));
+        admin.setTokenVersion(0L);
 
         SuperAdmin savedAdmin = superAdminRepository.save(admin);
         logger.info("Super admin created successfully with id: {}, identifier: {}", savedAdmin.getId(), username);
@@ -169,6 +175,8 @@ public class SuperAdminAuthService {
 
         // Update password
         admin.setPasswordHash(passwordEncoder.encode(newPassword));
+        admin.setTokenVersion(admin.getTokenVersion() + 1L);
+        admin.setUpdatedAt(LocalDateTime.now());
         superAdminRepository.save(admin);
         logger.info("Password changed successfully for userId: {}", userId);
     }

@@ -26,7 +26,7 @@ public class JwtTokenProvider {
     /**
      * Generate JWT token for Super Admin
      */
-    public String generateToken(String username, Long userId, String role) {
+    public String generateToken(String username, Long userId, String role, Long tokenVersion) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
@@ -34,6 +34,7 @@ public class JwtTokenProvider {
                 .setSubject(username)
                 .claim("userId", userId)
                 .claim("role", role)
+                .claim("tokenVersion", tokenVersion)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
@@ -62,6 +63,16 @@ public class JwtTokenProvider {
     public String getRoleFromToken(String token) {
         Claims claims = getAllClaimsFromToken(token);
         return claims.get("role", String.class);
+    }
+
+    /**
+     * Extract token version from JWT token.
+     * Returns 0 when claim is absent (for backwards compatibility with older tokens).
+     */
+    public Long getTokenVersionFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        Number tokenVersion = claims.get("tokenVersion", Number.class);
+        return tokenVersion == null ? 0L : tokenVersion.longValue();
     }
 
     /**
