@@ -3,10 +3,8 @@ package com.example.demo;
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
-import com.example.demo.entities.Favorite;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
-import com.example.demo.repositories.FavoriteRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.RecommendationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,9 +34,6 @@ class RecommendationIntegrationTest {
     private BookRepository bookRepository;
 
     @Autowired
-    private FavoriteRepository favoriteRepository;
-
-    @Autowired
     private LoanRepository loanRepository;
 
     private AppUser testUser;
@@ -47,7 +42,6 @@ class RecommendationIntegrationTest {
     @BeforeEach
     void setUp() {
         loanRepository.deleteAll();
-        favoriteRepository.deleteAll();
         bookRepository.deleteAll();
         appUserRepository.deleteAll();
 
@@ -65,14 +59,8 @@ class RecommendationIntegrationTest {
     @Test
     @DisplayName("should combine recommendations from multiple strategies")
     void testMultipleStrategiesIntegration() {
-        Favorite fav1 = new Favorite();
-        fav1.setUser(testUser);
-        fav1.setBook(fantasyBook);
-        favoriteRepository.save(fav1);
-
         List<RecommendedBook> combined = recommendationService.getRecommendations(
-            "integration_user", 10, true
-        );
+                "integration_user", 10, true);
 
         assertNotNull(combined);
         assertTrue(combined.size() > 0);
@@ -81,14 +69,8 @@ class RecommendationIntegrationTest {
     @Test
     @DisplayName("should return grouped recommendations with all strategies")
     void testGroupedRecommendationsAllStrategies() {
-        Favorite fav = new Favorite();
-        fav.setUser(testUser);
-        fav.setBook(fantasyBook);
-        favoriteRepository.save(fav);
-
         Map<String, List<RecommendedBook>> grouped = recommendationService.getRecommendationsByStrategyGrouped(
-            "integration_user", 10, true
-        );
+                "integration_user", 10, true);
 
         assertTrue(grouped.containsKey("TrendingStrategy"));
         assertTrue(grouped.containsKey("GenreBasedStrategy"));
@@ -111,17 +93,11 @@ class RecommendationIntegrationTest {
     @Test
     @DisplayName("should filter recommendations by strategy names")
     void testFilterByStrategyNames() {
-        Favorite fav = new Favorite();
-        fav.setUser(testUser);
-        fav.setBook(fantasyBook);
-        favoriteRepository.save(fav);
-
         List<RecommendedBook> filtered = recommendationService.getRecommendationsByStrategy(
-            "integration_user",
-            List.of("GenreBasedStrategy"),
-            10,
-            true
-        );
+                "integration_user",
+                List.of("GenreBasedStrategy"),
+                10,
+                true);
 
         assertNotNull(filtered);
     }

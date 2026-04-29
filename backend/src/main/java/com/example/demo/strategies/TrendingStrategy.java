@@ -5,7 +5,6 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
-import com.example.demo.repositories.FavoriteRepository;
 import com.example.demo.repositories.LoanRepository;
 import org.springframework.stereotype.Component;
 
@@ -16,16 +15,13 @@ import java.util.stream.Collectors;
 public class TrendingStrategy implements RecommendationStrategy {
 
     private final AppUserRepository appUserRepository;
-    private final FavoriteRepository favoriteRepository;
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
 
     public TrendingStrategy(AppUserRepository appUserRepository,
-            FavoriteRepository favoriteRepository,
             BookRepository bookRepository,
             LoanRepository loanRepository) {
         this.appUserRepository = appUserRepository;
-        this.favoriteRepository = favoriteRepository;
         this.bookRepository = bookRepository;
         this.loanRepository = loanRepository;
     }
@@ -38,17 +34,9 @@ public class TrendingStrategy implements RecommendationStrategy {
         }
         AppUser user = userOpt.get();
 
-        var favorites = favoriteRepository.findByUser(user);
-
-        // Get IDs of books user already has (favorites + loans)
-        Set<Long> userBookIds = new HashSet<>();
-        for (var favorite : favorites) {
-            userBookIds.add(favorite.getBook().getId());
-        }
+        // Get IDs of books user already has
         var userLoans = loanRepository.findByUserSubAndReturnedAtIsNotNull(userId);
-        for (var loan : userLoans) {
-            userBookIds.add(loan.getCopy().getBook().getId());
-        }
+        Set<Long> userBookIds = userLoans.stream().map(l -> l.getCopy().getBook().getId()).collect(Collectors.toSet());
 
         // Count loan frequency across ALL users
         Map<Long, Integer> loanCounts = new HashMap<>();
@@ -107,18 +95,10 @@ public class TrendingStrategy implements RecommendationStrategy {
         }
         AppUser user = userOpt.get();
 
-        var favorites = favoriteRepository.findByUser(user);
-
-        // Get IDs of books user already has (favorites + loans)
         Set<Long> userBookIds = new HashSet<>();
         if (excludeRead) {
-            for (var favorite : favorites) {
-                userBookIds.add(favorite.getBook().getId());
-            }
             var userLoans = loanRepository.findByUserSubAndReturnedAtIsNotNull(userId);
-            for (var loan : userLoans) {
-                userBookIds.add(loan.getCopy().getBook().getId());
-            }
+            userLoans.forEach(loan -> userBookIds.add(loan.getCopy().getBook().getId()));
         }
 
         // Count loan frequency across ALL users

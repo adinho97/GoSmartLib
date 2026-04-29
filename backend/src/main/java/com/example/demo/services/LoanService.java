@@ -157,7 +157,7 @@ public class LoanService {
                     req.setPlatformUrl(platform);
                     req.setSubject("Bevestiging: uitlening bibliotheekboek");
                     req.setBody(String.format(
-                        "Beste %s,\n\nU hebt het boek '%s' geleend. Gelieve het terug te brengen op %s.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                        "Beste %s,\n\nBevestiging van uw uitlening:\n\n- Titel: %s\n\nTerugbrengen op: %s\n\nMet vriendelijke groeten,\nDe bibliotheek.",
                         userInfo.getName() != null ? userInfo.getName() : "Lezer",
                         loan.getCopy().getBook().getTitel(),
                         loan.getDueDate() != null ? loan.getDueDate().toString() : ""));
@@ -192,20 +192,21 @@ public class LoanService {
                     req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
 
                     LocalDate dueDate = loans.get(0).getDueDate();
+                    String dueDateStr = dueDate != null ? dueDate.toString() : "";
                     StringBuilder bodyBuilder = new StringBuilder();
-                    bodyBuilder.append(String.format("Beste %s,\n\nU hebt de volgende %d boeken geleend:\n\n",
+                    bodyBuilder.append(String.format("Beste %s,\n\nBevestiging van uw uitlening (%d boeken):\n\n",
                         userInfo.getName() != null ? userInfo.getName() : "Lezer",
                         loans.size()));
 
                     for (int i = 0; i < loans.size(); i++) {
                         Loan loan = loans.get(i);
-                        bodyBuilder.append(String.format("%d. '%s'\n",
+                        bodyBuilder.append(String.format("%d) %s\n",
                             i + 1,
                             loan.getCopy().getBook().getTitel()));
                     }
 
-                    bodyBuilder.append(String.format("\nAlle boeken moeten teruggebracht worden op %s.\n\nGelieve ze op die datum in te leveren.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
-                        dueDate));
+                    bodyBuilder.append(String.format("\nTerug te brengen op: %s\n\nGelieve alle boeken op deze datum terug te brengen.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                        dueDateStr));
 
                     req.setBody(bodyBuilder.toString());
 
@@ -237,20 +238,21 @@ public class LoanService {
                     req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
 
                     LocalDate dueDate = loans.get(0).getDueDate();
+                    String dueDateStr = dueDate != null ? dueDate.toString() : "";
                     StringBuilder bodyBuilder = new StringBuilder();
-                    bodyBuilder.append(String.format("Beste %s,\n\nU hebt de volgende %d boeken geleend:\n\n",
+                    bodyBuilder.append(String.format("Beste %s,\n\nBevestiging van uw uitlening (%d boeken):\n\n",
                         userInfo.getName() != null ? userInfo.getName() : "Lezer",
                         loans.size()));
 
                     for (int i = 0; i < loans.size(); i++) {
                         LoanDto loan = loans.get(i);
-                        bodyBuilder.append(String.format("%d. '%s'\n",
+                        bodyBuilder.append(String.format("%d) %s\n",
                             i + 1,
                             loan.getBookTitel()));
                     }
 
-                    bodyBuilder.append(String.format("\nAlle boeken moeten teruggebracht worden op %s.\n\nGelieve ze op die datum in te leveren.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
-                        dueDate));
+                    bodyBuilder.append(String.format("\nTerug te brengen op: %s\n\nGelieve alle boeken op deze datum terug te brengen.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                        dueDateStr));
 
                     req.setBody(bodyBuilder.toString());
 

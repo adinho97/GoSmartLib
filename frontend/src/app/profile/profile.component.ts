@@ -69,11 +69,6 @@ export class ProfileComponent {
       description:
         "Bewaar hier boeken die je later wilt lezen of ontlenen. Je kunt ze vanuit dit blok ook beheren of meldingen aanpassen.",
     },
-    favorites: {
-      title: "Favoriete boeken",
-      description:
-        "Deze sectie bevat je persoonlijke favorieten. Handig om snel terug te keren naar boeken die je sterk aanbeveelt of vaker gebruikt.",
-    },
     history: {
       title: "Ontleenhistoriek",
       description:
@@ -96,7 +91,6 @@ export class ProfileComponent {
 
   dashboardSettings: Record<string, boolean> = {
     showWishlist: true,
-    showFavorites: true,
     showReadingHistory: true,
     showBorrowed: true,
     showHighlighted: true,
@@ -161,7 +155,6 @@ export class ProfileComponent {
   levelInfo: LevelInfo | null = null;
 
   wishlistBooks: ProfileBookCard[] = [];
-  favoriteBooks: ProfileBookCard[] = [];
   readingHistory: ProfileBookCard[] = [];
   readingHistoryLoading = false;
   borrowedBooks: ProfileBookCard[] = [];
@@ -171,13 +164,10 @@ export class ProfileComponent {
   wishlistLoading = false;
   notificationToggleErrors: Record<number, string> = {};
   readonly wishlistPageSize = 5;
-  readonly favoritePageSize = 5;
   readonly readingHistoryPageSize = 5;
   currentWishlistPage = 1;
-  currentFavoritePage = 1;
   currentReadingHistoryPage = 1;
   private wishlistChangedSub?: Subscription;
-  private favoriteChangedSub?: Subscription;
   private preferencesSub?: Subscription;
   private levelInfoSub?: Subscription;
   badgeToastTimeoutId: any;
@@ -204,7 +194,6 @@ export class ProfileComponent {
       (prefs) => {
         this.dashboardSettings = {
           showWishlist: prefs["dashboard_showWishlist"] !== false,
-          showFavorites: prefs["dashboard_showFavorites"] !== false,
           showReadingHistory: prefs["dashboard_showReadingHistory"] !== false,
           showBorrowed: prefs["dashboard_showBorrowed"] !== false,
           showHighlighted: prefs["dashboard_showHighlighted"] !== false,
@@ -221,7 +210,6 @@ export class ProfileComponent {
 
     await Promise.all([
       this.loadWishlistBooks(),
-      this.loadFavoriteBooks(),
       this.loadReadingHistory(),
       this.loadActiveLoans(),
     ]);
@@ -230,11 +218,6 @@ export class ProfileComponent {
       this.wishlistChangedSub = this.bookService.wishlistChanged$.subscribe(
         () => {
           this.loadWishlistBooks();
-        },
-      );
-      this.favoriteChangedSub = this.bookService.favoriteChanged$.subscribe(
-        () => {
-          this.loadFavoriteBooks();
         },
       );
     }
@@ -273,7 +256,6 @@ export class ProfileComponent {
 
   ngOnDestroy() {
     this.wishlistChangedSub?.unsubscribe();
-    this.favoriteChangedSub?.unsubscribe();
     this.preferencesSub?.unsubscribe();
     if (this.badgeToastTimeoutId) {
       clearTimeout(this.badgeToastTimeoutId);
@@ -375,26 +357,6 @@ export class ProfileComponent {
     this.currentWishlistPage = page;
   }
 
-  get totalFavoritePages(): number {
-    return Math.max(
-      1,
-      Math.ceil(this.favoriteBooks.length / this.favoritePageSize),
-    );
-  }
-
-  get favoritePageNumbers(): number[] {
-    return Array.from({ length: this.totalFavoritePages }, (_, i) => i + 1);
-  }
-
-  get pagedFavoriteBooks(): ProfileBookCard[] {
-    const start = (this.currentFavoritePage - 1) * this.favoritePageSize;
-    return this.favoriteBooks.slice(start, start + this.favoritePageSize);
-  }
-
-  get favoritesCount(): number {
-    return this.favoriteBooks.length;
-  }
-
   get wishlistCount(): number {
     return this.wishlistBooks.length;
   }
@@ -408,10 +370,6 @@ export class ProfileComponent {
       return null;
     }
     return this.sectionInfoContent[this.activeSectionInfoKey];
-  }
-
-  goToFavoritePage(page: number) {
-    this.currentFavoritePage = page;
   }
 
   get totalReadingHistoryPages(): number {
@@ -497,52 +455,6 @@ export class ProfileComponent {
     }
   }
 
-  async removeFromFavorites(event: MouseEvent | null, bookId: number) {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-
-    try {
-      await this.bookService.removeFromFavorites(bookId);
-      this.favoriteBooks = this.favoriteBooks.filter(
-        (book) => book.id !== bookId,
-      );
-      this.uiToastService.success("Boek verwijderd uit je favorieten.");
-    } catch {
-      // Keep silent here as well.
-      this.uiToastService.error("Favorieten bijwerken mislukt.");
-    }
-  }
-
-  private async loadFavoriteBooks() {
-    try {
-      const favorites = await this.bookService.getUserFavorites();
-      const enriched = await this.bookService.enrichBooksWithDetails(
-        favorites.map((item: any) => ({
-          ...item,
-          bookId: item.bookId,
-          titel: item.titel,
-          auteur: item.auteur,
-        })),
-      );
-
-      this.favoriteBooks = enriched.map((item: any) => ({
-        id: item.bookId,
-        title: item.titel,
-        author: item.auteur,
-        cover: item.cover || "",
-        genre: item.genre || "",
-        taal: item.taal || "",
-        paginas: item.paginas || 0,
-      }));
-    } catch {
-      this.favoriteBooks = [];
-    } finally {
-      this.currentFavoritePage = 1;
-    }
-  }
-
   getAvailableCopiesCount(book: ProfileBookCard): number {
     return book.availableCopies ?? 0;
   }
@@ -608,10 +520,6 @@ export class ProfileComponent {
     await this.removeFromWishlist(null, bookId);
   }
 
-  async onFavoritesRemove(bookId: number) {
-    await this.removeFromFavorites(null, bookId);
-  }
-
   goBack() {
     this.location.back();
   }
@@ -634,7 +542,6 @@ export class ProfileComponent {
         key: PreferenceKey;
       }[] = [
         { prop: "showWishlist", key: "dashboard_showWishlist" },
-        { prop: "showFavorites", key: "dashboard_showFavorites" },
         { prop: "showReadingHistory", key: "dashboard_showReadingHistory" },
         { prop: "showBorrowed", key: "dashboard_showBorrowed" },
         { prop: "showHighlighted", key: "dashboard_showHighlighted" },

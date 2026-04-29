@@ -22,12 +22,12 @@ public enum Leesniveau {
 
     @JsonCreator
     public static Leesniveau fromValue(String value) {
-        if (value == null) {
+        if (value == null || value.trim().isEmpty()) {
             return null;
         }
 
         for (Leesniveau leesniveau : values()) {
-            if (leesniveau.label.equals(value)) {
+            if (leesniveau.label.equals(value.trim())) {
                 return leesniveau;
             }
         }

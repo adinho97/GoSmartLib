@@ -11,7 +11,6 @@ export type PreferenceKey =
   | "recommendationExcludeRead_author"
   | "recommendationExcludeRead_newArrivals"
   | "dashboard_showWishlist"
-  | "dashboard_showFavorites"
   | "dashboard_showReadingHistory"
   | "dashboard_showBorrowed"
   | "dashboard_showHighlighted"

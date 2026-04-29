@@ -4,11 +4,9 @@ import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
-import com.example.demo.entities.Favorite;
 import com.example.demo.entities.Loan;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
-import com.example.demo.repositories.FavoriteRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.strategies.AuthorBasedStrategy;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,9 +32,6 @@ class AuthorBasedStrategyTest {
 
     @Mock
     private AppUserRepository appUserRepository;
-
-    @Mock
-    private FavoriteRepository favoriteRepository;
 
     @Mock
     private BookRepository bookRepository;
@@ -85,14 +80,13 @@ class AuthorBasedStrategyTest {
 
         assertTrue(result.isEmpty());
         verify(appUserRepository).findBySub("unknownUser");
-        verify(favoriteRepository, never()).findByUser(any());
     }
 
     @Test
-    @DisplayName("should return empty list when user has no favorites")
-    void testRecommendWhenNoFavorites() {
+    @DisplayName("should return empty list when user has no reading history")
+    void testRecommendWhenNoLoans() {
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
 
         List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10);
 
@@ -101,12 +95,13 @@ class AuthorBasedStrategyTest {
     }
 
     @Test
-    @DisplayName("should recommend books from same author as favorite")
-    void testRecommendWithSingleFavoriteSingleAuthor() {
-        Favorite fav = createFavorite(1L, testUser, rowlingBook1);
+    @DisplayName("should recommend books from same author as reading history")
+    void testRecommendWithSingleLoanSingleAuthor() {
+        Loan loan = createLoan(1L, copy1, "user123");
+        loan.setReturnedAt(LocalDate.now().minusDays(5));
+
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(List.of(fav));
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(loan));
         when(bookRepository.findAll()).thenReturn(List.of(
                 rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
@@ -120,15 +115,17 @@ class AuthorBasedStrategyTest {
     }
 
     @Test
-    @DisplayName("should score books by author frequency in favorites")
-    void testRecommendWithMultipleFavoritesMultipleAuthors() {
-        List<Favorite> favorites = List.of(
-                createFavorite(1L, testUser, rowlingBook1),
-                createFavorite(2L, testUser, rowlingBook2),
-                createFavorite(3L, testUser, tolkienBook1));
+    @DisplayName("should score books by author frequency in reading history")
+    void testRecommendWithMultipleLoansMultipleAuthors() {
+        Loan l1 = createLoan(1L, copy1, "user123");
+        l1.setReturnedAt(LocalDate.now());
+        Loan l2 = createLoan(2L, copy2, "user123");
+        l2.setReturnedAt(LocalDate.now());
+        Loan l3 = createLoan(3L, copy4, "user123");
+        l3.setReturnedAt(LocalDate.now());
+
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(l1, l2, l3));
         when(bookRepository.findAll()).thenReturn(List.of(
                 rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
@@ -152,20 +149,15 @@ class AuthorBasedStrategyTest {
     }
 
     @Test
-    @DisplayName("should exclude books user already favorited when excludeRead=true")
+    @DisplayName("should exclude books user already read when excludeRead=true")
     void testExcludeReadFiltering() {
-        Favorite fav1 = createFavorite(1L, testUser, rowlingBook1);
-        Favorite fav2 = createFavorite(2L, testUser, rowlingBook2);
-        List<Favorite> favorites = List.of(fav1, fav2);
-
         Loan returnedLoan = createLoan(1000L, copy3, "user123");
         returnedLoan.setReturnedAt(LocalDate.now().minusDays(5));
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
         when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(returnedLoan));
         when(bookRepository.findAll()).thenReturn(List.of(
-                rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
+                rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
         List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10, true);
 
@@ -176,14 +168,13 @@ class AuthorBasedStrategyTest {
     @Test
     @DisplayName("should include previously read books when excludeRead=false")
     void testIncludeReadWhenExcludeReadFalse() {
-        Favorite fav = createFavorite(1L, testUser, rowlingBook1);
-        List<Favorite> favorites = List.of(fav);
-
-        Loan returnedLoan = createLoan(1000L, copy2, "user123");
-        returnedLoan.setReturnedAt(LocalDate.now().minusDays(5));
+        Loan l1 = createLoan(1L, copy1, "user123");
+        l1.setReturnedAt(LocalDate.now());
+        Loan l2 = createLoan(2L, copy2, "user123");
+        l2.setReturnedAt(LocalDate.now());
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(l1, l2));
         when(bookRepository.findAll()).thenReturn(List.of(
                 rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
@@ -195,12 +186,11 @@ class AuthorBasedStrategyTest {
     @Test
     @DisplayName("should respect limit parameter")
     void testLimitRespected() {
-        List<Favorite> favorites = List.of(
-                createFavorite(1L, testUser, rowlingBook1),
-                createFavorite(2L, testUser, rowlingBook2));
+        Loan l1 = createLoan(1L, copy1, "user123");
+        l1.setReturnedAt(LocalDate.now());
+
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(l1));
         when(bookRepository.findAll()).thenReturn(List.of(
                 rowlingBook1, rowlingBook2, rowlingBook3, tolkienBook1, tolkienBook2, herbertBook1));
 
@@ -224,14 +214,6 @@ class AuthorBasedStrategyTest {
         copy.setBook(book);
         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
         return copy;
-    }
-
-    private Favorite createFavorite(Long id, AppUser user, Book book) {
-        Favorite fav = new Favorite();
-        fav.setId(id);
-        fav.setUser(user);
-        fav.setBook(book);
-        return fav;
     }
 
     private Loan createLoan(Long id, BookCopy copy, String userSub) {
