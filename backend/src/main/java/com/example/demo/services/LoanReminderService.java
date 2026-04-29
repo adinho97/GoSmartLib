@@ -87,11 +87,12 @@ public class LoanReminderService {
                             : smartschoolProperties.getApiBaseUrl();
 
                     request.setPlatformUrl(platform);
-                    request.setSubject("Herinnering: Inleveren bibliotheekboek");
+                    request.setSubject("Herinnering: inleveren bibliotheekboek");
                     request.setBody(String.format(
-                            "Beste %s,\n\nHet boek '%s' moet morgen ingeleverd worden.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                            "Beste %s,\n\nHerinnering: terugbrengen van uw boek\n\n- Titel: %s\n- Terugbrengen: morgen (%s)\n\nMet vriendelijke groeten,\nDe bibliotheek.",
                             userInfo.getName() != null ? userInfo.getName() : "Lezer",
-                            loan.getCopy().getBook().getTitel()));
+                            loan.getCopy().getBook().getTitel(),
+                            loan.getDueDate() != null ? loan.getDueDate().toString() : ""));
 
                     return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), request);
                 })
@@ -109,12 +110,12 @@ public class LoanReminderService {
                             : smartschoolProperties.getApiBaseUrl();
 
                     request.setPlatformUrl(platform);
-                    request.setSubject("URGENT: Inleveren bibliotheekboek nu nodig");
+                    request.setSubject("URGENT: inleveren bibliotheekboek vereist");
                     request.setBody(String.format(
-                            "Beste %s,\n\nHet boek '%s' moest terug zijn op %s en moet dringend ingeleverd worden. Gelieve het boek zo snel mogelijk terug te brengen naar de bibliotheek.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                            "Beste %s,\n\nURGENT — Boek te laat\n\n- Titel: %s\n- Oorspronkelijke inleverdatum: %s\n\nGelieve het boek zo snel mogelijk terug te brengen naar de bibliotheek.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
                             userInfo.getName() != null ? userInfo.getName() : "Lezer",
                             loan.getCopy().getBook().getTitel(),
-                            loan.getDueDate()));
+                            loan.getDueDate() != null ? loan.getDueDate().toString() : ""));
 
                     return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), request);
                 })
