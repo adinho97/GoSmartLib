@@ -56,10 +56,13 @@ export class SuperAdminAuthService {
   /**
    * Change admin password
    */
-  changePassword(oldPassword: string, newPassword: string): Observable<any> {
-    return this.http.post<any>('/api/admin/change-password', 
+  changePassword(oldPassword: string, newPassword: string): Observable<string> {
+    return this.http.post('/api/admin/change-password',
       { oldPassword, newPassword },
-      { headers: this.getAuthHeaders() }
+      {
+        headers: this.getAuthHeaders(),
+        responseType: 'text'
+      }
     );
   }
 
