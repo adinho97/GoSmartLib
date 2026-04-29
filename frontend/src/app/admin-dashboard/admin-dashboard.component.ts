@@ -37,17 +37,4 @@ export class AdminDashboardComponent implements OnInit {
     this.router.navigate(['/super-admin-login']);
   }
 
-  /**
-   * Navigate to school management
-   */
-  goToSchoolManagement(): void {
-    this.router.navigate(['/admin/schools']);
-  }
-
-  /**
-   * Navigate to settings
-   */
-  goToSettings(): void {
-    this.router.navigate(['/admin/settings']);
-  }
 }
