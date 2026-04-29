@@ -1,0 +1,58 @@
+<div class="wizard-page">
+  <div class="wizard-card">
+    <h1>School toevoegen</h1>
+    <p class="subtitle">Stap {{ step }} van 3</p>
+
+    <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <ng-container *ngIf="step === 1">
+      <h2>Stap 1 - Vul subdomein in</h2>
+      <label for="subdomain">Subdomein</label>
+      <input
+        id="subdomain"
+        type="text"
+        [(ngModel)]="subdomain"
+        placeholder="bv. aphogeschool"
+      />
+
+      <label for="naam">Schoolnaam (optioneel)</label>
+      <input id="naam" type="text" [(ngModel)]="naam" placeholder="AP Hogeschool" />
+
+      <button type="button" class="btn-primary" (click)="goToStep2()">
+        Volgende
+      </button>
+    </ng-container>
+
+    <ng-container *ngIf="step === 2">
+      <h2>Stap 2 - Bevestig</h2>
+      <p>Je voegt toe: <strong>{{ previewUrl }}</strong></p>
+      <p>Status bij aanmaak: <strong>PENDING</strong></p>
+
+      <div class="buttons">
+        <button type="button" class="btn-secondary" (click)="backToStep1()">
+          Terug
+        </button>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="confirmCreate()"
+          [disabled]="isSubmitting"
+        >
+          {{ isSubmitting ? "Bezig..." : "Bevestigen" }}
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="step === 3">
+      <h2>Stap 3 - Klaar</h2>
+      <p>School succesvol aangemaakt.</p>
+      <p *ngIf="createdSchool">
+        <strong>{{ createdSchool.subdomain }}</strong> met status
+        <strong>{{ createdSchool.status }}</strong>
+      </p>
+      <button type="button" class="btn-primary" (click)="goToDashboard()">
+        Terug naar dashboard
+      </button>
+    </ng-container>
+  </div>
+</div>
