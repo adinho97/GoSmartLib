@@ -7,6 +7,7 @@ import { LoginComponent } from "./login/login.component";
 import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.component";
 import { AdminSetupComponent } from "./admin-setup/admin-setup.component";
 import { AdminDashboardComponent } from "./admin-dashboard/admin-dashboard.component";
+import { AdminChangePasswordComponent } from "./admin-change-password/admin-change-password.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
@@ -38,6 +39,11 @@ export const appRoutes: Routes = [
   {
     path: "admin/dashboard",
     component: AdminDashboardComponent,
+    canActivate: [AdminGuard],
+  },
+  {
+    path: "admin/change-password",
+    component: AdminChangePasswordComponent,
     canActivate: [AdminGuard],
   },
 
