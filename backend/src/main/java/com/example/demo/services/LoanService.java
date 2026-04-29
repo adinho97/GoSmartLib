@@ -8,6 +8,10 @@ import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
+import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.config.SmartschoolMessageService;
+import com.example.demo.config.AuthService;
+import com.example.demo.config.SmartschoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,18 +33,52 @@ public class LoanService {
     private final LoanRepository loanRepo;
     private final BookCopyRepository copyRepo;
     private final BookAvailabilityNotificationService bookAvailabilityNotificationService;
+    private final SmartschoolMessageService smartschoolMessageService;
+    private final AuthService authService;
+    private final SmartschoolProperties smartschoolProperties;
 
     public LoanService(LoanRepository loanRepo, BookCopyRepository copyRepo,
-            BookAvailabilityNotificationService bookAvailabilityNotificationService) {
+            BookAvailabilityNotificationService bookAvailabilityNotificationService,
+            SmartschoolMessageService smartschoolMessageService,
+            AuthService authService,
+            SmartschoolProperties smartschoolProperties) {
         this.loanRepo = loanRepo;
         this.copyRepo = copyRepo;
         this.bookAvailabilityNotificationService = bookAvailabilityNotificationService;
+        this.smartschoolMessageService = smartschoolMessageService;
+        this.authService = authService;
+        this.smartschoolProperties = smartschoolProperties;
     }
 
     @Transactional
     public LoanDto createLoan(CreateLoanRequest request) {
-        logger.info("Creating loan: bookId={}, copyId={}, userSub={}, dueDate={}",
-            request.getBookId(), request.getCopyId(), request.getUserSub(), request.getDueDate());
+        return createLoan(request, true);
+    }
+
+    @Transactional
+    public List<LoanDto> createLoans(List<CreateLoanRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            return List.of();
+        }
+
+        String userSub = requests.get(0).getUserSub();
+        if (requests.stream().anyMatch(request -> request.getUserSub() == null || !request.getUserSub().equals(userSub))) {
+            throw new IllegalArgumentException("All loans in one batch must belong to the same user");
+        }
+
+        List<LoanDto> createdLoans = new ArrayList<>();
+        for (CreateLoanRequest request : requests) {
+            createdLoans.add(createLoan(request, false));
+        }
+
+        sendCombinedLoanConfirmationForDtos(userSub, createdLoans);
+        return createdLoans;
+    }
+
+    @Transactional
+    public LoanDto createLoan(CreateLoanRequest request, boolean sendMessage) {
+        logger.info("Creating loan: bookId={}, copyId={}, userSub={}, dueDate={}, sendMessage={}",
+            request.getBookId(), request.getCopyId(), request.getUserSub(), request.getDueDate(), sendMessage);
 
         if (request.getBookId() == null) {
             logger.error("Invalid loan request: bookId is null");
@@ -94,8 +132,145 @@ public class LoanService {
 
         Loan savedLoan = loanRepo.save(loan);
         logger.info("Loan created: id={}, bookId={}, userSub={}", savedLoan.getId(), request.getBookId(),
-                request.getUserSub());
+            request.getUserSub());
+
+        if (sendMessage) {
+            sendLoanConfirmationMessage(savedLoan);
+        }
+
         return toDto(savedLoan);
+    }
+
+    private void sendLoanConfirmationMessage(Loan loan) {
+        try {
+            authService.getUserInfoBySub(loan.getUserSub())
+                .flatMap(userInfo -> {
+                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                        : smartschoolProperties.getApiBaseUrl();
+
+                    req.setPlatformUrl(platform);
+                    req.setSubject("Bevestiging: uitlening bibliotheekboek");
+                    req.setBody(String.format(
+                        "Beste %s,\n\nU hebt het boek '%s' geleend. Gelieve het terug te brengen op %s.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                        userInfo.getName() != null ? userInfo.getName() : "Lezer",
+                        loan.getCopy().getBook().getTitel(),
+                        loan.getDueDate() != null ? loan.getDueDate().toString() : ""));
+
+                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                })
+                .doOnSuccess(res -> logger.info("Sent loan confirmation to {} for {}", loan.getUserSub(),
+                    loan.getCopy().getBook().getTitel()))
+                .doOnError(err -> logger.error("Failed to send loan confirmation for {}: {}", loan.getUserSub(),
+                    err.getMessage()))
+                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                .subscribe();
+        } catch (Exception ex) {
+            logger.warn("Exception while attempting to send Smartschool confirmation: {}", ex.getMessage());
+        }
+    }
+
+    public void sendCombinedLoanConfirmation(String userSub, List<Loan> loans) {
+        if (loans == null || loans.isEmpty()) {
+            logger.warn("No loans to send combined confirmation for user: {}", userSub);
+            return;
+        }
+
+        try {
+            authService.getUserInfoBySub(userSub)
+                .flatMap(userInfo -> {
+                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                        : smartschoolProperties.getApiBaseUrl();
+
+                    req.setPlatformUrl(platform);
+                    req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
+
+                    StringBuilder bodyBuilder = new StringBuilder();
+                    bodyBuilder.append(String.format("Beste %s,\n\nU hebt de volgende %d boeken geleend:\n\n",
+                        userInfo.getName() != null ? userInfo.getName() : "Lezer",
+                        loans.size()));
+
+                    for (int i = 0; i < loans.size(); i++) {
+                        Loan loan = loans.get(i);
+                        bodyBuilder.append(String.format("%d. '%s' - Teruggeven op %s\n",
+                            i + 1,
+                            loan.getCopy().getBook().getTitel(),
+                            loan.getDueDate()));
+                    }
+
+                    bodyBuilder.append("\nGelieve alle boeken op de aangegeven data terug te brengen.\n\nMet vriendelijke groeten,\nDe bibliotheek.");
+
+                    req.setBody(bodyBuilder.toString());
+
+                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                })
+                .doOnSuccess(res -> logger.info("Sent combined loan confirmation to {} for {} books", userSub, loans.size()))
+                .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub, err.getMessage()))
+                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                .subscribe();
+        } catch (Exception ex) {
+            logger.warn("Exception while attempting to send combined Smartschool confirmation: {}", ex.getMessage());
+        }
+    }
+
+    public void sendCombinedLoanConfirmationForDtos(String userSub, List<LoanDto> loans) {
+        if (loans == null || loans.isEmpty()) {
+            logger.warn("No loans to send combined confirmation for user: {}", userSub);
+            return;
+        }
+
+        try {
+            authService.getUserInfoBySub(userSub)
+                .flatMap(userInfo -> {
+                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                        : smartschoolProperties.getApiBaseUrl();
+
+                    req.setPlatformUrl(platform);
+                    req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
+
+                    StringBuilder bodyBuilder = new StringBuilder();
+                    bodyBuilder.append(String.format("Beste %s,\n\nU hebt de volgende %d boeken geleend:\n\n",
+                        userInfo.getName() != null ? userInfo.getName() : "Lezer",
+                        loans.size()));
+
+                    for (int i = 0; i < loans.size(); i++) {
+                        LoanDto loan = loans.get(i);
+                        bodyBuilder.append(String.format("%d. '%s' - Teruggeven op %s\n",
+                            i + 1,
+                            loan.getBookTitel(),
+                            loan.getDueDate()));
+                    }
+
+                    bodyBuilder.append("\nGelieve alle boeken op de aangegeven data terug te brengen.\n\nMet vriendelijke groeten,\nDe bibliotheek.");
+
+                    req.setBody(bodyBuilder.toString());
+
+                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                })
+                .doOnSuccess(res -> logger.info("Sent combined loan confirmation to {} for {} books", userSub, loans.size()))
+                .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub, err.getMessage()))
+                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                .subscribe();
+        } catch (Exception ex) {
+            logger.warn("Exception while attempting to send combined Smartschool confirmation: {}", ex.getMessage());
+        }
+    }
+
+    public void sendCombinedLoanConfirmationByLoans(List<Loan> loans) {
+        if (loans == null || loans.isEmpty()) {
+            logger.warn("No loans to send combined confirmation for");
+            return;
+        }
+        
+        String userSub = loans.get(0).getUserSub();
+        if (!loans.stream().allMatch(l -> l.getUserSub().equals(userSub))) {
+            logger.error("Cannot send combined confirmation for loans belonging to different users");
+            return;
+        }
+        
+        sendCombinedLoanConfirmation(userSub, loans);
     }
 
     @Transactional

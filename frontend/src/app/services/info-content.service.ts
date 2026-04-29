@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export type Sectie = 'STAP' | 'FEATURE' | 'TIP';
+export type Sectie = 'STAP' | 'FEATURE' | 'TIP' | 'FAQ';
 
 export type InfoContentItem = {
   id?: number;

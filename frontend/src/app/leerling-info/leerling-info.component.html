@@ -3,19 +3,7 @@
     <h1>Info voor Leerlingen</h1>
     <p>Zo leen je boeken uit en haal je het meeste uit GO!SmartLib.</p>
   </header>
-
   <main class="info-content">
-    <section class="info-card quick-actions-card">
-      <h2>Snelle acties</h2>
-      <div class="quick-actions-grid">
-        @for (action of quickActions; track action.link) {
-          <a class="quick-action" [routerLink]="action.link">{{
-            action.label
-          }}</a>
-        }
-      </div>
-    </section>
-
     <section class="info-card">
       <h2>Hoe wordt een boek uitgeleend?</h2>
       <ol>
@@ -24,7 +12,6 @@
         }
       </ol>
     </section>
-
     <section class="info-card">
       <h2>Hoe werkt de website?</h2>
       <ul>
@@ -35,7 +22,6 @@
         }
       </ul>
     </section>
-
     <section class="info-card tip-card">
       <h2>Handige tips</h2>
       <ul>
@@ -44,11 +30,10 @@
         }
       </ul>
     </section>
-
     <section class="info-card faq-card">
       <h2>Veelgestelde vragen</h2>
       <div class="faq-list">
-        @for (faq of faqItems; track faq.question; let i = $index) {
+        @for (faq of faqItems; track faq.titel; let i = $index) {
           <article class="faq-item">
             <button
               class="faq-question"
@@ -56,11 +41,11 @@
               [attr.aria-expanded]="isFaqOpen(i)"
               (click)="toggleFaq(i)"
             >
-              <span>{{ faq.question }}</span>
-              <span class="faq-indicator">{{ isFaqOpen(i) ? "-" : "+" }}</span>
+              <span>{{ faq.titel }}</span>
+              <span class="faq-indicator">{{ isFaqOpen(i) ? '-' : '+' }}</span>
             </button>
             @if (isFaqOpen(i)) {
-              <p class="faq-answer">{{ faq.answer }}</p>
+              <p class="faq-answer">{{ faq.inhoud }}</p>
             }
           </article>
         }

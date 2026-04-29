@@ -59,6 +59,26 @@ public class LoanReminderService {
                         () -> logger.info("Finished processing all reminders for {}", tomorrow));
     }
 
+    @Scheduled(cron = "0 0 10 * * ?", zone = "Europe/Brussels") // Runs every day at 10 AM
+    public void sendOverdueNotifications() {
+        LocalDate today = LocalDate.now();
+        logger.info("Starting automated overdue book check for date: {}", today);
+
+        List<Loan> overdueLoans = loanRepository.findByDueDateBeforeAndReturnedAtIsNull(today);
+        logger.info("Found {} overdue loans", overdueLoans.size());
+        if (overdueLoans.isEmpty()) {
+            logger.info("No overdue loans found.");
+            return;
+        }
+
+        Flux.fromIterable(overdueLoans)
+                .flatMap(this::processOverdueNotification)
+                .subscribe(
+                        success -> logger.debug("Overdue notification processed successfully."),
+                        error -> logger.error("Error in overdue notification job batch", error),
+                        () -> logger.info("Finished processing all overdue notifications"));
+    }
+
     private Mono<String> processLoanReminder(Loan loan) {
         return authService.getUserInfoBySub(loan.getUserSub())
                 .flatMap(userInfo -> {
@@ -78,6 +98,29 @@ public class LoanReminderService {
                 .doOnSuccess(res -> logger.info("Sent reminder to {} for {}", loan.getUserSub(),
                         loan.getCopy().getBook().getTitel()))
                 .doOnError(err -> logger.error("Failed reminder for {}: {}", loan.getUserSub(), err.getMessage()))
+                .onErrorResume(e -> Mono.empty());
+    }
+
+    private Mono<String> processOverdueNotification(Loan loan) {
+        return authService.getUserInfoBySub(loan.getUserSub())
+                .flatMap(userInfo -> {
+                    SmartschoolMessageRequest request = new SmartschoolMessageRequest();
+                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                            : smartschoolProperties.getApiBaseUrl();
+
+                    request.setPlatformUrl(platform);
+                    request.setSubject("URGENT: Inleveren bibliotheekboek nu nodig");
+                    request.setBody(String.format(
+                            "Beste %s,\n\nHet boek '%s' was fällig op %s en moet dringend ingeleverd worden. Gelieve het boek zo snel mogelijk terug te brengen naar de bibliotheek.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                            userInfo.getName() != null ? userInfo.getName() : "Lezer",
+                            loan.getCopy().getBook().getTitel(),
+                            loan.getDueDate()));
+
+                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), request);
+                })
+                .doOnSuccess(res -> logger.info("Sent overdue notification to {} for {}", loan.getUserSub(),
+                        loan.getCopy().getBook().getTitel()))
+                .doOnError(err -> logger.error("Failed overdue notification for {}: {}", loan.getUserSub(), err.getMessage()))
                 .onErrorResume(e -> Mono.empty());
     }
 }
