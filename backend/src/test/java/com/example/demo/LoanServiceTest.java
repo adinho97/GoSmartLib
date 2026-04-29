@@ -37,6 +37,15 @@ class LoanServiceTest {
     @Mock
     private BookAvailabilityNotificationService bookAvailabilityNotificationService;
 
+    @Mock
+    private com.example.demo.config.SmartschoolMessageService smartschoolMessageService;
+
+    @Mock
+    private com.example.demo.config.AuthService authService;
+
+    @Mock
+    private com.example.demo.config.SmartschoolProperties smartschoolProperties;
+
     @InjectMocks
     private LoanService loanService;
 
