@@ -25,6 +25,14 @@ public class AppUser {
     @Column(nullable = true)
     private String platform;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id")
+    private School school;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "klas_id")
+    private Klas klas;
+
     public AppUser() {
     }
 
@@ -74,6 +82,22 @@ public class AppUser {
 
     public void setPlatform(String platform) {
         this.platform = platform;
+    }
+
+    public School getSchool() {
+        return school;
+    }
+
+    public void setSchool(School school) {
+        this.school = school;
+    }
+
+    public Klas getKlas() {
+        return klas;
+    }
+
+    public void setKlas(Klas klas) {
+        this.klas = klas;
     }
 
 }
