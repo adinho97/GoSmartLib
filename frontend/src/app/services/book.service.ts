@@ -36,15 +36,6 @@ export interface WishlistItem {
   totalCopies?: number;
 }
 
-export interface FavoriteItem {
-  id: number;
-  bookId: number;
-  titel: string;
-  auteur: string;
-  cover: string | null;
-  addedAt: string;
-}
-
 export interface LestipResponse {
   lestip: string;
   auteurNaam: string;
@@ -63,8 +54,6 @@ export class BookService {
   private apiUrl = "/api/boeken";
   private wishlistChangedSource = new Subject<void>();
   wishlistChanged$ = this.wishlistChangedSource.asObservable();
-  private favoriteChangedSource = new Subject<void>();
-  favoriteChanged$ = this.favoriteChangedSource.asObservable();
 
   private bookCache: Map<number | null, any[]> = new Map();
 
@@ -459,39 +448,6 @@ export class BookService {
     try {
       const res = await axios.get<boolean>(
         `/api/verlanglijst/${bookId}/check`,
-        this.getUserSubHeaders(),
-      );
-      return res.data;
-    } catch (err: any) {
-      if (err?.response?.status === 404) {
-        return false;
-      }
-      throw err;
-    }
-  }
-
-  async addToFavorites(bookId: number): Promise<void> {
-    await axios.post("/api/favorieten", { bookId }, this.getUserSubHeaders());
-    this.favoriteChangedSource.next();
-  }
-
-  async removeFromFavorites(bookId: number): Promise<void> {
-    await axios.delete(`/api/favorieten/${bookId}`, this.getUserSubHeaders());
-    this.favoriteChangedSource.next();
-  }
-
-  async getUserFavorites(): Promise<FavoriteItem[]> {
-    const res = await axios.get<FavoriteItem[]>(
-      "/api/favorieten",
-      this.getUserSubHeaders(),
-    );
-    return res.data;
-  }
-
-  async isFavorited(bookId: number): Promise<boolean> {
-    try {
-      const res = await axios.get<boolean>(
-        `/api/favorieten/${bookId}/check`,
         this.getUserSubHeaders(),
       );
       return res.data;
