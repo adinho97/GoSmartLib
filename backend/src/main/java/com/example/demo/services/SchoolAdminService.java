@@ -82,7 +82,7 @@ public class SchoolAdminService {
         item.setNaam(school.getNaam());
         item.setSubdomain(school.getSubdomein());
         item.setStatus(school.getStatus());
-        item.setUserCount(appUserRepository.countByPlatformIgnoreCase(school.getSmartschoolUrl()));
+        item.setUserCount(appUserRepository.countBySchool_Id(school.getId()));
         item.setKlasCount(klasRepository.countBySchool_Id(school.getId()));
         return item;
     }
