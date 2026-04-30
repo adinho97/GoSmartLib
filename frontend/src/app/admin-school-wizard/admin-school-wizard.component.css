@@ -65,3 +65,45 @@ input {
   padding: 10px;
   border-radius: 6px;
 }
+
+.geocode-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.geocode-row input {
+  flex: 1;
+}
+
+.btn-geocode {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.geocode-error {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #8a1f2d;
+}
+
+.geocode-result {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f0f7ef;
+  border: 1px solid #b8ddb4;
+  border-radius: 6px;
+}
+
+.geocode-display {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: #333;
+}
+
+.geocode-coords {
+  margin: 0;
+  font-size: 13px;
+  color: #555;
+  font-family: monospace;
+}
