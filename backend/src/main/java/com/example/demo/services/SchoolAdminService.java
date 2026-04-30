@@ -2,7 +2,12 @@ package com.example.demo.services;
 
 import com.example.demo.dto.admin.school.CreateSchoolRequest;
 import com.example.demo.dto.admin.school.CreateSchoolResponse;
+import com.example.demo.dto.admin.school.KlasListItem;
 import com.example.demo.dto.admin.school.SchoolDashboardItemResponse;
+import com.example.demo.dto.admin.school.SchoolDetailResponse;
+import com.example.demo.dto.admin.school.UpdateSchoolInfoRequest;
+import com.example.demo.dto.admin.user.AdminUserListItem;
+import com.example.demo.entities.AppUser;
 import com.example.demo.entities.School;
 import com.example.demo.entities.SchoolStatus;
 import com.example.demo.exception.ApiException;
@@ -57,16 +62,74 @@ public class SchoolAdminService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public SchoolDetailResponse getSchoolDetail(Long id) {
+        School school = schoolRepository.findById(id)
+                .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
+        return toDetailResponse(school);
+    }
+
     @Transactional
-    public SchoolDashboardItemResponse updateSchoolStatus(Long schoolId, SchoolStatus status) {
+    public SchoolDetailResponse updateSchoolInfo(Long id, UpdateSchoolInfoRequest request) {
+        School school = schoolRepository.findById(id)
+                .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
+
+        String naam = request.getNaam();
+        school.setNaam(naam == null || naam.isBlank() ? null : naam.trim());
+
+        String adres = request.getAdres();
+        school.setAdres(adres == null || adres.isBlank() ? null : adres.trim());
+
+        school.setLatitude(request.getLatitude());
+        school.setLongitude(request.getLongitude());
+
+        return toDetailResponse(schoolRepository.save(school));
+    }
+
+    @Transactional
+    public SchoolDetailResponse updateSchoolStatus(Long schoolId, SchoolStatus status) {
         schoolAdminValidationService.validateUpdatableStatus(status);
 
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
 
         school.setStatus(status);
-        School saved = schoolRepository.save(school);
-        return toDashboardItem(saved);
+        return toDetailResponse(schoolRepository.save(school));
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminUserListItem> getSchoolUsers(Long schoolId) {
+        schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
+        return appUserRepository.findBySchool_Id(schoolId).stream()
+                .map(this::toUserListItem)
+                .toList();
+    }
+
+    @Transactional
+    public AdminUserListItem toggleUserActive(Long schoolId, Long userId) {
+        AppUser user = appUserRepository.findById(userId)
+                .orElseThrow(() -> new ApiException("Gebruiker niet gevonden", HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
+        if (user.getSchool() == null || !user.getSchool().getId().equals(schoolId)) {
+            throw new ApiException("Gebruiker behoort niet tot deze school", HttpStatus.FORBIDDEN, "ACCESS_DENIED");
+        }
+        user.setActive(!user.isActive());
+        return toUserListItem(appUserRepository.save(user));
+    }
+
+    @Transactional(readOnly = true)
+    public List<KlasListItem> getSchoolKlassen(Long schoolId) {
+        schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
+        return klasRepository.findBySchool_Id(schoolId).stream()
+                .map(k -> {
+                    KlasListItem item = new KlasListItem();
+                    item.setId(k.getId());
+                    item.setGroupId(k.getGroupId());
+                    item.setNaam(k.getNaam());
+                    return item;
+                })
+                .toList();
     }
 
     private CreateSchoolResponse toCreateResponse(School school) {
@@ -79,6 +142,22 @@ public class SchoolAdminService {
         return response;
     }
 
+    private SchoolDetailResponse toDetailResponse(School school) {
+        SchoolDetailResponse r = new SchoolDetailResponse();
+        r.setId(school.getId());
+        r.setSubdomain(school.getSubdomein());
+        r.setSmartschoolUrl(school.getSmartschoolUrl());
+        r.setNaam(school.getNaam());
+        r.setAdres(school.getAdres());
+        r.setLatitude(school.getLatitude());
+        r.setLongitude(school.getLongitude());
+        r.setStatus(school.getStatus());
+        r.setAangemaaktOp(school.getAangemaaktOp());
+        r.setUserCount(appUserRepository.countBySchool_Id(school.getId()));
+        r.setKlasCount(klasRepository.countBySchool_Id(school.getId()));
+        return r;
+    }
+
     private SchoolDashboardItemResponse toDashboardItem(School school) {
         SchoolDashboardItemResponse item = new SchoolDashboardItemResponse();
         item.setId(school.getId());
@@ -87,6 +166,16 @@ public class SchoolAdminService {
         item.setStatus(school.getStatus());
         item.setUserCount(appUserRepository.countBySchool_Id(school.getId()));
         item.setKlasCount(klasRepository.countBySchool_Id(school.getId()));
+        return item;
+    }
+
+    private AdminUserListItem toUserListItem(AppUser user) {
+        AdminUserListItem item = new AdminUserListItem();
+        item.setId(user.getId());
+        item.setSub(user.getSub());
+        item.setRole(user.getRole());
+        item.setKlasNaam(user.getKlas() != null ? user.getKlas().getNaam() : null);
+        item.setActive(user.isActive());
         return item;
     }
 }
