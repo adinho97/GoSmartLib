@@ -132,9 +132,14 @@ public class AuthService {
                 String finalRole;
 
                 if (existingUserOpt.isPresent()) {
-                        // User exists → keep existing role (don't overwrite with Smartschool role)
-                        // This preserves bibbeheerder role after promotion
-                        finalRole = existingUserOpt.get().getRole();
+                        AppUser existing = existingUserOpt.get();
+                        if (!existing.isActive()) {
+                                throw new ApiException(
+                                                "Uw account is gedeactiveerd. Neem contact op met uw schoolbeheerder.",
+                                                HttpStatus.FORBIDDEN, "USER_INACTIVE");
+                        }
+                        // Keep existing role — preserves bibbeheerder after promotion
+                        finalRole = existing.getRole();
                         logger.info("Bestaande gebruiker ingelogd met sub: {}, keeping role: {}", sub, finalRole);
                 } else {
                         // New user → set role from Smartschool or fallback to leerling
