@@ -25,6 +25,9 @@ public class AppUser {
     @Column(nullable = true)
     private String platform;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id")
     private School school;
@@ -34,6 +37,14 @@ public class AppUser {
     private Klas klas;
 
     public AppUser() {
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Long getId() {
