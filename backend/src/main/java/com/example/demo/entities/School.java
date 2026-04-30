@@ -30,7 +30,7 @@ public class School {
     @Column(nullable = false, length = 20)
     private SchoolStatus status = SchoolStatus.PENDING;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, columnDefinition = "DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)")
     private LocalDateTime aangemaaktOp;
 
     @PrePersist
