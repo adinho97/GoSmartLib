@@ -8,6 +8,7 @@ import {
 } from "../services/recommendation.service";
 import { HttpClient } from "@angular/common/http";
 import { UserPreferencesService } from "../services/user-preferences.service";
+import { SchoolService } from "../services/school.service";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
 
 type BookResponse = {
@@ -65,9 +66,13 @@ export class DashboardComponent implements OnInit {
   genreBooks: RecommendedBook[] = [];
   authorBooks: RecommendedBook[] = [];
   newArrivalsBooks: RecommendedBook[] = [];
+  classReadingListBooks: RecommendedBook[] = []; // Renamed from highlightedBooks
+  highlightedBooks: RecommendedBook[] = [];
   myLoans: Loan[] = [];
   loansLoading = true;
   recommendationsLoading = true;
+  classReadingListLoading = false; // New loading flag for Klasleeslijst
+  highlightedLoading = false; // Loading flag for Highlighted Books
   private readonly RECOMMENDATION_LIMIT = 25;
 
   today = new Date().toISOString().split("T")[0];
@@ -125,6 +130,7 @@ export class DashboardComponent implements OnInit {
     private recommendationService: RecommendationService,
     private http: HttpClient,
     private userPreferencesService: UserPreferencesService,
+    private schoolService: SchoolService,
   ) {}
 
   ngOnInit(): void {
@@ -139,6 +145,77 @@ export class DashboardComponent implements OnInit {
     });
 
     this.fetchMyLoans();
+    this.fetchClassReadingListBooks(); // Load Klasleeslijst
+    this.fetchHighlightedBooks();
+  }
+
+  private async fetchClassReadingListBooks() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    this.classReadingListLoading = true; // Use the new loading flag
+    try {
+      const res = await this.http
+        .get<number[]>(`/api/highlighted-books/school/${schoolId}`)
+        .toPromise();
+      const bookIds = res || [];
+
+      if (bookIds.length > 0) {
+        const enriched = await this.bookService.enrichBooksWithDetails(
+          bookIds.map((id) => ({ bookId: id })),
+        );
+        this.highlightedBooks = enriched.map(
+          (b: any) =>
+            ({
+              bookId: b.bookId,
+              titel: b.titel,
+              auteur: b.auteur,
+              cover: b.cover || "",
+            }) as RecommendedBook,
+        );
+      } else {
+        this.classReadingListBooks = [];
+      }
+    } catch (error) {
+      console.error("Fout bij ophalen gemarkeerde boeken:", error);
+    } finally {
+      this.classReadingListLoading = false; // Reset the new loading flag
+    }
+  }
+
+  // New method to fetch highlighted books
+  private async fetchHighlightedBooks() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    this.highlightedLoading = true;
+    try {
+      const res = await this.http
+        .get<number[]>(`/api/highlighted-books/school/${schoolId}`)
+        .toPromise();
+      const bookIds = res || [];
+
+      if (bookIds.length > 0) {
+        const enriched = await this.bookService.enrichBooksWithDetails(
+          bookIds.map((id) => ({ bookId: id })),
+        );
+        this.highlightedBooks = enriched.map(
+          (b: any) =>
+            ({
+              bookId: b.bookId,
+              titel: b.titel,
+              auteur: b.auteur,
+              cover: b.cover || "",
+            }) as RecommendedBook,
+        );
+      } else {
+        this.highlightedBooks = [];
+      }
+    } catch (error) {
+      console.error("Fout bij ophalen gemarkeerde boeken:", error);
+    } finally {
+      this.highlightedLoading = false;
+    }
   }
 
   // Single consolidated fetch for all recommendations - uses cached API call for efficiency
