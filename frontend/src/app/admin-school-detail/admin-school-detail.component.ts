@@ -53,8 +53,15 @@ export class AdminSchoolDetailComponent implements OnInit {
   togglingUserId: number | null = null;
   userActionError = "";
 
-  // User filter
+  // User filter + pagination
   userFilter = "";
+  roleFilter = "";
+  userPage = 1;
+  readonly userPageSize = 5;
+
+  // Klassen pagination
+  klasPage = 1;
+  readonly klasPageSize = 5;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -198,15 +205,58 @@ export class AdminSchoolDetailComponent implements OnInit {
     });
   }
 
+  // User filtering
   get filteredUsers(): AdminUserListItem[] {
     const q = this.userFilter.trim().toLowerCase();
-    if (!q) return this.users;
-    return this.users.filter(
-      (u) =>
+    const r = this.roleFilter;
+    return this.users.filter((u) => {
+      const matchesText =
+        !q ||
         u.sub?.toLowerCase().includes(q) ||
-        u.role?.toLowerCase().includes(q) ||
-        u.klasNaam?.toLowerCase().includes(q),
-    );
+        u.klasNaam?.toLowerCase().includes(q);
+      const matchesRole = !r || u.role === r;
+      return matchesText && matchesRole;
+    });
+  }
+
+  onUserFilterChange(): void {
+    this.userPage = 1;
+  }
+
+  // User pagination
+  get userTotalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredUsers.length / this.userPageSize));
+  }
+
+  get pagedUsers(): AdminUserListItem[] {
+    const start = (this.userPage - 1) * this.userPageSize;
+    return this.filteredUsers.slice(start, start + this.userPageSize);
+  }
+
+  prevUserPage(): void {
+    if (this.userPage > 1) this.userPage--;
+  }
+
+  nextUserPage(): void {
+    if (this.userPage < this.userTotalPages) this.userPage++;
+  }
+
+  // Klassen pagination
+  get klasTotalPages(): number {
+    return Math.max(1, Math.ceil(this.klassen.length / this.klasPageSize));
+  }
+
+  get pagedKlassen(): KlasListItem[] {
+    const start = (this.klasPage - 1) * this.klasPageSize;
+    return this.klassen.slice(start, start + this.klasPageSize);
+  }
+
+  prevKlasPage(): void {
+    if (this.klasPage > 1) this.klasPage--;
+  }
+
+  nextKlasPage(): void {
+    if (this.klasPage < this.klasTotalPages) this.klasPage++;
   }
 
   roleLabel(role: string): string {

@@ -84,12 +84,8 @@
         }
       </div>
 
-      @if (saveError) {
-        <p class="inline-error">{{ saveError }}</p>
-      }
-      @if (saveSuccess) {
-        <p class="inline-success">Opgeslagen.</p>
-      }
+      @if (saveError) { <p class="inline-error">{{ saveError }}</p> }
+      @if (saveSuccess) { <p class="inline-success">Opgeslagen.</p> }
 
       <div class="form-actions">
         <button type="button" class="btn-secondary" (click)="resetForm()" [disabled]="isSaving">Annuleren</button>
@@ -102,13 +98,25 @@
     <!-- Users card -->
     <div class="card">
       <div class="card-header-row">
-        <h2 class="card-title">Gebruikers <span class="count-badge">{{ users.length }}</span></h2>
-        <input
-          type="text"
-          class="search-input"
-          [(ngModel)]="userFilter"
-          placeholder="Zoeken..."
-        />
+        <h2 class="card-title">
+          Gebruikers
+          <span class="count-badge">{{ filteredUsers.length }}{{ filteredUsers.length !== users.length ? ' / ' + users.length : '' }}</span>
+        </h2>
+        <div class="filter-row">
+          <select class="role-select" [(ngModel)]="roleFilter" (ngModelChange)="onUserFilterChange()">
+            <option value="">Alle rollen</option>
+            <option value="leerling">Leerling</option>
+            <option value="leerkracht">Leerkracht</option>
+            <option value="bibbeheerder">Bibbeheerder</option>
+          </select>
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="userFilter"
+            (ngModelChange)="onUserFilterChange()"
+            placeholder="Zoeken..."
+          />
+        </div>
       </div>
 
       @if (userActionError) {
@@ -132,7 +140,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (user of filteredUsers; track user.id) {
+              @for (user of pagedUsers; track user.id) {
                 <tr [class.row-inactive]="!user.active">
                   <td class="cell-sub">{{ user.sub || '—' }}</td>
                   <td>{{ roleLabel(user.role) }}</td>
@@ -158,23 +166,34 @@
               }
               @if (filteredUsers.length === 0) {
                 <tr>
-                  <td colspan="5" class="empty-text">Geen resultaten voor "{{ userFilter }}".</td>
+                  <td colspan="5" class="empty-text">Geen resultaten.</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
+
+        @if (userTotalPages > 1) {
+          <div class="pagination">
+            <button type="button" class="btn-page" (click)="prevUserPage()" [disabled]="userPage === 1">‹</button>
+            <span class="page-info">{{ userPage }} / {{ userTotalPages }}</span>
+            <button type="button" class="btn-page" (click)="nextUserPage()" [disabled]="userPage === userTotalPages">›</button>
+          </div>
+        }
       }
     </div>
 
     <!-- Klassen card -->
     <div class="card">
-      <h2 class="card-title">Klassen <span class="count-badge">{{ klassen.length }}</span></h2>
+      <h2 class="card-title">
+        Klassen
+        <span class="count-badge">{{ klassen.length }}</span>
+      </h2>
 
       @if (isLoadingKlassen) {
         <p class="loading-text">Klassen laden...</p>
       } @else if (klassen.length === 0) {
-        <p class="empty-text">Nog geen klassen voor deze school. Klassen worden automatisch aangemaakt bij de eerste login.</p>
+        <p class="empty-text">Nog geen klassen. Ze worden automatisch aangemaakt bij de eerste login via Smartschool.</p>
       } @else {
         <div class="table-wrap">
           <table class="data-table">
@@ -185,7 +204,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (klas of klassen; track klas.id) {
+              @for (klas of pagedKlassen; track klas.id) {
                 <tr>
                   <td><strong>{{ klas.naam }}</strong></td>
                   <td class="cell-groupid">{{ klas.groupId }}</td>
@@ -194,6 +213,14 @@
             </tbody>
           </table>
         </div>
+
+        @if (klasTotalPages > 1) {
+          <div class="pagination">
+            <button type="button" class="btn-page" (click)="prevKlasPage()" [disabled]="klasPage === 1">‹</button>
+            <span class="page-info">{{ klasPage }} / {{ klasTotalPages }}</span>
+            <button type="button" class="btn-page" (click)="nextKlasPage()" [disabled]="klasPage === klasTotalPages">›</button>
+          </div>
+        }
       }
     </div>
   }
