@@ -8,6 +8,7 @@ import com.example.demo.dto.admin.school.SchoolDetailResponse;
 import com.example.demo.dto.admin.school.UpdateSchoolInfoRequest;
 import com.example.demo.dto.admin.school.UpdateSchoolStatusRequest;
 import com.example.demo.dto.admin.user.AdminUserListItem;
+import com.example.demo.dto.admin.user.SetUserRoleRequest;
 import com.example.demo.services.SchoolAdminService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -72,6 +73,13 @@ public class AdminSchoolController {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public AdminUserListItem toggleUserActive(@PathVariable Long id, @PathVariable Long userId) {
         return schoolAdminService.toggleUserActive(id, userId);
+    }
+
+    @PatchMapping("/{id}/users/{userId}/role")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public AdminUserListItem setUserRole(@PathVariable Long id, @PathVariable Long userId,
+            @Valid @RequestBody SetUserRoleRequest request) {
+        return schoolAdminService.setUserRole(id, userId, request.getRole());
     }
 
     @GetMapping("/{id}/klassen")
