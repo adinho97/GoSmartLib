@@ -1,5 +1,6 @@
-import com.example.demo.entities.HighlightedBook;
-import com.example.demo.repositories.HighlightedBookRepository;
+package com.example.demo.config;
+import com.example.demo.config.HighlightedBook;
+import com.example.demo.config.HighlightedBookRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;

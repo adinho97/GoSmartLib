@@ -1,4 +1,6 @@
-import com.example.demo.entities.HighlightedBook;
+package com.example.demo.config;
+
+import com.example.demo.config.HighlightedBook;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;

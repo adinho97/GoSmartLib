@@ -1,6 +1,6 @@
-package app.dashboard;
+package com.example.demo.config;
 
-import com.example.demo.entities.ClassReadingListItem;
+import com.example.demo.config.ClassReadingListItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;

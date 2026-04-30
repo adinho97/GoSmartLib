@@ -1,26 +1,25 @@
-package app.dashboard;
-
-import com.example.demo.entities.HighlightedBook;
-import com.example.demo.repositories.HighlightedBookRepository;
+package com.example.demo.config;
+import com.example.demo.config.ClassReadingListItem;
+import com.example.demo.config.ClassReadingListItemRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/highlighted-books")
-public class HighlightedBookController {
+@RequestMapping("/api/class-reading-list")
+public class ClassReadingListItemController {
 
-    private final HighlightedBookRepository repository;
+    private final ClassReadingListItemRepository repository;
 
-    public HighlightedBookController(HighlightedBookRepository repository) {
+    public ClassReadingListItemController(ClassReadingListItemRepository repository) {
         this.repository = repository;
     }
 
     @GetMapping("/school/{schoolId}")
     public List<Long> getHighlightedBookIds(@PathVariable Long schoolId) {
         return repository.findBySchoolId(schoolId).stream()
-                .map(HighlightedBook::getBookId)
+                .map(ClassReadingListItem::getBookId)
                 .collect(Collectors.toList());
     }
 
@@ -32,7 +31,7 @@ public class HighlightedBookController {
             repository.delete(existing.get());
             return false;
         } else {
-            repository.save(new HighlightedBook(bookId, schoolId));
+            repository.save(new ClassReadingListItem(bookId, schoolId));
             return true;
         }
     }

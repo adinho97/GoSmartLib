@@ -60,10 +60,15 @@ export class ProfileComponent {
       description:
         "Hier zie je alle boeken die je nu in uitleen hebt. Via deze lijst ga je snel naar details en volg je je deadlines op.",
     },
-    highlighted: {
+    classReadingList: {
       title: "Klasleeslijst",
       description:
         "Dit zijn de boeken die voor jouw klas of leeromgeving extra in de kijker staan. Gebruik dit overzicht om snel relevant lesmateriaal te vinden.",
+    },
+    highlighted: {
+      title: "In de kijker",
+      description:
+        "Boeken die door de bibliothecaris zijn gemarkeerd als aanbevolen of belangrijk voor de hele school.",
     },
     wishlist: {
       title: "Verlanglijst",

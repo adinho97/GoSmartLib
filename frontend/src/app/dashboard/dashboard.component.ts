@@ -71,7 +71,8 @@ export class DashboardComponent implements OnInit {
   myLoans: Loan[] = [];
   loansLoading = true;
   recommendationsLoading = true;
-  highlightedLoading = false;
+  classReadingListLoading = false; // New loading flag for Klasleeslijst
+  highlightedLoading = false; // Loading flag for Highlighted Books
   private readonly RECOMMENDATION_LIMIT = 25;
 
   today = new Date().toISOString().split("T")[0];
@@ -152,7 +153,7 @@ export class DashboardComponent implements OnInit {
     const schoolId = this.schoolService.getSelectedSchoolId();
     if (!schoolId) return;
 
-    this.highlightedLoading = true;
+    this.classReadingListLoading = true; // Use the new loading flag
     try {
       const res = await this.http
         .get<number[]>(`/api/highlighted-books/school/${schoolId}`)
@@ -163,19 +164,22 @@ export class DashboardComponent implements OnInit {
         const enriched = await this.bookService.enrichBooksWithDetails(
           bookIds.map((id) => ({ bookId: id })),
         );
-        this.highlightedBooks = enriched.map((b: any) => ({
-          bookId: b.bookId,
-          titel: b.titel,
-          auteur: b.auteur,
-          cover: b.cover || "",
-        } as RecommendedBook));
+        this.highlightedBooks = enriched.map(
+          (b: any) =>
+            ({
+              bookId: b.bookId,
+              titel: b.titel,
+              auteur: b.auteur,
+              cover: b.cover || "",
+            }) as RecommendedBook,
+        );
       } else {
         this.classReadingListBooks = [];
       }
     } catch (error) {
       console.error("Fout bij ophalen gemarkeerde boeken:", error);
     } finally {
-      this.highlightedLoading = false;
+      this.classReadingListLoading = false; // Reset the new loading flag
     }
   }
 
@@ -195,12 +199,15 @@ export class DashboardComponent implements OnInit {
         const enriched = await this.bookService.enrichBooksWithDetails(
           bookIds.map((id) => ({ bookId: id })),
         );
-        this.highlightedBooks = enriched.map((b: any) => ({
-          bookId: b.bookId,
-          titel: b.titel,
-          auteur: b.auteur,
-          cover: b.cover || "",
-        } as RecommendedBook));
+        this.highlightedBooks = enriched.map(
+          (b: any) =>
+            ({
+              bookId: b.bookId,
+              titel: b.titel,
+              auteur: b.auteur,
+              cover: b.cover || "",
+            }) as RecommendedBook,
+        );
       } else {
         this.highlightedBooks = [];
       }

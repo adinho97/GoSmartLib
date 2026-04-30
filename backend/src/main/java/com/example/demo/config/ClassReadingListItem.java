@@ -1,30 +1,31 @@
+package com.example.demo.config;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "highlighted_books", uniqueConstraints = {
+@Table(name = "class_reading_list_items", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"bookId", "schoolId"})
 })
-public class HighlightedBook {
+public class ClassReadingListItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long bookId;
     private Long schoolId;
+    
+    public ClassReadingListItem() {}
 
-    public HighlightedBook() {}
-
-    public HighlightedBook(Long bookId, Long schoolId) {
+    public ClassReadingListItem(Long bookId, Long schoolId) {
         this.bookId = bookId;
         this.schoolId = schoolId;
     }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
+    
     public Long getBookId() { return bookId; }
     public void setBookId(Long bookId) { this.bookId = bookId; }
-
+    
     public Long getSchoolId() { return schoolId; }
     public void setSchoolId(Long schoolId) { this.schoolId = schoolId; }
 }

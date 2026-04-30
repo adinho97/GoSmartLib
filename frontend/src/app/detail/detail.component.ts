@@ -151,9 +151,11 @@ export class DetailComponent implements OnInit, OnDestroy {
 
       this.loadWishlistState(this.currentBookId);
 
-      // Load highlight state for librarians
-      // This now loads the NEW "highlighted" status
-      this.loadHighlightState(this.currentBookId);
+      // Load librarian-only states
+      if (this.isLibrarian) {
+        this.loadHighlightState(this.currentBookId);
+        this.loadClassReadingListState(this.currentBookId);
+      }
 
       // Load reviews
       this.loadReviews(this.currentBookId);
