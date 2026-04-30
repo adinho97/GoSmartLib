@@ -155,16 +155,15 @@ export class DashboardComponent implements OnInit {
 
     this.classReadingListLoading = true; // Use the new loading flag
     try {
-      const res = await this.http
-        .get<number[]>(`/api/highlighted-books/school/${schoolId}`)
-        .toPromise();
+      // Use BookService method for consistency and auth headers
+      const res = await this.bookService.getClassReadingListItemIds(schoolId);
       const bookIds = res || [];
 
       if (bookIds.length > 0) {
         const enriched = await this.bookService.enrichBooksWithDetails(
           bookIds.map((id) => ({ bookId: id })),
         );
-        this.highlightedBooks = enriched.map(
+        this.classReadingListBooks = enriched.map(
           (b: any) =>
             ({
               bookId: b.bookId,
@@ -190,16 +189,15 @@ export class DashboardComponent implements OnInit {
 
     this.highlightedLoading = true;
     try {
-      const res = await this.http
-        .get<number[]>(`/api/highlighted-books/school/${schoolId}`)
-        .toPromise();
+      // Use BookService method for consistency and auth headers
+      const res = await this.bookService.getHighlightedBookIds(schoolId);
       const bookIds = res || [];
 
       if (bookIds.length > 0) {
         const enriched = await this.bookService.enrichBooksWithDetails(
           bookIds.map((id) => ({ bookId: id })),
         );
-        this.highlightedBooks = enriched.map(
+        this.classReadingListBooks = enriched.map(
           (b: any) =>
             ({
               bookId: b.bookId,

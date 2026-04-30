@@ -152,6 +152,8 @@ export class BookListComponent implements OnInit {
   minAvailablePages = this.minPageFilterLimit;
   maxAvailablePages = this.maxPageFilterLimit;
   wishlistedBookIds = new Set<number>();
+  highlightedBookIds = new Set<number>(); // New: Track highlighted books
+  classReadingListItemIds = new Set<number>(); // New: Track class reading list books
   openMenuId: number | null = null;
 
   constructor(
@@ -176,6 +178,8 @@ export class BookListComponent implements OnInit {
     await Promise.all([
       this.loadSchools().then(() => this.loadBooks()), // Sequential dependency: books need school selection
       this.loadWishlistState(), // Independent
+      this.loadHighlightedBookIds(), // New: Load highlighted books
+      this.loadClassReadingListItemIds(), // New: Load class reading list items
     ]);
 
     this.applyFilters();
@@ -541,6 +545,38 @@ export class BookListComponent implements OnInit {
     }
   }
 
+  private async loadHighlightedBookIds() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+    try {
+      const ids = await this.bookService.getHighlightedBookIds(schoolId);
+      this.highlightedBookIds = new Set(ids);
+    } catch (error) {
+      console.error("Failed to load highlighted book IDs:", error);
+      this.highlightedBookIds = new Set();
+    }
+  }
+
+  private async loadClassReadingListItemIds() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+    try {
+      const ids = await this.bookService.getClassReadingListItemIds(schoolId);
+      this.classReadingListItemIds = new Set(ids);
+    } catch (error) {
+      console.error("Failed to load class reading list item IDs:", error);
+      this.classReadingListItemIds = new Set();
+    }
+  }
+
+  isBookHighlighted(bookId?: number): boolean {
+    return !!bookId && this.highlightedBookIds.has(bookId);
+  }
+
+  isBookInClassReadingList(bookId?: number): boolean {
+    return !!bookId && this.classReadingListItemIds.has(bookId);
+  }
+
   async toggleWishlist(event: MouseEvent, bookId?: number) {
     event.stopPropagation();
     event.preventDefault();
@@ -560,6 +596,40 @@ export class BookListComponent implements OnInit {
     } catch {
       this.error = "Verlanglijst bijwerken mislukt. Probeer later opnieuw.";
       this.uiToastService.error("Verlanglijst bijwerken mislukt.");
+    }
+  }
+
+  async toggleHighlight(event: MouseEvent, bookId?: number) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!bookId) return;
+
+    try {
+      const isNowHighlighted = await this.bookService.toggleHighlight(bookId);
+      if (isNowHighlighted) {
+        this.highlightedBookIds.add(bookId);
+        this.uiToastService.success("Boek staat nu 'In de kijker'.");
+      } else {
+        this.highlightedBookIds.delete(bookId);
+        this.uiToastService.success("Markering van boek verwijderd.");
+      }
+    } catch {
+      this.uiToastService.error("Fout bij bijwerken markering.");
+    }
+  }
+
+  async toggleClassReadingList(event: MouseEvent, bookId?: number) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!bookId) return;
+
+    try {
+      const isNowInList = await this.bookService.toggleClassReadingListItem(bookId);
+      if (isNowInList) this.classReadingListItemIds.add(bookId);
+      else this.classReadingListItemIds.delete(bookId);
+      this.uiToastService.success(isNowInList ? "Toegevoegd aan Klasleeslijst." : "Verwijderd uit Klasleeslijst.");
+    } catch {
+      this.uiToastService.error("Fout bij bijwerken Klasleeslijst.");
     }
   }
 
