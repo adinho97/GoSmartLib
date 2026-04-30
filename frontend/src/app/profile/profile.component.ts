@@ -241,10 +241,8 @@ export class ProfileComponent {
 
     this.classReadingListLoading = true;
     try {
-      // Use the class-reading-list endpoint
-      const res = await this.http
-        .get<number[]>(`/api/class-reading-list/school/${schoolId}`)
-        .toPromise();
+      // Use BookService method for consistency and auth headers
+      const res = await this.bookService.getClassReadingListItemIds(schoolId);
       const bookIds = res || [];
 
       if (bookIds.length === 0) {
@@ -276,10 +274,8 @@ export class ProfileComponent {
 
     this.highlightedLoading = true;
     try {
-      // Use a new endpoint to get highlighted IDs for the school
-      const res = await this.http
-        .get<number[]>(`/api/highlighted-books/school/${schoolId}`)
-        .toPromise();
+      // Use BookService method for consistency and auth headers
+      const res = await this.bookService.getHighlightedBookIds(schoolId);
       const bookIds = res || [];
 
       if (bookIds.length === 0) {
@@ -631,6 +627,7 @@ export class ProfileComponent {
         { prop: "showWishlist", key: "dashboard_showWishlist" },
         { prop: "showReadingHistory", key: "dashboard_showReadingHistory" },
         { prop: "showBorrowed", key: "dashboard_showBorrowed" },
+        { prop: "showClassReadingList", key: "dashboard_showClassReadingList" },
         { prop: "showHighlighted", key: "dashboard_showHighlighted" },
         { prop: "showDeadline", key: "dashboard_showDeadline" },
       ];

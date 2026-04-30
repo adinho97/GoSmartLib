@@ -408,9 +408,11 @@ export class BookService {
   private getUserSubHeaders() {
     const userSub =
       localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    const token = localStorage.getItem("smartschoolToken");
     return {
       headers: {
         "X-User-Sub": userSub,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     };
   }
@@ -488,7 +490,14 @@ export class BookService {
     return res.data;
   }
 
-  // Methods for the "Klasleeslijst" feature (formerly "highlighted-books")
+  async getHighlightedBookIds(schoolId: number): Promise<number[]> {
+    const res = await axios.get<number[]>(
+      `/api/highlighted-books/school/${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
   async toggleClassReadingListItem(bookId: number): Promise<boolean> {
     const schoolId = this.resolveSchoolId();
     if (!schoolId) {
@@ -512,6 +521,14 @@ export class BookService {
     // This now points to the /api/class-reading-list endpoint
     const res = await axios.get<boolean>(
       `/api/class-reading-list/${bookId}/status?schoolId=${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async getClassReadingListItemIds(schoolId: number): Promise<number[]> {
+    const res = await axios.get<number[]>(
+      `/api/class-reading-list/school/${schoolId}`,
       this.getUserSubHeaders(),
     );
     return res.data;
