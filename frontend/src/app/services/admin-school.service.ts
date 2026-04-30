@@ -73,6 +73,14 @@ export class AdminSchoolService {
     );
   }
 
+  setUserRole(schoolId: number, userId: number, role: string): Observable<AdminUserListItem> {
+    return this.http.patch<AdminUserListItem>(
+      `${this.apiUrl}/${schoolId}/users/${userId}/role`,
+      { role },
+      { headers: this.superAdminAuthService.getAuthHeaders() },
+    );
+  }
+
   getSchoolKlassen(id: number): Observable<KlasListItem[]> {
     return this.http.get<KlasListItem[]>(`${this.apiUrl}/${id}/klassen`, {
       headers: this.superAdminAuthService.getAuthHeaders(),
