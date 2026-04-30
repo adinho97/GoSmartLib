@@ -117,6 +117,23 @@ public class SchoolAdminService {
         return toUserListItem(appUserRepository.save(user));
     }
 
+    @Transactional
+    public AdminUserListItem setUserRole(Long schoolId, Long userId, String newRole) {
+        AppUser user = appUserRepository.findById(userId)
+                .orElseThrow(() -> new ApiException("Gebruiker niet gevonden", HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
+        if (user.getSchool() == null || !user.getSchool().getId().equals(schoolId)) {
+            throw new ApiException("Gebruiker behoort niet tot deze school", HttpStatus.FORBIDDEN, "ACCESS_DENIED");
+        }
+        if (!"leerkracht".equals(newRole) && !"bibbeheerder".equals(newRole)) {
+            throw new ApiException("Rol moet 'leerkracht' of 'bibbeheerder' zijn", HttpStatus.BAD_REQUEST, "INVALID_ROLE");
+        }
+        if (!"leerkracht".equals(user.getRole()) && !"bibbeheerder".equals(user.getRole())) {
+            throw new ApiException("Alleen leerkrachten en bibbeheerders kunnen van rol wisselen", HttpStatus.BAD_REQUEST, "INVALID_ROLE_TRANSITION");
+        }
+        user.setRole(newRole);
+        return toUserListItem(appUserRepository.save(user));
+    }
+
     @Transactional(readOnly = true)
     public List<KlasListItem> getSchoolKlassen(Long schoolId) {
         schoolRepository.findById(schoolId)
