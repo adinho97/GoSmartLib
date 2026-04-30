@@ -57,6 +57,7 @@ export class AdminSchoolDetailComponent implements OnInit {
   // User filter + pagination
   userFilter = "";
   roleFilter = "";
+  klasFilter = "";
   userPage = 1;
   readonly userPageSize = 5;
 
@@ -228,13 +229,15 @@ export class AdminSchoolDetailComponent implements OnInit {
   get filteredUsers(): AdminUserListItem[] {
     const q = this.userFilter.trim().toLowerCase();
     const r = this.roleFilter;
+    const k = this.klasFilter;
     return this.users.filter((u) => {
       const matchesText =
         !q ||
         u.sub?.toLowerCase().includes(q) ||
         u.klasNaam?.toLowerCase().includes(q);
       const matchesRole = !r || u.role === r;
-      return matchesText && matchesRole;
+      const matchesKlas = !k || u.klasNaam === k;
+      return matchesText && matchesRole && matchesKlas;
     });
   }
 

@@ -109,6 +109,12 @@
             <option value="leerkracht">Leerkracht</option>
             <option value="bibbeheerder">Bibbeheerder</option>
           </select>
+          <select class="role-select" [(ngModel)]="klasFilter" (ngModelChange)="onUserFilterChange()">
+            <option value="">Alle klassen</option>
+            @for (klas of klassen; track klas.id) {
+              <option [value]="klas.naam">{{ klas.naam }}</option>
+            }
+          </select>
           <input
             type="text"
             class="search-input"
