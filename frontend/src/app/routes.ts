@@ -121,7 +121,7 @@ export const appRoutes: Routes = [
     path: "info",
     component: LeerlingInfoComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["leerling"] },
+    data: { roles: ["leerling", "bibbeheerder"] },
   },
   {
     path: "uitleen",
