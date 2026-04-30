@@ -12,6 +12,8 @@ import {
 } from "../services/badge-notification.service";
 import { ExperienceService } from "../services/experience.service";
 import { Book } from "../models/book";
+import { SchoolService } from "../services/school.service";
+import { UiToastService } from "../services/ui-toast.service";
 import { Review } from "../models/review";
 import {
   inferNameParts,
@@ -31,6 +33,8 @@ export class DetailComponent implements OnInit, OnDestroy {
   private previewRequestNonce = 0;
   isWishlistedBook = false;
   wishlistBusy = false;
+  isHighlighted = false; // This now refers to the NEW "highlighted" feature
+  isInClassReadingList = false; // New property for Klasleeslijst
 
   // Role-based logic
   readonly userRole = localStorage.getItem("role");
@@ -132,6 +136,8 @@ export class DetailComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private badgeNotificationService: BadgeNotificationService,
     private experienceService: ExperienceService,
+    private schoolService: SchoolService, // Inject SchoolService
+    private uiToastService: UiToastService, // Inject UiToastService
   ) {}
 
   ngOnInit(): void {
@@ -144,6 +150,10 @@ export class DetailComponent implements OnInit, OnDestroy {
       });
 
       this.loadWishlistState(this.currentBookId);
+
+      // Load highlight state for librarians
+      // This now loads the NEW "highlighted" status
+      this.loadHighlightState(this.currentBookId);
 
       // Load reviews
       this.loadReviews(this.currentBookId);
@@ -201,6 +211,56 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
+  // New method to load the Klasleeslijst status
+  private async loadClassReadingListState(bookId: number): Promise<void> {
+    if (!this.isLibrarian) return;
+    try {
+      this.isInClassReadingList = await this.bookService.isClassReadingListItem(bookId);
+    } catch (error) {
+      console.error("Failed to load class reading list state:", error);
+      this.isInClassReadingList = false;
+    }
+  }
+  private async loadHighlightState(bookId: number): Promise<void> {
+    if (!this.isLibrarian) return; // Only librarians need to see/manage this state
+    try {
+      this.isHighlighted = await this.bookService.isHighlighted(bookId);
+    } catch (error) {
+      console.error("Failed to load highlight state:", error);
+      this.isHighlighted = false;
+    }
+  }
+
+  async toggleHighlight(): Promise<void> {
+    if (!this.currentBookId || !this.isLibrarian) return; // Only librarians can toggle highlight
+
+    try {
+      const newStatus = await this.bookService.toggleHighlight(this.currentBookId);
+      this.isHighlighted = newStatus;
+      this.uiToastService.success(
+        this.isHighlighted ? "Boek gemarkeerd." : "Markering van boek verwijderd.",
+      );
+    } catch (error) {
+      console.error("Failed to toggle highlight:", error);
+      this.uiToastService.error("Fout bij bijwerken markering.");
+    }
+  }
+
+  // New method to toggle Klasleeslijst status
+  async toggleClassReadingListItem(): Promise<void> {
+    if (!this.currentBookId || !this.isLibrarian) return; // Only librarians can toggle class reading list
+
+    try {
+      const newStatus = await this.bookService.toggleClassReadingListItem(this.currentBookId);
+      this.isInClassReadingList = newStatus;
+      this.uiToastService.success(
+        this.isInClassReadingList ? "Boek toegevoegd aan Klasleeslijst." : "Boek verwijderd uit Klasleeslijst.",
+      );
+    } catch (error) {
+      console.error("Failed to toggle highlight:", error);
+      this.uiToastService.error("Fout bij bijwerken Klasleeslijst.");
+    }
+  }
   goBack(): void {
     if (window.history.length > 1) {
       this.location.back();

@@ -18,6 +18,7 @@ import {
   UserPreferencesService,
   PreferenceKey,
 } from "../services/user-preferences.service";
+import { SchoolService } from "../services/school.service";
 import { ExperienceService, LevelInfo } from "../services/experience.service";
 import { BadgeCollectionComponent } from "./badge-collection/badge-collection.component";
 import { UiToastService } from "../services/ui-toast.service";
@@ -93,7 +94,7 @@ export class ProfileComponent {
     showWishlist: true,
     showReadingHistory: true,
     showBorrowed: true,
-    showHighlighted: true,
+    showClassReadingList: true, // Renamed from showHighlighted
     showDeadline: true,
   };
 
@@ -158,9 +159,10 @@ export class ProfileComponent {
   readingHistory: ProfileBookCard[] = [];
   readingHistoryLoading = false;
   borrowedBooks: ProfileBookCard[] = [];
-  readingList: ProfileBookCard[] = [
-    { title: "Book Five", author: "Author C", cover: "", id: 5 },
-  ];
+  classReadingList: ProfileBookCard[] = []; // Renamed from readingList
+  classReadingListLoading = false; // Renamed from readingListLoading
+  highlightedBooks: ProfileBookCard[] = []; // New for highlighted books
+  highlightedLoading = false; // New for highlighted books loading state
   wishlistLoading = false;
   notificationToggleErrors: Record<number, string> = {};
   readonly wishlistPageSize = 5;
@@ -185,6 +187,7 @@ export class ProfileComponent {
     private userPreferencesService: UserPreferencesService,
     private cdr: ChangeDetectorRef,
     private experienceService: ExperienceService,
+    private schoolService: SchoolService,
     private uiToastService: UiToastService,
   ) {}
 
@@ -196,7 +199,9 @@ export class ProfileComponent {
           showWishlist: prefs["dashboard_showWishlist"] !== false,
           showReadingHistory: prefs["dashboard_showReadingHistory"] !== false,
           showBorrowed: prefs["dashboard_showBorrowed"] !== false,
-          showHighlighted: prefs["dashboard_showHighlighted"] !== false,
+          showClassReadingList:
+            prefs["dashboard_showClassReadingList"] !== false, // Updated preference key
+          showHighlighted: prefs["dashboard_showHighlighted"] !== false, // New preference key
           showDeadline: prefs["dashboard_showDeadline"] !== false,
         };
         this.cdr.detectChanges();
@@ -212,6 +217,8 @@ export class ProfileComponent {
       this.loadWishlistBooks(),
       this.loadReadingHistory(),
       this.loadActiveLoans(),
+      this.fetchClassReadingList(), // Load Klasleeslijst
+      this.loadHighlightedBooks(), // Load new highlighted books
     ]);
 
     if (this.showSections) {
@@ -220,6 +227,77 @@ export class ProfileComponent {
           this.loadWishlistBooks();
         },
       );
+    }
+  }
+
+  private async fetchClassReadingList() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    this.classReadingListLoading = true;
+    try {
+      // Use the class-reading-list endpoint
+      const res = await this.http
+        .get<number[]>(`/api/class-reading-list/school/${schoolId}`)
+        .toPromise();
+      const bookIds = res || [];
+
+      if (bookIds.length === 0) {
+        this.classReadingList = [];
+        return;
+      }
+
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        bookIds.map((id) => ({ bookId: id })),
+      );
+
+      this.classReadingList = enriched.map((item: any) => ({
+        id: item.bookId,
+        title: item.titel,
+        author: item.auteur,
+        cover: item.cover || "",
+      }));
+    } catch (error) {
+      console.error("Failed to load class reading list", error);
+    } finally {
+      this.classReadingListLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadHighlightedBooks() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    this.highlightedLoading = true;
+    try {
+      // Use a new endpoint to get highlighted IDs for the school
+      const res = await this.http
+        .get<number[]>(`/api/highlighted-books/school/${schoolId}`)
+        .toPromise();
+      const bookIds = res || [];
+
+      if (bookIds.length === 0) {
+        this.highlightedBooks = [];
+        return;
+      }
+
+      // Fetch details for these IDs
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        bookIds.map((id) => ({ bookId: id })),
+      );
+
+      this.highlightedBooks = enriched.map((item: any) => ({
+        id: item.bookId,
+        title: item.titel,
+        author: item.auteur,
+        cover: item.cover || "",
+      }));
+    } catch (error) {
+      console.error("Failed to load highlighted books", error);
+    } finally {
+      this.highlightedLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -361,8 +439,12 @@ export class ProfileComponent {
     return this.wishlistBooks.length;
   }
 
+  get classReadingListCount(): number {
+    return this.classReadingList.length;
+  }
+
   get highlightedBooksCount(): number {
-    return this.readingList.length;
+    return this.highlightedBooks.length;
   }
 
   get activeSectionInfo() {
