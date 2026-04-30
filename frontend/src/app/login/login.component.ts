@@ -27,13 +27,6 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       const code = params["code"];
-      const inviteToken = params["invite"];
-
-      // Store invite token in sessionStorage if present
-      if (inviteToken) {
-        sessionStorage.setItem("inviteToken", inviteToken);
-      }
-
       if (code) {
         this.handleSmartschoolCode(code);
       }
@@ -175,13 +168,7 @@ export class LoginComponent implements OnInit {
           console.warn("Failed to hydrate experience after login:", error);
         });
 
-        // Check redirectTo field from backend (new invite flow logic)
-        const redirectTo = userInfo.redirectTo || "dashboard";
-        const path =
-          redirectTo === "select-teacher"
-            ? `/setup/${redirectTo}`
-            : `/${redirectTo}`;
-        this.router.navigate([path]);
+        this.router.navigate(["/dashboard"]);
 
         this.isLoading = false;
       },

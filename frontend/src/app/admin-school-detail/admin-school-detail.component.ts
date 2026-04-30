@@ -51,6 +51,7 @@ export class AdminSchoolDetailComponent implements OnInit {
 
   // User actions
   togglingUserId: number | null = null;
+  promotingUserId: number | null = null;
   userActionError = "";
 
   // User filter + pagination
@@ -184,6 +185,24 @@ export class AdminSchoolDetailComponent implements OnInit {
       error: (err) => {
         this.statusError = err?.error?.message || "Status wijzigen mislukt.";
         this.isTogglingStatus = false;
+      },
+    });
+  }
+
+  toggleUserRole(user: AdminUserListItem): void {
+    if (this.promotingUserId !== null) return;
+    this.promotingUserId = user.id;
+    this.userActionError = "";
+    const newRole = user.role === "leerkracht" ? "bibbeheerder" : "leerkracht";
+
+    this.adminSchoolService.setUserRole(this.schoolId, user.id, newRole).subscribe({
+      next: (updated) => {
+        this.users = this.users.map((u) => (u.id === updated.id ? updated : u));
+        this.promotingUserId = null;
+      },
+      error: (err) => {
+        this.userActionError = err?.error?.message || "Rol wijzigen mislukt.";
+        this.promotingUserId = null;
       },
     });
   }

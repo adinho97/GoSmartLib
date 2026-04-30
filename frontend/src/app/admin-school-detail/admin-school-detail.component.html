@@ -151,6 +151,17 @@
                     </span>
                   </td>
                   <td class="cell-action">
+                    @if (user.role === 'leerkracht' || user.role === 'bibbeheerder') {
+                      <button
+                        type="button"
+                        class="btn-user-action btn-promote"
+                        [class.btn-demote]="user.role === 'bibbeheerder'"
+                        (click)="toggleUserRole(user)"
+                        [disabled]="promotingUserId === user.id"
+                      >
+                        {{ promotingUserId === user.id ? '...' : (user.role === 'leerkracht' ? 'Maak bibbeheerder' : 'Maak leerkracht') }}
+                      </button>
+                    }
                     <button
                       type="button"
                       class="btn-user-action"

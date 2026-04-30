@@ -24,8 +24,6 @@ import { LoanPageComponent } from "./loan-page/loan-page.component";
 import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history-catalog.component";
 import { LoanConditionOverviewComponent } from "./loan-condition-overview/loan-condition-overview.component";
 import { LoanOverviewComponent } from "./loan-overview/loan-overview.component";
-import { SetupInviteComponent } from "./setup/setup-invite/setup-invite.component";
-import { SelectBibbeheerderComponent } from "./setup/select-bibbeheerder/select-bibbeheerder.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 import { MapScreenComponent } from "./map-screen/map-screen.component";
@@ -152,14 +150,6 @@ export const appRoutes: Routes = [
     component: LoanOverviewComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
-  },
-  {
-    path: "setup/invite/:token",
-    component: SetupInviteComponent,
-  },
-  {
-    path: "setup/select-teacher",
-    component: SelectBibbeheerderComponent,
   },
   {
     path: "faq-beheer",

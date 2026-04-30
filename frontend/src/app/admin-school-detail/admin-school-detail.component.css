@@ -411,6 +411,10 @@
 
 .cell-action {
   text-align: right;
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 /* User status badge */
@@ -455,6 +459,24 @@
 
 .btn-activate:hover:not(:disabled) {
   background: #dcfce7;
+}
+
+.btn-promote {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.btn-promote:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
+.btn-demote {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.btn-demote:hover:not(:disabled) {
+  background: #fef3c7;
 }
 
 .empty-text {
