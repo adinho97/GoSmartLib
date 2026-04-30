@@ -25,7 +25,7 @@ public class AppUser {
     @Column(nullable = true)
     private String platform;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
