@@ -24,3 +24,38 @@ export interface AdminSchoolDashboardItem {
   userCount: number;
   klasCount: number;
 }
+
+export interface SchoolDetail {
+  id: number;
+  subdomain: string;
+  smartschoolUrl: string;
+  naam: string | null;
+  adres: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  status: SchoolStatus;
+  aangemaaktOp: string;
+  userCount: number;
+  klasCount: number;
+}
+
+export interface UpdateSchoolInfoRequest {
+  naam?: string | null;
+  adres?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+export interface AdminUserListItem {
+  id: number;
+  sub: string;
+  role: string;
+  klasNaam: string | null;
+  active: boolean;
+}
+
+export interface KlasListItem {
+  id: number;
+  groupId: string;
+  naam: string;
+}
