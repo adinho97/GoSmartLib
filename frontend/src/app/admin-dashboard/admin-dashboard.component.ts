@@ -2,7 +2,7 @@ import { Component, HostListener, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { SuperAdminAuthService } from "../services/super-admin-auth.service";
 import { AdminSchoolService } from "../services/admin-school.service";
-import { AdminSchoolDashboardItem } from "../models/admin-school";
+import { AdminSchoolDashboardItem, SchoolStatus } from "../models/admin-school";
 
 @Component({
   selector: "app-admin-dashboard",
@@ -12,28 +12,21 @@ import { AdminSchoolDashboardItem } from "../models/admin-school";
 })
 export class AdminDashboardComponent implements OnInit {
   adminInfo: any = null;
-  isLoading: boolean = false;
-  isLoadingSchools: boolean = false;
+  isLoading = false;
+  isLoadingSchools = false;
   schoolError = "";
   schools: AdminSchoolDashboardItem[] = [];
   accountMenuOpen = false;
 
   constructor(
-    private superAdminAuthService: SuperAdminAuthService,
-    private adminSchoolService: AdminSchoolService,
-    private router: Router
+    private readonly superAdminAuthService: SuperAdminAuthService,
+    private readonly adminSchoolService: AdminSchoolService,
+    private readonly router: Router,
   ) {}
 
   ngOnInit(): void {
-    this.loadAdminInfo();
-    this.loadSchools();
-  }
-
-  /**
-   * Load current admin information
-   */
-  loadAdminInfo(): void {
     this.adminInfo = this.superAdminAuthService.getAdminInfo();
+    this.loadSchools();
   }
 
   toggleAccountMenu(): void {
@@ -49,6 +42,10 @@ export class AdminDashboardComponent implements OnInit {
     this.router.navigate(["/admin/schools/new"]);
   }
 
+  goToSchoolDetail(id: number): void {
+    this.router.navigate(["/admin/schools", id]);
+  }
+
   loadSchools(): void {
     this.isLoadingSchools = true;
     this.schoolError = "";
@@ -58,31 +55,20 @@ export class AdminDashboardComponent implements OnInit {
         this.isLoadingSchools = false;
       },
       error: (error) => {
-        this.schoolError =
-          error?.error?.message || "Scholen laden is mislukt. Probeer opnieuw.";
+        this.schoolError = error?.error?.message || "Scholen laden is mislukt. Probeer opnieuw.";
         this.isLoadingSchools = false;
       },
     });
   }
 
-  toggleSchoolStatus(school: AdminSchoolDashboardItem): void {
-    const nextStatus = school.status === "INACTIVE" ? "ACTIVE" : "INACTIVE";
-    this.adminSchoolService.updateSchoolStatus(school.id, nextStatus).subscribe({
-      next: (updatedSchool) => {
-        this.schools = this.schools.map((s) =>
-          s.id === updatedSchool.id ? updatedSchool : s,
-        );
-      },
-      error: (error) => {
-        this.schoolError =
-          error?.error?.message || "Status updaten is mislukt. Probeer opnieuw.";
-      },
-    });
+  statusLabel(status: SchoolStatus): string {
+    switch (status) {
+      case "ACTIVE": return "Actief";
+      case "INACTIVE": return "Inactief";
+      case "PENDING": return "In afwachting";
+    }
   }
 
-  /**
-   * Logout admin and redirect to login
-   */
   logout(): void {
     this.accountMenuOpen = false;
     this.isLoading = true;
