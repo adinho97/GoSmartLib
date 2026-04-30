@@ -176,50 +176,117 @@ public class LoanService {
     }
 
     public void sendCombinedLoanConfirmation(String userSub, List<Loan> loans) {
-        if (loans == null || loans.isEmpty()) {
-            logger.warn("No loans to send combined confirmation for user: {}", userSub);
-            return;
-        }
-
-        try {
-            authService.getUserInfoBySub(userSub)
-                .flatMap(userInfo -> {
-                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
-                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
-                        : smartschoolProperties.getApiBaseUrl();
-
-                    req.setPlatformUrl(platform);
-                    req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
-
-                    LocalDate dueDate = loans.get(0).getDueDate();
-                    String dueDateStr = dueDate != null ? dueDate.toString() : "";
-                    StringBuilder bodyBuilder = new StringBuilder();
-                    bodyBuilder.append(String.format("Beste %s,\n\nBevestiging van uw uitlening (%d boeken):\n\n",
-                        userInfo.getName() != null ? userInfo.getName() : "Lezer",
-                        loans.size()));
-
-                    for (int i = 0; i < loans.size(); i++) {
-                        Loan loan = loans.get(i);
-                        bodyBuilder.append(String.format("%d) %s\n",
-                            i + 1,
-                            loan.getCopy().getBook().getTitel()));
-                    }
-
-                    bodyBuilder.append(String.format("\nTerug te brengen op: %s\n\nGelieve alle boeken op deze datum terug te brengen.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
-                        dueDateStr));
-
-                    req.setBody(bodyBuilder.toString());
-
-                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
-                })
-                .doOnSuccess(res -> logger.info("Sent combined loan confirmation to {} for {} books", userSub, loans.size()))
-                .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub, err.getMessage()))
-                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
-                .subscribe();
-        } catch (Exception ex) {
-            logger.warn("Exception while attempting to send combined Smartschool confirmation: {}", ex.getMessage());
-        }
+    if (loans == null || loans.isEmpty()) {
+        logger.warn("No loans to send combined confirmation for user: {}", userSub);
+        return;
     }
+
+    try {
+        authService.getUserInfoBySub(userSub)
+            .flatMap(userInfo -> {
+                SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                    : smartschoolProperties.getApiBaseUrl();
+
+                req.setPlatformUrl(platform);
+                req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
+
+                LocalDate dueDate = loans.get(0).getDueDate();
+                String dueDateStr = dueDate != null ? dueDate.toString() : "onbekend";
+                String name = userInfo.getName() != null ? userInfo.getName() : "Lezer";
+
+                // Build the book list rows
+                StringBuilder bookRows = new StringBuilder();
+                for (int i = 0; i < loans.size(); i++) {
+                    Loan loan = loans.get(i);
+                    String rowColor = (i % 2 == 0) ? "#f9f9f9" : "#ffffff";
+                    bookRows.append(String.format(
+                        "<tr style=\"background-color:%s;\">" +
+                        "  <td style=\"padding:8px 12px; color:#555; font-size:14px;\">%d</td>" +
+                        "  <td style=\"padding:8px 12px; font-size:14px; color:#222;\">%s</td>" +
+                        "</tr>",
+                        rowColor, i + 1, escapeHtml(loan.getCopy().getBook().getTitel())
+                    ));
+                }
+
+                String htmlBody = String.format("""
+                    <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                      
+                      <!-- Header -->
+                      <div style="background-color: #1a3a5c; padding: 24px 32px;">
+                        <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
+                          📚 Bibliotheek — Uitleenbevestiging
+                        </h1>
+                      </div>
+                    
+                      <!-- Body -->
+                      <div style="padding: 28px 32px;">
+                        <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong>,</p>
+                        <p style="margin: 0 0 24px; font-size: 15px; color: #333;">
+                          Hieronder vindt u een overzicht van de <strong>%d boeken</strong> die u hebt geleend.
+                        </p>
+                    
+                        <!-- Book table -->
+                        <table style="width: 100%%; border-collapse: collapse; margin-bottom: 24px; font-family: Georgia, serif;">
+                          <thead>
+                            <tr style="background-color: #1a3a5c; color: #fff;">
+                              <th style="padding: 10px 12px; text-align: left; font-size: 13px; width: 40px;">#</th>
+                              <th style="padding: 10px 12px; text-align: left; font-size: 13px;">Titel</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            %s
+                          </tbody>
+                        </table>
+                    
+                        <!-- Due date callout -->
+                        <div style="background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px 18px; border-radius: 3px; margin-bottom: 24px;">
+                          <p style="margin: 0; font-size: 14px; color: #7a5c00;">
+                            <strong>Terugbrengdatum:</strong> %s
+                          </p>
+                          <p style="margin: 6px 0 0; font-size: 13px; color: #9a7a20;">
+                            Gelieve alle boeken op deze datum terug te brengen.
+                          </p>
+                        </div>
+                    
+                        <p style="margin: 0; font-size: 14px; color: #555;">
+                          Met vriendelijke groeten,<br>
+                          <strong>De bibliotheek</strong>
+                        </p>
+                      </div>
+                    
+                      <!-- Footer -->
+                      <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
+                        <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">
+                          Dit is een automatisch gegenereerd bericht — gelieve niet te antwoorden.
+                        </p>
+                      </div>
+                    
+                    </div>
+                    """,
+                    name, loans.size(), bookRows.toString(), dueDateStr
+                );
+
+                req.setBody(htmlBody);
+                return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+            })
+            .doOnSuccess(res -> logger.info("Sent combined loan confirmation to {} for {} books", userSub, loans.size()))
+            .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub, err.getMessage()))
+            .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+            .subscribe();
+    } catch (Exception ex) {
+        logger.warn("Exception while attempting to send combined Smartschool confirmation: {}", ex.getMessage());
+    }
+}
+
+// Simple HTML escaping to prevent XSS in book titles
+private String escapeHtml(String text) {
+    if (text == null) return "";
+    return text.replace("&", "&amp;")
+               .replace("<", "&lt;")
+               .replace(">", "&gt;")
+               .replace("\"", "&quot;");
+}
 
     public void sendCombinedLoanConfirmationForDtos(String userSub, List<LoanDto> loans) {
         if (loans == null || loans.isEmpty()) {
