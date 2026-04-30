@@ -3,6 +3,9 @@ export type SchoolStatus = "PENDING" | "ACTIVE" | "INACTIVE";
 export interface CreateAdminSchoolRequest {
   subdomain: string;
   naam?: string;
+  adres?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CreateAdminSchoolResponse {
