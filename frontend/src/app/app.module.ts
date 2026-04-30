@@ -35,6 +35,7 @@ import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { UiToastComponent } from "./components/ui-toast/ui-toast.component";
 import { MapScreenComponent } from "./map-screen/map-screen.component";
 import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
+import { LeeslijstCreateComponent } from "./leeslijst-create.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -61,6 +62,7 @@ registerLocaleData(localeNl, "nl");
     LoanOverviewComponent,
     LeerlingInfoComponent,
     BibFaqBeheerComponent,
+    LeeslijstCreateComponent,
   ],
   imports: [
     BrowserModule,

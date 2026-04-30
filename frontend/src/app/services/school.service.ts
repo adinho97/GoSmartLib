@@ -3,6 +3,11 @@ import axios from "axios";
 import { School } from "../models/school";
 import { from, Observable, map } from "rxjs";
 
+export interface Klas {
+  id: number;
+  naam: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -12,6 +17,11 @@ export class SchoolService {
 
   async getSchools(): Promise<School[]> {
     const res = await axios.get<School[]>(this.apiUrl);
+    return res.data;
+  }
+
+  async getKlassenBySchool(schoolId: number): Promise<Klas[]> {
+    const res = await axios.get<Klas[]>(`${this.apiUrl}/${schoolId}/klassen`);
     return res.data;
   }
 

@@ -1,0 +1,116 @@
+<div class="container">
+  <div class="header">
+    <h1>Nieuwe Leeslijst</h1>
+    <p>Stel een boekenlijst samen voor je klassen.</p>
+  </div>
+
+  <div class="stepper">
+    <div class="step-pill" [class.active]="step === 'klassen'">1. Klassen</div>
+    <div class="step-pill" [class.active]="step === 'boeken'">2. Boeken</div>
+    <div class="step-pill" [class.active]="step === 'bevestiging'">
+      3. Bevestigen
+    </div>
+  </div>
+
+  <!-- Step 1: Klassen -->
+  <div *ngIf="step === 'klassen'" class="selection-card">
+    <h3>Kies een of meerdere klassen</h3>
+    <div class="grid-list">
+      <div
+        *ngFor="let klas of klassen"
+        class="grid-item"
+        [class.selected]="selectedKlassenIds.has(klas.id)"
+        (click)="toggleKlasSelection(klas.id)"
+      >
+        <span class="item-name">{{ klas.naam }}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button
+        class="btn btn-primary"
+        (click)="goToBooks()"
+        [disabled]="selectedKlassenIds.size === 0"
+      >
+        Volgende: Boeken kiezen
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2: Boeken -->
+  <div *ngIf="step === 'boeken'" class="selection-card">
+    <div class="search-bar">
+      <input
+        type="text"
+        placeholder="Zoek boeken..."
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+      />
+      <button class="btn btn-secondary" (click)="onSearch()">Zoeken</button>
+    </div>
+
+    <div class="book-grid">
+      <div
+        *ngFor="let book of books"
+        class="book-item"
+        [class.selected]="selectedBookIds.has(book.id)"
+        (click)="toggleBookSelection(book.id)"
+      >
+        <img
+          [src]="book.cover || 'assets/no-cover.png'"
+          alt="Cover"
+          class="book-cover"
+        />
+        <div class="book-info">
+          <span class="book-title">{{ book.titel }}</span>
+          <span class="book-author">{{ book.auteur }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">
+        Vorige
+      </button>
+      <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
+      <button
+        [disabled]="currentPage === totalPages"
+        (click)="setPage(currentPage + 1)"
+      >
+        Volgende
+      </button>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-outline" (click)="goBack()">Terug</button>
+      <button
+        class="btn btn-primary"
+        (click)="goToConfirmation()"
+        [disabled]="selectedBookIds.size === 0"
+      >
+        Volgende: Bevestigen
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 3: Bevestiging -->
+  <div *ngIf="step === 'bevestiging'" class="selection-card">
+    <h3>Overzicht</h3>
+    <div class="summary">
+      <p>
+        <strong>Geselecteerde klassen:</strong> {{ getSelectedKlassenNames() }}
+      </p>
+      <p><strong>Aantal boeken:</strong> {{ selectedBookIds.size }}</p>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-outline" (click)="goBack()">Terug</button>
+      <button
+        class="btn btn-success"
+        (click)="saveLeeslijst()"
+        [disabled]="isSaving"
+      >
+        {{ isSaving ? "Bezig met opslaan..." : "Leeslijst Opslaan" }}
+      </button>
+    </div>
+  </div>
+</div>
