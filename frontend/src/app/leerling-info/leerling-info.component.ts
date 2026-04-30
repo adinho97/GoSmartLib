@@ -1,12 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { InfoContentService, InfoContentItem } from '../services/info-content.service';
+import { Component, OnInit } from "@angular/core";
+import {
+  InfoContentService,
+  InfoContentItem,
+} from "../services/info-content.service";
+import { Router } from "@angular/router";
 
-type SiteFeature = { title: string; description: string; };
+type SiteFeature = { title: string; description: string };
 
 @Component({
-  selector: 'app-leerling-info',
-  templateUrl: './leerling-info.component.html',
-  styleUrls: ['./leerling-info.component.css'],
+  selector: "app-leerling-info",
+  templateUrl: "./leerling-info.component.html",
+  styleUrls: ["./leerling-info.component.css"],
   standalone: false,
 })
 export class LeerlingInfoComponent implements OnInit {
@@ -17,51 +21,81 @@ export class LeerlingInfoComponent implements OnInit {
   tips: string[] = [];
 
   private readonly defaultLoanSteps: string[] = [
-    'Zoek een boek via Boekencatalogus en open de detailpagina.',
-    'Controleer of het boek beschikbaar is in de bibliotheek.',
-    'Vind het boek in de bibliotheek en ga naar de bib-verantwoordelijke om het te ontlenen.',
-    'Het boek verschijnt daarna bij Geleende boeken in je dashboardprofiel.',
-    'Lever op tijd in om boetes of blokkering te vermijden.',
+    "Zoek een boek via Boekencatalogus en open de detailpagina.",
+    "Controleer of het boek beschikbaar is in de bibliotheek.",
+    "Vind het boek in de bibliotheek en ga naar de bib-verantwoordelijke om het te ontlenen.",
+    "Het boek verschijnt daarna bij Geleende boeken in je dashboardprofiel.",
+    "Lever op tijd in om boetes of blokkering te vermijden.",
   ];
 
   private readonly defaultSiteFeatures: SiteFeature[] = [
-    { title: 'Dashboard', description: 'persoonlijke aanbevelingen en snelle toegang tot je profielblokken.' },
-    { title: 'Boekencatalogus', description: 'zoeken, filteren en boekdetails bekijken.' },
-    { title: 'Verlanglijst', description: 'bewaar boeken die je later wilt lezen.' },
-    { title: 'Favorieten', description: 'markeer boeken die je extra goed vond.' },
-    { title: 'Ontleenhistoriek', description: 'bekijk welke boeken je eerder ontleende.' },
+    {
+      title: "Dashboard",
+      description:
+        "persoonlijke aanbevelingen en snelle toegang tot je profielblokken.",
+    },
+    {
+      title: "Boekencatalogus",
+      description: "zoeken, filteren en boekdetails bekijken.",
+    },
+    {
+      title: "Verlanglijst",
+      description: "bewaar boeken die je later wilt lezen.",
+    },
+    {
+      title: "Favorieten",
+      description: "markeer boeken die je extra goed vond.",
+    },
+    {
+      title: "Ontleenhistoriek",
+      description: "bekijk welke boeken je eerder ontleende.",
+    },
   ];
 
   private readonly defaultTips: string[] = [
-    'Gebruik de filters in de catalogus op genre, taal en leesniveau om sneller een passend boek te vinden.',
-    'Voeg interessante titels toe aan je verlanglijst, zodat je ze later makkelijk terugvindt.',
+    "Gebruik de filters in de catalogus op genre, taal en leesniveau om sneller een passend boek te vinden.",
+    "Voeg interessante titels toe aan je verlanglijst, zodat je ze later makkelijk terugvindt.",
   ];
 
   private readonly defaultFaqItems: InfoContentItem[] = [
     {
-      sectie: 'FAQ',
-      titel: 'Ik vind een boek online, maar niet in de bib. Wat nu?',
-      inhoud: 'Vraag aan de bib-verantwoordelijke of het boek momenteel uitgeleend, verplaatst of niet aanwezig is. Je kunt het boek intussen op je verlanglijst zetten.',
+      sectie: "FAQ",
+      titel: "Ik vind een boek online, maar niet in de bib. Wat nu?",
+      inhoud:
+        "Vraag aan de bib-verantwoordelijke of het boek momenteel uitgeleend, verplaatst of niet aanwezig is. Je kunt het boek intussen op je verlanglijst zetten.",
     },
     {
-      sectie: 'FAQ',
-      titel: 'Hoe zie ik wanneer ik een boek moet terugbrengen?',
-      inhoud: 'Open je dashboard en kijk bij Geleende boeken. Daar zie je je actieve uitleningen en de relevante datums.',
+      sectie: "FAQ",
+      titel: "Hoe zie ik wanneer ik een boek moet terugbrengen?",
+      inhoud:
+        "Open je dashboard en kijk bij Geleende boeken. Daar zie je je actieve uitleningen en de relevante datums.",
     },
     {
-      sectie: 'FAQ',
-      titel: 'Wat is het verschil tussen Verlanglijst en Favorieten?',
-      inhoud: 'Verlanglijst is voor boeken die je nog wilt lezen. Favorieten zijn boeken die je extra goed vond en snel wilt terugvinden.',
+      sectie: "FAQ",
+      titel: "Wat is het verschil tussen Verlanglijst en Favorieten?",
+      inhoud:
+        "Verlanglijst is voor boeken die je nog wilt lezen. Favorieten zijn boeken die je extra goed vond en snel wilt terugvinden.",
     },
     {
-      sectie: 'FAQ',
-      titel: 'Hoe krijg ik betere aanbevelingen?',
-      inhoud: 'Geef voorkeur aan genres die je graag leest, gebruik favorieten en werk je profielgebruik regelmatig bij. Dan worden aanbevelingen persoonlijker.',
+      sectie: "FAQ",
+      titel: "Hoe krijg ik betere aanbevelingen?",
+      inhoud:
+        "Geef voorkeur aan genres die je graag leest, gebruik favorieten en werk je profielgebruik regelmatig bij. Dan worden aanbevelingen persoonlijker.",
     },
   ];
 
-  constructor(private infoContentService: InfoContentService) {}
+  get isBibbeheerder(): boolean {
+    return localStorage.getItem("role") === "bibbeheerder";
+  }
 
+  constructor(
+    private infoContentService: InfoContentService,
+    private router: Router,
+  ) {}
+
+  goToEdit(): void {
+    this.router.navigate(["/faq-beheer"]);
+  }
   ngOnInit(): void {
     const schoolId = this.getSchoolId();
     this.loadFaq(schoolId);
@@ -71,17 +105,20 @@ export class LeerlingInfoComponent implements OnInit {
   }
 
   private getSchoolId(): number | undefined {
-    const value = localStorage.getItem('selectedSchoolId');
+    const value = localStorage.getItem("selectedSchoolId");
     if (!value) return undefined;
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : undefined;
   }
 
   private loadFaq(schoolId?: number): void {
-    this.infoContentService.hasContent('FAQ', schoolId).subscribe({
+    this.infoContentService.hasContent("FAQ", schoolId).subscribe({
       next: (hasContent) => {
-        if (!hasContent) { this.faqItems = this.defaultFaqItems; return; }
-        this.infoContentService.getAll('FAQ', schoolId).subscribe({
+        if (!hasContent) {
+          this.faqItems = this.defaultFaqItems;
+          return;
+        }
+        this.infoContentService.getAll("FAQ", schoolId).subscribe({
           next: (items) => (this.faqItems = items),
           error: () => (this.faqItems = this.defaultFaqItems),
         });
@@ -91,11 +128,14 @@ export class LeerlingInfoComponent implements OnInit {
   }
 
   private loadStappen(schoolId?: number): void {
-    this.infoContentService.hasContent('STAP', schoolId).subscribe({
+    this.infoContentService.hasContent("STAP", schoolId).subscribe({
       next: (hasContent) => {
-        if (!hasContent) { this.loanSteps = this.defaultLoanSteps; return; }
-        this.infoContentService.getAll('STAP', schoolId).subscribe({
-          next: (items) => (this.loanSteps = items.map(i => i.inhoud)),
+        if (!hasContent) {
+          this.loanSteps = this.defaultLoanSteps;
+          return;
+        }
+        this.infoContentService.getAll("STAP", schoolId).subscribe({
+          next: (items) => (this.loanSteps = items.map((i) => i.inhoud)),
           error: () => (this.loanSteps = this.defaultLoanSteps),
         });
       },
@@ -104,14 +144,18 @@ export class LeerlingInfoComponent implements OnInit {
   }
 
   private loadFeatures(schoolId?: number): void {
-    this.infoContentService.hasContent('FEATURE', schoolId).subscribe({
+    this.infoContentService.hasContent("FEATURE", schoolId).subscribe({
       next: (hasContent) => {
-        if (!hasContent) { this.siteFeatures = this.defaultSiteFeatures; return; }
-        this.infoContentService.getAll('FEATURE', schoolId).subscribe({
-          next: (items) => (this.siteFeatures = items.map(i => ({
-            title: i.titel ?? '',
-            description: i.inhoud,
-          }))),
+        if (!hasContent) {
+          this.siteFeatures = this.defaultSiteFeatures;
+          return;
+        }
+        this.infoContentService.getAll("FEATURE", schoolId).subscribe({
+          next: (items) =>
+            (this.siteFeatures = items.map((i) => ({
+              title: i.titel ?? "",
+              description: i.inhoud,
+            }))),
           error: () => (this.siteFeatures = this.defaultSiteFeatures),
         });
       },
@@ -120,11 +164,14 @@ export class LeerlingInfoComponent implements OnInit {
   }
 
   private loadTips(schoolId?: number): void {
-    this.infoContentService.hasContent('TIP', schoolId).subscribe({
+    this.infoContentService.hasContent("TIP", schoolId).subscribe({
       next: (hasContent) => {
-        if (!hasContent) { this.tips = this.defaultTips; return; }
-        this.infoContentService.getAll('TIP', schoolId).subscribe({
-          next: (items) => (this.tips = items.map(i => i.inhoud)),
+        if (!hasContent) {
+          this.tips = this.defaultTips;
+          return;
+        }
+        this.infoContentService.getAll("TIP", schoolId).subscribe({
+          next: (items) => (this.tips = items.map((i) => i.inhoud)),
           error: () => (this.tips = this.defaultTips),
         });
       },

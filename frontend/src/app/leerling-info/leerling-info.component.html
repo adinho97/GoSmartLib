@@ -1,14 +1,23 @@
 <div class="info-page">
   <header class="info-hero">
-    <h1>Info voor Leerlingen</h1>
-    <p>Zo leen je boeken uit en haal je het meeste uit GO!SmartLib.</p>
+    <div class="info-hero-inner">
+      <div>
+        <h1>Info voor Leerlingen</h1>
+        <p>Zo leen je boeken uit en haal je het meeste uit GO!SmartLib.</p>
+      </div>
+      @if (isBibbeheerder) {
+      <button class="edit-hero-btn" type="button" (click)="goToEdit()" aria-label="Infopagina bewerken">
+        ✏️
+      </button>
+      }
+    </div>
   </header>
   <main class="info-content">
     <section class="info-card">
       <h2>Hoe wordt een boek uitgeleend?</h2>
       <ol>
         @for (step of loanSteps; track step) {
-          <li>{{ step }}</li>
+        <li>{{ step }}</li>
         }
       </ol>
     </section>
@@ -16,9 +25,9 @@
       <h2>Hoe werkt de website?</h2>
       <ul>
         @for (feature of siteFeatures; track feature.title) {
-          <li>
-            <strong>{{ feature.title }}:</strong> {{ feature.description }}
-          </li>
+        <li>
+          <strong>{{ feature.title }}:</strong> {{ feature.description }}
+        </li>
         }
       </ul>
     </section>
@@ -26,7 +35,7 @@
       <h2>Handige tips</h2>
       <ul>
         @for (tip of tips; track tip) {
-          <li>{{ tip }}</li>
+        <li>{{ tip }}</li>
         }
       </ul>
     </section>
@@ -34,20 +43,15 @@
       <h2>Veelgestelde vragen</h2>
       <div class="faq-list">
         @for (faq of faqItems; track faq.titel; let i = $index) {
-          <article class="faq-item">
-            <button
-              class="faq-question"
-              type="button"
-              [attr.aria-expanded]="isFaqOpen(i)"
-              (click)="toggleFaq(i)"
-            >
-              <span>{{ faq.titel }}</span>
-              <span class="faq-indicator">{{ isFaqOpen(i) ? '-' : '+' }}</span>
-            </button>
-            @if (isFaqOpen(i)) {
-              <p class="faq-answer">{{ faq.inhoud }}</p>
-            }
-          </article>
+        <article class="faq-item">
+          <button class="faq-question" type="button" [attr.aria-expanded]="isFaqOpen(i)" (click)="toggleFaq(i)">
+            <span>{{ faq.titel }}</span>
+            <span class="faq-indicator">{{ isFaqOpen(i) ? '-' : '+' }}</span>
+          </button>
+          @if (isFaqOpen(i)) {
+          <p class="faq-answer">{{ faq.inhoud }}</p>
+          }
+        </article>
         }
       </div>
     </section>
