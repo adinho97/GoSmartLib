@@ -41,6 +41,9 @@ public class SchoolAdminService {
         school.setSubdomein(normalizedSubdomain);
         school.setSmartschoolUrl(schoolAdminValidationService.buildSmartschoolUrl(normalizedSubdomain));
         school.setNaam(request.getNaam() == null ? null : request.getNaam().trim());
+        school.setAdres(request.getAdres() == null ? null : request.getAdres().trim());
+        school.setLatitude(request.getLatitude());
+        school.setLongitude(request.getLongitude());
         school.setStatus(SchoolStatus.PENDING);
 
         School saved = schoolRepository.save(school);
