@@ -4,6 +4,7 @@ import { Observable, Subject } from "rxjs";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
+import { SchoolService } from "./school.service";
 import axios from "axios";
 
 export type BulkImportStatus = "ADDED" | "NOT_FOUND" | "INVALID_ISBN" | "ERROR";
@@ -55,7 +56,7 @@ export class BookService {
   private wishlistChangedSource = new Subject<void>();
   wishlistChanged$ = this.wishlistChangedSource.asObservable();
 
-  private bookCache: Map<number | null, any[]> = new Map();
+  private bookCache: Map<number | null, any[]> = new Map(); // TODO: Clear this cache when a book is updated/deleted
 
   constructor(private http: HttpClient) {}
 
@@ -123,7 +124,7 @@ export class BookService {
     return this.http.get<Book[]>(this.apiUrl);
   }
 
-  getBookById(id: number): Observable<Book> {
+  getBookById(id: number): Observable<Book> { // TODO: This should use axios for consistency
     return this.http.get<Book>(this.withSchoolId(`${this.apiUrl}/${id}`));
   }
 
@@ -407,9 +408,11 @@ export class BookService {
   private getUserSubHeaders() {
     const userSub =
       localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    const token = localStorage.getItem("smartschoolToken");
     return {
       headers: {
         "X-User-Sub": userSub,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     };
   }
@@ -457,5 +460,77 @@ export class BookService {
       }
       throw err;
     }
+  }
+
+  // New methods for the distinct "highlighted" feature
+  async toggleHighlight(bookId: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId();
+    if (!schoolId) {
+      console.error("No school selected to toggle highlight.");
+      throw new Error("No school selected.");
+    }
+    // This now points to the NEW /api/highlighted-books endpoint
+    const res = await axios.post<boolean>(
+      `/api/highlighted-books/${bookId}/toggle?schoolId=${schoolId}`,
+      {}, // Empty body for POST
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+  async isHighlighted(bookId: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId();
+    if (!schoolId) {
+      return false; // If no school selected, it can't be highlighted for a school
+    }
+    // This now points to the NEW /api/highlighted-books endpoint
+    const res = await axios.get<boolean>(
+      `/api/highlighted-books/${bookId}/status?schoolId=${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async getHighlightedBookIds(schoolId: number): Promise<number[]> {
+    const res = await axios.get<number[]>(
+      `/api/highlighted-books/school/${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async toggleClassReadingListItem(bookId: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId();
+    if (!schoolId) {
+      console.error("No school selected to toggle class reading list item.");
+      throw new Error("No school selected.");
+    }
+    // This now points to the /api/class-reading-list endpoint
+    const res = await axios.post<boolean>(
+      `/api/class-reading-list/${bookId}/toggle?schoolId=${schoolId}`,
+      {}, // Empty body for POST
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async isClassReadingListItem(bookId: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId();
+    if (!schoolId) {
+      return false; // If no school selected, it can't be in the class reading list
+    }
+    // This now points to the /api/class-reading-list endpoint
+    const res = await axios.get<boolean>(
+      `/api/class-reading-list/${bookId}/status?schoolId=${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async getClassReadingListItemIds(schoolId: number): Promise<number[]> {
+    const res = await axios.get<number[]>(
+      `/api/class-reading-list/school/${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
   }
 }

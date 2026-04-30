@@ -66,6 +66,65 @@
   transform: none;
 }
 
+/* New styles for librarian action buttons */
+.librarian-actions {
+  display: flex;
+  gap: 0.6rem; /* Space between the two new buttons */
+  /* No margin-left needed here, it will sit next to back-btn */
+  margin-right: 0.6rem; /* Add some space before the auto-margined wishlist button */
+}
+
+.lib-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem; /* Smaller gap for icon+text */
+  border-radius: 999px; /* Fully rounded */
+  padding: 0.45rem 0.85rem; /* Slightly smaller padding than back-btn */
+  font-weight: 600;
+  font-size: 0.82rem; /* Slightly smaller font size */
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.12s ease;
+
+  /* Default (inactive) state - similar to back-btn but with more neutral colors */
+  border: 1px solid #d4c1c9;
+  background: #ffffff;
+  color: #5a6472;
+}
+
+.lib-action-btn svg {
+  width: 15px; /* Size for the SVG icons */
+  height: 15px;
+  stroke: currentColor;
+  fill: transparent; /* Default for outline icons */
+}
+
+.lib-action-btn:hover {
+  border-color: #c3a6b5;
+  background: #fff8fb;
+  color: #871f42;
+  box-shadow: 0 2px 8px rgba(135, 31, 66, 0.08);
+}
+
+.lib-action-btn.active {
+  background: #871f42;
+  border-color: #871f42;
+  color: #ffffff;
+}
+
+.lib-action-btn.active svg {
+  fill: #ffffff; /* Fills the star/checkbox when active */
+}
+
+.lib-action-btn:active {
+  transform: translateY(1px);
+}
+
 .back-btn,
 .edit-btn-detail {
   display: inline-flex;
