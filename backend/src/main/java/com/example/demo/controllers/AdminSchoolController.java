@@ -2,8 +2,12 @@ package com.example.demo.controllers;
 
 import com.example.demo.dto.admin.school.CreateSchoolRequest;
 import com.example.demo.dto.admin.school.CreateSchoolResponse;
+import com.example.demo.dto.admin.school.KlasListItem;
 import com.example.demo.dto.admin.school.SchoolDashboardItemResponse;
+import com.example.demo.dto.admin.school.SchoolDetailResponse;
+import com.example.demo.dto.admin.school.UpdateSchoolInfoRequest;
 import com.example.demo.dto.admin.school.UpdateSchoolStatusRequest;
+import com.example.demo.dto.admin.user.AdminUserListItem;
 import com.example.demo.services.SchoolAdminService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -38,10 +42,41 @@ public class AdminSchoolController {
         return schoolAdminService.getAllSchools();
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public SchoolDetailResponse getSchoolDetail(@PathVariable Long id) {
+        return schoolAdminService.getSchoolDetail(id);
+    }
+
+    @PatchMapping("/{id}/info")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public SchoolDetailResponse updateSchoolInfo(@PathVariable Long id,
+            @Valid @RequestBody UpdateSchoolInfoRequest request) {
+        return schoolAdminService.updateSchoolInfo(id, request);
+    }
+
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public SchoolDashboardItemResponse updateSchoolStatus(@PathVariable Long id,
+    public SchoolDetailResponse updateSchoolStatus(@PathVariable Long id,
             @Valid @RequestBody UpdateSchoolStatusRequest request) {
         return schoolAdminService.updateSchoolStatus(id, request.getStatus());
+    }
+
+    @GetMapping("/{id}/users")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public List<AdminUserListItem> getSchoolUsers(@PathVariable Long id) {
+        return schoolAdminService.getSchoolUsers(id);
+    }
+
+    @PatchMapping("/{id}/users/{userId}/active")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public AdminUserListItem toggleUserActive(@PathVariable Long id, @PathVariable Long userId) {
+        return schoolAdminService.toggleUserActive(id, userId);
+    }
+
+    @GetMapping("/{id}/klassen")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public List<KlasListItem> getSchoolKlassen(@PathVariable Long id) {
+        return schoolAdminService.getSchoolKlassen(id);
     }
 }

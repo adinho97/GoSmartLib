@@ -9,6 +9,7 @@ import { AdminSetupComponent } from "./admin-setup/admin-setup.component";
 import { AdminDashboardComponent } from "./admin-dashboard/admin-dashboard.component";
 import { AdminChangePasswordComponent } from "./admin-change-password/admin-change-password.component";
 import { AdminSchoolWizardComponent } from "./admin-school-wizard/admin-school-wizard.component";
+import { AdminSchoolDetailComponent } from "./admin-school-detail/admin-school-detail.component";
 import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AddBookComponent } from "./add-book-component/add-book-component";
 import { AddIsbnComponent } from "./add-isbn/add-isbn.component";
@@ -50,6 +51,11 @@ export const appRoutes: Routes = [
   {
     path: "admin/schools/new",
     component: AdminSchoolWizardComponent,
+    canActivate: [AdminGuard],
+  },
+  {
+    path: "admin/schools/:id",
+    component: AdminSchoolDetailComponent,
     canActivate: [AdminGuard],
   },
 

@@ -8,7 +8,7 @@
     }
 
     @if (step === 1) {
-      <h2>Stap 1 - Vul subdomein in</h2>
+      <h2>Stap 1 - Vul gegevens in</h2>
       <label for="subdomain">Subdomein</label>
       <input
         id="subdomain"
@@ -20,7 +20,36 @@
       <label for="naam">Schoolnaam (optioneel)</label>
       <input id="naam" type="text" [(ngModel)]="naam" placeholder="AP Hogeschool" />
 
-      <button type="button" class="btn-primary" (click)="goToStep2()">
+      <label for="adres">Adres (optioneel)</label>
+      <div class="geocode-row">
+        <input
+          id="adres"
+          type="text"
+          [(ngModel)]="adres"
+          placeholder="bv. Kerkelei 43, 2610 Antwerpen"
+          (keyup.enter)="geocodeAddress()"
+        />
+        <button
+          type="button"
+          class="btn-secondary btn-geocode"
+          (click)="geocodeAddress()"
+          [disabled]="isGeocoding || !adres.trim()"
+        >
+          {{ isGeocoding ? "..." : "Opzoeken" }}
+        </button>
+      </div>
+
+      @if (geocodeError) {
+        <p class="geocode-error">{{ geocodeError }}</p>
+      }
+      @if (latitude !== null && longitude !== null) {
+        <div class="geocode-result">
+          <p class="geocode-display">{{ geocodedDisplay }}</p>
+          <p class="geocode-coords">Lat: {{ latitude | number:'1.5-5' }} &nbsp; Lng: {{ longitude | number:'1.5-5' }}</p>
+        </div>
+      }
+
+      <button type="button" class="btn-primary" style="margin-top: 24px;" (click)="goToStep2()">
         Volgende
       </button>
     }
@@ -28,6 +57,15 @@
     @if (step === 2) {
       <h2>Stap 2 - Bevestig</h2>
       <p>Je voegt toe: <strong>{{ previewUrl }}</strong></p>
+      @if (naam.trim()) {
+        <p>Naam: <strong>{{ naam.trim() }}</strong></p>
+      }
+      @if (adres.trim()) {
+        <p>Adres: <strong>{{ adres.trim() }}</strong></p>
+      }
+      @if (latitude !== null && longitude !== null) {
+        <p>Coördinaten: <strong>{{ latitude | number:'1.5-5' }}, {{ longitude | number:'1.5-5' }}</strong></p>
+      }
       <p>Status bij aanmaak: <strong>PENDING</strong></p>
 
       <div class="buttons">
