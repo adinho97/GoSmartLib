@@ -284,6 +284,93 @@
   background: #fff0f4;
 }
 
+.overview-menu {
+  position: relative;
+}
+
+.overview-link {
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #555555;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 40px;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+.overview-link:hover,
+.overview-link:focus-visible {
+  color: #222222;
+  background-color: #f4f4f5;
+}
+
+.overview-link.active {
+  color: #871f42;
+  background-color: rgba(135, 31, 66, 0.08);
+}
+
+.overview-link svg {
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.overview-link svg.rotated {
+  transform: rotate(180deg);
+}
+
+.overview-dropdown {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid #f0dde5;
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
+  padding: 10px;
+  z-index: 1300;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.overview-dropdown a {
+  color: #555555;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.93rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: block;
+  text-align: left;
+}
+
+.overview-dropdown a:hover,
+.overview-dropdown a:focus-visible {
+  color: #222222;
+  background-color: #f4f4f5;
+}
+
+.overview-dropdown a.active {
+  color: #871f42;
+  background-color: rgba(135, 31, 66, 0.08);
+  font-weight: 600;
+}
+
 .app-shell.with-nav {
   min-height: calc(100vh - 64px);
 }

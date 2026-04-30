@@ -14,6 +14,13 @@ export interface Loan {
   returnedAt: string | null;
 }
 
+export interface CreateLoanRequest {
+  bookId: number;
+  userSub: string;
+  dueDate: string;
+  copyId?: number;
+}
+
 export type ReturnCondition = "GOOD" | "MODERATE" | "BAD";
 
 export interface ReturnLoanRequest {
@@ -25,6 +32,55 @@ export interface BookCopyInfo {
   id: number;
   status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST";
   condition: "GOOD" | "MODERATE" | "BAD";
+}
+
+export interface UpdateBookCopyStateRequest {
+  status: "AVAILABLE" | "DAMAGED" | "LOST";
+  condition: "GOOD" | "MODERATE" | "BAD";
+}
+
+export interface WorsenedReturn {
+  loanId: number;
+  copyId: number;
+  copyNumber: number | null;
+  bookId: number;
+  bookTitel: string;
+  bookCover: string;
+  userSub: string;
+  loanedAt: string;
+  returnedAt: string;
+  loanedCondition: "GOOD" | "MODERATE" | "BAD" | null;
+  returnedCondition: "GOOD" | "MODERATE" | "BAD" | null;
+  returnedStatus: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST" | null;
+}
+
+export interface BookStateOverview {
+  bookId: number;
+  bookTitel: string;
+  bookCover: string;
+  totalCopies: number;
+  availableCopies: number;
+  loanedCopies: number;
+  damagedCopies: number;
+  lostCopies: number;
+  goodConditionCopies: number;
+  moderateConditionCopies: number;
+  badConditionCopies: number;
+}
+
+export interface LostCopyOverview {
+  copyId: number;
+  copyNumber: number | null;
+  bookId: number;
+  bookTitel: string;
+  bookCover: string;
+  condition: "GOOD" | "MODERATE" | "BAD";
+}
+
+export interface LoanConditionOverview {
+  worsenedReturns: WorsenedReturn[];
+  bookStates: BookStateOverview[];
+  lostCopies: LostCopyOverview[];
 }
 
 @Injectable({ providedIn: "root" })
@@ -49,16 +105,16 @@ export class LoanService {
     dueDate: string,
     copyId?: number,
   ): Promise<Loan> {
-    const payload: {
-      bookId: number;
-      userSub: string;
-      dueDate: string;
-      copyId?: number;
-    } = { bookId, userSub, dueDate };
+    const payload: CreateLoanRequest = { bookId, userSub, dueDate };
     if (copyId !== undefined) {
       payload.copyId = copyId;
     }
     const res = await axios.post(this.api, payload, this.headers());
+    return res.data;
+  }
+
+  async createLoans(requests: CreateLoanRequest[]): Promise<Loan[]> {
+    const res = await axios.post(`${this.api}/bulk`, requests, this.headers());
     return res.data;
   }
 
@@ -97,6 +153,19 @@ export class LoanService {
     return res.data;
   }
 
+  async getConditionOverview(): Promise<LoanConditionOverview> {
+    const res = await axios.get(
+      `${this.api}/inspectie/conditie`,
+      this.headers(),
+    );
+    return res.data as LoanConditionOverview;
+  }
+
+  async getAllActiveLoans(): Promise<Loan[]> {
+    const res = await axios.get(`${this.api}/all-active`, this.headers());
+    return res.data;
+  }
+
   async getCopySummary(
     bookId: number,
   ): Promise<{ total: number; available: number }> {
@@ -120,6 +189,13 @@ export class LoanService {
 
   async addCopy(bookId: number): Promise<void> {
     await axios.post(`${this.copyApi}/boek/${bookId}`, {}, this.headers());
+  }
+
+  async updateCopyState(
+    copyId: number,
+    request: UpdateBookCopyStateRequest,
+  ): Promise<void> {
+    await axios.patch(`${this.copyApi}/${copyId}`, request, this.headers());
   }
 
   async deleteCopy(copyId: number): Promise<void> {

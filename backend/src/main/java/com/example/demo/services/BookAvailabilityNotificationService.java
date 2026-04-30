@@ -66,9 +66,10 @@ public class BookAvailabilityNotificationService {
                     SmartschoolMessageRequest request = new SmartschoolMessageRequest();
                     request.setPlatformUrl(userInfo.getPlatform() != null ? userInfo.getPlatform()
                             : smartschoolProperties.getApiBaseUrl());
-                    request.setSubject("Boek beschikbaar: " + wishlist.getBook().getTitel());
-                    request.setBody(String.format(
-                            "Beste,\n\nJe gewenste boek '%s' is nu beschikbaar in de bibliotheek!\n\nWees er snel bij!",
+                        request.setSubject("Boek beschikbaar: " + wishlist.getBook().getTitel());
+                        request.setBody(String.format(
+                            "Beste %s,\n\nBoek beschikbaar: %s\n\nHet door jou opgegeven boek is nu beschikbaar in de bibliotheek.\n\nWees er snel bij om het op te halen.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                            userInfo.getName() != null ? userInfo.getName() : "Lezer",
                             wishlist.getBook().getTitel()));
 
                     return messageService.sendMessage(userInfo.getAccessToken(), request);

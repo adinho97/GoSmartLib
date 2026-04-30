@@ -1,0 +1,74 @@
+<div class="admin-dashboard">
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Beheerder Dashboard</h1>
+      <p class="subtitle">GO!SmartLib administratief paneel</p>
+    </div>
+    <div class="account-dropdown" (click)="$event.stopPropagation()">
+      <button type="button" class="btn-account" (click)="toggleAccountMenu()" [attr.aria-expanded]="accountMenuOpen">
+        {{ adminInfo?.username || "Account" }}
+      </button>
+      <div class="account-menu" [class.show]="accountMenuOpen">
+        <button type="button" class="account-menu-item" (click)="goToChangePassword()">Wachtwoord wijzigen</button>
+        <button type="button" class="account-menu-item logout-item" (click)="logout()" [disabled]="isLoading">
+          {{ isLoading ? "Bezig..." : "Uitloggen" }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="schools-section">
+    <div class="schools-header">
+      <div>
+        <h2>Scholen</h2>
+        <p class="schools-count">{{ schools.length }} school{{ schools.length !== 1 ? 'en' : '' }}</p>
+      </div>
+      <button type="button" class="btn-add" (click)="goToSchoolWizard()">+ School toevoegen</button>
+    </div>
+
+    @if (schoolError) {
+      <p class="error-message">{{ schoolError }}</p>
+    }
+
+    @if (isLoadingSchools) {
+      <p class="loading-text">Scholen laden...</p>
+    }
+
+    @if (!isLoadingSchools && schools.length === 0 && !schoolError) {
+      <div class="empty-state">
+        <p>Nog geen scholen toegevoegd.</p>
+        <button type="button" class="btn-add" (click)="goToSchoolWizard()">Eerste school toevoegen</button>
+      </div>
+    }
+
+    @if (!isLoadingSchools && schools.length > 0) {
+      <div class="school-grid">
+        @for (school of schools; track school.id) {
+          <div class="school-card">
+            <div class="card-top">
+              <h3 class="card-naam">{{ school.naam || school.subdomain }}</h3>
+              <span class="status-badge status-{{ school.status.toLowerCase() }}">
+                {{ statusLabel(school.status) }}
+              </span>
+            </div>
+            <p class="card-url">{{ school.subdomain }}.smartschool.be</p>
+            <div class="card-stats">
+              <span class="stat">
+                <span class="stat-value">{{ school.userCount }}</span>
+                <span class="stat-label">gebruikers</span>
+              </span>
+              <span class="stat-divider"></span>
+              <span class="stat">
+                <span class="stat-value">{{ school.klasCount }}</span>
+                <span class="stat-label">klassen</span>
+              </span>
+            </div>
+            <button type="button" class="btn-beheer" (click)="goToSchoolDetail(school.id)">
+              Beheer →
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

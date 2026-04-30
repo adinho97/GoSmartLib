@@ -29,27 +29,10 @@ export class LeerlingInfoComponent implements OnInit {
   ];
 
   private readonly defaultSiteFeatures: SiteFeature[] = [
-    {
-      title: "Dashboard",
-      description:
-        "persoonlijke aanbevelingen en snelle toegang tot je profielblokken.",
-    },
-    {
-      title: "Boekencatalogus",
-      description: "zoeken, filteren en boekdetails bekijken.",
-    },
-    {
-      title: "Verlanglijst",
-      description: "bewaar boeken die je later wilt lezen.",
-    },
-    {
-      title: "Favorieten",
-      description: "markeer boeken die je extra goed vond.",
-    },
-    {
-      title: "Ontleenhistoriek",
-      description: "bekijk welke boeken je eerder ontleende.",
-    },
+    { title: 'Dashboard', description: 'persoonlijke aanbevelingen en snelle toegang tot je profielblokken.' },
+    { title: 'Boekencatalogus', description: 'zoeken, filteren en boekdetails bekijken.' },
+    { title: 'Verlanglijst', description: 'bewaar boeken die je later wilt lezen.' },
+    { title: 'Ontleenhistoriek', description: 'bekijk welke boeken je eerder ontleende.' },
   ];
 
   private readonly defaultTips: string[] = [
@@ -69,18 +52,6 @@ export class LeerlingInfoComponent implements OnInit {
       titel: "Hoe zie ik wanneer ik een boek moet terugbrengen?",
       inhoud:
         "Open je dashboard en kijk bij Geleende boeken. Daar zie je je actieve uitleningen en de relevante datums.",
-    },
-    {
-      sectie: "FAQ",
-      titel: "Wat is het verschil tussen Verlanglijst en Favorieten?",
-      inhoud:
-        "Verlanglijst is voor boeken die je nog wilt lezen. Favorieten zijn boeken die je extra goed vond en snel wilt terugvinden.",
-    },
-    {
-      sectie: "FAQ",
-      titel: "Hoe krijg ik betere aanbevelingen?",
-      inhoud:
-        "Geef voorkeur aan genres die je graag leest, gebruik favorieten en werk je profielgebruik regelmatig bij. Dan worden aanbevelingen persoonlijker.",
     },
   ];
 

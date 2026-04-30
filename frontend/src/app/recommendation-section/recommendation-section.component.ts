@@ -39,7 +39,6 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
 
   excludeRead = true;
   wishlistedBookIds = new Set<number>();
-  favoritedBookIds = new Set<number>();
 
   private readonly EXCLUDE_READ_STORAGE_KEY_PREFIX =
     "recommendationExcludeRead_";
@@ -64,7 +63,6 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initPreferences();
     this.loadWishlistState();
-    this.loadFavoritesState();
   }
 
   ngOnDestroy(): void {
@@ -99,21 +97,8 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async loadFavoritesState() {
-    try {
-      const favorites = await this.bookService.getUserFavorites();
-      this.favoritedBookIds = new Set(favorites.map((item) => item.bookId));
-    } catch {
-      this.favoritedBookIds = new Set<number>();
-    }
-  }
-
   isWishlisted(bookId: number): boolean {
     return this.wishlistedBookIds.has(bookId);
-  }
-
-  isFavorited(bookId: number): boolean {
-    return this.favoritedBookIds.has(bookId);
   }
 
   get limitedBooks(): RecommendedBook[] {
@@ -143,32 +128,6 @@ export class RecommendationSectionComponent implements OnInit, OnDestroy {
         : this.wishlistedBookIds.delete(bookId);
       console.error("Failed to toggle wishlist for book", bookId, error);
       this.uiToastService.error("Verlanglijst bijwerken mislukt.");
-    }
-  }
-
-  async toggleFavorite(event: MouseEvent, bookId: number) {
-    event.stopPropagation();
-    const wasFavorited = this.favoritedBookIds.has(bookId);
-
-    wasFavorited
-      ? this.favoritedBookIds.delete(bookId)
-      : this.favoritedBookIds.add(bookId);
-
-    try {
-      wasFavorited
-        ? await this.bookService.removeFromFavorites(bookId)
-        : await this.bookService.addToFavorites(bookId);
-      this.uiToastService.success(
-        wasFavorited
-          ? "Boek verwijderd uit je favorieten."
-          : "Boek toegevoegd aan je favorieten.",
-      );
-    } catch (error) {
-      wasFavorited
-        ? this.favoritedBookIds.add(bookId)
-        : this.favoritedBookIds.delete(bookId);
-      console.error("Failed to toggle favorite for book", bookId, error);
-      this.uiToastService.error("Favorieten bijwerken mislukt.");
     }
   }
 

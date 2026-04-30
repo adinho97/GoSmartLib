@@ -13,9 +13,16 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     @Query("SELECT l FROM Loan l JOIN FETCH l.copy c JOIN FETCH c.book WHERE l.dueDate = :dueDate AND l.returnedAt IS NULL")
     List<Loan> findByDueDateAndReturnedAtIsNull(@Param("dueDate") LocalDate dueDate);
 
+    @Query("SELECT l FROM Loan l JOIN FETCH l.copy c JOIN FETCH c.book WHERE l.dueDate < :dueDate AND l.returnedAt IS NULL")
+    List<Loan> findByDueDateBeforeAndReturnedAtIsNull(@Param("dueDate") LocalDate dueDate);
+
     List<Loan> findByUserSubAndReturnedAtIsNull(String userSub);
 
     List<Loan> findByUserSubAndReturnedAtIsNotNull(String userSub);
+
+    List<Loan> findByReturnedAtIsNotNull();
+
+    List<Loan> findByReturnedAtIsNull();
 
     List<Loan> findByCopy_Book_IdAndReturnedAtIsNull(Long bookId);
 

@@ -85,14 +85,7 @@ export class BookListComponent implements OnInit {
     "Portugees",
     "Latijn",
   ];
-  readonly leesniveaus = [
-    "1ste-2de leerljaar",
-    "3de-4de leerjaar",
-    "5de-6de leerjaar",
-    "1ste graad",
-    "2de graad",
-    "3de graad",
-  ];
+  readonly leesniveaus = ["A", "B", "C", "D"];
   readonly nonFictionSubgenres = [
     "Biografie / autobiografie",
     "Wetenschap & technologie",
@@ -159,7 +152,8 @@ export class BookListComponent implements OnInit {
   minAvailablePages = this.minPageFilterLimit;
   maxAvailablePages = this.maxPageFilterLimit;
   wishlistedBookIds = new Set<number>();
-  favoritedBookIds = new Set<number>();
+  highlightedBookIds = new Set<number>(); // New: Track highlighted books
+  classReadingListItemIds = new Set<number>(); // New: Track class reading list books
   openMenuId: number | null = null;
 
   constructor(
@@ -184,7 +178,8 @@ export class BookListComponent implements OnInit {
     await Promise.all([
       this.loadSchools().then(() => this.loadBooks()), // Sequential dependency: books need school selection
       this.loadWishlistState(), // Independent
-      this.loadFavoritesState(), // Independent
+      this.loadHighlightedBookIds(), // New: Load highlighted books
+      this.loadClassReadingListItemIds(), // New: Load class reading list items
     ]);
 
     this.applyFilters();
@@ -550,13 +545,36 @@ export class BookListComponent implements OnInit {
     }
   }
 
-  private async loadFavoritesState() {
+  private async loadHighlightedBookIds() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
     try {
-      const favorites = await this.bookService.getUserFavorites();
-      this.favoritedBookIds = new Set(favorites.map((item) => item.bookId));
-    } catch {
-      this.favoritedBookIds = new Set<number>();
+      const ids = await this.bookService.getHighlightedBookIds(schoolId);
+      this.highlightedBookIds = new Set(ids);
+    } catch (error) {
+      console.error("Failed to load highlighted book IDs:", error);
+      this.highlightedBookIds = new Set();
     }
+  }
+
+  private async loadClassReadingListItemIds() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+    try {
+      const ids = await this.bookService.getClassReadingListItemIds(schoolId);
+      this.classReadingListItemIds = new Set(ids);
+    } catch (error) {
+      console.error("Failed to load class reading list item IDs:", error);
+      this.classReadingListItemIds = new Set();
+    }
+  }
+
+  isBookHighlighted(bookId?: number): boolean {
+    return !!bookId && this.highlightedBookIds.has(bookId);
+  }
+
+  isBookInClassReadingList(bookId?: number): boolean {
+    return !!bookId && this.classReadingListItemIds.has(bookId);
   }
 
   async toggleWishlist(event: MouseEvent, bookId?: number) {
@@ -581,34 +599,42 @@ export class BookListComponent implements OnInit {
     }
   }
 
-  isWishlisted(bookId?: number): boolean {
-    return !!bookId && this.wishlistedBookIds.has(bookId);
-  }
-
-  async toggleFavorite(event: MouseEvent, bookId?: number) {
+  async toggleHighlight(event: MouseEvent, bookId?: number) {
     event.stopPropagation();
     event.preventDefault();
     if (!bookId) return;
 
     try {
-      if (this.favoritedBookIds.has(bookId)) {
-        await this.bookService.removeFromFavorites(bookId);
-        this.favoritedBookIds.delete(bookId);
-        this.uiToastService.success("Boek verwijderd uit je favorieten.");
-        return;
+      const isNowHighlighted = await this.bookService.toggleHighlight(bookId);
+      if (isNowHighlighted) {
+        this.highlightedBookIds.add(bookId);
+        this.uiToastService.success("Boek staat nu 'In de kijker'.");
+      } else {
+        this.highlightedBookIds.delete(bookId);
+        this.uiToastService.success("Markering van boek verwijderd.");
       }
-
-      await this.bookService.addToFavorites(bookId);
-      this.favoritedBookIds.add(bookId);
-      this.uiToastService.success("Boek toegevoegd aan je favorieten.");
     } catch {
-      this.error = "Favorieten bijwerken mislukt. Probeer later opnieuw.";
-      this.uiToastService.error("Favorieten bijwerken mislukt.");
+      this.uiToastService.error("Fout bij bijwerken markering.");
     }
   }
 
-  isFavorited(bookId?: number): boolean {
-    return !!bookId && this.favoritedBookIds.has(bookId);
+  async toggleClassReadingList(event: MouseEvent, bookId?: number) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!bookId) return;
+
+    try {
+      const isNowInList = await this.bookService.toggleClassReadingListItem(bookId);
+      if (isNowInList) this.classReadingListItemIds.add(bookId);
+      else this.classReadingListItemIds.delete(bookId);
+      this.uiToastService.success(isNowInList ? "Toegevoegd aan Klasleeslijst." : "Verwijderd uit Klasleeslijst.");
+    } catch {
+      this.uiToastService.error("Fout bij bijwerken Klasleeslijst.");
+    }
+  }
+
+  isWishlisted(bookId?: number): boolean {
+    return !!bookId && this.wishlistedBookIds.has(bookId);
   }
 
   toggleKebabMenu(event: MouseEvent, bookId?: number) {

@@ -1,0 +1,106 @@
+<div class="login-page">
+  <img
+    src="assets/backgroundImage.jpg"
+    alt="Achtergrond"
+    class="background-image"
+  />
+  <div class="login-container">
+    <img src="assets/GOAntwerpen.png" alt="GoSmartLib Logo" class="logo" />
+    <h1>GO!SmartLib</h1>
+    <p class="subtitle">Beheerder Inloggen</p>
+
+    <form class="login-form" (ngSubmit)="login()">
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="error-message">
+        <span>⚠️ {{ errorMessage }}</span>
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="username">E-mailadres</label>
+        <input
+          type="text"
+          id="username"
+          class="form-control"
+          [(ngModel)]="username"
+          name="username"
+          placeholder="Voer uw e-mailadres in"
+          [disabled]="isLoading"
+          autocomplete="email"
+          required
+        />
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Wachtwoord</label>
+        <div class="password-input-group">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            class="form-control"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Voer uw wachtwoord in"
+            [disabled]="isLoading"
+            (keypress)="onKeyPress($event)"
+            autocomplete="current-password"
+            required
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+            [disabled]="isLoading"
+            aria-label="Wachtwoord zichtbaarheid in-/uitschakelen"
+          >
+            <svg
+              *ngIf="!showPassword"
+              class="eye-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
+              ></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg
+              *ngIf="showPassword"
+              class="eye-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.4A11.6 11.6 0 0 1 12 5c6.5 0 10 7 10 7a19.7 19.7 0 0 1-4.2 5.3M6.6 6.6A19.2 19.2 0 0 0 2 12s3.5 7 10 7c1.4 0 2.7-.3 3.9-.8"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <small class="password-hint">
+          Min. 8 tekens, 1 hoofdletter, 1 kleine letter en 1 cijfer.
+        </small>
+      </div>
+
+      <!-- Login Button -->
+      <button
+        type="submit"
+        class="btn-login"
+        [disabled]="isLoading"
+      >
+        <span *ngIf="!isLoading">Inloggen</span>
+        <span *ngIf="isLoading" class="loading-spinner">
+          <span class="spinner"></span> Aan het inloggen...
+        </span>
+      </button>
+    </form>
+
+    <!-- Footer Links -->
+    <div class="login-footer">
+      <p>Bent u geen beheerder?</p>
+      <a href="javascript:void(0)" (click)="goToUserLogin()" class="link-secondary">
+        Ga naar gebruiker inloggen
+      </a>
+    </div>
+  </div>
+</div>

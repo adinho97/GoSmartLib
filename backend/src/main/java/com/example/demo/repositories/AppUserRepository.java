@@ -11,4 +11,10 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     List<AppUser> findByRole(String role);
 
     List<AppUser> findByRoleAndPlatform(String role, String platform);
+
+    long countByPlatformIgnoreCase(String platform);
+
+    long countBySchool_Id(Long schoolId);
+
+    java.util.List<AppUser> findBySchool_Id(Long schoolId);
 }

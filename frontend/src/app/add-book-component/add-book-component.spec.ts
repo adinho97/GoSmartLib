@@ -22,7 +22,7 @@ class MockBookService {
         paginas: 123,
         taal: "Nederlands",
         uitgeverij: "Uitgeverij",
-        leesniveau: "2de graad",
+        leesniveau: "B",
       }),
     );
 }
@@ -131,12 +131,10 @@ describe("AddBookComponent", () => {
 
   it("exposes all expected leesniveau options", () => {
     expect(component.leesniveaus).toEqual(LEESNIVEAUS);
-    expect(component.leesniveaus).toContain("1ste-2de leerljaar");
-    expect(component.leesniveaus).toContain("3de-4de leerjaar");
-    expect(component.leesniveaus).toContain("5de-6de leerjaar");
-    expect(component.leesniveaus).toContain("1ste graad");
-    expect(component.leesniveaus).toContain("2de graad");
-    expect(component.leesniveaus).toContain("3de graad");
+    expect(component.leesniveaus).toContain("A");
+    expect(component.leesniveaus).toContain("B");
+    expect(component.leesniveaus).toContain("C");
+    expect(component.leesniveaus).toContain("D");
   });
 
   it("sends selected leesniveau in submit payload", async () => {
@@ -147,12 +145,12 @@ describe("AddBookComponent", () => {
 
     component.book.titel = "Leesboek";
     component.book.auteur = "Auteur";
-    component.book.leesniveau = "2de graad";
+    component.book.leesniveau = "B";
 
     await component.onSubmit(mockForm);
 
     expect(bookService.addBook).toHaveBeenCalledWith(
-      jasmine.objectContaining({ leesniveau: "2de graad" }),
+      jasmine.objectContaining({ leesniveau: "B" }),
       1,
     );
   });

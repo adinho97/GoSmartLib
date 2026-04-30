@@ -4,6 +4,7 @@ import { Observable, Subject } from "rxjs";
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
+import { SchoolService } from "./school.service";
 import axios from "axios";
 
 export type BulkImportStatus = "ADDED" | "NOT_FOUND" | "INVALID_ISBN" | "ERROR";
@@ -36,15 +37,6 @@ export interface WishlistItem {
   totalCopies?: number;
 }
 
-export interface FavoriteItem {
-  id: number;
-  bookId: number;
-  titel: string;
-  auteur: string;
-  cover: string | null;
-  addedAt: string;
-}
-
 export interface LestipResponse {
   lestip: string;
   auteurNaam: string;
@@ -63,10 +55,8 @@ export class BookService {
   private apiUrl = "/api/boeken";
   private wishlistChangedSource = new Subject<void>();
   wishlistChanged$ = this.wishlistChangedSource.asObservable();
-  private favoriteChangedSource = new Subject<void>();
-  favoriteChanged$ = this.favoriteChangedSource.asObservable();
 
-  private bookCache: Map<number | null, any[]> = new Map();
+  private bookCache: Map<number | null, any[]> = new Map(); // TODO: Clear this cache when a book is updated/deleted
 
   constructor(private http: HttpClient) {}
 
@@ -134,7 +124,7 @@ export class BookService {
     return this.http.get<Book[]>(this.apiUrl);
   }
 
-  getBookById(id: number): Observable<Book> {
+  getBookById(id: number): Observable<Book> { // TODO: This should use axios for consistency
     return this.http.get<Book>(this.withSchoolId(`${this.apiUrl}/${id}`));
   }
 
@@ -418,9 +408,11 @@ export class BookService {
   private getUserSubHeaders() {
     const userSub =
       localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    const token = localStorage.getItem("smartschoolToken");
     return {
       headers: {
         "X-User-Sub": userSub,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     };
   }
@@ -470,36 +462,75 @@ export class BookService {
     }
   }
 
-  async addToFavorites(bookId: number): Promise<void> {
-    await axios.post("/api/favorieten", { bookId }, this.getUserSubHeaders());
-    this.favoriteChangedSource.next();
+  // New methods for the distinct "highlighted" feature
+  async toggleHighlight(bookId: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId();
+    if (!schoolId) {
+      console.error("No school selected to toggle highlight.");
+      throw new Error("No school selected.");
+    }
+    // This now points to the NEW /api/highlighted-books endpoint
+    const res = await axios.post<boolean>(
+      `/api/highlighted-books/${bookId}/toggle?schoolId=${schoolId}`,
+      {}, // Empty body for POST
+      this.getUserSubHeaders(),
+    );
+    return res.data;
   }
-
-  async removeFromFavorites(bookId: number): Promise<void> {
-    await axios.delete(`/api/favorieten/${bookId}`, this.getUserSubHeaders());
-    this.favoriteChangedSource.next();
-  }
-
-  async getUserFavorites(): Promise<FavoriteItem[]> {
-    const res = await axios.get<FavoriteItem[]>(
-      "/api/favorieten",
+  async isHighlighted(bookId: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId();
+    if (!schoolId) {
+      return false; // If no school selected, it can't be highlighted for a school
+    }
+    // This now points to the NEW /api/highlighted-books endpoint
+    const res = await axios.get<boolean>(
+      `/api/highlighted-books/${bookId}/status?schoolId=${schoolId}`,
       this.getUserSubHeaders(),
     );
     return res.data;
   }
 
-  async isFavorited(bookId: number): Promise<boolean> {
-    try {
-      const res = await axios.get<boolean>(
-        `/api/favorieten/${bookId}/check`,
-        this.getUserSubHeaders(),
-      );
-      return res.data;
-    } catch (err: any) {
-      if (err?.response?.status === 404) {
-        return false;
-      }
-      throw err;
+  async getHighlightedBookIds(schoolId: number): Promise<number[]> {
+    const res = await axios.get<number[]>(
+      `/api/highlighted-books/school/${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async toggleClassReadingListItem(bookId: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId();
+    if (!schoolId) {
+      console.error("No school selected to toggle class reading list item.");
+      throw new Error("No school selected.");
     }
+    // This now points to the /api/class-reading-list endpoint
+    const res = await axios.post<boolean>(
+      `/api/class-reading-list/${bookId}/toggle?schoolId=${schoolId}`,
+      {}, // Empty body for POST
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async isClassReadingListItem(bookId: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId();
+    if (!schoolId) {
+      return false; // If no school selected, it can't be in the class reading list
+    }
+    // This now points to the /api/class-reading-list endpoint
+    const res = await axios.get<boolean>(
+      `/api/class-reading-list/${bookId}/status?schoolId=${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  async getClassReadingListItemIds(schoolId: number): Promise<number[]> {
+    const res = await axios.get<number[]>(
+      `/api/class-reading-list/school/${schoolId}`,
+      this.getUserSubHeaders(),
+    );
+    return res.data;
   }
 }

@@ -10,8 +10,8 @@ public class AppUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String sub; // Smartschool userID, nooit naam
+    @Column(unique = true, nullable = true)
+    private String sub; // Smartschool userID
 
     @Column(nullable = false)
     private String role; // leerling, leerkracht, bibbeheerder
@@ -24,6 +24,28 @@ public class AppUser {
 
     @Column(nullable = true)
     private String platform;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id")
+    private School school;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "klas_id")
+    private Klas klas;
+
+    public AppUser() {
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 
     public Long getId() {
         return id;
@@ -72,4 +94,21 @@ public class AppUser {
     public void setPlatform(String platform) {
         this.platform = platform;
     }
+
+    public School getSchool() {
+        return school;
+    }
+
+    public void setSchool(School school) {
+        this.school = school;
+    }
+
+    public Klas getKlas() {
+        return klas;
+    }
+
+    public void setKlas(Klas klas) {
+        this.klas = klas;
+    }
+
 }

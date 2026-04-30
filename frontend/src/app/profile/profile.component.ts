@@ -18,6 +18,7 @@ import {
   UserPreferencesService,
   PreferenceKey,
 } from "../services/user-preferences.service";
+import { SchoolService } from "../services/school.service";
 import { ExperienceService, LevelInfo } from "../services/experience.service";
 import { BadgeCollectionComponent } from "./badge-collection/badge-collection.component";
 import { UiToastService } from "../services/ui-toast.service";
@@ -59,20 +60,20 @@ export class ProfileComponent {
       description:
         "Hier zie je alle boeken die je nu in uitleen hebt. Via deze lijst ga je snel naar details en volg je je deadlines op.",
     },
-    highlighted: {
+    classReadingList: {
       title: "Klasleeslijst",
       description:
         "Dit zijn de boeken die voor jouw klas of leeromgeving extra in de kijker staan. Gebruik dit overzicht om snel relevant lesmateriaal te vinden.",
+    },
+    highlighted: {
+      title: "In de kijker",
+      description:
+        "Boeken die door de bibliothecaris zijn gemarkeerd als aanbevolen of belangrijk voor de hele school.",
     },
     wishlist: {
       title: "Verlanglijst",
       description:
         "Bewaar hier boeken die je later wilt lezen of ontlenen. Je kunt ze vanuit dit blok ook beheren of meldingen aanpassen.",
-    },
-    favorites: {
-      title: "Favoriete boeken",
-      description:
-        "Deze sectie bevat je persoonlijke favorieten. Handig om snel terug te keren naar boeken die je sterk aanbeveelt of vaker gebruikt.",
     },
     history: {
       title: "Ontleenhistoriek",
@@ -96,10 +97,9 @@ export class ProfileComponent {
 
   dashboardSettings: Record<string, boolean> = {
     showWishlist: true,
-    showFavorites: true,
     showReadingHistory: true,
     showBorrowed: true,
-    showHighlighted: true,
+    showClassReadingList: true, // Renamed from showHighlighted
     showDeadline: true,
   };
 
@@ -161,23 +161,20 @@ export class ProfileComponent {
   levelInfo: LevelInfo | null = null;
 
   wishlistBooks: ProfileBookCard[] = [];
-  favoriteBooks: ProfileBookCard[] = [];
   readingHistory: ProfileBookCard[] = [];
   readingHistoryLoading = false;
   borrowedBooks: ProfileBookCard[] = [];
-  readingList: ProfileBookCard[] = [
-    { title: "Book Five", author: "Author C", cover: "", id: 5 },
-  ];
+  classReadingList: ProfileBookCard[] = []; // Renamed from readingList
+  classReadingListLoading = false; // Renamed from readingListLoading
+  highlightedBooks: ProfileBookCard[] = []; // New for highlighted books
+  highlightedLoading = false; // New for highlighted books loading state
   wishlistLoading = false;
   notificationToggleErrors: Record<number, string> = {};
   readonly wishlistPageSize = 5;
-  readonly favoritePageSize = 5;
   readonly readingHistoryPageSize = 5;
   currentWishlistPage = 1;
-  currentFavoritePage = 1;
   currentReadingHistoryPage = 1;
   private wishlistChangedSub?: Subscription;
-  private favoriteChangedSub?: Subscription;
   private preferencesSub?: Subscription;
   private levelInfoSub?: Subscription;
   badgeToastTimeoutId: any;
@@ -195,6 +192,7 @@ export class ProfileComponent {
     private userPreferencesService: UserPreferencesService,
     private cdr: ChangeDetectorRef,
     private experienceService: ExperienceService,
+    private schoolService: SchoolService,
     private uiToastService: UiToastService,
   ) {}
 
@@ -204,10 +202,11 @@ export class ProfileComponent {
       (prefs) => {
         this.dashboardSettings = {
           showWishlist: prefs["dashboard_showWishlist"] !== false,
-          showFavorites: prefs["dashboard_showFavorites"] !== false,
           showReadingHistory: prefs["dashboard_showReadingHistory"] !== false,
           showBorrowed: prefs["dashboard_showBorrowed"] !== false,
-          showHighlighted: prefs["dashboard_showHighlighted"] !== false,
+          showClassReadingList:
+            prefs["dashboard_showClassReadingList"] !== false, // Updated preference key
+          showHighlighted: prefs["dashboard_showHighlighted"] !== false, // New preference key
           showDeadline: prefs["dashboard_showDeadline"] !== false,
         };
         this.cdr.detectChanges();
@@ -221,9 +220,10 @@ export class ProfileComponent {
 
     await Promise.all([
       this.loadWishlistBooks(),
-      this.loadFavoriteBooks(),
       this.loadReadingHistory(),
       this.loadActiveLoans(),
+      this.fetchClassReadingList(), // Load Klasleeslijst
+      this.loadHighlightedBooks(), // Load new highlighted books
     ]);
 
     if (this.showSections) {
@@ -232,11 +232,73 @@ export class ProfileComponent {
           this.loadWishlistBooks();
         },
       );
-      this.favoriteChangedSub = this.bookService.favoriteChanged$.subscribe(
-        () => {
-          this.loadFavoriteBooks();
-        },
+    }
+  }
+
+  private async fetchClassReadingList() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    this.classReadingListLoading = true;
+    try {
+      // Use BookService method for consistency and auth headers
+      const res = await this.bookService.getClassReadingListItemIds(schoolId);
+      const bookIds = res || [];
+
+      if (bookIds.length === 0) {
+        this.classReadingList = [];
+        return;
+      }
+
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        bookIds.map((id) => ({ bookId: id })),
       );
+
+      this.classReadingList = enriched.map((item: any) => ({
+        id: item.bookId,
+        title: item.titel,
+        author: item.auteur,
+        cover: item.cover || "",
+      }));
+    } catch (error) {
+      console.error("Failed to load class reading list", error);
+    } finally {
+      this.classReadingListLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadHighlightedBooks() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    this.highlightedLoading = true;
+    try {
+      // Use BookService method for consistency and auth headers
+      const res = await this.bookService.getHighlightedBookIds(schoolId);
+      const bookIds = res || [];
+
+      if (bookIds.length === 0) {
+        this.highlightedBooks = [];
+        return;
+      }
+
+      // Fetch details for these IDs
+      const enriched = await this.bookService.enrichBooksWithDetails(
+        bookIds.map((id) => ({ bookId: id })),
+      );
+
+      this.highlightedBooks = enriched.map((item: any) => ({
+        id: item.bookId,
+        title: item.titel,
+        author: item.auteur,
+        cover: item.cover || "",
+      }));
+    } catch (error) {
+      console.error("Failed to load highlighted books", error);
+    } finally {
+      this.highlightedLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -273,7 +335,6 @@ export class ProfileComponent {
 
   ngOnDestroy() {
     this.wishlistChangedSub?.unsubscribe();
-    this.favoriteChangedSub?.unsubscribe();
     this.preferencesSub?.unsubscribe();
     if (this.badgeToastTimeoutId) {
       clearTimeout(this.badgeToastTimeoutId);
@@ -375,32 +436,16 @@ export class ProfileComponent {
     this.currentWishlistPage = page;
   }
 
-  get totalFavoritePages(): number {
-    return Math.max(
-      1,
-      Math.ceil(this.favoriteBooks.length / this.favoritePageSize),
-    );
-  }
-
-  get favoritePageNumbers(): number[] {
-    return Array.from({ length: this.totalFavoritePages }, (_, i) => i + 1);
-  }
-
-  get pagedFavoriteBooks(): ProfileBookCard[] {
-    const start = (this.currentFavoritePage - 1) * this.favoritePageSize;
-    return this.favoriteBooks.slice(start, start + this.favoritePageSize);
-  }
-
-  get favoritesCount(): number {
-    return this.favoriteBooks.length;
-  }
-
   get wishlistCount(): number {
     return this.wishlistBooks.length;
   }
 
+  get classReadingListCount(): number {
+    return this.classReadingList.length;
+  }
+
   get highlightedBooksCount(): number {
-    return this.readingList.length;
+    return this.highlightedBooks.length;
   }
 
   get activeSectionInfo() {
@@ -408,10 +453,6 @@ export class ProfileComponent {
       return null;
     }
     return this.sectionInfoContent[this.activeSectionInfoKey];
-  }
-
-  goToFavoritePage(page: number) {
-    this.currentFavoritePage = page;
   }
 
   get totalReadingHistoryPages(): number {
@@ -497,52 +538,6 @@ export class ProfileComponent {
     }
   }
 
-  async removeFromFavorites(event: MouseEvent | null, bookId: number) {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-
-    try {
-      await this.bookService.removeFromFavorites(bookId);
-      this.favoriteBooks = this.favoriteBooks.filter(
-        (book) => book.id !== bookId,
-      );
-      this.uiToastService.success("Boek verwijderd uit je favorieten.");
-    } catch {
-      // Keep silent here as well.
-      this.uiToastService.error("Favorieten bijwerken mislukt.");
-    }
-  }
-
-  private async loadFavoriteBooks() {
-    try {
-      const favorites = await this.bookService.getUserFavorites();
-      const enriched = await this.bookService.enrichBooksWithDetails(
-        favorites.map((item: any) => ({
-          ...item,
-          bookId: item.bookId,
-          titel: item.titel,
-          auteur: item.auteur,
-        })),
-      );
-
-      this.favoriteBooks = enriched.map((item: any) => ({
-        id: item.bookId,
-        title: item.titel,
-        author: item.auteur,
-        cover: item.cover || "",
-        genre: item.genre || "",
-        taal: item.taal || "",
-        paginas: item.paginas || 0,
-      }));
-    } catch {
-      this.favoriteBooks = [];
-    } finally {
-      this.currentFavoritePage = 1;
-    }
-  }
-
   getAvailableCopiesCount(book: ProfileBookCard): number {
     return book.availableCopies ?? 0;
   }
@@ -608,10 +603,6 @@ export class ProfileComponent {
     await this.removeFromWishlist(null, bookId);
   }
 
-  async onFavoritesRemove(bookId: number) {
-    await this.removeFromFavorites(null, bookId);
-  }
-
   goBack() {
     this.location.back();
   }
@@ -634,9 +625,9 @@ export class ProfileComponent {
         key: PreferenceKey;
       }[] = [
         { prop: "showWishlist", key: "dashboard_showWishlist" },
-        { prop: "showFavorites", key: "dashboard_showFavorites" },
         { prop: "showReadingHistory", key: "dashboard_showReadingHistory" },
         { prop: "showBorrowed", key: "dashboard_showBorrowed" },
+        { prop: "showClassReadingList", key: "dashboard_showClassReadingList" },
         { prop: "showHighlighted", key: "dashboard_showHighlighted" },
         { prop: "showDeadline", key: "dashboard_showDeadline" },
       ];

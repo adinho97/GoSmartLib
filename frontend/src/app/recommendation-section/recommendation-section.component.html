@@ -35,11 +35,9 @@
       @for (book of limitedBooks; track book.bookId) {
         <app-recommendation-card
           [book]="book"
-          [isFavorited]="isFavorited(book.bookId)"
           [isWishlisted]="isWishlisted(book.bookId)"
           [variant]="variant"
           [isTeacher]="isTeacher"
-          (toggleFavorite)="toggleFavorite($event, book.bookId)"
           (toggleWishlist)="toggleWishlist($event, book.bookId)"
           (viewDetails)="seeDetail(book.bookId)"
         ></app-recommendation-card>

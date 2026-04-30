@@ -12,9 +12,16 @@
         >
           Dashboard
         </a>
-        <a routerLink="/books" [class.active]="isBooksListActive">
+        <a
+          href="javascript:void(0)"
+          (click)="navigateToMySchoolBooks()"
+          [class.active]="isBooksListActive"
+        >
           Boekencatalogus
         </a>
+        @if (isLibrarian || isTeacher) {
+          <a routerLink="/map" routerLinkActive="active"> Scholenoverzicht </a>
+        }
         @if (isLibrarian) {
           <a routerLink="/add-general" routerLinkActive="active">
             Boek toevoegen
@@ -37,6 +44,52 @@
         }
         @if (canAccessLoans) {
           <a routerLink="/uitleen" routerLinkActive="active">Boek uitlenen</a>
+        }
+        @if (isLibrarian) {
+          <div class="overview-menu" (click)="$event.stopPropagation()">
+            <button
+              type="button"
+              class="overview-link"
+              [class.active]="overviewMenuOpen"
+              (click)="toggleOverviewMenu($event)"
+              aria-label="Overzichtingsmenu"
+            >
+              Overzichten
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                [class.rotated]="overviewMenuOpen"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            @if (overviewMenuOpen) {
+              <div class="overview-dropdown" role="menu">
+                <a
+                  routerLink="/uitleen-conditie"
+                  routerLinkActive="active"
+                  role="menuitem"
+                  (click)="overviewMenuOpen = false"
+                >
+                  Conditie-overzicht
+                </a>
+                <a
+                  routerLink="/uitleen-overzicht"
+                  routerLinkActive="active"
+                  role="menuitem"
+                  (click)="overviewMenuOpen = false"
+                >
+                  Uitleningen overzicht
+                </a>
+              </div>
+            }
+          </div>
         }
         @if (isStudent) {
           <a routerLink="/info" routerLinkActive="active">Informatie</a>

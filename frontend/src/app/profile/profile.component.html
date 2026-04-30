@@ -81,15 +81,6 @@
                   <label class="setting-option">
                     <input
                       type="checkbox"
-                      id="showFavorites"
-                      [(ngModel)]="dashboardSettings['showFavorites']"
-                    />
-                    <span>Favoriete boeken tonen</span>
-                  </label>
-
-                  <label class="setting-option">
-                    <input
-                      type="checkbox"
                       id="showReadingHistory"
                       [(ngModel)]="dashboardSettings['showReadingHistory']"
                     />
@@ -106,12 +97,21 @@
                   </label>
 
                   <label class="setting-option">
+                    <span>Klasleeslijst tonen</span>
+                    <input
+                      type="checkbox"
+                      id="showClassReadingList"
+                      [(ngModel)]="dashboardSettings['showClassReadingList']"
+                    />
+                  </label>
+
+                  <label class="setting-option">
+                    <span>In de kijker tonen</span>
                     <input
                       type="checkbox"
                       id="showHighlighted"
                       [(ngModel)]="dashboardSettings['showHighlighted']"
                     />
-                    <span>Klasleeslijst tonen</span>
                   </label>
 
                   <label class="setting-option">
@@ -154,7 +154,16 @@
               (click)="scrollToSection('highlighted-section')"
             >
               <span class="stat-label">Klasleeslijst</span>
-              <strong>{{ readingList.length }}</strong>
+              <strong>{{ classReadingList.length }}</strong>
+            </button>
+
+            <button
+              type="button"
+              class="stat-card stat-card-link"
+              (click)="scrollToSection('highlighted-books-section')"
+            >
+              <span class="stat-label">In de kijker</span>
+              <strong>{{ highlightedBooks.length }}</strong>
             </button>
 
             <button
@@ -173,15 +182,6 @@
             >
               <span class="stat-label">Verlanglijst</span>
               <strong>{{ wishlistCount }}</strong>
-            </button>
-
-            <button
-              type="button"
-              class="stat-card stat-card-link"
-              (click)="scrollToSection('favorites-section')"
-            >
-              <span class="stat-label">Favorieten</span>
-              <strong>{{ favoritesCount }}</strong>
             </button>
           </div>
         </header>
@@ -226,7 +226,7 @@
             </section>
           }
 
-          @if (dashboardSettings["showHighlighted"]) {
+          @if (dashboardSettings["showClassReadingList"]) {
             <section id="highlighted-section" class="profile-section">
               <div class="section-head">
                 <div class="section-title-group">
@@ -235,15 +235,61 @@
                     type="button"
                     class="profile-section-info-btn"
                     aria-label="Info over klasleeslijst"
+                    (click)="openSectionInfo('classReadingList')"
+                  >
+                    i
+                  </button>
+                </div>
+                <span class="section-count">{{ classReadingList.length }}</span>
+              </div>
+              @if (classReadingListLoading) {
+                <div class="inline-empty">Klasleeslijst laden...</div>
+              } @else if (classReadingList.length === 0) {
+                <div class="inline-empty">Nog geen boeken in de klasleeslijst.</div>
+              } @else {
+                <div class="horizontal-scroll-wrapper">
+                  @for (book of classReadingList; track book.id) {
+                    <article
+                      class="profile-book-card"
+                      (click)="goToDetail(book.id)"
+                      role="button"
+                      tabindex="0"
+                      [attr.aria-label]="'Bekijk details van ' + book.title"
+                    >
+                      @if (book.cover) {
+                        <div class="book-cover"><img [src]="book.cover" /></div>
+                      } @else {
+                        <div class="cover-placeholder">Geen cover</div>
+                      }
+                      <div class="book-content">
+                        <h4>{{ book.title }}</h4>
+                        <div class="book-meta">{{ book.author }}</div>
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
+            </section>
+          }
+
+          @if (dashboardSettings["showHighlighted"]) {
+            <section id="highlighted-books-section" class="profile-section">
+              <div class="section-head">
+                <div class="section-title-group">
+                  <h3 class="section-title">In de kijker</h3>
+                  <button
+                    type="button"
+                    class="profile-section-info-btn"
+                    aria-label="Info over in de kijker"
                     (click)="openSectionInfo('highlighted')"
                   >
                     i
                   </button>
                 </div>
-                <span class="section-count">{{ readingList.length }}</span>
+                <span class="section-count">{{ highlightedBooks.length }}</span>
               </div>
               <div class="horizontal-scroll-wrapper">
-                @for (book of readingList; track book) {
+                @for (book of highlightedBooks; track book.id) {
                   <article
                     class="profile-book-card"
                     (click)="goToDetail(book.id)"
@@ -326,58 +372,6 @@
                         class="wishlist-page-btn"
                         [class.active]="page === currentWishlistPage"
                         (click)="goToWishlistPage(page)"
-                      >
-                        {{ page }}
-                      </button>
-                    }
-                  </div>
-                }
-              }
-            </section>
-          }
-
-          @if (dashboardSettings["showFavorites"]) {
-            <section id="favorites-section" class="profile-section">
-              <div class="section-head">
-                <div class="section-title-group">
-                  <h3 class="section-title">Favoriete boeken</h3>
-                  <button
-                    type="button"
-                    class="profile-section-info-btn"
-                    aria-label="Info over favoriete boeken"
-                    (click)="openSectionInfo('favorites')"
-                  >
-                    i
-                  </button>
-                </div>
-                <span class="section-count">{{ favoritesCount }}</span>
-              </div>
-
-              @if (favoriteBooks.length === 0) {
-                <div class="inline-empty">
-                  Nog geen boeken in je favorieten.
-                </div>
-              } @else {
-                <div class="wishlist-grid">
-                  @for (book of pagedFavoriteBooks; track book) {
-                    <app-recommendation-card
-                      [book]="book"
-                      profileVariant="favorites"
-                      [showRemoveBtn]="true"
-                      (remove)="onFavoritesRemove(book.id)"
-                      (viewDetails)="goToDetail(book.id, null)"
-                    />
-                  }
-                </div>
-
-                @if (totalFavoritePages > 1) {
-                  <div class="wishlist-pagination">
-                    @for (page of favoritePageNumbers; track page) {
-                      <button
-                        type="button"
-                        class="wishlist-page-btn"
-                        [class.active]="page === currentFavoritePage"
-                        (click)="goToFavoritePage(page)"
                       >
                         {{ page }}
                       </button>

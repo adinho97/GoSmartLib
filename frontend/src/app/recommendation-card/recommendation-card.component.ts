@@ -12,16 +12,14 @@ import { RecommendedBook } from '../services/recommendation.service';
 export class RecommendationCardComponent {
   // Accept either RecommendedBook or any book object
   @Input() book!: RecommendedBook | any;
-  @Input() isFavorited: boolean = false;
   @Input() isWishlisted: boolean = false;
   @Input() variant: 'normal' | 'didactic' | 'teacher' = 'normal';
   @Input() isTeacher: boolean = false;
-  @Input() profileVariant: 'dashboard' | 'wishlist' | 'favorites' | 'history' = 'dashboard';
+  @Input() profileVariant: 'dashboard' | 'wishlist' | 'history' = 'dashboard';
   @Input() showRemoveBtn: boolean = false;
   @Input() isUnavailable: boolean = false;
   @Input() loanDate: string | null = null;
 
-  @Output() toggleFavorite = new EventEmitter<MouseEvent>();
   @Output() toggleWishlist = new EventEmitter<MouseEvent>();
   @Output() viewDetails = new EventEmitter<void>();
   @Output() remove = new EventEmitter<void>();
@@ -58,12 +56,6 @@ export class RecommendationCardComponent {
 
   get bookReason(): string {
     return this.book?.reason ?? '';
-  }
-
-  onToggleFavorite(event: MouseEvent) {
-    event.stopPropagation();
-    event.preventDefault();
-    this.toggleFavorite.emit(event);
   }
 
   onToggleWishlist(event: MouseEvent) {

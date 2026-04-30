@@ -1,0 +1,165 @@
+<div class="loan-overview-page">
+  <header class="page-header">
+    <div>
+      <h1>Uitleningsoverzicht</h1>
+      <p>Overzicht van alle huidige uitleningen met status te laat / op tijd</p>
+    </div>
+    <button
+      type="button"
+      class="reload-btn"
+      (click)="refreshLoans()"
+      [disabled]="loading"
+    >
+      {{ loading ? "Laden..." : "Vernieuwen" }}
+    </button>
+  </header>
+
+  @if (error) {
+    <p class="error-banner">{{ error }}</p>
+  }
+
+  <div class="controls-section">
+    <div class="search-and-filter">
+      <input
+        type="text"
+        placeholder="Zoek op boektitel of gebruiker..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()"
+        class="search-input"
+      />
+      <select
+        [(ngModel)]="filterStatus"
+        (change)="onFilterChange()"
+        class="filter-select"
+      >
+        <option value="all">Alle uitleningen</option>
+        <option value="overdue">Te laat</option>
+        <option value="ontime">Op tijd</option>
+      </select>
+    </div>
+  </div>
+
+  @if (loading) {
+    <p class="info-msg">Uitleningen laden...</p>
+  } @else if (filteredLoans.length === 0) {
+    <p class="info-msg">Geen uitleningen gevonden.</p>
+  } @else {
+    <div class="summary-stats">
+      <div class="stat-card">
+        <p class="stat-label">Totaal uitgeleend</p>
+        <p class="stat-value">{{ filteredLoans.length }}</p>
+      </div>
+      <div class="stat-card overdue">
+        <p class="stat-label">Te laat</p>
+        <p class="stat-value">
+          {{ getOverdueCount() }}
+        </p>
+      </div>
+      <div class="stat-card ontime">
+        <p class="stat-label">Op tijd</p>
+        <p class="stat-value">
+          {{ getOntimeCount() }}
+        </p>
+      </div>
+    </div>
+
+    <div class="loans-table-section">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Boek</th>
+              <th>Gebruiker</th>
+              <th>Uitgeleend op</th>
+              <th>Terugbrengdatum</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (loan of pagedLoans; track loan.id) {
+              <tr [class.row-overdue]="loan.isOverdue">
+                <td>
+                  <div class="book-cell">
+                    @if (loan.bookCover) {
+                      <img
+                        [src]="loan.bookCover"
+                        [alt]="loan.bookTitel"
+                        class="book-cover"
+                      />
+                    }
+                    <span class="book-title">{{ loan.bookTitel }}</span>
+                  </div>
+                </td>
+                <td class="user-cell">{{ loan.userName }}</td>
+                <td>{{ loan.loanedAt | date: "dd/MM/yyyy" }}</td>
+                <td>{{ loan.dueDate | date: "dd/MM/yyyy" }}</td>
+                <td>
+                  <div
+                    class="status-badge"
+                    [class.overdue]="loan.isOverdue"
+                    [class.ontime]="!loan.isOverdue"
+                  >
+                    {{ getDaysLabel(loan.daysUntilDue) }}
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="currentPage === 1"
+            (click)="goToFirstPage()"
+          >
+            &lt;&lt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="currentPage === 1"
+            (click)="goToPreviousPage()"
+          >
+            &lt;
+          </button>
+
+          @for (page of visiblePages; track $index) {
+            @if (page === "...") {
+              <span class="page-ellipsis">...</span>
+            } @else {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          }
+
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="goToNextPage()"
+          >
+            &gt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="goToLastPage()"
+          >
+            &gt;&gt;
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

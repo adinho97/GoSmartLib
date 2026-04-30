@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.CreateLoanRequest;
+import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.dto.UpdateDueDateRequest;
@@ -33,6 +34,10 @@ public class LoanController {
                 .anyMatch(r -> r.equalsIgnoreCase(userRole));
     }
 
+    private boolean isLibrarian(String userRole) {
+        return userRole != null && "bibbeheerder".equalsIgnoreCase(userRole);
+    }
+
     @PostMapping
     public ResponseEntity<LoanDto> createLoan(
             @Valid @RequestBody CreateLoanRequest request,
@@ -50,6 +55,31 @@ public class LoanController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (Exception e) {
             logger.error("Unexpected error creating loan", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/bulk")
+    public ResponseEntity<List<LoanDto>> createLoans(
+            @Valid @RequestBody List<CreateLoanRequest> requests,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        if (!canLoan(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        try {
+            if (requests == null || requests.isEmpty()) {
+                return ResponseEntity.badRequest().body(List.of());
+            }
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(loanService.createLoans(requests));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Bulk loan validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (IllegalStateException e) {
+            logger.warn("Bulk loan creation conflict: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (Exception e) {
+            logger.error("Unexpected error creating bulk loans", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -99,6 +129,24 @@ public class LoanController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(loanService.getActiveLoansForBook(bookId));
+    }
+
+    @GetMapping("/inspectie/conditie")
+    public ResponseEntity<LoanConditionOverviewDto> getConditionOverview(
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        if (!isLibrarian(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(loanService.getConditionOverview());
+    }
+
+    @GetMapping("/all-active")
+    public ResponseEntity<List<LoanDto>> getAllActiveLoans(
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        if (!isLibrarian(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(loanService.getAllActiveLoans());
     }
 
     @PatchMapping("/{id}/due-date")

@@ -319,16 +319,54 @@
 
           @if (totalHistoryPages > 1) {
             <div class="history-pagination">
-              @for (page of historyPageNumbers; track page) {
-                <button
-                  type="button"
-                  class="history-page-btn"
-                  [class.active]="page === currentHistoryPage"
-                  (click)="goToHistoryPage(page)"
-                >
-                  {{ page }}
-                </button>
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentHistoryPage === 1"
+                (click)="goToHistoryPage(1)"
+              >
+                &lt;&lt;
+              </button>
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentHistoryPage === 1"
+                (click)="goToPreviousHistoryPage()"
+              >
+                &lt;
+              </button>
+
+              @for (page of visibleHistoryPages; track $index) {
+                @if (page === "...") {
+                  <span class="page-ellipsis">...</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="page-btn"
+                    [class.active]="page === currentHistoryPage"
+                    (click)="goToHistoryPage(page)"
+                  >
+                    {{ page }}
+                  </button>
+                }
               }
+
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentHistoryPage === totalHistoryPages"
+                (click)="goToNextHistoryPage()"
+              >
+                &gt;
+              </button>
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentHistoryPage === totalHistoryPages"
+                (click)="goToHistoryPage(totalHistoryPages)"
+              >
+                &gt;&gt;
+              </button>
             </div>
           }
         </div>
@@ -448,32 +486,54 @@
         <div class="book-pagination">
           <button
             type="button"
-            class="book-page-nav"
-            (click)="goToPreviousBookPage()"
+            class="page-btn page-nav-btn"
             [disabled]="bookPage === 1 || isLoading"
+            (click)="goToFirstBookPage()"
           >
-            Vorige
+            &lt;&lt;
           </button>
-          <div class="book-page-numbers">
-            @for (page of bookPageNumbers; track page) {
-              <button
-                type="button"
-                class="book-page-btn"
-                [class.active]="page === bookPage"
-                (click)="goToBookPage(page)"
-                [disabled]="isLoading"
-              >
-                {{ page }}
-              </button>
-            }
-          </div>
           <button
             type="button"
-            class="book-page-nav"
-            (click)="goToNextBookPage()"
-            [disabled]="bookPage === totalBookPages || isLoading"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === 1 || isLoading"
+            (click)="goToPreviousBookPage()"
           >
-            Volgende
+            &lt;
+          </button>
+
+          <div class="book-page-numbers">
+            @for (page of visibleBookPages; track $index) {
+              @if (page === "...") {
+                <span class="page-ellipsis">...</span>
+              } @else {
+                <button
+                  type="button"
+                  class="page-btn"
+                  [class.active]="page === bookPage"
+                  (click)="goToBookPage(page)"
+                  [disabled]="isLoading"
+                >
+                  {{ page }}
+                </button>
+              }
+            }
+          </div>
+
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === totalBookPages || isLoading"
+            (click)="goToNextBookPage()"
+          >
+            &gt;
+          </button>
+          <button
+            type="button"
+            class="page-btn page-nav-btn"
+            [disabled]="bookPage === totalBookPages || isLoading"
+            (click)="goToLastBookPage()"
+          >
+            &gt;&gt;
           </button>
         </div>
       }
@@ -618,6 +678,200 @@
             (click)="confirmCopySelection()"
           >
             Gebruik dit exemplaar
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  @if (bookNotFoundDialogOpen) {
+    <div
+      class="return-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeBookNotFoundDialog()"
+    >
+      <div class="return-modal" (click)="$event.stopPropagation()">
+        <header class="return-modal-header error-header">
+          <div class="header-title-group">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#f44336"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="error-icon"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h3>Boek niet gevonden</h3>
+          </div>
+          <button
+            type="button"
+            class="return-modal-close"
+            (click)="closeBookNotFoundDialog()"
+            aria-label="Sluit dialoog"
+          >
+            ×
+          </button>
+        </header>
+        <div class="return-modal-content">
+          <p class="return-modal-intro">
+            Het gescande boek met barcode
+            <strong>{{ scannedBarcodeNotFound }}</strong> werd niet gevonden in
+            de bibliotheek van deze school.
+          </p>
+        </div>
+        <footer class="return-modal-actions">
+          <button
+            type="button"
+            class="confirm-return-btn"
+            (click)="closeBookNotFoundDialog()"
+          >
+            Begrepen
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- Boek niet beschikbaar Dialog -->
+  @if (bookUnavailableDialogOpen && pendingScannedBook) {
+    <div
+      class="return-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeBookUnavailableDialog()"
+    >
+      <div class="return-modal" (click)="$event.stopPropagation()">
+        <header class="return-modal-header warning-header">
+          <div class="header-title-group">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ff9800"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="warning-icon"
+            >
+              <path
+                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+              ></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <h3>Boek niet beschikbaar</h3>
+          </div>
+          <button
+            type="button"
+            class="return-modal-close"
+            (click)="closeBookUnavailableDialog()"
+            aria-label="Sluit dialoog"
+          >
+            ×
+          </button>
+        </header>
+        <div class="return-modal-content">
+          <p class="return-modal-intro">
+            Het boek <strong>"{{ pendingScannedBook.titel }}"</strong> is
+            gevonden, maar alle
+            <strong>{{ pendingScannedBook.totalCopies }}</strong> exemplaren
+            zijn momenteel al uitgeleend.
+          </p>
+          <p class="return-modal-hint">
+            Het boek moet eerst worden teruggebracht voordat het opnieuw kan
+            worden uitgeleend.
+          </p>
+        </div>
+        <footer class="return-modal-actions">
+          <button
+            type="button"
+            class="confirm-return-btn"
+            (click)="closeBookUnavailableDialog()"
+          >
+            Begrepen
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- Scan Bevestiging Dialog -->
+  @if (scanConfirmationOpen && pendingScannedBook) {
+    <div
+      class="return-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      (click)="cancelScannedBook()"
+    >
+      <div class="return-modal" (click)="$event.stopPropagation()">
+        <header class="return-modal-header success-header">
+          <div class="header-title-group">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#4caf50"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <h3>Boek gevonden</h3>
+          </div>
+          <button
+            type="button"
+            class="return-modal-close"
+            (click)="cancelScannedBook()"
+          >
+            ×
+          </button>
+        </header>
+        <div class="return-modal-content">
+          <div class="scanned-book-preview">
+            @if (pendingScannedBook.cover) {
+              <img [src]="pendingScannedBook.cover" class="preview-cover" />
+            }
+            <div class="preview-details">
+              <p class="preview-title">
+                <strong>{{ pendingScannedBook.titel }}</strong>
+              </p>
+              <p class="preview-author">{{ pendingScannedBook.auteur }}</p>
+              <p class="preview-copies">
+                {{ pendingScannedBook.availableCopies }} van de
+                {{ pendingScannedBook.totalCopies }} exemplaren beschikbaar.
+              </p>
+            </div>
+          </div>
+        </div>
+        <footer class="return-modal-actions">
+          <button
+            type="button"
+            class="cancel-return-btn"
+            (click)="cancelScannedBook()"
+          >
+            Annuleren
+          </button>
+          <button
+            type="button"
+            class="confirm-return-btn"
+            (click)="confirmScannedBook()"
+          >
+            Toevoegen aan selectie
           </button>
         </footer>
       </div>

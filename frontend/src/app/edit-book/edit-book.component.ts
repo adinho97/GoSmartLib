@@ -10,6 +10,9 @@ type CopyView = {
   id: number;
   status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST";
   condition: "GOOD" | "MODERATE" | "BAD";
+  editStatus: "AVAILABLE" | "DAMAGED" | "LOST";
+  editCondition: "GOOD" | "MODERATE" | "BAD";
+  isUpdating: boolean;
 };
 
 export enum Language {
@@ -23,14 +26,7 @@ export enum Language {
   Latijn = "Latijn",
 }
 
-export const LEESNIVEAUS = [
-  "1ste-2de leerljaar",
-  "3de-4de leerjaar",
-  "5de-6de leerjaar",
-  "1ste graad",
-  "2de graad",
-  "3de graad",
-] as const;
+export const LEESNIVEAUS = ["A", "B", "C", "D"] as const;
 
 @Component({
   selector: "app-edit-book",
@@ -165,7 +161,14 @@ export class EditBookComponent implements OnInit {
   async loadCopies() {
     try {
       const copies = await this.loanService.getCopiesForBook(this.bookId);
-      this.copies = copies.sort((a, b) => a.id - b.id);
+      this.copies = copies
+        .sort((a, b) => a.id - b.id)
+        .map((copy) => ({
+          ...copy,
+          editStatus: this.normalizeEditableStatus(copy.status),
+          editCondition: copy.condition,
+          isUpdating: false,
+        }));
     } catch {
       this.copies = [];
     }
@@ -199,6 +202,40 @@ export class EditBookComponent implements OnInit {
           ? "Dit exemplaar is nog uitgeleend en kan niet verwijderd worden."
           : err?.message || "Verwijderen mislukt.";
     }
+  }
+
+  async updateCopyState(copy: CopyView) {
+    this.copyMessage = "";
+    this.copyError = "";
+    copy.isUpdating = true;
+
+    try {
+      await this.loanService.updateCopyState(copy.id, {
+        status: copy.editStatus,
+        condition: copy.editCondition,
+      });
+      await this.loadCopyData();
+      this.copyMessage = "Exemplaar staat bijgewerkt.";
+    } catch (err: any) {
+      this.copyError =
+        err?.response?.status === 409
+          ? "Uitgeleende exemplaren kunnen niet aangepast worden."
+          : "Bijwerken van exemplaarstaat mislukt.";
+    } finally {
+      copy.isUpdating = false;
+    }
+  }
+
+  private normalizeEditableStatus(
+    status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST",
+  ): "AVAILABLE" | "DAMAGED" | "LOST" {
+    if (status === "DAMAGED") {
+      return "DAMAGED";
+    }
+    if (status === "LOST") {
+      return "LOST";
+    }
+    return "AVAILABLE";
   }
 
   private initializeGenreStateFromBook() {

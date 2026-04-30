@@ -4,6 +4,37 @@
       <div class="detail-top-actions">
         <button class="back-btn" (click)="goBack()">← Terug</button>
 
+        @if (isLibrarian) {
+          <div class="librarian-actions">
+            <button
+              type="button"
+              class="lib-action-btn highlight-btn"
+              [class.active]="isHighlighted"
+              (click)="toggleHighlight()"
+              title="{{ isHighlighted ? 'Verwijder markering' : 'Markeer als \'In de kijker\'' }}"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>{{ isHighlighted ? 'Gemarkeerd' : 'Markeer' }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="lib-action-btn readinglist-btn"
+              [class.active]="isInClassReadingList"
+              (click)="toggleClassReadingListItem()"
+              title="{{ isInClassReadingList ? 'Verwijder uit Klasleeslijst' : 'Zet in Klasleeslijst' }}"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+              <span>{{ isInClassReadingList ? 'In Klaslijst' : 'Klaslijst' }}</span>
+            </button>
+          </div>
+        }
+
         <button
           type="button"
           class="wishlist-toggle-detail"
@@ -31,54 +62,6 @@
             ></path>
           </svg>
         </button>
-
-        <button
-          type="button"
-          class="favorite-toggle-detail"
-          [class.active]="isFavoritedBook"
-          [disabled]="favoriteBusy"
-          [attr.aria-label]="
-            isFavoritedBook
-              ? 'Verwijder uit favorieten'
-              : 'Voeg toe aan favorieten'
-          "
-          (click)="toggleFavorite()"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <polygon
-              points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-            />
-          </svg>
-        </button>
-
-        @if (isLibrarian) {
-          <a class="edit-btn-detail" [routerLink]="['/edit', book.id]">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-              ></path>
-            </svg>
-            Aanpassen
-          </a>
-        }
       </div>
 
       <h1 class="book-title">{{ book.titel }}</h1>

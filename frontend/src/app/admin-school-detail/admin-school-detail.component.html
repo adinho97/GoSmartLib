@@ -1,0 +1,201 @@
+<div class="detail-page">
+
+  <div class="page-back">
+    <button type="button" class="btn-back" (click)="goBack()">← Terug naar dashboard</button>
+  </div>
+
+  @if (loadError) {
+    <div class="alert-error">{{ loadError }}</div>
+  }
+
+  @if (isLoadingDetail) {
+    <p class="loading-text">Laden...</p>
+  }
+
+  @if (!isLoadingDetail && detail) {
+    <!-- Page title row -->
+    <div class="page-title-row">
+      <div>
+        <h1 class="page-title">{{ detail.naam || detail.subdomain }}</h1>
+        <p class="page-subtitle">{{ detail.smartschoolUrl }}</p>
+      </div>
+      <div class="title-actions">
+        <span class="status-badge status-{{ detail.status.toLowerCase() }}">
+          {{ statusLabel(detail.status) }}
+        </span>
+        @if (detail.status !== 'PENDING') {
+          <button
+            type="button"
+            class="btn-status-toggle"
+            (click)="toggleStatus()"
+            [disabled]="isTogglingStatus"
+          >
+            {{ detail.status === 'INACTIVE' ? 'Activeren' : 'Deactiveren' }}
+          </button>
+        }
+      </div>
+    </div>
+    @if (statusError) {
+      <p class="inline-error">{{ statusError }}</p>
+    }
+
+    <!-- Info card -->
+    <div class="card">
+      <h2 class="card-title">Schoolinformatie</h2>
+
+      <div class="form-grid">
+        <label class="form-label">Schoolnaam</label>
+        <input type="text" class="form-input" [(ngModel)]="editNaam" placeholder="Naam van de school" />
+
+        <label class="form-label">Subdomein</label>
+        <span class="form-readonly">{{ detail.smartschoolUrl }}</span>
+
+        <label class="form-label">Adres</label>
+        <div class="geocode-row">
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="editAdres"
+            placeholder="bv. Kerkelei 43, 2610 Antwerpen"
+            (keyup.enter)="geocodeAddress()"
+          />
+          <button
+            type="button"
+            class="btn-geocode"
+            (click)="geocodeAddress()"
+            [disabled]="isGeocoding || !editAdres.trim()"
+          >
+            {{ isGeocoding ? '...' : 'Opzoeken' }}
+          </button>
+        </div>
+
+        @if (geocodeError) {
+          <span></span>
+          <p class="geocode-error">{{ geocodeError }}</p>
+        }
+        @if (editLat !== null && editLng !== null) {
+          <label class="form-label">Coördinaten</label>
+          <div class="coords-box">
+            @if (geocodedDisplay) {
+              <p class="coords-display">{{ geocodedDisplay }}</p>
+            }
+            <p class="coords-values">{{ editLat | number:'1.5-5' }}, {{ editLng | number:'1.5-5' }}</p>
+          </div>
+        }
+      </div>
+
+      @if (saveError) {
+        <p class="inline-error">{{ saveError }}</p>
+      }
+      @if (saveSuccess) {
+        <p class="inline-success">Opgeslagen.</p>
+      }
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="resetForm()" [disabled]="isSaving">Annuleren</button>
+        <button type="button" class="btn-primary" (click)="saveInfo()" [disabled]="isSaving">
+          {{ isSaving ? 'Opslaan...' : 'Opslaan' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Users card -->
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">Gebruikers <span class="count-badge">{{ users.length }}</span></h2>
+        <input
+          type="text"
+          class="search-input"
+          [(ngModel)]="userFilter"
+          placeholder="Zoeken..."
+        />
+      </div>
+
+      @if (userActionError) {
+        <p class="inline-error">{{ userActionError }}</p>
+      }
+
+      @if (isLoadingUsers) {
+        <p class="loading-text">Gebruikers laden...</p>
+      } @else if (users.length === 0) {
+        <p class="empty-text">Geen gebruikers gevonden voor deze school.</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Smartschool ID</th>
+                <th>Rol</th>
+                <th>Klas</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of filteredUsers; track user.id) {
+                <tr [class.row-inactive]="!user.active">
+                  <td class="cell-sub">{{ user.sub || '—' }}</td>
+                  <td>{{ roleLabel(user.role) }}</td>
+                  <td>{{ user.klasNaam || '—' }}</td>
+                  <td>
+                    <span class="user-status-badge" [class.badge-active]="user.active" [class.badge-inactive]="!user.active">
+                      {{ user.active ? 'Actief' : 'Inactief' }}
+                    </span>
+                  </td>
+                  <td class="cell-action">
+                    <button
+                      type="button"
+                      class="btn-user-action"
+                      [class.btn-deactivate]="user.active"
+                      [class.btn-activate]="!user.active"
+                      (click)="toggleUserActive(user)"
+                      [disabled]="togglingUserId === user.id"
+                    >
+                      {{ togglingUserId === user.id ? '...' : (user.active ? 'Deactiveren' : 'Activeren') }}
+                    </button>
+                  </td>
+                </tr>
+              }
+              @if (filteredUsers.length === 0) {
+                <tr>
+                  <td colspan="5" class="empty-text">Geen resultaten voor "{{ userFilter }}".</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Klassen card -->
+    <div class="card">
+      <h2 class="card-title">Klassen <span class="count-badge">{{ klassen.length }}</span></h2>
+
+      @if (isLoadingKlassen) {
+        <p class="loading-text">Klassen laden...</p>
+      } @else if (klassen.length === 0) {
+        <p class="empty-text">Nog geen klassen voor deze school. Klassen worden automatisch aangemaakt bij de eerste login.</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Naam</th>
+                <th>Group ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (klas of klassen; track klas.id) {
+                <tr>
+                  <td><strong>{{ klas.naam }}</strong></td>
+                  <td class="cell-groupid">{{ klas.groupId }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+</div>

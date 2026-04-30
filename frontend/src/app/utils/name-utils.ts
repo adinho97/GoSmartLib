@@ -115,3 +115,83 @@ export function normalizeReviewAuthorName(storedName: string): string {
 
   return trimmed; // Return original if we can't determine correct order
 }
+
+export function formatUserInfoDisplayName(
+  userInfo: any,
+  fallbackSub?: string,
+): string {
+  if (!userInfo) return (fallbackSub || "").trim();
+
+  const rawFirstName =
+    userInfo.actualUserFirstName ||
+    userInfo.givenName ||
+    userInfo.given_name ||
+    userInfo.firstName ||
+    userInfo.firstname ||
+    "";
+
+  const rawLastName =
+    userInfo.actualUserSurname ||
+    userInfo.actualUserLastName ||
+    userInfo.familyName ||
+    userInfo.family_name ||
+    userInfo.lastName ||
+    userInfo.lastname ||
+    userInfo.surname ||
+    "";
+
+  const { firstName, lastName } = inferNameParts(rawFirstName, rawLastName, [
+    userInfo.fullName,
+    userInfo.fullname,
+    userInfo.actualUserFullName,
+    userInfo.displayName,
+    `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+    `${userInfo.givenName || userInfo.given_name || ""} ${
+      userInfo.familyName || userInfo.family_name || ""
+    }`.trim(),
+    userInfo.name,
+    userInfo.preferred_username,
+  ]);
+
+  const composed = composeFullName(firstName, lastName);
+  if (composed) return composed;
+
+  const fallbackCandidates = [
+    userInfo.fullName,
+    userInfo.fullname,
+    userInfo.actualUserFullName,
+    userInfo.displayName,
+    userInfo.name,
+    `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
+    `${userInfo.givenName || userInfo.given_name || ""} ${
+      userInfo.familyName || userInfo.family_name || ""
+    }`.trim(),
+    `${rawFirstName || ""} ${rawLastName || ""}`.trim(),
+  ];
+
+  const fallback = fallbackCandidates.find((candidate) => {
+    const normalized = (candidate || "").trim();
+    if (!normalized) return false;
+    const parts = normalized.split(/\s+/).filter(Boolean);
+    return parts.length >= 2;
+  });
+
+  if (fallback) return normalizeReviewAuthorName(fallback.trim());
+
+  const lastResort = (
+    userInfo.name ||
+    userInfo.displayName ||
+    userInfo.fullName ||
+    userInfo.fullname ||
+    rawFirstName ||
+    rawLastName ||
+    userInfo.givenName ||
+    userInfo.given_name ||
+    ""
+  ).trim();
+
+  return (
+    (lastResort && normalizeReviewAuthorName(lastResort)) ||
+    (fallbackSub || "").trim()
+  );
+}

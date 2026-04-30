@@ -4,11 +4,9 @@ import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
-import com.example.demo.entities.Favorite;
 import com.example.demo.entities.Loan;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
-import com.example.demo.repositories.FavoriteRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.strategies.TrendingStrategy;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,9 +32,6 @@ class TrendingStrategyTest {
 
     @Mock
     private AppUserRepository appUserRepository;
-
-    @Mock
-    private FavoriteRepository favoriteRepository;
 
     @Mock
     private BookRepository bookRepository;
@@ -80,14 +75,13 @@ class TrendingStrategyTest {
 
         assertTrue(result.isEmpty());
         verify(appUserRepository).findBySub("unknownUser");
-        verify(favoriteRepository, never()).findByUser(any());
     }
 
     @Test
     @DisplayName("should return empty list when no loans exist in system")
     void testRecommendWhenNoLoansInSystem() {
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
         when(loanRepository.findAll()).thenReturn(new ArrayList<>());
 
         List<RecommendedBook> result = trendingStrategy.recommend("user123", 10);
@@ -97,11 +91,8 @@ class TrendingStrategyTest {
     }
 
     @Test
-    @DisplayName("should recommend books based on popularity when user has single favorite")
-    void testRecommendWithSingleFavorite() {
-        Favorite fav1 = createFavorite(1L, testUser, book1);
-        List<Favorite> favorites = List.of(fav1);
-
+    @DisplayName("should recommend books based on popularity when user has reading history")
+    void testRecommendWithReadingHistory() {
         List<Loan> allLoans = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             allLoans.add(createLoan(Long.valueOf(100 + i), copy2, "otherUser" + i));
@@ -111,9 +102,11 @@ class TrendingStrategyTest {
         }
         allLoans.add(createLoan(105L, copy4, "otherUser"));
 
+        Loan userHistory = createLoan(1L, copy1, "user123");
+        userHistory.setReturnedAt(LocalDate.now());
+
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(userHistory));
         when(loanRepository.findAll()).thenReturn(allLoans);
         when(bookRepository.findAll()).thenReturn(List.of(book1, book2, book3, book4, book5));
 
@@ -129,12 +122,8 @@ class TrendingStrategyTest {
     }
 
     @Test
-    @DisplayName("should properly score books based on relative loan frequency")
-    void testRecommendWithMultipleFavorites() {
-        Favorite fav1 = createFavorite(1L, testUser, book1);
-        Favorite fav2 = createFavorite(2L, testUser, book2);
-        List<Favorite> favorites = List.of(fav1, fav2);
-
+    @DisplayName("should properly score books based on relative loan frequency from reading history")
+    void testRecommendWithMultipleLoans() {
         List<Loan> allLoans = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             allLoans.add(createLoan(Long.valueOf(300 + i), copy3, "user" + i));
@@ -145,9 +134,13 @@ class TrendingStrategyTest {
 
         allLoans.add(createLoan(500L, copy5, "user1"));
 
+        Loan l1 = createLoan(1L, copy1, "user123");
+        l1.setReturnedAt(LocalDate.now());
+        Loan l2 = createLoan(2L, copy2, "user123");
+        l2.setReturnedAt(LocalDate.now());
+
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(l1, l2));
         when(loanRepository.findAll()).thenReturn(allLoans);
         when(bookRepository.findAll()).thenReturn(List.of(book1, book2, book3, book4, book5));
 
@@ -162,17 +155,13 @@ class TrendingStrategyTest {
     @Test
     @DisplayName("should exclude books user has already read when excludeRead=true")
     void testExcludeReadFiltering() {
-        Favorite fav1 = createFavorite(1L, testUser, book1);
-        List<Favorite> favorites = List.of(fav1);
-
-        Loan returnedLoan = createLoan(1000L, copy2, "user123");
+        Loan returnedLoan = createLoan(1L, copy2, "user123");
         returnedLoan.setReturnedAt(LocalDate.now().minusDays(10));
 
         List<Loan> userLoans = List.of(returnedLoan);
         List<Loan> allLoans = createLoansForBooks();
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
         when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(userLoans);
         when(loanRepository.findAll()).thenReturn(allLoans);
         when(bookRepository.findAll()).thenReturn(List.of(book1, book2, book3, book4, book5));
@@ -185,16 +174,12 @@ class TrendingStrategyTest {
     @Test
     @DisplayName("should include books user has already read when excludeRead=false")
     void testIncludeReadWhenExcludeReadFalse() {
-        Favorite fav1 = createFavorite(1L, testUser, book1);
-        List<Favorite> favorites = List.of(fav1);
-
-        Loan returnedLoan = createLoan(1000L, copy2, "user123");
+        Loan returnedLoan = createLoan(1L, copy2, "user123");
         returnedLoan.setReturnedAt(LocalDate.now().minusDays(10));
 
         List<Loan> allLoans = createLoansForBooks();
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
         when(loanRepository.findAll()).thenReturn(allLoans);
         when(bookRepository.findAll()).thenReturn(List.of(book1, book2, book3, book4, book5));
 
@@ -206,14 +191,12 @@ class TrendingStrategyTest {
     @Test
     @DisplayName("should respect limit parameter and return max N books")
     void testLimitRespectsMaxBooks() {
-        Favorite fav1 = createFavorite(1L, testUser, book1);
-        List<Favorite> favorites = List.of(fav1);
-
         List<Loan> allLoans = createLoansForBooks();
+        Loan l1 = createLoan(1L, copy1, "user123");
+        l1.setReturnedAt(LocalDate.now());
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(l1));
         when(loanRepository.findAll()).thenReturn(allLoans);
         when(bookRepository.findAll()).thenReturn(List.of(book1, book2, book3, book4, book5));
 
@@ -225,14 +208,12 @@ class TrendingStrategyTest {
     @Test
     @DisplayName("should return zero books when limit is zero")
     void testLimitZero() {
-        Favorite fav1 = createFavorite(1L, testUser, book1);
-        List<Favorite> favorites = List.of(fav1);
-
         List<Loan> allLoans = createLoansForBooks();
+        Loan l1 = createLoan(1L, copy1, "user123");
+        l1.setReturnedAt(LocalDate.now());
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(favoriteRepository.findByUser(testUser)).thenReturn(favorites);
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(l1));
         when(loanRepository.findAll()).thenReturn(allLoans);
         when(bookRepository.findAll()).thenReturn(List.of(book1, book2, book3, book4, book5));
 
@@ -256,14 +237,6 @@ class TrendingStrategyTest {
         copy.setBook(book);
         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
         return copy;
-    }
-
-    private Favorite createFavorite(Long id, AppUser user, Book book) {
-        Favorite fav = new Favorite();
-        fav.setId(id);
-        fav.setUser(user);
-        fav.setBook(book);
-        return fav;
     }
 
     private Loan createLoan(Long id, BookCopy copy, String userSub) {

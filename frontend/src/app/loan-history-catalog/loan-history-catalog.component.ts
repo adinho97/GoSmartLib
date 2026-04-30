@@ -1,6 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 import axios from "axios";
 import { LoanService, Loan } from "../services/loan.service";
+import {
+  composeFullName,
+  inferNameParts,
+  formatUserInfoDisplayName,
+} from "../utils/name-utils";
 
 type Tab = "students" | "books";
 
@@ -168,25 +173,8 @@ export class LoanHistoryCatalogComponent implements OnInit {
         `/api/users/${encodeURIComponent(sub)}/profile`,
       );
       const userInfo = response.data as any;
-
-      // Try multiple field combinations for maximum compatibility
-      const fullname =
-        userInfo.fullname ||
-        `${userInfo.name || ""} ${userInfo.surname || ""}`.trim();
-
-      return (
-        (
-          fullname ||
-          userInfo.name ||
-          userInfo.givenName ||
-          userInfo.given_name ||
-          userInfo.familyName ||
-          userInfo.sub ||
-          ""
-        ).trim() || sub
-      );
+      return formatUserInfoDisplayName(userInfo, sub);
     } catch {
-      // Gracefully fallback to sub if API fails
       return sub;
     }
   }

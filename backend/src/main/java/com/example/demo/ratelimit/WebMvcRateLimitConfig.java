@@ -20,12 +20,26 @@ public class WebMvcRateLimitConfig implements WebMvcConfigurer {
 
     @Bean
     @NonNull
+    public InMemoryRateLimiter adminAuthRateLimiter() {
+        // 5 requests per minute per client IP
+        return new InMemoryRateLimiter(5, Duration.ofMinutes(1));
+    }
+
+    @Bean
+    @NonNull
     public RateLimitingInterceptor rateLimitingInterceptor(@NonNull InMemoryRateLimiter importIsbnRateLimiter) {
         return new RateLimitingInterceptor(importIsbnRateLimiter);
+    }
+
+    @Bean
+    @NonNull
+    public RateLimitingInterceptor adminAuthRateLimitingInterceptor(@NonNull InMemoryRateLimiter adminAuthRateLimiter) {
+        return new RateLimitingInterceptor(adminAuthRateLimiter);
     }
 
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(rateLimitingInterceptor(importIsbnRateLimiter()));
+        registry.addInterceptor(adminAuthRateLimitingInterceptor(adminAuthRateLimiter()));
     }
 }
