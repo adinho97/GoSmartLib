@@ -26,6 +26,13 @@ public class TrendingStrategy implements RecommendationStrategy {
         this.loanRepository = loanRepository;
     }
 
+    private List<Book> getBooksForUser(AppUser user) {
+        if ("leerling".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
+            return bookRepository.findAllBySchool_Id(user.getSchool().getId());
+        }
+        return bookRepository.findAll();
+    }
+
     @Override
     public List<RecommendedBook> recommend(String userId, int limit) {
         Optional<AppUser> userOpt = appUserRepository.findBySub(userId);
@@ -57,7 +64,7 @@ public class TrendingStrategy implements RecommendationStrategy {
 
         // Score available books
         List<RecommendedBook> scored = new ArrayList<>();
-        var allBooks = bookRepository.findAll();
+        var allBooks = getBooksForUser(user);
 
         for (Book book : allBooks) {
             // Skip if user already has it
@@ -120,7 +127,7 @@ public class TrendingStrategy implements RecommendationStrategy {
 
         // Score available books
         List<RecommendedBook> scored = new ArrayList<>();
-        var allBooks = bookRepository.findAll();
+        var allBooks = getBooksForUser(user);
 
         for (Book book : allBooks) {
             // Skip if user already has it (only if excludeRead is true)
