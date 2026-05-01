@@ -20,6 +20,12 @@ export class AuthGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot,
   ): boolean | Observable<boolean> | Promise<boolean> {
+    // Super admin JWT overrides all role requirements
+    const adminToken = this.getAdminToken();
+    if (adminToken) {
+      return this.validateAdminToken(adminToken);
+    }
+
     // Check if user has role in localStorage
     const userRole = this.getUserRole();
     const accessToken = this.getAccessToken();
@@ -57,6 +63,20 @@ export class AuthGuard implements CanActivate {
     );
   }
 
+  private validateAdminToken(adminToken: string): Observable<boolean> {
+    return this.http.get("/api/admin/validate-token", {
+      headers: { Authorization: `Bearer ${adminToken}` },
+      responseType: "text",
+    }).pipe(
+      map(() => true),
+      catchError(() => {
+        localStorage.removeItem("admin_jwt_token");
+        this.router.navigate(["/super-admin-login"]);
+        return of(false);
+      }),
+    );
+  }
+
   private validateTokenWithServer(accessToken: string): Observable<boolean> {
     // Allow dev tokens for development (skip server validation)
     if (accessToken.startsWith("dev-token-")) {
@@ -76,6 +96,10 @@ export class AuthGuard implements CanActivate {
       map((isValid) => isValid), // Token is valid if response is true
       catchError(() => of(false)), // Token is invalid if request fails
     );
+  }
+
+  private getAdminToken(): string {
+    return localStorage.getItem("admin_jwt_token") || "";
   }
 
   private getUserRole(): string {
