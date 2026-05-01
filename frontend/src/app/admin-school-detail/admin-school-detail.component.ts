@@ -33,6 +33,13 @@ export class AdminSchoolDetailComponent implements OnInit {
   isLoadingKlassen = true;
   loadError = "";
 
+  readonly libraryCards = [
+    { label: "Boekencatalogus", sub: "Boeken bekijken & beheren", route: "/books", icon: "catalog" },
+    { label: "Boek uitlenen", sub: "Uitlening registreren", route: "/uitleen", icon: "loan" },
+    { label: "Uitleenhistoriek", sub: "Alle uitleningen", route: "/uitleen-overzicht", icon: "history" },
+    { label: "Overzichten", sub: "Rapporten & statistieken", route: "/uitleen-catalogus", icon: "overview" },
+  ];
+
   // Info edit form
   editNaam = "";
   editAdres = "";
@@ -296,6 +303,15 @@ export class AdminSchoolDetailComponent implements OnInit {
       case "INACTIVE": return "Inactief";
       case "PENDING": return "In afwachting";
     }
+  }
+
+  navigateToLibrary(route: string): void {
+    if (this.detail) {
+      localStorage.setItem("selectedSchoolId", String(this.detail.id));
+      localStorage.setItem("adminLibrarySchoolId", String(this.detail.id));
+      localStorage.setItem("adminLibrarySchoolName", this.detail.naam || this.detail.subdomain);
+    }
+    this.router.navigate([route]);
   }
 
   goBack(): void {
