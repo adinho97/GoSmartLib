@@ -5,9 +5,12 @@ import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.config.SmartschoolMessageRequest;
 import com.example.demo.config.SmartschoolUserInfo;
+import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
+import com.example.demo.entities.School;
+import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.BookAvailabilityNotificationService;
@@ -51,6 +54,9 @@ class LoanServiceTest {
 
     @Mock
     private com.example.demo.config.SmartschoolProperties smartschoolProperties;
+
+    @Mock
+    private AppUserRepository appUserRepository;
 
     @InjectMocks
     private LoanService loanService;
@@ -253,6 +259,66 @@ class LoanServiceTest {
         assertEquals(LocalDate.of(2026, 4, 24), dto.getDueDate());
 
         verify(loanRepository, times(1)).findByReturnedAtIsNull();
+    }
+
+    @Test
+    void createLoan_BlocksLeerlingFromDifferentSchoolBook() {
+        School schoolA = buildSchool(1L);
+        School schoolB = buildSchool(2L);
+
+        Book book = buildBook(10L, "Harry Potter");
+        book.setSchool(schoolB);
+
+        BookCopy copy = buildCopy(201L, book, BookCopy.CopyStatus.AVAILABLE, BookCopy.CopyCondition.GOOD);
+
+        AppUser leerling = new AppUser();
+        leerling.setSub("leerling-sub");
+        leerling.setRole("leerling");
+        leerling.setSchool(schoolA);
+
+        when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
+        when(appUserRepository.findBySub("leerling-sub")).thenReturn(java.util.Optional.of(leerling));
+
+        CreateLoanRequest request = new CreateLoanRequest();
+        request.setBookId(10L);
+        request.setUserSub("leerling-sub");
+        request.setDueDate(LocalDate.now().plusDays(14));
+
+        assertThrows(IllegalArgumentException.class, () -> loanService.createLoan(request));
+    }
+
+    @Test
+    void createLoan_AllowsLeerlingFromSameSchoolBook() {
+        School school = buildSchool(1L);
+
+        Book book = buildBook(10L, "Harry Potter");
+        book.setSchool(school);
+
+        BookCopy copy = buildCopy(201L, book, BookCopy.CopyStatus.AVAILABLE, BookCopy.CopyCondition.GOOD);
+
+        AppUser leerling = new AppUser();
+        leerling.setSub("leerling-sub");
+        leerling.setRole("leerling");
+        leerling.setSchool(school);
+
+        when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
+        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(appUserRepository.findBySub("leerling-sub")).thenReturn(java.util.Optional.of(leerling));
+
+        CreateLoanRequest request = new CreateLoanRequest();
+        request.setBookId(10L);
+        request.setUserSub("leerling-sub");
+        request.setDueDate(LocalDate.now().plusDays(14));
+
+        assertDoesNotThrow(() -> loanService.createLoan(request));
+        verify(loanRepository, times(1)).save(any(Loan.class));
+    }
+
+    private School buildSchool(Long id) {
+        School school = new School();
+        school.setId(id);
+        return school;
     }
 
     private Book buildBook(Long id, String title) {
