@@ -196,6 +196,8 @@ public class AuthService {
                                                         userInfo.getGivenName(),
                                                         userInfo.getFamilyName());
                                         response.setAccessToken(userInfo.getAccessToken());
+                                        response.setSchoolId(resolvedSchool.getId());
+                                        response.setSchoolNaam(resolvedSchool.getNaam());
                                         return response;
                                 });
         }

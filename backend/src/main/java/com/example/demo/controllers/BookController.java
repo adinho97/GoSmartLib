@@ -682,13 +682,16 @@ public class BookController {
     }
 
     private Long resolveEffectiveSchoolId(Long requestedSchoolId, String userRole, String userSub) {
-        if (!STUDENT_ROLE.equalsIgnoreCase(userRole) || !StringUtils.hasText(userSub)) {
+        if (requestedSchoolId != null) {
             return requestedSchoolId;
+        }
+        if (!StringUtils.hasText(userSub)) {
+            return null;
         }
         return appUserRepository.findBySub(userSub.trim())
                 .filter(user -> user.getSchool() != null)
                 .map(user -> user.getSchool().getId())
-                .orElse(requestedSchoolId);
+                .orElse(null);
     }
 
     private boolean isBookAccessibleToLeerling(Long bookId, String userRole, String userSub) {

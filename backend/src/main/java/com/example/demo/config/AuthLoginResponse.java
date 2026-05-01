@@ -8,6 +8,8 @@ public class AuthLoginResponse {
     private String familyName;
     private String accessToken;
     private String redirectTo;
+    private Long schoolId;
+    private String schoolNaam;
 
     public AuthLoginResponse(String sub, String role, String username,
             String givenName, String familyName) {
@@ -53,5 +55,21 @@ public class AuthLoginResponse {
 
     public void setRedirectTo(String redirectTo) {
         this.redirectTo = redirectTo;
+    }
+
+    public Long getSchoolId() {
+        return schoolId;
+    }
+
+    public void setSchoolId(Long schoolId) {
+        this.schoolId = schoolId;
+    }
+
+    public String getSchoolNaam() {
+        return schoolNaam;
+    }
+
+    public void setSchoolNaam(String schoolNaam) {
+        this.schoolNaam = schoolNaam;
     }
 }
