@@ -161,6 +161,10 @@ export class LoginComponent implements OnInit {
           localStorage.setItem("role", userInfo.role);
         }
 
+        if (userInfo.schoolId) {
+          localStorage.setItem("selectedSchoolId", String(userInfo.schoolId));
+        }
+
         this.userPreferencesService.clearCache();
         await this.userPreferencesService.loadPreferencesFromBackend();
 
