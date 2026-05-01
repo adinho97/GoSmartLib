@@ -34,13 +34,16 @@ export class AdminSchoolDetailComponent implements OnInit {
   loadError = "";
 
   readonly libraryCards = [
-    { label: "Boekencatalogus", sub: "Boeken bekijken & beheren", route: "/books", icon: "catalog" },
-    { label: "Boek uitlenen", sub: "Uitlening registreren", route: "/uitleen", icon: "loan" },
-    { label: "Uitleenhistoriek", sub: "Alle uitleningen", route: "/uitleen-overzicht", icon: "history" },
-    { label: "Overzichten", sub: "Rapporten & statistieken", route: "/uitleen-catalogus", icon: "overview" },
+    { label: "Boekencatalogus",    sub: "Boeken bekijken & beheren",       route: "/books",             icon: "catalog"    },
+    { label: "Boek toevoegen",     sub: "Boek aan catalogus toevoegen",     route: "/add-general",       icon: "add"        },
+    { label: "Boek uitlenen",      sub: "Uitlening registreren",            route: "/uitleen",           icon: "loan"       },
+    { label: "Actieve uitleningen",sub: "Lopende uitleningen bekijken",     route: "/uitleen-overzicht", icon: "active"     },
+    { label: "Uitleenhistoriek",   sub: "Alle voorbije uitleningen",        route: "/uitleen-catalogus", icon: "history"    },
+    { label: "Conditieoverzicht",  sub: "Staat van de collectie",           route: "/uitleen-conditie",  icon: "condition"  },
   ];
 
   // Info edit form
+  infoExpanded = false;
   editNaam = "";
   editAdres = "";
   editLat: number | null = null;
@@ -51,6 +54,10 @@ export class AdminSchoolDetailComponent implements OnInit {
   isGeocoding = false;
   geocodeError = "";
   geocodedDisplay = "";
+
+  toggleInfo(): void {
+    this.infoExpanded = !this.infoExpanded;
+  }
 
   // Status toggle
   isTogglingStatus = false;

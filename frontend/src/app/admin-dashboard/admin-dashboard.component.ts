@@ -1,7 +1,8 @@
-import { Component, HostListener, OnInit } from "@angular/core";
+import { Component, OnInit, AfterViewInit, OnDestroy, NgZone } from "@angular/core";
 import { Router } from "@angular/router";
-import { SuperAdminAuthService } from "../services/super-admin-auth.service";
+import * as L from "leaflet";
 import { AdminSchoolService } from "../services/admin-school.service";
+import { SchoolService } from "../services/school.service";
 import { AdminSchoolDashboardItem, SchoolStatus } from "../models/admin-school";
 
 @Component({
@@ -10,32 +11,98 @@ import { AdminSchoolDashboardItem, SchoolStatus } from "../models/admin-school";
   styleUrls: ["./admin-dashboard.component.css"],
   standalone: false,
 })
-export class AdminDashboardComponent implements OnInit {
-  adminInfo: any = null;
-  isLoading = false;
+export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoadingSchools = false;
   schoolError = "";
   schools: AdminSchoolDashboardItem[] = [];
-  accountMenuOpen = false;
+
+  mapError = "";
+  mapSchoolCount = 0;
+  private adminMap: L.Map | null = null;
 
   constructor(
-    private readonly superAdminAuthService: SuperAdminAuthService,
     private readonly adminSchoolService: AdminSchoolService,
+    private readonly schoolService: SchoolService,
     private readonly router: Router,
+    private readonly ngZone: NgZone,
   ) {}
 
   ngOnInit(): void {
-    this.adminInfo = this.superAdminAuthService.getAdminInfo();
     this.loadSchools();
   }
 
-  toggleAccountMenu(): void {
-    this.accountMenuOpen = !this.accountMenuOpen;
+  ngAfterViewInit(): void {
+    this.initMap();
   }
 
-  goToChangePassword(): void {
-    this.accountMenuOpen = false;
-    this.router.navigate(["/admin/change-password"]);
+  ngOnDestroy(): void {
+    if (this.adminMap) {
+      this.adminMap.remove();
+      this.adminMap = null;
+    }
+  }
+
+  private initMap(): void {
+    const el = document.getElementById("admin-map");
+    if (!el) return;
+
+    this.adminMap = L.map("admin-map", {
+      center: [50.5, 4.5],
+      zoom: 8,
+      zoomControl: true,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(this.adminMap);
+
+    this.adminMap.on("popupopen", (e: any) => {
+      const container = e.popup.getElement();
+      if (!container) return;
+      const btn = container.querySelector(".admin-popup-btn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          if (id) {
+            this.ngZone.run(() => this.router.navigate(["/admin/schools", id]));
+          }
+        });
+      }
+    });
+
+    this.schoolService.getAllSchools().subscribe({
+      next: (schools) => {
+        schools.forEach((school) => {
+          if (school.latitude != null && school.longitude != null) {
+            const marker = L.circleMarker([school.latitude, school.longitude], {
+              radius: 9,
+              fillColor: "#871f42",
+              color: "#fff",
+              weight: 2,
+              opacity: 1,
+              fillOpacity: 0.9,
+            });
+
+            marker.bindPopup(`
+              <div class="admin-popup">
+                <p class="admin-popup-name">${school.naam}</p>
+                <p class="admin-popup-addr">${school.adres ?? ""}</p>
+                <button class="admin-popup-btn" data-id="${school.id}">Beheer →</button>
+              </div>
+            `);
+
+            marker.addTo(this.adminMap!);
+            this.mapSchoolCount++;
+          }
+        });
+
+        setTimeout(() => this.adminMap?.invalidateSize(), 100);
+      },
+      error: () => {
+        this.mapError = "Scholenkaart kon niet worden geladen.";
+      },
+    });
   }
 
   goToSchoolWizard(): void {
@@ -66,21 +133,6 @@ export class AdminDashboardComponent implements OnInit {
       case "ACTIVE": return "Actief";
       case "INACTIVE": return "Inactief";
       case "PENDING": return "In afwachting";
-    }
-  }
-
-  logout(): void {
-    this.accountMenuOpen = false;
-    this.isLoading = true;
-    this.superAdminAuthService.logout();
-    this.router.navigate(["/super-admin-login"]);
-  }
-
-  @HostListener("document:click", ["$event"])
-  closeMenuOnOutsideClick(event: Event): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest(".account-dropdown")) {
-      this.accountMenuOpen = false;
     }
   }
 }

@@ -14,6 +14,7 @@ import { SchoolService } from "./services/school.service";
 import { UserPreferencesService } from "./services/user-preferences.service";
 import { RecommendationService } from "./services/recommendation.service";
 import { BookService } from "./services/book.service";
+import { SuperAdminAuthService } from "./services/super-admin-auth.service";
 import { inferNameParts, composeFullName } from "./utils/name-utils";
 
 @Component({
@@ -25,15 +26,14 @@ import { inferNameParts, composeFullName } from "./utils/name-utils";
 export class AppComponent implements OnInit {
   profileMenuOpen = false;
   overviewMenuOpen = false;
+  adminNavMenuOpen = false;
   levelInfo$: Observable<LevelInfo>;
   private readonly roleLikeValues = new Set([
-    "leerling", // student
-    "leerkracht", // teacher
-    "bibbeheerder", // librarian
-    "gebruiker", // generic user
+    "leerling",
+    "leerkracht",
+    "bibbeheerder",
+    "gebruiker",
   ]);
-
-  // Inject SchoolService
 
   constructor(
     private router: Router,
@@ -42,9 +42,10 @@ export class AppComponent implements OnInit {
     private experienceService: ExperienceService,
     private userPreferencesService: UserPreferencesService,
     private recommendationService: RecommendationService,
-    private schoolService: SchoolService, // Inject SchoolService
-    private ngZone: NgZone, // Inject NgZone
+    private schoolService: SchoolService,
+    private ngZone: NgZone,
     private bookService: BookService,
+    private superAdminAuthService: SuperAdminAuthService,
   ) {
     this.levelInfo$ = this.experienceService.levelInfo$;
   }
@@ -256,9 +257,44 @@ export class AppComponent implements OnInit {
     });
   }
 
+  get showAdminNav(): boolean {
+    const url = this.router.url || "";
+    return (
+      !!localStorage.getItem("admin_jwt_token") &&
+      url.startsWith("/admin") &&
+      !url.startsWith("/admin/setup")
+    );
+  }
+
+  get adminUsername(): string {
+    return this.superAdminAuthService.getAdminInfo()?.username || "Beheerder";
+  }
+
+  toggleAdminNavMenu(event: Event): void {
+    event.stopPropagation();
+    this.adminNavMenuOpen = !this.adminNavMenuOpen;
+  }
+
+  adminNavGoToNewSchool(): void {
+    this.adminNavMenuOpen = false;
+    this.router.navigate(["/admin/schools/new"]);
+  }
+
+  adminNavGoToChangePassword(): void {
+    this.adminNavMenuOpen = false;
+    this.router.navigate(["/admin/change-password"]);
+  }
+
+  adminNavLogout(): void {
+    this.adminNavMenuOpen = false;
+    this.superAdminAuthService.logout();
+    this.router.navigate(["/super-admin-login"]);
+  }
+
   @HostListener("document:click")
   onDocumentClick(): void {
     this.profileMenuOpen = false;
     this.overviewMenuOpen = false;
+    this.adminNavMenuOpen = false;
   }
 }

@@ -1,29 +1,39 @@
 <div class="admin-dashboard">
-  <div class="dashboard-header">
-    <div class="header-content">
-      <h1>Beheerder Dashboard</h1>
-      <p class="subtitle">GO!SmartLib administratief paneel</p>
+
+  <div class="page-header">
+    <div>
+      <h1>Scholen</h1>
+      <p class="subtitle">Overzicht van alle geregistreerde scholen</p>
     </div>
-    <div class="account-dropdown" (click)="$event.stopPropagation()">
-      <button type="button" class="btn-account" (click)="toggleAccountMenu()" [attr.aria-expanded]="accountMenuOpen">
-        {{ adminInfo?.username || "Account" }}
-      </button>
-      <div class="account-menu" [class.show]="accountMenuOpen">
-        <button type="button" class="account-menu-item" (click)="goToChangePassword()">Wachtwoord wijzigen</button>
-        <button type="button" class="account-menu-item logout-item" (click)="logout()" [disabled]="isLoading">
-          {{ isLoading ? "Bezig..." : "Uitloggen" }}
-        </button>
-      </div>
+    <button type="button" class="btn-add" (click)="goToSchoolWizard()">+ School toevoegen</button>
+  </div>
+
+  <!-- Map section -->
+  <div class="map-card">
+    <div class="map-card-header">
+      <h2 class="map-card-title">Scholenkaart</h2>
+      @if (mapSchoolCount > 0) {
+        <span class="map-count-badge">{{ mapSchoolCount }} locaties</span>
+      }
+    </div>
+    <div class="admin-map-wrap">
+      <div id="admin-map" class="admin-map"></div>
+      @if (mapError) {
+        <div class="admin-map-fallback">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+          <p>{{ mapError }}</p>
+        </div>
+      }
     </div>
   </div>
 
+  <!-- Schools list -->
   <div class="schools-section">
-    <div class="schools-header">
-      <div>
-        <h2>Scholen</h2>
-        <p class="schools-count">{{ schools.length }} school{{ schools.length !== 1 ? 'en' : '' }}</p>
-      </div>
-      <button type="button" class="btn-add" (click)="goToSchoolWizard()">+ School toevoegen</button>
+    <div class="schools-section-header">
+      <h2>Scholen</h2>
+      <span class="schools-count">{{ schools.length }} school{{ schools.length !== 1 ? 'en' : '' }}</span>
     </div>
 
     @if (schoolError) {
@@ -44,7 +54,7 @@
     @if (!isLoadingSchools && schools.length > 0) {
       <div class="school-grid">
         @for (school of schools; track school.id) {
-          <div class="school-card">
+          <div class="school-card" (click)="goToSchoolDetail(school.id)" role="button" tabindex="0" (keyup.enter)="goToSchoolDetail(school.id)">
             <div class="card-top">
               <h3 class="card-naam">{{ school.naam || school.subdomain }}</h3>
               <span class="status-badge status-{{ school.status.toLowerCase() }}">
@@ -63,12 +73,13 @@
                 <span class="stat-label">klassen</span>
               </span>
             </div>
-            <button type="button" class="btn-beheer" (click)="goToSchoolDetail(school.id)">
+            <div class="card-footer">
               Beheer →
-            </button>
+            </div>
           </div>
         }
       </div>
     }
   </div>
+
 </div>

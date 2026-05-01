@@ -1,15 +1,136 @@
-/* Admin context bar */
+/* Admin top navbar (admin pages) */
+.admin-top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1300;
+  background: white;
+  border-bottom: 1px solid #e8eaed;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-family: Arial, sans-serif;
+}
+
+.admin-top-nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-top-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #871f42;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+
+.admin-top-brand svg {
+  flex-shrink: 0;
+}
+
+.admin-top-account {
+  position: relative;
+}
+
+.admin-account-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: 1px solid #e2e8f0;
+  color: #374151;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.admin-account-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.admin-account-btn svg:last-child {
+  transition: transform 0.2s ease;
+  color: #94a3b8;
+}
+
+.admin-account-btn svg:last-child.rotated {
+  transform: rotate(180deg);
+}
+
+.admin-account-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  z-index: 20;
+}
+
+.admin-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.admin-dropdown-item:hover {
+  background: #f1f5f9;
+}
+
+.admin-dropdown-item svg {
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.admin-dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+
+.admin-dropdown-logout {
+  color: #871f42;
+}
+
+.admin-dropdown-logout svg {
+  color: #871f42;
+}
+
+/* Admin context bar (library routes in admin context) */
 .admin-context-bar {
   position: sticky;
   top: 0;
   z-index: 1300;
-  background: #1a1a2e;
-  color: #e2e8f0;
+  background: #5c0a28;
+  color: #fce7ef;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  height: 40px;
+  height: 42px;
   font-size: 13px;
   font-family: Arial, sans-serif;
 }
@@ -17,17 +138,17 @@
 .admin-context-label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-weight: 600;
   letter-spacing: 0.2px;
 }
 
 .admin-context-back {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #e2e8f0;
-  padding: 4px 12px;
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fce7ef;
+  padding: 5px 14px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -35,7 +156,7 @@
 }
 
 .admin-context-back:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .top-nav {
