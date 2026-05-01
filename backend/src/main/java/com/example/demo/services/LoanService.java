@@ -4,8 +4,10 @@ import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.dto.ReturnLoanRequest;
+import com.example.demo.entities.AppUser;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
+import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.config.SmartschoolMessageRequest;
@@ -36,18 +38,21 @@ public class LoanService {
     private final SmartschoolMessageService smartschoolMessageService;
     private final AuthService authService;
     private final SmartschoolProperties smartschoolProperties;
+    private final AppUserRepository appUserRepository;
 
     public LoanService(LoanRepository loanRepo, BookCopyRepository copyRepo,
             BookAvailabilityNotificationService bookAvailabilityNotificationService,
             SmartschoolMessageService smartschoolMessageService,
             AuthService authService,
-            SmartschoolProperties smartschoolProperties) {
+            SmartschoolProperties smartschoolProperties,
+            AppUserRepository appUserRepository) {
         this.loanRepo = loanRepo;
         this.copyRepo = copyRepo;
         this.bookAvailabilityNotificationService = bookAvailabilityNotificationService;
         this.smartschoolMessageService = smartschoolMessageService;
         this.authService = authService;
         this.smartschoolProperties = smartschoolProperties;
+        this.appUserRepository = appUserRepository;
     }
 
     @Transactional
@@ -113,6 +118,19 @@ public class LoanService {
         if (lendableCopies.isEmpty()) {
             logger.warn("No available copies for bookId={}", request.getBookId());
             throw new IllegalStateException("Geen beschikbare exemplaren");
+        }
+
+        AppUser borrower = appUserRepository.findBySub(request.getUserSub()).orElse(null);
+        if (borrower != null && "leerling".equalsIgnoreCase(borrower.getRole())) {
+            Long bookSchoolId = lendableCopies.get(0).getBook().getSchool() != null
+                    ? lendableCopies.get(0).getBook().getSchool().getId()
+                    : null;
+            Long studentSchoolId = borrower.getSchool() != null ? borrower.getSchool().getId() : null;
+            if (studentSchoolId != null && !studentSchoolId.equals(bookSchoolId)) {
+                logger.warn("School mismatch for loan: book schoolId={}, student schoolId={}, userSub={}",
+                        bookSchoolId, studentSchoolId, request.getUserSub());
+                throw new IllegalArgumentException("Leerling kan enkel boeken van de eigen school ontlenen");
+            }
         }
 
         BookCopy copy;

@@ -50,6 +50,9 @@ public class LoanController {
                     request.getBookId(), request.getUserSub(), request.getDueDate());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(loanService.createLoan(request));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Loan creation validation error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (IllegalStateException e) {
             logger.warn("Loan creation conflict: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
