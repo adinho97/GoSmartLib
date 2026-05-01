@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.Book;
+import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.strategies.NewArrivalsStrategy;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,9 @@ class NewArrivalsStrategyTest {
 
     @Mock
     private BookRepository bookRepository;
+
+    @Mock
+    private AppUserRepository appUserRepository;
 
     @InjectMocks
     private NewArrivalsStrategy newArrivalsStrategy;
