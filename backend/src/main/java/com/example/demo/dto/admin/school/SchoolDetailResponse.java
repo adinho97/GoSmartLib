@@ -16,6 +16,10 @@ public class SchoolDetailResponse {
     private LocalDateTime aangemaaktOp;
     private long userCount;
     private long klasCount;
+    private long bookCount;
+    private long activeLoansCount;
+    private long wishlistCount;
+    private long classReadingListCount;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -49,4 +53,16 @@ public class SchoolDetailResponse {
 
     public long getKlasCount() { return klasCount; }
     public void setKlasCount(long klasCount) { this.klasCount = klasCount; }
+
+    public long getBookCount() { return bookCount; }
+    public void setBookCount(long bookCount) { this.bookCount = bookCount; }
+
+    public long getActiveLoansCount() { return activeLoansCount; }
+    public void setActiveLoansCount(long activeLoansCount) { this.activeLoansCount = activeLoansCount; }
+
+    public long getWishlistCount() { return wishlistCount; }
+    public void setWishlistCount(long wishlistCount) { this.wishlistCount = wishlistCount; }
+
+    public long getClassReadingListCount() { return classReadingListCount; }
+    public void setClassReadingListCount(long classReadingListCount) { this.classReadingListCount = classReadingListCount; }
 }

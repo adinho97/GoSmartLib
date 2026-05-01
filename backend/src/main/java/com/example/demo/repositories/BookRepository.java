@@ -61,4 +61,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
                                                      Pageable pageable);
 
     boolean existsByIdAndSchool_Id(Long id, Long schoolId);
+
+    long countBySchool_Id(Long schoolId);
 }

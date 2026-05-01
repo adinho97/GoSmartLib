@@ -15,4 +15,6 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     void deleteByUserAndBook(AppUser user, Book book);
 
     List<Wishlist> findByBook_IdAndNotificationEnabledTrue(Long bookId);
+
+    long countByBook_School_Id(Long schoolId);
 }

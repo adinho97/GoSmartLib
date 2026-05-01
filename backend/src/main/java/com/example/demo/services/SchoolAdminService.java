@@ -1,5 +1,6 @@
 package com.example.demo.services;
 
+import com.example.demo.config.ClassReadingListItemRepository;
 import com.example.demo.dto.admin.school.CreateSchoolRequest;
 import com.example.demo.dto.admin.school.CreateSchoolResponse;
 import com.example.demo.dto.admin.school.KlasListItem;
@@ -12,8 +13,11 @@ import com.example.demo.entities.School;
 import com.example.demo.entities.SchoolStatus;
 import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.KlasRepository;
+import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.SchoolRepository;
+import com.example.demo.repositories.WishlistRepository;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,15 +30,27 @@ public class SchoolAdminService {
     private final KlasRepository klasRepository;
     private final AppUserRepository appUserRepository;
     private final SchoolAdminValidationService schoolAdminValidationService;
+    private final BookRepository bookRepository;
+    private final LoanRepository loanRepository;
+    private final WishlistRepository wishlistRepository;
+    private final ClassReadingListItemRepository classReadingListItemRepository;
 
     public SchoolAdminService(SchoolRepository schoolRepository,
             KlasRepository klasRepository,
             AppUserRepository appUserRepository,
-            SchoolAdminValidationService schoolAdminValidationService) {
+            SchoolAdminValidationService schoolAdminValidationService,
+            BookRepository bookRepository,
+            LoanRepository loanRepository,
+            WishlistRepository wishlistRepository,
+            ClassReadingListItemRepository classReadingListItemRepository) {
         this.schoolRepository = schoolRepository;
         this.klasRepository = klasRepository;
         this.appUserRepository = appUserRepository;
         this.schoolAdminValidationService = schoolAdminValidationService;
+        this.bookRepository = bookRepository;
+        this.loanRepository = loanRepository;
+        this.wishlistRepository = wishlistRepository;
+        this.classReadingListItemRepository = classReadingListItemRepository;
     }
 
     @Transactional
@@ -170,8 +186,13 @@ public class SchoolAdminService {
         r.setLongitude(school.getLongitude());
         r.setStatus(school.getStatus());
         r.setAangemaaktOp(school.getAangemaaktOp());
-        r.setUserCount(appUserRepository.countBySchool_Id(school.getId()));
-        r.setKlasCount(klasRepository.countBySchool_Id(school.getId()));
+        Long schoolId = school.getId();
+        r.setUserCount(appUserRepository.countBySchool_Id(schoolId));
+        r.setKlasCount(klasRepository.countBySchool_Id(schoolId));
+        r.setBookCount(bookRepository.countBySchool_Id(schoolId));
+        r.setActiveLoansCount(loanRepository.countByCopy_Book_School_IdAndReturnedAtIsNull(schoolId));
+        r.setWishlistCount(wishlistRepository.countByBook_School_Id(schoolId));
+        r.setClassReadingListCount(classReadingListItemRepository.countBySchoolId(schoolId));
         return r;
     }
 

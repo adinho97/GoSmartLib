@@ -32,4 +32,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     @Query("SELECT new map(l.copy.book.id as bookId, COUNT(l) as loanCount) FROM Loan l GROUP BY l.copy.book.id")
     List<Map<String, Object>> getLoanCountsByBook();
+
+    long countByCopy_Book_School_IdAndReturnedAtIsNull(Long schoolId);
 }

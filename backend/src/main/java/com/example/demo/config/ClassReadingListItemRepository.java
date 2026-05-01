@@ -10,4 +10,6 @@ public interface ClassReadingListItemRepository extends JpaRepository<ClassReadi
     Optional<ClassReadingListItem> findByBookIdAndSchoolId(Long bookId, Long schoolId);
     void deleteByBookIdAndSchoolId(Long bookId, Long schoolId);
     boolean existsByBookIdAndSchoolId(Long bookId, Long schoolId);
+
+    long countBySchoolId(Long schoolId);
 }
