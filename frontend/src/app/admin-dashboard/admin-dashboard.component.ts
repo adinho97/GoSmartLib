@@ -47,8 +47,8 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
     if (!el) return;
 
     this.adminMap = L.map("admin-map", {
-      center: [50.5, 4.5],
-      zoom: 8,
+      center: [51.2194, 4.4025],
+      zoom: 12,
       zoomControl: true,
     });
 

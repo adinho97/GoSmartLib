@@ -10,8 +10,6 @@
 }
 
 .admin-top-nav-inner {
-  max-width: 1280px;
-  margin: 0 auto;
   padding: 0 24px;
   height: 56px;
   display: flex;
