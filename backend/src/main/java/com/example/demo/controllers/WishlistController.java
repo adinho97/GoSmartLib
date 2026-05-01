@@ -3,10 +3,12 @@ package com.example.demo.controllers;
 import com.example.demo.dto.WishlistAddRequest;
 import com.example.demo.dto.WishlistDto;
 import com.example.demo.entities.AppUser;
+import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Wishlist;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
+import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.WishlistRepository;
 import com.example.demo.exception.ApiException;
 import com.example.demo.services.WishlistService;
@@ -25,13 +27,16 @@ public class WishlistController {
     private final AppUserRepository appUserRepository;
     private final WishlistRepository wishlistRepository;
     private final BookCopyRepository bookCopyRepository;
+    private final BookRepository bookRepository;
 
     public WishlistController(WishlistService wishlistService, AppUserRepository appUserRepository,
-            WishlistRepository wishlistRepository, BookCopyRepository bookCopyRepository) {
+            WishlistRepository wishlistRepository, BookCopyRepository bookCopyRepository,
+            BookRepository bookRepository) {
         this.wishlistService = wishlistService;
         this.appUserRepository = appUserRepository;
         this.wishlistRepository = wishlistRepository;
         this.bookCopyRepository = bookCopyRepository;
+        this.bookRepository = bookRepository;
     }
 
     private AppUser getUserFromHeader(String userSub) {
@@ -51,6 +56,13 @@ public class WishlistController {
             @Valid @RequestBody WishlistAddRequest request,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         AppUser user = getUserFromHeader(requireUserSub(userSub));
+        if ("leerling".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
+            Book book = bookRepository.findById(request.getBookId()).orElse(null);
+            if (book == null || book.getSchool() == null
+                    || !book.getSchool().getId().equals(user.getSchool().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
         wishlistService.addToWishlist(request.getBookId(), user);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

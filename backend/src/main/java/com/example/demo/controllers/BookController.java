@@ -47,6 +47,7 @@ public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
     private static final String TEACHER_ROLE = "leerkracht";
+    private static final String STUDENT_ROLE = "leerling";
     private static final SecureRandom GO_NUMBER_RANDOM = new SecureRandom();
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
@@ -70,13 +71,13 @@ public class BookController {
     }
 
     @GetMapping
-    public List<BookDto> getAll(@RequestParam(required = false) Long schoolId) {
-        List<Book> books = schoolId == null ? repo.findAll() : repo.findAllBySchool_Id(schoolId);
-
-        return books
-                .stream()
-                .map(BookMapper::toDto)
-                .collect(Collectors.toList());
+    public List<BookDto> getAll(
+            @RequestParam(required = false) Long schoolId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+        List<Book> books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
+        return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
     }
 
             @GetMapping("/paged")
@@ -84,13 +85,16 @@ public class BookController {
                 @RequestParam(required = false) Long schoolId,
                 @RequestParam(defaultValue = "0") int page,
                     @RequestParam(defaultValue = "5") int size,
-                    @RequestParam(required = false) String query) {
+                    @RequestParam(required = false) String query,
+                    @RequestHeader(value = "X-User-Role", required = false) String userRole,
+                    @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
             int safePage = Math.max(page, 0);
             int safeSize = Math.max(size, 1);
                 String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
+                Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
 
                 Page<Book> books = repo.searchPaged(
-                    schoolId,
+                    effectiveSchoolId,
                     normalizedQuery,
                     PageRequest.of(safePage, safeSize));
 
@@ -108,8 +112,11 @@ public class BookController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BookDto> getBook(@PathVariable @NonNull Long id,
-            @RequestParam(required = false) Long schoolId) {
-        return (schoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, schoolId))
+            @RequestParam(required = false) Long schoolId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+        return (effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId))
                 .map(BookMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -156,9 +163,12 @@ public class BookController {
 
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> getByIsbn(@PathVariable @NonNull String isbn,
-            @RequestParam(required = false) Long schoolId) {
+            @RequestParam(required = false) Long schoolId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         try {
-            return bookService.findByIsbn(isbn, schoolId)
+            Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+            return bookService.findByIsbn(isbn, effectiveSchoolId)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (IllegalArgumentException ex) {
@@ -168,15 +178,17 @@ public class BookController {
 
     @GetMapping("/go/{goNumber}")
     public ResponseEntity<BookDto> getByGoNumber(@PathVariable @NonNull String goNumber,
-            @RequestParam(required = false) Long schoolId) {
+            @RequestParam(required = false) Long schoolId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         String trimmedGoNumber = goNumber.trim().toUpperCase(Locale.ROOT);
         if (!StringUtils.hasText(trimmedGoNumber)) {
             return ResponseEntity.badRequest().build();
         }
-
-        return (schoolId == null
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+        return (effectiveSchoolId == null
                 ? repo.findByGoNumber(trimmedGoNumber)
-                : repo.findByGoNumberAndSchool_Id(trimmedGoNumber, schoolId))
+                : repo.findByGoNumberAndSchool_Id(trimmedGoNumber, effectiveSchoolId))
                 .map(BookMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -367,6 +379,10 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
+        if (!isBookAccessibleToLeerling(id, userRole, userSub)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
 
         List<ReviewDto> reviews = reviewRepository.findByBook_IdOrderByCreatedAtDesc(id)
@@ -404,6 +420,10 @@ public class BookController {
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
             return ResponseEntity.notFound().build();
+        }
+
+        if (!isBookAccessibleToLeerling(id, userRole, userSub)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         Review review = new Review();
@@ -453,6 +473,10 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
+        if (!isBookAccessibleToLeerling(bookId, userRole, userSub)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         Review review = reviewRepository.findById(reviewId).orElse(null);
         if (review == null || review.getBook() == null || !bookId.equals(review.getBook().getId())) {
             return ResponseEntity.notFound().build();
@@ -476,6 +500,10 @@ public class BookController {
             @Valid @RequestBody UpdateReviewRequest request) {
         if (!repo.existsById(bookId)) {
             return ResponseEntity.notFound().build();
+        }
+
+        if (!isBookAccessibleToLeerling(bookId, userRole, userSub)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         Review review = reviewRepository.findById(reviewId).orElse(null);
@@ -651,6 +679,27 @@ public class BookController {
 
     private boolean isTeacher(String userRole) {
         return TEACHER_ROLE.equalsIgnoreCase(userRole);
+    }
+
+    private Long resolveEffectiveSchoolId(Long requestedSchoolId, String userRole, String userSub) {
+        if (!STUDENT_ROLE.equalsIgnoreCase(userRole) || !StringUtils.hasText(userSub)) {
+            return requestedSchoolId;
+        }
+        return appUserRepository.findBySub(userSub.trim())
+                .filter(user -> user.getSchool() != null)
+                .map(user -> user.getSchool().getId())
+                .orElse(requestedSchoolId);
+    }
+
+    private boolean isBookAccessibleToLeerling(Long bookId, String userRole, String userSub) {
+        if (!STUDENT_ROLE.equalsIgnoreCase(userRole)) {
+            return true;
+        }
+        Long schoolId = resolveEffectiveSchoolId(null, userRole, userSub);
+        if (schoolId == null) {
+            return true;
+        }
+        return repo.existsByIdAndSchool_Id(bookId, schoolId);
     }
 
     private void assignGoNumberIfNeeded(Book book) {
