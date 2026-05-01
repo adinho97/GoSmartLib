@@ -93,8 +93,14 @@ export class AdminSchoolDetailComponent implements OnInit {
   userFilter = "";
   roleFilter = "";
   klasFilter = "";
+  activeFilter: "" | "active" | "inactive" = "";
   userPage = 1;
   readonly userPageSize = 5;
+
+  setActiveFilter(value: "" | "active" | "inactive"): void {
+    this.activeFilter = value;
+    this.onUserFilterChange();
+  }
 
   // Klassen pagination
   klasPage = 1;
@@ -266,14 +272,16 @@ export class AdminSchoolDetailComponent implements OnInit {
     const q = this.userFilter.trim().toLowerCase();
     const r = this.roleFilter;
     const k = this.klasFilter;
+    const a = this.activeFilter;
     return this.users.filter((u) => {
       const matchesText =
         !q ||
         u.sub?.toLowerCase().includes(q) ||
         u.klasNaam?.toLowerCase().includes(q);
-      const matchesRole = !r || u.role === r;
-      const matchesKlas = !k || u.klasNaam === k;
-      return matchesText && matchesRole && matchesKlas;
+      const matchesRole   = !r || u.role === r;
+      const matchesKlas   = !k || u.klasNaam === k;
+      const matchesActive = !a || (a === "active" ? u.active : !u.active);
+      return matchesText && matchesRole && matchesKlas && matchesActive;
     });
   }
 

@@ -1,14 +1,5 @@
 <div class="detail-page">
 
-  <div class="page-back">
-    <button type="button" class="btn-back-icon" (click)="goBack()" title="Terug naar dashboard" aria-label="Terug naar dashboard">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M19 12H5"/>
-        <polyline points="12 19 5 12 12 5"/>
-      </svg>
-    </button>
-  </div>
-
   @if (loadError) {
     <div class="alert-error">{{ loadError }}</div>
   }
@@ -20,7 +11,13 @@
   @if (!isLoadingDetail && detail) {
     <!-- Page title row -->
     <div class="page-title-row">
-      <div>
+      <button type="button" class="btn-back-icon" (click)="goBack()" title="Terug naar dashboard" aria-label="Terug naar dashboard">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+      </button>
+      <div class="page-title-block">
         <h1 class="page-title">{{ detail.naam || detail.subdomain }}</h1>
         <p class="page-subtitle">{{ detail.smartschoolUrl }}</p>
       </div>
@@ -144,6 +141,11 @@
             (ngModelChange)="onUserFilterChange()"
             placeholder="Zoeken..."
           />
+          <div class="active-filter-pills">
+            <button type="button" class="pill" [class.pill-active]="activeFilter === ''"       (click)="setActiveFilter('')">Alle</button>
+            <button type="button" class="pill" [class.pill-active]="activeFilter === 'active'"  (click)="setActiveFilter('active')">Actief</button>
+            <button type="button" class="pill" [class.pill-active]="activeFilter === 'inactive'"(click)="setActiveFilter('inactive')">Inactief</button>
+          </div>
         </div>
       </div>
 
