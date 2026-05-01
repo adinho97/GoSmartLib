@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { forkJoin } from "rxjs";
+import axios from "axios";
 import { AdminSchoolService } from "../services/admin-school.service";
 import {
   AdminUserListItem,
@@ -9,6 +10,7 @@ import {
   SchoolDetail,
   SchoolStatus,
 } from "../models/admin-school";
+import { formatUserInfoDisplayName } from "../utils/name-utils";
 
 interface NominatimResult {
   lat: string;
@@ -63,6 +65,25 @@ export class AdminSchoolDetailComponent implements OnInit {
   isTogglingStatus = false;
   statusError = "";
 
+  // Display names — fetched live from Smartschool, never stored
+  userDisplayNames: Record<string, string> = {};
+
+  getDisplayName(sub: string): string {
+    return this.userDisplayNames[sub] ?? "";
+  }
+
+  private enrichUserNames(users: AdminUserListItem[]): void {
+    users.forEach(async (user) => {
+      if (!user.sub) return;
+      try {
+        const profile = await axios.get(`/api/users/${encodeURIComponent(user.sub)}/profile`);
+        this.userDisplayNames[user.sub] = formatUserInfoDisplayName(profile.data, user.sub);
+      } catch {
+        // leave blank — sub is already shown in its own column
+      }
+    });
+  }
+
   // User actions
   togglingUserId: number | null = null;
   promotingUserId: number | null = null;
@@ -106,6 +127,7 @@ export class AdminSchoolDetailComponent implements OnInit {
         this.detail = detail;
         this.users = users;
         this.klassen = klassen;
+        this.enrichUserNames(users);
         this.resetForm();
         this.isLoadingDetail = false;
         this.isLoadingUsers = false;

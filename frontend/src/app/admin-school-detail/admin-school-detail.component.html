@@ -160,6 +160,7 @@
           <table class="data-table">
             <thead>
               <tr>
+                <th>Naam</th>
                 <th>Smartschool ID</th>
                 <th>Rol</th>
                 <th>Klas</th>
@@ -170,6 +171,7 @@
             <tbody>
               @for (user of pagedUsers; track user.id) {
                 <tr [class.row-inactive]="!user.active">
+                  <td class="cell-name">{{ getDisplayName(user.sub) || '—' }}</td>
                   <td class="cell-sub">{{ user.sub || '—' }}</td>
                   <td>{{ roleLabel(user.role) }}</td>
                   <td>{{ user.klasNaam || '—' }}</td>
@@ -205,7 +207,7 @@
               }
               @if (filteredUsers.length === 0) {
                 <tr>
-                  <td colspan="5" class="empty-text">Geen resultaten.</td>
+                  <td colspan="6" class="empty-text">Geen resultaten.</td>
                 </tr>
               }
             </tbody>
