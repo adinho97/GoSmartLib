@@ -151,7 +151,7 @@ class GenreBasedStrategyTest {
     @Test
     @DisplayName("should exclude books user already read when excludeRead=true")
     void testExcludeReadFiltering() {
-        Loan returnedLoan = createLoan(1L, copy3, "user123");
+        Loan returnedLoan = createLoan(1L, copy3, "user123"); // fantasyBook3 (id=3) was read
         returnedLoan.setReturnedAt(LocalDate.now().minusDays(5));
 
         List<Loan> loans = List.of(returnedLoan);
@@ -163,8 +163,10 @@ class GenreBasedStrategyTest {
 
         List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 10, true);
 
-        assertTrue(result.stream().noneMatch(b -> b.getBookId() == 1L || b.getBookId() == 2L || b.getBookId() == 3L));
-        assertEquals(0, result.size());
+        // Book 3 (already read) must be excluded; books 1 and 2 match Fantasy and are not read
+        assertTrue(result.stream().noneMatch(b -> b.getBookId() == 3L));
+        assertEquals(2, result.size());
+        assertTrue(result.stream().allMatch(b -> "Fantasy".equals(b.getGenre())));
     }
 
     @Test

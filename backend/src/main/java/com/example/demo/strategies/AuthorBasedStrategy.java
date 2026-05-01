@@ -27,7 +27,7 @@ public class AuthorBasedStrategy implements RecommendationStrategy {
     }
 
     private List<Book> getBooksForUser(AppUser user) {
-        if ("leerling".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
+        if (user.getSchool() != null) {
             return bookRepository.findAllBySchool_Id(user.getSchool().getId());
         }
         return bookRepository.findAll();

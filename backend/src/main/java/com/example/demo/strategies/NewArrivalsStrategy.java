@@ -47,7 +47,7 @@ public class NewArrivalsStrategy implements RecommendationStrategy {
             return bookRepository.findAll();
         }
         return appUserRepository.findBySub(userId.trim())
-                .filter(user -> "leerling".equalsIgnoreCase(user.getRole()) && user.getSchool() != null)
+                .filter(user -> user.getSchool() != null)
                 .map(user -> bookRepository.findAllBySchool_Id(user.getSchool().getId()))
                 .orElseGet(bookRepository::findAll);
     }
