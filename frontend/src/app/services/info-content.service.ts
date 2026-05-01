@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthContextService } from './auth-context.service';
 
 export type Sectie = 'STAP' | 'FEATURE' | 'TIP' | 'FAQ';
 
@@ -17,7 +18,10 @@ export type InfoContentItem = {
 export class InfoContentService {
   private readonly apiUrl = '/api/info-content';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authContext: AuthContextService,
+  ) {}
 
   getAll(sectie: Sectie, schoolId?: number): Observable<InfoContentItem[]> {
     let params = new HttpParams().set('sectie', sectie);
@@ -51,8 +55,8 @@ export class InfoContentService {
 
   private authHeaders(): HttpHeaders {
     return new HttpHeaders({
-      'X-User-Sub': localStorage.getItem('sub') || '',
-      'X-User-Role': localStorage.getItem('role') || '',
+      'X-User-Sub': this.authContext.getEffectiveSub(),
+      'X-User-Role': this.authContext.getEffectiveRole(),
     });
   }
 }

@@ -1,5 +1,6 @@
 // src/app/services/loan.service.ts
 import { Injectable } from "@angular/core";
+import { AuthContextService } from "./auth-context.service";
 import axios from "axios";
 
 export interface Loan {
@@ -88,13 +89,13 @@ export class LoanService {
   private api = "/api/uitleningen";
   private copyApi = "/api/exemplaren";
 
+  constructor(private authContext: AuthContextService) {}
+
   private headers() {
-    const userSub =
-      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
     return {
       headers: {
-        "X-User-Role": localStorage.getItem("role") || "",
-        "X-User-Sub": userSub,
+        "X-User-Role": this.authContext.getEffectiveRole(),
+        "X-User-Sub": this.authContext.getEffectiveSub(),
       },
     };
   }
@@ -221,7 +222,7 @@ export class LoanService {
   }
 
   async updateLoanDueDate(loanId: number, newDueDate: string): Promise<void> {
-    const token = localStorage.getItem("smartschoolToken");
+    const token = this.authContext.getEffectiveBearerToken();
     await axios.patch(
       `/api/uitleningen/${loanId}/due-date`,
       { dueDate: newDueDate },

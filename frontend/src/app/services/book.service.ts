@@ -5,6 +5,7 @@ import { Book } from "../models/book";
 import { Review } from "../models/review";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
 import { SchoolService } from "./school.service";
+import { AuthContextService } from "./auth-context.service";
 import axios from "axios";
 
 export type BulkImportStatus = "ADDED" | "NOT_FOUND" | "INVALID_ISBN" | "ERROR";
@@ -58,7 +59,10 @@ export class BookService {
 
   private bookCache: Map<number | null, any[]> = new Map(); // TODO: Clear this cache when a book is updated/deleted
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authContext: AuthContextService,
+  ) {}
 
   private resolveSchoolId(explicitSchoolId?: number): number | null {
     if (typeof explicitSchoolId === "number") {
@@ -85,31 +89,34 @@ export class BookService {
   }
 
   private getRoleHeaders() {
-    const role = localStorage.getItem("role") || "";
-    const userSub =
-      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
-    const firstName = (localStorage.getItem("firstName") || "").trim();
-    const lastName = (localStorage.getItem("lastName") || "").trim();
-    const composedName = composeFullName(firstName, lastName);
+    const role = this.authContext.getEffectiveRole();
+    const userSub = this.authContext.getEffectiveSub();
 
-    let userName = composedName;
-    if (!userName) {
-      const nameCandidates = [
-        localStorage.getItem("userName"),
-        localStorage.getItem("fullname"),
-        localStorage.getItem("name"),
-      ];
-      const { firstName: inferredFirst, lastName: inferredLast } =
-        inferNameParts(firstName || null, lastName || null, nameCandidates);
-      userName =
-        composeFullName(inferredFirst, inferredLast) ||
-        firstName ||
-        lastName ||
-        localStorage.getItem("userName") ||
-        localStorage.getItem("fullname") ||
-        localStorage.getItem("username") ||
-        localStorage.getItem("name") ||
-        "Gebruiker";
+    let userName = "Gebruiker";
+    if (!this.authContext.isAdminMode()) {
+      const firstName = (localStorage.getItem("firstName") || "").trim();
+      const lastName = (localStorage.getItem("lastName") || "").trim();
+      const composedName = composeFullName(firstName, lastName);
+      if (composedName) {
+        userName = composedName;
+      } else {
+        const nameCandidates = [
+          localStorage.getItem("userName"),
+          localStorage.getItem("fullname"),
+          localStorage.getItem("name"),
+        ];
+        const { firstName: inferredFirst, lastName: inferredLast } =
+          inferNameParts(firstName || null, lastName || null, nameCandidates);
+        userName =
+          composeFullName(inferredFirst, inferredLast) ||
+          firstName ||
+          lastName ||
+          localStorage.getItem("userName") ||
+          localStorage.getItem("fullname") ||
+          localStorage.getItem("username") ||
+          localStorage.getItem("name") ||
+          "Gebruiker";
+      }
     }
     return {
       headers: {
@@ -406,9 +413,8 @@ export class BookService {
   }
 
   private getUserSubHeaders() {
-    const userSub =
-      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
-    const token = localStorage.getItem("smartschoolToken");
+    const userSub = this.authContext.getEffectiveSub();
+    const token = this.authContext.getEffectiveBearerToken();
     return {
       headers: {
         "X-User-Sub": userSub,
