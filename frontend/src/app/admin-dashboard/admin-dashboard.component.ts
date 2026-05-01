@@ -16,6 +16,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   schoolError = "";
   schools: AdminSchoolDashboardItem[] = [];
 
+  // Filter + pagination
+  searchQuery = "";
+  statusFilter = "";
+  currentPage = 1;
+  readonly pageSize = 12;
+
   mapError = "";
   mapSchoolCount = 0;
   private adminMap: L.Map | null = null;
@@ -104,6 +110,35 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
       },
     });
   }
+
+  get activeCount():  number { return this.schools.filter(s => s.status === "ACTIVE").length; }
+  get inactiveCount(): number { return this.schools.filter(s => s.status === "INACTIVE").length; }
+  get pendingCount():  number { return this.schools.filter(s => s.status === "PENDING").length; }
+
+  get filteredSchools(): AdminSchoolDashboardItem[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    return this.schools.filter(s => {
+      const matchName   = !q || (s.naam ?? s.subdomain).toLowerCase().includes(q);
+      const matchStatus = !this.statusFilter || s.status === this.statusFilter;
+      return matchName && matchStatus;
+    });
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredSchools.length / this.pageSize));
+  }
+
+  get pagedSchools(): AdminSchoolDashboardItem[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredSchools.slice(start, start + this.pageSize);
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+  }
+
+  prevPage(): void { if (this.currentPage > 1) this.currentPage--; }
+  nextPage(): void { if (this.currentPage < this.totalPages) this.currentPage++; }
 
   goToSchoolWizard(): void {
     this.router.navigate(["/admin/schools/new"]);

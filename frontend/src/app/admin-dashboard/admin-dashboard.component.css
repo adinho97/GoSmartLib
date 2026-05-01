@@ -114,16 +114,26 @@
   border-radius: 12px;
   padding: 20px 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .schools-section-header {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 18px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.schools-section-header h2 {
+.schools-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.schools-title-row h2 {
   margin: 0;
   font-size: 17px;
   font-weight: 700;
@@ -133,6 +143,101 @@
 .schools-count {
   color: #94a3b8;
   font-size: 13px;
+}
+
+/* Status stat chips */
+.schools-stats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.chip-active   { background: #dcfce7; color: #166534; }
+.chip-inactive { background: #f1f5f9; color: #64748b; }
+.chip-pending  { background: #fef9c3; color: #854d0e; }
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-search {
+  flex: 1;
+  min-width: 180px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.filter-search:focus {
+  outline: none;
+  border-color: #871f42;
+  box-shadow: 0 0 0 2px rgba(135, 31, 66, 0.08);
+}
+
+.filter-select {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #374151;
+  background: white;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #871f42;
+}
+
+.empty-filter-text {
+  color: #9ca3af;
+  font-size: 14px;
+  font-style: italic;
+  margin: 8px 0 0;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.btn-page {
+  background: #f1f5f9;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+}
+
+.btn-page:hover:not(:disabled) { background: #e2e8f0; }
+.btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.page-info {
+  font-size: 13px;
+  color: #6b7280;
+  min-width: 50px;
+  text-align: center;
 }
 
 .error-message {
@@ -163,8 +268,8 @@
 /* School grid */
 .school-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
 }
 
 .school-card {
