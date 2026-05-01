@@ -37,6 +37,10 @@ export interface SchoolDetail {
   aangemaaktOp: string;
   userCount: number;
   klasCount: number;
+  bookCount: number;
+  activeLoansCount: number;
+  wishlistCount: number;
+  classReadingListCount: number;
 }
 
 export interface UpdateSchoolInfoRequest {
