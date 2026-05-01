@@ -92,6 +92,29 @@ export class AppComponent implements OnInit {
     return !!this.userRole && !isAuthPage;
   }
 
+  get showAdminBar(): boolean {
+    const url = this.router.url || "";
+    const isAdminRoute = url.startsWith("/admin") || url.startsWith("/super-admin");
+    return !!localStorage.getItem("admin_jwt_token") && !isAdminRoute;
+  }
+
+  get adminSchoolName(): string {
+    return localStorage.getItem("adminLibrarySchoolName") || "School";
+  }
+
+  get adminSchoolId(): string {
+    return localStorage.getItem("adminLibrarySchoolId") || "";
+  }
+
+  goBackToAdmin(): void {
+    const schoolId = this.adminSchoolId;
+    if (schoolId) {
+      this.router.navigate(["/admin/schools", schoolId]);
+    } else {
+      this.router.navigate(["/admin/dashboard"]);
+    }
+  }
+
   get isDidacticCollectionActive(): boolean {
     return (
       this.currentUrl.startsWith("/books") &&
