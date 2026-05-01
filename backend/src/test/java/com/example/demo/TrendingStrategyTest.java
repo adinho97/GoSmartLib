@@ -5,6 +5,7 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
+import com.example.demo.entities.School;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
@@ -24,6 +25,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -220,6 +222,54 @@ class TrendingStrategyTest {
         List<RecommendedBook> result = trendingStrategy.recommend("user123", 0, true);
 
         assertEquals(0, result.size());
+    }
+
+    @Test
+    @DisplayName("should call findAllBySchool_Id when user has a school assigned")
+    void testRecommendUsesSchoolScopedBooksWhenUserHasSchool() {
+        School school = new School();
+        school.setId(7L);
+        testUser.setSchool(school);
+
+        Book schoolBook = createBook(20L, "Trending School Book", "Author", "Fantasy");
+        BookCopy schoolCopy = createBookCopy(20L, schoolBook);
+
+        // System-wide loan on the school book to make it trending
+        Loan systemLoan = createLoan(500L, schoolCopy, "other-user");
+
+        when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findAll()).thenReturn(List.of(systemLoan));
+        when(bookRepository.findAllBySchool_Id(7L)).thenReturn(List.of(schoolBook));
+
+        List<RecommendedBook> result = trendingStrategy.recommend("user123", 10, false);
+
+        verify(bookRepository).findAllBySchool_Id(7L);
+        verify(bookRepository, never()).findAll();
+        assertEquals(1, result.size());
+        assertEquals(20L, result.get(0).getBookId());
+        assertEquals(100.0, result.get(0).getScore(), 0.01);
+    }
+
+    @Test
+    @DisplayName("should call findAll when user has no school assigned")
+    void testRecommendUsesAllBooksWhenUserHasNoSchool() {
+        // testUser has no school (setUp creates it without one)
+        Book sysBook = createBook(10L, "System Wide Book", "Author", "Fantasy");
+        BookCopy sysCopy = createBookCopy(10L, sysBook);
+        Loan systemLoan = createLoan(600L, sysCopy, "other-user");
+
+        when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
+        when(loanRepository.findAll()).thenReturn(List.of(systemLoan));
+        when(bookRepository.findAll()).thenReturn(List.of(sysBook));
+
+        List<RecommendedBook> result = trendingStrategy.recommend("user123", 10, false);
+
+        verify(bookRepository).findAll();
+        verify(bookRepository, never()).findAllBySchool_Id(anyLong());
+        assertEquals(1, result.size());
+        assertEquals(10L, result.get(0).getBookId());
     }
 
     private Book createBook(Long id, String titel, String auteur, String genre) {

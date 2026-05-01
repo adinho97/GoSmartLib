@@ -1,7 +1,9 @@
 package com.example.demo;
 
 import com.example.demo.dto.RecommendedBook;
+import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.School;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.strategies.NewArrivalsStrategy;
@@ -15,8 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -96,6 +100,49 @@ class NewArrivalsStrategyTest {
         for (int i = 0; i < resultExclude.size(); i++) {
             assertEquals(resultExclude.get(i).getBookId(), resultInclude.get(i).getBookId());
         }
+    }
+
+    @Test
+    @DisplayName("should call findAllBySchool_Id when user has a school assigned")
+    void testRecommendUsesSchoolScopedBooksWhenUserHasSchool() {
+        School school = new School();
+        school.setId(5L);
+
+        AppUser user = new AppUser();
+        user.setSub("user123");
+        user.setSchool(school);
+
+        Book schoolBook1 = createBook(10L, "School Book 1", "Author A", "Fantasy");
+        Book schoolBook2 = createBook(11L, "School Book 2", "Author B", "Fantasy");
+
+        when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(user));
+        when(bookRepository.findAllBySchool_Id(5L)).thenReturn(List.of(schoolBook1, schoolBook2));
+
+        List<RecommendedBook> result = newArrivalsStrategy.recommend("user123", 10);
+
+        assertEquals(2, result.size());
+        assertEquals(11L, result.get(0).getBookId()); // sorted by ID desc
+        assertEquals(10L, result.get(1).getBookId());
+        verify(bookRepository).findAllBySchool_Id(5L);
+        verify(bookRepository, never()).findAll();
+    }
+
+    @Test
+    @DisplayName("should fall back to findAll when user has no school assigned")
+    void testRecommendUsesAllBooksWhenUserHasNoSchool() {
+        AppUser user = new AppUser();
+        user.setSub("user123");
+        // no school set
+
+        when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(user));
+        when(bookRepository.findAll()).thenReturn(List.of(book1, book2, book3));
+
+        List<RecommendedBook> result = newArrivalsStrategy.recommend("user123", 10);
+
+        assertEquals(3, result.size());
+        assertEquals(3L, result.get(0).getBookId()); // sorted by ID desc
+        verify(bookRepository).findAll();
+        verify(bookRepository, never()).findAllBySchool_Id(anyLong());
     }
 
     private Book createBook(Long id, String titel, String auteur, String genre) {

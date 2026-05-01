@@ -395,6 +395,136 @@ class BookControllerTest {
                                 .andExpect(status().isBadRequest());
         }
 
+        // ---- school restriction -------------------------------------------------
+
+        @Test
+        void getAllShouldUseSchoolFilterWhenUserSubMapsToASchool() throws Exception {
+                School school = new School();
+                school.setId(1L);
+
+                AppUser student = new AppUser();
+                student.setSub("student-sub");
+                student.setSchool(school);
+
+                Book book = new Book();
+                book.setId(5L);
+                book.setTitel("Schoolboek");
+                book.setAuteur("Auteur");
+
+                when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
+                when(bookRepository.findAllBySchool_Id(1L)).thenReturn(List.of(book));
+
+                mockMvc.perform(get("/api/boeken")
+                                .header("X-User-Sub", "student-sub"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(5))
+                                .andExpect(jsonPath("$[0].titel").value("Schoolboek"));
+
+                verify(bookRepository).findAllBySchool_Id(1L);
+                verify(bookRepository, never()).findAll();
+        }
+
+        @Test
+        void getAllShouldReturnRequestedSchoolBooksWhenSchoolIdParamOverridesUserSchool() throws Exception {
+                Book otherSchoolBook = new Book();
+                otherSchoolBook.setId(9L);
+                otherSchoolBook.setTitel("Boek van andere school");
+                otherSchoolBook.setAuteur("Auteur B");
+
+                when(bookRepository.findAllBySchool_Id(2L)).thenReturn(List.of(otherSchoolBook));
+
+                mockMvc.perform(get("/api/boeken")
+                                .header("X-User-Sub", "teacher-sub")
+                                .param("schoolId", "2"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(9));
+
+                verify(bookRepository).findAllBySchool_Id(2L);
+                verify(bookRepository, never()).findAllBySchool_Id(1L);
+        }
+
+        @Test
+        void getByIdShouldReturn404WhenLeerlingRequestsBookFromDifferentSchool() throws Exception {
+                School studentSchool = new School();
+                studentSchool.setId(1L);
+
+                AppUser student = new AppUser();
+                student.setSub("student-sub");
+                student.setSchool(studentSchool);
+
+                when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
+                when(bookRepository.findByIdAndSchool_Id(5L, 1L)).thenReturn(Optional.empty());
+
+                mockMvc.perform(get("/api/boeken/5")
+                                .header("X-User-Role", "leerling")
+                                .header("X-User-Sub", "student-sub"))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void getByIdShouldReturnBookWhenLeerlingRequestsBookFromOwnSchool() throws Exception {
+                School school = new School();
+                school.setId(1L);
+
+                AppUser student = new AppUser();
+                student.setSub("student-sub");
+                student.setSchool(school);
+
+                Book book = new Book();
+                book.setId(5L);
+                book.setTitel("Eigen Schoolboek");
+                book.setAuteur("Auteur");
+
+                when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
+                when(bookRepository.findByIdAndSchool_Id(5L, 1L)).thenReturn(Optional.of(book));
+
+                mockMvc.perform(get("/api/boeken/5")
+                                .header("X-User-Role", "leerling")
+                                .header("X-User-Sub", "student-sub"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(5))
+                                .andExpect(jsonPath("$.titel").value("Eigen Schoolboek"));
+        }
+
+        @Test
+        void getReviewsShouldReturnForbiddenForLeerlingFromDifferentSchool() throws Exception {
+                School studentSchool = new School();
+                studentSchool.setId(1L);
+
+                AppUser student = new AppUser();
+                student.setSub("student-sub");
+                student.setSchool(studentSchool);
+
+                when(bookRepository.existsById(5L)).thenReturn(true);
+                when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
+                when(bookRepository.existsByIdAndSchool_Id(5L, 1L)).thenReturn(false);
+
+                mockMvc.perform(get("/api/boeken/5/reviews")
+                                .header("X-User-Role", "leerling")
+                                .header("X-User-Sub", "student-sub"))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void getReviewsShouldReturnOkForLeerlingWhenBookBelongsToOwnSchool() throws Exception {
+                School school = new School();
+                school.setId(1L);
+
+                AppUser student = new AppUser();
+                student.setSub("student-sub");
+                student.setSchool(school);
+
+                when(bookRepository.existsById(5L)).thenReturn(true);
+                when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
+                when(bookRepository.existsByIdAndSchool_Id(5L, 1L)).thenReturn(true);
+                when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(5L)).thenReturn(List.of());
+
+                mockMvc.perform(get("/api/boeken/5/reviews")
+                                .header("X-User-Role", "leerling")
+                                .header("X-User-Sub", "student-sub"))
+                                .andExpect(status().isOk());
+        }
+
         // ---- helpers ------------------------------------------------------------
 
         private BookDto makeDto() {

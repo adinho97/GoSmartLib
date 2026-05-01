@@ -315,6 +315,91 @@ class LoanServiceTest {
         verify(loanRepository, times(1)).save(any(Loan.class));
     }
 
+    @Test
+    void createLoan_AllowsLeerkrachtToBorrowBookFromDifferentSchool() {
+        School schoolA = buildSchool(1L);
+        School schoolB = buildSchool(2L);
+
+        Book book = buildBook(10L, "Dune");
+        book.setSchool(schoolB);
+
+        BookCopy copy = buildCopy(201L, book, BookCopy.CopyStatus.AVAILABLE, BookCopy.CopyCondition.GOOD);
+
+        AppUser leerkracht = new AppUser();
+        leerkracht.setSub("teacher-sub");
+        leerkracht.setRole("leerkracht");
+        leerkracht.setSchool(schoolA);
+
+        when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
+        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(appUserRepository.findBySub("teacher-sub")).thenReturn(java.util.Optional.of(leerkracht));
+
+        CreateLoanRequest request = new CreateLoanRequest();
+        request.setBookId(10L);
+        request.setUserSub("teacher-sub");
+        request.setDueDate(LocalDate.now().plusDays(14));
+
+        assertDoesNotThrow(() -> loanService.createLoan(request));
+        verify(loanRepository, times(1)).save(any(Loan.class));
+    }
+
+    @Test
+    void createLoan_AllowsBibbeheerderToBorrowBookFromDifferentSchool() {
+        School schoolA = buildSchool(1L);
+        School schoolB = buildSchool(2L);
+
+        Book book = buildBook(10L, "1984");
+        book.setSchool(schoolB);
+
+        BookCopy copy = buildCopy(202L, book, BookCopy.CopyStatus.AVAILABLE, BookCopy.CopyCondition.GOOD);
+
+        AppUser bibbeheerder = new AppUser();
+        bibbeheerder.setSub("librarian-sub");
+        bibbeheerder.setRole("bibbeheerder");
+        bibbeheerder.setSchool(schoolA);
+
+        when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
+        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(appUserRepository.findBySub("librarian-sub")).thenReturn(java.util.Optional.of(bibbeheerder));
+
+        CreateLoanRequest request = new CreateLoanRequest();
+        request.setBookId(10L);
+        request.setUserSub("librarian-sub");
+        request.setDueDate(LocalDate.now().plusDays(14));
+
+        assertDoesNotThrow(() -> loanService.createLoan(request));
+        verify(loanRepository, times(1)).save(any(Loan.class));
+    }
+
+    @Test
+    void createLoan_AllowsLeerlingWithNoSchoolToAttemptBorrow() {
+        School bookSchool = buildSchool(2L);
+
+        Book book = buildBook(10L, "Harry Potter");
+        book.setSchool(bookSchool);
+
+        BookCopy copy = buildCopy(203L, book, BookCopy.CopyStatus.AVAILABLE, BookCopy.CopyCondition.GOOD);
+
+        AppUser leerling = new AppUser();
+        leerling.setSub("student-no-school");
+        leerling.setRole("leerling");
+        leerling.setSchool(null);
+
+        when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
+        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(appUserRepository.findBySub("student-no-school")).thenReturn(java.util.Optional.of(leerling));
+
+        CreateLoanRequest request = new CreateLoanRequest();
+        request.setBookId(10L);
+        request.setUserSub("student-no-school");
+        request.setDueDate(LocalDate.now().plusDays(14));
+
+        assertDoesNotThrow(() -> loanService.createLoan(request));
+    }
+
     private School buildSchool(Long id) {
         School school = new School();
         school.setId(id);

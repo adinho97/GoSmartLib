@@ -5,6 +5,7 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
+import com.example.demo.entities.School;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
@@ -24,6 +25,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -197,6 +199,51 @@ class AuthorBasedStrategyTest {
         List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 1, true);
 
         assertEquals(1, result.size());
+    }
+
+    @Test
+    @DisplayName("should call findAllBySchool_Id when user has a school assigned")
+    void testRecommendUsesSchoolScopedBooksWhenUserHasSchool() {
+        School school = new School();
+        school.setId(10L);
+        testUser.setSchool(school);
+
+        // User read rowlingBook1 (J.K. Rowling); school has one more Rowling book
+        Book schoolRowlingBook = createBook(20L, "Rowling School Title", "J.K. Rowling", "Fantasy");
+        Book schoolTolkienBook = createBook(21L, "Tolkien School Title", "J.R.R. Tolkien", "Fantasy");
+
+        Loan loan = createLoan(1L, copy1, "user123"); // copy1 has rowlingBook1
+        loan.setReturnedAt(LocalDate.now());
+
+        when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(loan));
+        when(bookRepository.findAllBySchool_Id(10L)).thenReturn(List.of(schoolRowlingBook, schoolTolkienBook));
+
+        List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10, true);
+
+        verify(bookRepository).findAllBySchool_Id(10L);
+        verify(bookRepository, never()).findAll();
+        assertEquals(1, result.size());
+        assertEquals(20L, result.get(0).getBookId()); // only the Rowling book matches
+    }
+
+    @Test
+    @DisplayName("should call findAll when user has no school assigned")
+    void testRecommendUsesAllBooksWhenUserHasNoSchool() {
+        // testUser has no school (setUp creates it without one)
+        Loan loan = createLoan(1L, copy1, "user123"); // J.K. Rowling
+        loan.setReturnedAt(LocalDate.now());
+
+        when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
+        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(List.of(loan));
+        when(bookRepository.findAll()).thenReturn(List.of(rowlingBook2, tolkienBook1, herbertBook1));
+
+        List<RecommendedBook> result = authorBasedStrategy.recommend("user123", 10, true);
+
+        verify(bookRepository).findAll();
+        verify(bookRepository, never()).findAllBySchool_Id(anyLong());
+        assertEquals(1, result.size()); // only rowlingBook2 matches J.K. Rowling
+        assertEquals(2L, result.get(0).getBookId());
     }
 
     private Book createBook(Long id, String titel, String auteur, String genre) {
