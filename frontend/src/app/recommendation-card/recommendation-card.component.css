@@ -8,8 +8,7 @@
   min-width: 180px;
   max-width: 320px;
   height: 380px;
-  flex: 0 0 320px;
-  scroll-snap-align: start;
+  align-self: start;
   background: white;
   border-radius: 20px;
   padding: 16px 24px;
