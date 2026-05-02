@@ -17,6 +17,7 @@
   position: relative;
   overflow: visible;
   z-index: 1;
+  cursor: pointer;
 }
 
 .button-container {
@@ -304,25 +305,6 @@
   margin-top: 3px;
 }
 
-.details-btn {
-  margin-top: auto;
-  background: #871f42;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  width: 80%;
-  align-self: center;
-}
-
-.details-btn:hover {
-  background: #60162f;
-  transform: scale(1.05);
-}
-
 /* Teacher Card Styling */
 .book-card.teacher-card {
   border: none;
@@ -342,14 +324,6 @@
 
 .teacher-tag {
   background-color: #e67e22 !important;
-}
-
-.teacher-btn {
-  background-color: #d35400 !important;
-}
-
-.teacher-btn:hover {
-  background-color: #c24600 !important;
 }
 
 .loan-date {
