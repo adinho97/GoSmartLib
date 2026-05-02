@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 /* Boek Kaart */
 .book-card {
   width: 190px;
@@ -211,6 +215,7 @@
   transform: translateY(-10px);
   border-color: #871f42;
   box-shadow: 0 15px 35px rgba(135, 31, 66, 0.12);
+  z-index: 10;
 }
 
 .genre-tag {

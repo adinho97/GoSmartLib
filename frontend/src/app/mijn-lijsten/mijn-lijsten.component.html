@@ -72,7 +72,7 @@
       <p class="empty-msg">Je hebt momenteel geen geleende boeken.</p>
     } @else {
       <div class="book-grid">
-        @for (loan of loans; track loan.id) {
+        @for (loan of loans.slice(0, visibleCount); track loan.id) {
           <app-recommendation-card
             [book]="loanToBook(loan)"
             [profileVariant]="'history'"
@@ -81,6 +81,11 @@
           ></app-recommendation-card>
         }
       </div>
+      @if (loans.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ loans.length - visibleCount }} meer)</span>
+        </button>
+      }
     }
   }
 
@@ -98,7 +103,7 @@
       <p class="empty-msg">Je verlanglijst is leeg. Voeg boeken toe via de catalogus.</p>
     } @else {
       <div class="book-grid">
-        @for (item of wishlistItems; track item.bookId) {
+        @for (item of wishlistItems.slice(0, visibleCount); track item.bookId) {
           <app-recommendation-card
             [book]="wishlistToBook(item)"
             [profileVariant]="'wishlist'"
@@ -110,6 +115,11 @@
           ></app-recommendation-card>
         }
       </div>
+      @if (wishlistItems.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ wishlistItems.length - visibleCount }} meer)</span>
+        </button>
+      }
     }
   }
 
@@ -127,7 +137,7 @@
       <p class="empty-msg">Er zijn momenteel geen boeken in de klasleeslijst.</p>
     } @else {
       <div class="book-grid">
-        @for (book of classReadingBooks; track book.bookId) {
+        @for (book of classReadingBooks.slice(0, visibleCount); track book.bookId) {
           <app-recommendation-card
             [book]="book"
             [profileVariant]="'dashboard'"
@@ -135,6 +145,11 @@
           ></app-recommendation-card>
         }
       </div>
+      @if (classReadingBooks.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ classReadingBooks.length - visibleCount }} meer)</span>
+        </button>
+      }
     }
   }
 
@@ -152,7 +167,7 @@
       <p class="empty-msg">Er zijn momenteel geen boeken in de kijker.</p>
     } @else {
       <div class="book-grid">
-        @for (book of highlightedBooks; track book.bookId) {
+        @for (book of highlightedBooks.slice(0, visibleCount); track book.bookId) {
           <app-recommendation-card
             [book]="book"
             [profileVariant]="'dashboard'"
@@ -160,6 +175,11 @@
           ></app-recommendation-card>
         }
       </div>
+      @if (highlightedBooks.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ highlightedBooks.length - visibleCount }} meer)</span>
+        </button>
+      }
     }
   }
 
@@ -177,7 +197,7 @@
       <p class="empty-msg">Je hebt nog geen boeken ontleend.</p>
     } @else {
       <div class="book-grid">
-        @for (loan of loanHistory; track loan.id) {
+        @for (loan of loanHistory.slice(0, visibleCount); track loan.id) {
           <app-recommendation-card
             [book]="historyToBook(loan)"
             [profileVariant]="'history'"
@@ -186,6 +206,11 @@
           ></app-recommendation-card>
         }
       </div>
+      @if (loanHistory.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ loanHistory.length - visibleCount }} meer)</span>
+        </button>
+      }
     }
   }
 </div>

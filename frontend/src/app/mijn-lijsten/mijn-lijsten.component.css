@@ -110,6 +110,8 @@
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 40px 20px;
   padding-top: 8px;
+  padding-bottom: 20px;
+  align-items: start;
 }
 
 /* Loader */
@@ -141,5 +143,29 @@
   color: var(--ink-3);
   padding: var(--s-6) 0;
   margin: 0;
+}
+
+.show-more-btn {
+  display: block;
+  margin: 32px auto 0;
+  padding: 10px 28px;
+  background: none;
+  border: 2px solid var(--brand);
+  border-radius: 999px;
+  color: var(--brand);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.show-more-btn:hover {
+  background: var(--brand);
+  color: #fff;
+}
+
+.show-more-count {
+  font-weight: 400;
+  opacity: 0.75;
 }
 

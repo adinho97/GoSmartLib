@@ -157,9 +157,17 @@ export class MijnLijstenComponent implements OnInit {
     }
   }
 
+  private readonly PAGE_SIZE = 12;
+  visibleCount = this.PAGE_SIZE;
+
   selectTab(tab: Tab): void {
     this.activeTab = tab;
+    this.visibleCount = this.PAGE_SIZE;
     this.router.navigate([], { fragment: tab, replaceUrl: true });
+  }
+
+  showMore(): void {
+    this.visibleCount += this.PAGE_SIZE;
   }
 
   daysLeft(dueDate: string): number {
