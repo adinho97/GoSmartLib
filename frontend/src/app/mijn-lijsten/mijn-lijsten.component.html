@@ -73,27 +73,12 @@
     } @else {
       <div class="book-grid">
         @for (loan of loans; track loan.id) {
-          <div class="grid-card">
-            <div class="loan-cover-wrap">
-              @if (loan.bookCover) {
-                <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="grid-cover" />
-              } @else {
-                <div class="grid-cover placeholder-cover">COVER</div>
-              }
-              <span class="days-pill" [class.urgent]="isUrgent(loan.dueDate)" [class.overdue]="isOverdue(loan.dueDate)">
-                @if (isOverdue(loan.dueDate)) {
-                  Verlopen
-                } @else {
-                  {{ daysLeft(loan.dueDate) }}d resterend
-                }
-              </span>
-            </div>
-            <div class="grid-meta">
-              <p class="grid-title">{{ loan.bookTitel }}</p>
-              <p class="grid-footnote">Inleveren {{ formatDate(loan.dueDate) }}</p>
-              <button class="grid-detail-btn" type="button" (click)="goToDetail(loan.bookId)">Details</button>
-            </div>
-          </div>
+          <app-recommendation-card
+            [book]="loanToBook(loan)"
+            [profileVariant]="'history'"
+            [loanDate]="formatDate(loan.dueDate)"
+            (viewDetails)="goToDetail(loan.bookId)"
+          ></app-recommendation-card>
         }
       </div>
     }
@@ -118,8 +103,9 @@
             [book]="wishlistToBook(item)"
             [profileVariant]="'wishlist'"
             [isUnavailable]="item.availableCopies === 0"
-            [showRemoveBtn]="false"
+            [showRemoveBtn]="true"
             (viewDetails)="goToDetail(item.bookId)"
+            (remove)="onRemoveFromWishlist(item)"
             (toggleBell)="onToggleWishlistBell(item)"
           ></app-recommendation-card>
         }

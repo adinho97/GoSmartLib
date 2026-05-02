@@ -191,7 +191,7 @@ export class MijnLijstenComponent implements OnInit {
   }
 
   loanToBook(loan: Loan): any {
-    return { bookId: loan.bookId, titel: loan.bookTitel, cover: loan.bookCover };
+    return { bookId: loan.bookId, titel: loan.bookTitel, cover: loan.bookCover, deadline: loan.dueDate };
   }
 
   wishlistToBook(item: any): any {
@@ -213,10 +213,19 @@ export class MijnLijstenComponent implements OnInit {
     };
   }
 
+  async onRemoveFromWishlist(item: any): Promise<void> {
+    try {
+      await this.bookService.removeFromWishlist(item.bookId);
+      this.wishlistItems = this.wishlistItems.filter(w => w.bookId !== item.bookId);
+    } catch {
+      // keep current state on error
+    }
+  }
+
   async onToggleWishlistBell(item: any): Promise<void> {
     try {
       await this.bookService.updateWishlistNotification(
-        item.bookId,
+        item.id,
         !item.notificationEnabled,
       );
       item.notificationEnabled = !item.notificationEnabled;

@@ -20,24 +20,30 @@
     </div>
 
     <div class="badge-row">
-      @for (badge of badges; track badge.key) {
+      @for (badge of displayedBadges; track badge.key) {
         <div
           class="badge-chip"
           [class]="badge.cssClass"
           [class.locked]="!badge.unlocked"
-          (click)="navigateToBadges()"
-          role="button"
-          tabindex="0"
-          [attr.aria-label]="badge.label + (badge.unlocked ? ' (behaald)' : ' (nog niet behaald)')"
+          [attr.title]="badge.unlocked ? badge.label + ' behaald' : 'Ontleen ' + badge.hint + ' om te ontgrendelen'"
+          role="img"
+          [attr.aria-label]="badge.label + (badge.unlocked ? ' (behaald)' : ' (nog niet behaald — ' + badge.hint + ')')"
         >
           <div class="badge-icon">{{ badge.icon }}</div>
           <span class="badge-name">{{ badge.label }}</span>
+          <span class="badge-hint">{{ badge.hint }}</span>
         </div>
       }
-      <div class="badge-chip badge-more" (click)="navigateToBadges()" role="button" tabindex="0" aria-label="Bekijk alle badges">
-        <div class="badge-icon">+</div>
-        <span class="badge-name">Bekijk alle</span>
-      </div>
+      <button
+        class="badge-chip badge-more"
+        type="button"
+        (click)="toggleShowAll()"
+        [attr.aria-expanded]="showAll"
+        aria-label="Bekijk alle badges"
+      >
+        <div class="badge-icon">{{ showAll ? '−' : '+' }}</div>
+        <span class="badge-name">{{ showAll ? 'Minder' : 'Bekijk alle' }}</span>
+      </button>
     </div>
   </div>
 }

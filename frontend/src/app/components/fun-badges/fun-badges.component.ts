@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ExperienceService, LevelInfo } from '../../services/experience.service';
 
@@ -8,9 +7,22 @@ interface BadgeChip {
   key: string;
   icon: string;
   label: string;
+  hint: string;
   cssClass: string;
   unlocked: boolean;
+  threshold: number;
 }
+
+const ALL_BADGES: Omit<BadgeChip, 'unlocked'>[] = [
+  { key: 'boekenwurm',   icon: '📚', label: 'Boekenwurm',   hint: '1 boek',    cssClass: 'b1', threshold: 1   },
+  { key: '5-op-rij',     icon: '🔥', label: '5 op rij',     hint: '5 boeken',  cssClass: 'b2', threshold: 5   },
+  { key: 'nachtlezer',   icon: '🌙', label: 'Nachtlezer',   hint: '10 boeken', cssClass: 'b3', threshold: 10  },
+  { key: 'klassiek',     icon: '🏛️', label: 'Klassiek',     hint: '20 boeken', cssClass: 'b4', threshold: 20  },
+  { key: 'leesheld',     icon: '🦸', label: 'Leesheld',     hint: '30 boeken', cssClass: 'b5', threshold: 30  },
+  { key: 'bibliofiel',   icon: '🔖', label: 'Bibliofiel',   hint: '50 boeken', cssClass: 'b6', threshold: 50  },
+  { key: 'meestelezer',  icon: '🏆', label: 'Meestelezer',  hint: '75 boeken', cssClass: 'b7', threshold: 75  },
+  { key: 'legende',      icon: '⭐', label: 'Legende',      hint: '100 boeken',cssClass: 'b8', threshold: 100 },
+];
 
 @Component({
   selector: 'app-fun-badges',
@@ -22,17 +34,14 @@ interface BadgeChip {
 export class FunBadgesComponent implements OnInit {
   levelInfo$: Observable<LevelInfo>;
 
-  badges: BadgeChip[] = [
-    { key: 'boekenwurm', icon: '📚', label: 'Boekenwurm', cssClass: 'b1', unlocked: false },
-    { key: '5-op-rij',   icon: '🔥', label: '5 op rij',   cssClass: 'b2', unlocked: false },
-    { key: 'nachtlezer', icon: '🌙', label: 'Nachtlezer', cssClass: 'b3', unlocked: false },
-    { key: 'klassiek',   icon: '🏛️', label: 'Klassiek',   cssClass: 'b4', unlocked: false },
-  ];
+  allBadges: BadgeChip[] = ALL_BADGES.map(b => ({ ...b, unlocked: false }));
+  showAll = false;
 
-  constructor(
-    private experienceService: ExperienceService,
-    private router: Router,
-  ) {
+  get displayedBadges(): BadgeChip[] {
+    return this.showAll ? this.allBadges : this.allBadges.slice(0, 4);
+  }
+
+  constructor(private experienceService: ExperienceService) {
     this.levelInfo$ = this.experienceService.levelInfo$;
   }
 
@@ -40,9 +49,9 @@ export class FunBadgesComponent implements OnInit {
     const userSub = localStorage.getItem('sub') || '';
     const key = userSub ? `loanXpSyncedCount:${userSub}` : 'loanXpSyncedCount';
     const loanCount = parseInt(localStorage.getItem(key) || '0', 10);
-    this.badges = this.badges.map((b, i) => ({
+    this.allBadges = this.allBadges.map(b => ({
       ...b,
-      unlocked: loanCount >= [1, 5, 10, 20][i],
+      unlocked: loanCount >= b.threshold,
     }));
   }
 
@@ -55,7 +64,7 @@ export class FunBadgesComponent implements OnInit {
     return 'Beginner';
   }
 
-  navigateToBadges(): void {
-    this.router.navigate(['/mijn-lijsten']);
+  toggleShowAll(): void {
+    this.showAll = !this.showAll;
   }
 }

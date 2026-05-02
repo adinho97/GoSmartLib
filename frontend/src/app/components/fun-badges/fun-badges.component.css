@@ -154,6 +154,10 @@
 .badge-chip.b2 .badge-icon { background: linear-gradient(160deg, #c8dde8, #6ba3c4); border-color: #6ba3c4; }
 .badge-chip.b3 .badge-icon { background: linear-gradient(160deg, #f5e3eb, #d4537e); border-color: #d4537e; }
 .badge-chip.b4 .badge-icon { background: linear-gradient(160deg, #d4e6d8, #6ba87e); border-color: #6ba87e; }
+.badge-chip.b5 .badge-icon { background: linear-gradient(160deg, #ece3f8, #9b6dcf); border-color: #9b6dcf; }
+.badge-chip.b6 .badge-icon { background: linear-gradient(160deg, #d0f0f4, #3aabbf); border-color: #3aabbf; }
+.badge-chip.b7 .badge-icon { background: linear-gradient(160deg, #fde8d0, #e07d30); border-color: #e07d30; }
+.badge-chip.b8 .badge-icon { background: linear-gradient(160deg, #fff8c0, #f5c800); border-color: #c9a800; }
 
 .badge-more .badge-icon {
   font-size: 14px;
@@ -167,4 +171,13 @@
   font-weight: 600;
   text-align: center;
   line-height: 1.15;
+}
+
+.badge-hint {
+  font-size: 9.5px;
+  color: var(--ink-4);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.1;
+  margin-top: 1px;
 }
