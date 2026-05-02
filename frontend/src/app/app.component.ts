@@ -93,6 +93,23 @@ export class AppComponent implements OnInit {
     return !!this.userRole && !isAuthPage;
   }
 
+  get showStudentNav(): boolean {
+    return this.showNavbar && this.isStudent;
+  }
+
+  get showStaffNav(): boolean {
+    return this.showNavbar && !this.isStudent;
+  }
+
+  get showFooter(): boolean {
+    return this.showStudentNav;
+  }
+
+  get userInitial(): string {
+    const name = this.userName;
+    return name ? name.charAt(0).toUpperCase() : "G";
+  }
+
   get showAdminBar(): boolean {
     const url = this.router.url || "";
     const isAdminRoute = url.startsWith("/admin") || url.startsWith("/super-admin");

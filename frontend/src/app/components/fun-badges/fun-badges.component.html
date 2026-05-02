@@ -1,0 +1,43 @@
+@if (levelInfo$ | async; as info) {
+  <div class="fun-badges">
+    <div class="fun-badges-head">
+      <div class="fun-badges-title-row">
+        <div class="lvl-coin">{{ info.level }}</div>
+        <div>
+          <p class="fun-badges-title">Niveau {{ info.level }} &middot; {{ getTierLabel(info.level) }}</p>
+          <p class="fun-badges-sub">Nog {{ info.experienceRequiredForLevel - info.experienceForCurrentLevel }} XP tot niveau {{ info.level + 1 }}</p>
+        </div>
+      </div>
+      <div class="streak-flame">🔥 Lees verder</div>
+    </div>
+
+    <div class="xp-track" role="progressbar" [attr.aria-valuenow]="info.progressPercentage" aria-valuemin="0" aria-valuemax="100">
+      <div class="xp-fill" [style.width.%]="info.progressPercentage"></div>
+    </div>
+    <div class="xp-meta">
+      <span>{{ info.experienceForCurrentLevel }} XP</span>
+      <span>{{ info.experienceRequiredForLevel }} XP</span>
+    </div>
+
+    <div class="badge-row">
+      @for (badge of badges; track badge.key) {
+        <div
+          class="badge-chip"
+          [class]="badge.cssClass"
+          [class.locked]="!badge.unlocked"
+          (click)="navigateToBadges()"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="badge.label + (badge.unlocked ? ' (behaald)' : ' (nog niet behaald)')"
+        >
+          <div class="badge-icon">{{ badge.icon }}</div>
+          <span class="badge-name">{{ badge.label }}</span>
+        </div>
+      }
+      <div class="badge-chip badge-more" (click)="navigateToBadges()" role="button" tabindex="0" aria-label="Bekijk alle badges">
+        <div class="badge-icon">+</div>
+        <span class="badge-name">Bekijk alle</span>
+      </div>
+    </div>
+  </div>
+}

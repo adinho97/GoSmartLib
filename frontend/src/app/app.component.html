@@ -69,7 +69,73 @@
   </div>
 }
 
-@if (showNavbar) {
+<!-- Student header (editorial redesign) -->
+@if (showStudentNav) {
+  <header class="app-header" (click)="$event.stopPropagation()">
+    <div class="app-header-inner">
+      <a class="app-logo" [routerLink]="['/dashboard']" aria-label="GO!SmartLib Home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        GO<span class="bang">!</span>SmartLib
+      </a>
+      <nav class="app-nav" aria-label="Hoofdnavigatie">
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >Dashboard</a>
+        <a
+          href="javascript:void(0)"
+          (click)="navigateToMySchoolBooks()"
+          [class.active]="isBooksListActive"
+        >Boeken</a>
+        <a
+          routerLink="/mijn-lijsten"
+          routerLinkActive="active"
+        >Mijn Lijsten</a>
+        <a routerLink="/info" routerLinkActive="active">Info</a>
+      </nav>
+
+      <div class="app-header-right">
+        <!-- Level chip -->
+        @if (levelInfo$ | async; as levelInfo) {
+          <div class="level-chip" title="Niveau {{ levelInfo.level }}">
+            <span class="lvl-num">{{ levelInfo.level }}</span>
+            <span>Niveau</span>
+          </div>
+        }
+
+        <!-- Avatar / profile menu -->
+        <div class="profile-menu" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="avatar-btn"
+            [attr.aria-label]="'Profielmenu voor ' + userName"
+            [attr.aria-expanded]="profileMenuOpen"
+            (click)="toggleProfileMenu($event)"
+          >{{ userInitial }}</button>
+
+          @if (profileMenuOpen) {
+            <div class="profile-dropdown" role="menu" aria-label="Profielmenu">
+              <p class="profile-name">{{ userName }}</p>
+              <p class="profile-role-text">{{ userRoleLabel }}</p>
+              <button
+                type="button"
+                class="profile-logout-btn"
+                (click)="logout()"
+              >Uitloggen</button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </header>
+}
+
+<!-- Staff / librarian header (unchanged look) -->
+@if (showStaffNav) {
   <header class="top-nav">
     <nav class="top-nav-inner" aria-label="Hoofdnavigatie">
       <div class="nav-left">
@@ -162,9 +228,6 @@
             }
           </div>
         }
-        @if (isStudent) {
-          <a routerLink="/info" routerLinkActive="active">Informatie</a>
-        }
         <div class="profile-menu" (click)="$event.stopPropagation()">
           <button
             type="button"
@@ -236,6 +299,10 @@
 <main class="app-shell" [class.with-nav]="showNavbar">
   <router-outlet></router-outlet>
 </main>
+
+@if (showFooter) {
+  <app-footer></app-footer>
+}
 
 <app-badge-toast></app-badge-toast>
 <app-ui-toast></app-ui-toast>

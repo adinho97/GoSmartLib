@@ -1,0 +1,13 @@
+<button class="info-btn" type="button" (click)="open()" [attr.aria-label]="'Info: ' + title">i</button>
+
+@if (isOpen) {
+  <div class="info-modal-backdrop" (click)="close()">
+    <div class="info-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="info-modal-head">
+        <h3>{{ title }}</h3>
+        <button class="info-modal-close" type="button" (click)="close()" aria-label="Sluit">×</button>
+      </div>
+      <p>{{ description }}</p>
+    </div>
+  </div>
+}

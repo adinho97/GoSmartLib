@@ -27,6 +27,7 @@ import { LoanOverviewComponent } from "./loan-overview/loan-overview.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 import { MapScreenComponent } from "./map-screen/map-screen.component";
+import { MijnLijstenComponent } from "./mijn-lijsten/mijn-lijsten.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -156,6 +157,12 @@ export const appRoutes: Routes = [
     component: BibFaqBeheerComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
+  },
+  {
+    path: "mijn-lijsten",
+    component: MijnLijstenComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerling"] },
   },
 ];
 

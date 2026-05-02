@@ -2,6 +2,52 @@
 
 @import "leaflet/dist/leaflet.css";
 
+/* ─── GO!SmartLib design tokens ─── */
+:root {
+  --brand: #871f42;
+  --brand-600: #6f1937;
+  --brand-700: #58122c;
+  --brand-50: #fbf2f5;
+  --brand-100: #f5e3eb;
+
+  --bg: #faf8f6;
+  --surface: #ffffff;
+  --surface-2: #f3efeb;
+  --line: #e8e2dc;
+  --line-strong: #d6cdc4;
+
+  --ink: #1a1614;
+  --ink-2: #4d433d;
+  --ink-3: #7a6e66;
+  --ink-4: #a89c92;
+
+  --warn: #b86a17;
+  --warn-bg: #fdf3e6;
+  --good: #2e6b3f;
+  --good-bg: #ebf3ec;
+  --info: #2d5a78;
+
+  --r-sm: 6px;
+  --r: 10px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 72px;
+
+  --font-ui: Arial, Helvetica, sans-serif;
+
+  --shadow-1: 0 1px 2px rgba(26,22,20,.04), 0 1px 1px rgba(26,22,20,.03);
+  --shadow-2: 0 4px 12px rgba(26,22,20,.06), 0 2px 4px rgba(26,22,20,.04);
+  --shadow-pop: 0 16px 40px -12px rgba(135,31,66,.18), 0 4px 12px rgba(26,22,20,.06);
+}
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;

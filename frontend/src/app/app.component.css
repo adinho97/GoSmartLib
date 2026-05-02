@@ -553,3 +553,131 @@
     transform: translateX(50%);
   }
 }
+
+/* ── Student editorial header ── */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(250,248,246,.88);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-ui, Arial, Helvetica, sans-serif);
+}
+
+.app-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 14px 28px;
+}
+
+.app-logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--brand);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.app-logo .bang { color: var(--ink); }
+
+.app-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.app-nav a {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.app-nav a:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.app-nav a.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.app-header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.level-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  font-weight: 500;
+  transition: border-color 0.15s;
+}
+
+.level-chip:hover { border-color: var(--line-strong); }
+
+.level-chip .lvl-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.avatar-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  border: 0;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s;
+  padding: 0;
+  margin: 0;
+}
+
+.avatar-btn:hover { background: var(--brand-600); }
+
+/* Make host flex column so footer sticks to bottom */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-shell {
+  flex: 1;
+}

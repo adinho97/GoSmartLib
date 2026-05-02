@@ -11,17 +11,6 @@ import { UserPreferencesService } from "../services/user-preferences.service";
 import { SchoolService } from "../services/school.service";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
 
-type BookResponse = {
-  id?: number;
-  titel?: string;
-  auteur?: string;
-  genre?: string;
-  taal?: string;
-  paginas?: number | null;
-  cover?: string | null;
-  beschrijving?: string;
-};
-
 @Component({
   selector: "app-dashboard",
   templateUrl: "./dashboard.component.html",
@@ -29,62 +18,49 @@ type BookResponse = {
   standalone: false,
 })
 export class DashboardComponent implements OnInit {
-  activeInfoKey: keyof typeof this.infoContent | null = null;
-  readonly infoContent = {
-    profileTop: {
-      title: "Profiel en snelle acties",
-      description:
-        "Hier zie je je basisprofiel en snelle acties zoals uitloggen. Dit deel helpt je om snel je account te beheren.",
-    },
-    trending: {
-      title: "Populairste boeken",
-      description:
-        "Deze lijst toont de meest uitgeleende en bekeken boeken. Je kunt hier snel ontdekken wat momenteel het meest gelezen wordt.",
-    },
-    newArrivals: {
-      title: "Nieuwe aankomsten",
-      description:
-        "Hier vind je recent toegevoegde boeken in de bibliotheek. Handig om nieuw materiaal meteen te ontdekken.",
-    },
-    genre: {
-      title: "Aanbevolen op genre",
-      description:
-        "Deze aanbevelingen zijn gebaseerd op jouw voorkeuren en leesgedrag per genre. Zo krijg je suggesties die aansluiten bij wat je graag leest.",
-    },
-    author: {
-      title: "Aanbevolen op auteur",
-      description:
-        "Dit onderdeel toont boeken van auteurs die passen bij jouw eerdere keuzes. Zo vind je snel vergelijkbare schrijfstijlen en thema's.",
-    },
-    profileDetails: {
-      title: "Profielgegevens",
-      description:
-        "In dit profielgedeelte bekijk je uitgebreidere gegevens en persoonlijke onderdelen van je account binnen de website.",
-    },
-  } as const;
   trendingBooks: RecommendedBook[] = [];
   genreBooks: RecommendedBook[] = [];
   authorBooks: RecommendedBook[] = [];
   newArrivalsBooks: RecommendedBook[] = [];
-  classReadingListBooks: RecommendedBook[] = []; // Renamed from highlightedBooks
+  classReadingListBooks: RecommendedBook[] = [];
   highlightedBooks: RecommendedBook[] = [];
   myLoans: Loan[] = [];
+
   loansLoading = true;
   recommendationsLoading = true;
-  classReadingListLoading = false; // New loading flag for Klasleeslijst
-  highlightedLoading = false; // Loading flag for Highlighted Books
-  private readonly RECOMMENDATION_LIMIT = 25;
+  highlightedLoading = false;
+  wishlistCount = 0;
 
+  private readonly RECOMMENDATION_LIMIT = 25;
   today = new Date().toISOString().split("T")[0];
+
+  get firstLoan(): Loan | null {
+    return this.myLoans[0] ?? null;
+  }
+
+  get currentFirstName(): string {
+    const firstName = (localStorage.getItem("firstName") || "").trim();
+    if (firstName) return firstName;
+
+    const lastName = (localStorage.getItem("lastName") || "").trim();
+    const nameCandidates = [
+      localStorage.getItem("userName"),
+      localStorage.getItem("fullname"),
+      localStorage.getItem("name"),
+    ];
+    const { firstName: inferredFirst } = inferNameParts(
+      firstName || null,
+      lastName || null,
+      nameCandidates,
+    );
+    return inferredFirst || lastName || localStorage.getItem("userName") || "Leerling";
+  }
 
   get currentUsername(): string {
     const firstName = (localStorage.getItem("firstName") || "").trim();
     const lastName = (localStorage.getItem("lastName") || "").trim();
     const composed = composeFullName(firstName, lastName);
-
-    if (composed) {
-      return composed;
-    }
+    if (composed) return composed;
 
     const nameCandidates = [
       localStorage.getItem("userName"),
@@ -96,31 +72,15 @@ export class DashboardComponent implements OnInit {
       lastName || null,
       nameCandidates,
     );
-    const inferredComposed = composeFullName(inferredFirst, inferredLast);
-
-    if (inferredComposed) {
-      return inferredComposed;
-    }
-
-    return (
-      firstName ||
-      lastName ||
-      localStorage.getItem("userName") ||
-      localStorage.getItem("fullname") ||
-      localStorage.getItem("username") ||
-      ""
-    );
+    return composeFullName(inferredFirst, inferredLast)
+      || firstName || lastName
+      || localStorage.getItem("userName")
+      || localStorage.getItem("fullname")
+      || "";
   }
 
   get currentUserSub(): string {
     return localStorage.getItem("sub") || "";
-  }
-
-  get activeInfo() {
-    if (!this.activeInfoKey) {
-      return null;
-    }
-    return this.infoContent[this.activeInfoKey];
   }
 
   constructor(
@@ -135,7 +95,6 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.userPreferencesService.preferences$.subscribe((prefs) => {
-      // Fetch recommendations whenever preferences change
       this.fetchAllRecommendations({
         trending: prefs["recommendationExcludeRead_trending"] ?? true,
         genre: prefs["recommendationExcludeRead_genre"] ?? true,
@@ -145,67 +104,31 @@ export class DashboardComponent implements OnInit {
     });
 
     this.fetchMyLoans();
-    this.fetchClassReadingListBooks(); // Load Klasleeslijst
     this.fetchHighlightedBooks();
+    this.fetchWishlistCount();
   }
 
-  private async fetchClassReadingListBooks() {
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    if (!schoolId) return;
-
-    this.classReadingListLoading = true; // Use the new loading flag
-    try {
-      // Use BookService method for consistency and auth headers
-      const res = await this.bookService.getClassReadingListItemIds(schoolId);
-      const bookIds = res || [];
-
-      if (bookIds.length > 0) {
-        const enriched = await this.bookService.enrichBooksWithDetails(
-          bookIds.map((id) => ({ bookId: id })),
-        );
-        this.classReadingListBooks = enriched.map(
-          (b: any) =>
-            ({
-              bookId: b.bookId,
-              titel: b.titel,
-              auteur: b.auteur,
-              cover: b.cover || "",
-            }) as RecommendedBook,
-        );
-      } else {
-        this.classReadingListBooks = [];
-      }
-    } catch (error) {
-      console.error("Fout bij ophalen gemarkeerde boeken:", error);
-    } finally {
-      this.classReadingListLoading = false; // Reset the new loading flag
-    }
-  }
-
-  // New method to fetch highlighted books
   private async fetchHighlightedBooks() {
     const schoolId = this.schoolService.getSelectedSchoolId();
     if (!schoolId) return;
 
     this.highlightedLoading = true;
     try {
-      // Use BookService method for consistency and auth headers
-      const res = await this.bookService.getHighlightedBookIds(schoolId);
-      const bookIds = res || [];
-
+      const ids = await this.bookService.getHighlightedBookIds(schoolId);
+      const bookIds = ids || [];
       if (bookIds.length > 0) {
         const enriched = await this.bookService.enrichBooksWithDetails(
-          bookIds.map((id) => ({ bookId: id })),
+          bookIds.map((id: number) => ({ bookId: id })),
         );
-        this.classReadingListBooks = enriched.map(
-          (b: any) =>
-            ({
-              bookId: b.bookId,
-              titel: b.titel,
-              auteur: b.auteur,
-              cover: b.cover || "",
-            }) as RecommendedBook,
-        );
+        this.highlightedBooks = enriched.map((b: any) => ({
+          bookId: b.bookId,
+          titel: b.titel,
+          auteur: b.auteur,
+          cover: b.cover || "",
+          genre: b.genre,
+          paginas: b.paginas,
+          taal: b.taal,
+        }) as RecommendedBook);
       } else {
         this.highlightedBooks = [];
       }
@@ -216,7 +139,15 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  // Single consolidated fetch for all recommendations - uses cached API call for efficiency
+  private async fetchWishlistCount() {
+    try {
+      const items = await this.bookService.getUserWishlist();
+      this.wishlistCount = items?.length ?? 0;
+    } catch {
+      this.wishlistCount = 0;
+    }
+  }
+
   private async fetchAllRecommendations(excludeReadFlags: {
     trending: boolean;
     genre: boolean;
@@ -225,28 +156,13 @@ export class DashboardComponent implements OnInit {
   }) {
     this.recommendationsLoading = true;
     try {
-      // Load all strategies in parallel. The service caches these calls, so multiple calls
-      // with same params hit cache. This respects per-strategy exclude-read preferences.
       const results = await Promise.all([
-        this.recommendationService.getTrending(
-          this.RECOMMENDATION_LIMIT,
-          excludeReadFlags.trending,
-        ),
-        this.recommendationService.getByGenre(
-          this.RECOMMENDATION_LIMIT,
-          excludeReadFlags.genre,
-        ),
-        this.recommendationService.getByAuthor(
-          this.RECOMMENDATION_LIMIT,
-          excludeReadFlags.author,
-        ),
-        this.recommendationService.getNewArrivals(
-          this.RECOMMENDATION_LIMIT,
-          excludeReadFlags.newArrivals,
-        ),
+        this.recommendationService.getTrending(this.RECOMMENDATION_LIMIT, excludeReadFlags.trending),
+        this.recommendationService.getByGenre(this.RECOMMENDATION_LIMIT, excludeReadFlags.genre),
+        this.recommendationService.getByAuthor(this.RECOMMENDATION_LIMIT, excludeReadFlags.author),
+        this.recommendationService.getNewArrivals(this.RECOMMENDATION_LIMIT, excludeReadFlags.newArrivals),
       ]);
 
-      // Prepare book sets for batch enrichment
       const bookSets = {
         trending: results[0],
         genre: results[1],
@@ -254,10 +170,7 @@ export class DashboardComponent implements OnInit {
         newArrivals: results[3],
       };
 
-      // Enrich all at once with a shared book list (single getBooks call instead of 4)
-      const enriched =
-        await this.bookService.enrichMultipleBooksWithDetails(bookSets);
-
+      const enriched = await this.bookService.enrichMultipleBooksWithDetails(bookSets);
       this.trendingBooks = enriched["trending"];
       this.genreBooks = enriched["genre"];
       this.authorBooks = enriched["author"];
@@ -270,38 +183,6 @@ export class DashboardComponent implements OnInit {
       this.newArrivalsBooks = [];
     } finally {
       this.recommendationsLoading = false;
-    }
-  }
-
-  async onRefreshRecommendations(
-    section: "trending" | "genre" | "author",
-    excludeRead: boolean,
-  ) {
-    try {
-      if (section === "trending") {
-        const trendingBooks = await this.recommendationService.getTrending(
-          this.RECOMMENDATION_LIMIT,
-          excludeRead,
-        );
-        this.trendingBooks =
-          await this.bookService.enrichBooksWithDetails(trendingBooks);
-      } else if (section === "genre") {
-        const genreBooks = await this.recommendationService.getByGenre(
-          this.RECOMMENDATION_LIMIT,
-          excludeRead,
-        );
-        this.genreBooks =
-          await this.bookService.enrichBooksWithDetails(genreBooks);
-      } else if (section === "author") {
-        const authorBooks = await this.recommendationService.getByAuthor(
-          this.RECOMMENDATION_LIMIT,
-          excludeRead,
-        );
-        this.authorBooks =
-          await this.bookService.enrichBooksWithDetails(authorBooks);
-      }
-    } catch (error) {
-      console.error(`Fout bij verversen ${section} aanbevelingen:`, error);
     }
   }
 
@@ -321,6 +202,17 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  daysLeft(dueDate: string): number {
+    const due = new Date(dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.ceil((due.getTime() - today.getTime()) / 86400000);
+  }
+
+  isUrgent(dueDate: string): boolean {
+    return this.daysLeft(dueDate) <= 14;
+  }
+
   isOverdue(dueDate: string): boolean {
     return dueDate < this.today;
   }
@@ -329,17 +221,16 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(["/detail", bookId]);
   }
 
+  goToMijnLijsten(fragment?: string) {
+    this.router.navigate(["/mijn-lijsten"], { fragment });
+  }
+
   logout(): void {
     const accessToken = localStorage.getItem("smartschoolToken");
     if (accessToken) {
       this.http.post("/api/auth/logout", { accessToken }).subscribe({
-        next: () => {
-          this.completeLogout();
-        },
-        error: (err) => {
-          console.warn("Error revoking token, but proceeding with logout", err);
-          this.completeLogout();
-        },
+        next: () => this.completeLogout(),
+        error: () => this.completeLogout(),
       });
     } else {
       this.completeLogout();
@@ -351,11 +242,10 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(["/login"]);
   }
 
-  openInfo(key: keyof typeof this.infoContent): void {
-    this.activeInfoKey = key;
-  }
-
-  closeInfo(): void {
-    this.activeInfoKey = null;
+  formatDueDate(dueDate: string): string {
+    return new Date(dueDate).toLocaleDateString("nl-BE", {
+      day: "numeric",
+      month: "long",
+    });
   }
 }
