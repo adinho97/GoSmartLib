@@ -49,6 +49,12 @@ export interface PagedBooksResponse {
   total: number;
 }
 
+export interface SchoolStatistics {
+  mostReadBook: { id: number; titel: string; auteur: string; count: number } | null;
+  topReader: { sub: string; displayName: string; count: number } | null;
+  topClass: { name: string; count: number } | null;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -536,6 +542,29 @@ export class BookService {
     const res = await axios.get<number[]>(
       `/api/class-reading-list/school/${schoolId}`,
       this.getUserSubHeaders(),
+    );
+    return res.data;
+  }
+
+  /**
+   * Combines role-based headers with authentication token headers.
+   * Used for management actions that require both identity and permission context.
+   */
+  private getFullAuthHeaders() {
+    const roleHeaders = this.getRoleHeaders();
+    const subHeaders = this.getUserSubHeaders();
+    return {
+      headers: {
+        ...roleHeaders.headers,
+        ...subHeaders.headers,
+      },
+    };
+  }
+
+  async getSchoolStatistics(schoolId: number): Promise<SchoolStatistics> {
+    const res = await axios.get<SchoolStatistics>(
+      `/api/scholen/${schoolId}/statistieken`,
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }

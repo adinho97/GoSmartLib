@@ -1,13 +1,16 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.StatisticsDTO;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.SchoolRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.dto.StatisticsService;
 
 import java.util.List;
 import java.util.Map;
@@ -17,9 +20,11 @@ import java.util.Map;
 public class SchoolController {
 
     private final SchoolRepository schoolRepository;
+    private final StatisticsService statisticsService;
 
-    public SchoolController(SchoolRepository schoolRepository) {
+    public SchoolController(SchoolRepository schoolRepository, StatisticsService statisticsService) {
         this.schoolRepository = schoolRepository;
+        this.statisticsService = statisticsService;
     }
 
     /**
@@ -37,5 +42,10 @@ public class SchoolController {
             @RequestParam(required = false) String query) {
         Page<School> schoolPage = schoolRepository.searchPaged(query, PageRequest.of(page, size));
         return Map.of("items", schoolPage.getContent(), "total", schoolPage.getTotalElements());
+    }
+
+    @GetMapping("/{schoolId}/statistieken")
+    public StatisticsDTO getSchoolStatistics(@PathVariable Long schoolId) {
+        return statisticsService.getSchoolStatistics(schoolId);
     }
 }

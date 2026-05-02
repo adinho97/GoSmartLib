@@ -1,0 +1,69 @@
+<div class="stats-page">
+  <header class="stats-header">
+    <h1>School Statistieken</h1>
+    <p>Inzicht in het leesgedrag binnen jouw school.</p>
+  </header>
+
+  @if (isLoading) {
+    <div class="loader-container">
+      <div class="spinner"></div>
+      <p>Statistieken laden...</p>
+    </div>
+  }
+
+  @if (!isLoading && stats) {
+    <div class="stats-grid">
+      <!-- Meest gelezen boek -->
+      <section class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-info">
+          <h3>Meest gelezen boek</h3>
+          @if (stats.mostReadBook) {
+            <p class="stat-value">{{ stats.mostReadBook.titel }}</p>
+            <p class="stat-sub">{{ stats.mostReadBook.auteur }}</p>
+            <p class="stat-count">
+              <strong>{{ stats.mostReadBook.count }}</strong> keer uitgeleend
+            </p>
+          } @else {
+            <p class="stat-empty">Nog geen data beschikbaar</p>
+          }
+        </div>
+      </section>
+
+      <!-- Top lezer -->
+      <section class="stat-card">
+        <div class="stat-icon">👤</div>
+        <div class="stat-info">
+          <h3>Top lezer</h3>
+          @if (stats.topReader) {
+            <p class="stat-value">{{ stats.topReader.displayName }}</p>
+            <p class="stat-count">
+              <strong>{{ stats.topReader.count }}</strong> boeken gelezen
+            </p>
+          } @else {
+            <p class="stat-empty">Nog geen data beschikbaar</p>
+          }
+        </div>
+      </section>
+
+      <!-- Top klas -->
+      <section class="stat-card">
+        <div class="stat-icon">🏫</div>
+        <div class="stat-info">
+          <h3>Meest lezende klas</h3>
+          @if (stats.topClass) {
+            <p class="stat-value">{{ stats.topClass.name }}</p>
+            <p class="stat-count">
+              <strong>{{ stats.topClass.count }}</strong> boeken gezamenlijk
+              gelezen
+            </p>
+          } @else {
+            <p class="stat-empty">Nog geen data beschikbaar</p>
+          }
+        </div>
+      </section>
+    </div>
+  } @else if (!isLoading && !stats) {
+    <p class="error-message">Kon de statistieken niet ophalen.</p>
+  }
+</div>

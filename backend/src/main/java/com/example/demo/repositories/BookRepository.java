@@ -39,6 +39,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @EntityGraph(attributePaths = { "copies", "reviews" })
     Optional<Book> findByIsbnAndSchool_Id(String isbn, Long schoolId);
 
+    long countBySchool_Id(Long schoolId);
+
     @EntityGraph(attributePaths = { "copies", "reviews" })
     Optional<Book> findByIdAndSchool_Id(Long id, Long schoolId);
 
@@ -48,19 +50,17 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @EntityGraph(attributePaths = { "copies", "reviews" })
     Page<Book> findAllBySchool_Id(Long schoolId, Pageable pageable);
 
-        @EntityGraph(attributePaths = { "copies", "reviews" })
-        @Query("""
-                        SELECT b
-                        FROM Book b
-                        WHERE (:schoolId IS NULL OR (b.school IS NOT NULL AND b.school.id = :schoolId))
-                            AND (:query IS NULL OR LOWER(b.titel) LIKE LOWER(CONCAT('%', :query, '%'))
-                                     OR LOWER(b.auteur) LIKE LOWER(CONCAT('%', :query, '%')))
-                        """)
-        Page<Book> searchPaged(@Param("schoolId") Long schoolId,
-                                                     @Param("query") String query,
-                                                     Pageable pageable);
+    @EntityGraph(attributePaths = { "copies", "reviews" })
+    @Query("""
+            SELECT b
+            FROM Book b
+            WHERE (:schoolId IS NULL OR (b.school IS NOT NULL AND b.school.id = :schoolId))
+                AND (:query IS NULL OR LOWER(b.titel) LIKE LOWER(CONCAT('%', :query, '%'))
+                         OR LOWER(b.auteur) LIKE LOWER(CONCAT('%', :query, '%')))
+            """)
+    Page<Book> searchPaged(@Param("schoolId") Long schoolId,
+            @Param("query") String query,
+            Pageable pageable);
 
     boolean existsByIdAndSchool_Id(Long id, Long schoolId);
-
-    long countBySchool_Id(Long schoolId);
 }

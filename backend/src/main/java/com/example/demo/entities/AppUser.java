@@ -25,7 +25,7 @@ public class AppUser {
     @Column(nullable = true)
     private String platform;
 
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
+    @Column(nullable = false)
     private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,14 +37,6 @@ public class AppUser {
     private Klas klas;
 
     public AppUser() {
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
     }
 
     public Long getId() {
@@ -93,6 +85,14 @@ public class AppUser {
 
     public void setPlatform(String platform) {
         this.platform = platform;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public School getSchool() {
