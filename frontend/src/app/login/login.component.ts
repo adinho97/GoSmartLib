@@ -25,6 +25,9 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    ['admin_jwt_token', 'admin_info', 'adminLibrarySchoolName', 'adminLibrarySchoolId']
+      .forEach(key => localStorage.removeItem(key));
+
     this.route.queryParams.subscribe((params) => {
       const code = params["code"];
       if (code) {

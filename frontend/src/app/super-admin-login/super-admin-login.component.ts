@@ -21,7 +21,12 @@ export class SuperAdminLoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // If already logged in, redirect to admin dashboard
+    [
+      'smartschoolToken', 'role', 'firstName', 'lastName', 'userName',
+      'fullname', 'username', 'userId', 'sub', 'selectedSchoolId',
+      'smartschoolPlatform',
+    ].forEach(key => localStorage.removeItem(key));
+
     if (this.superAdminAuthService.isAuthenticated()) {
       this.router.navigate(['/admin/dashboard']);
     }

@@ -88,7 +88,8 @@ export class AppComponent implements OnInit {
     const isAuthPage =
       url === "/" ||
       url.startsWith("/login") ||
-      url.startsWith("/auth/callback");
+      url.startsWith("/auth/callback") ||
+      url.startsWith("/super-admin-login");
     return !!this.userRole && !isAuthPage;
   }
 
@@ -111,8 +112,13 @@ export class AppComponent implements OnInit {
 
   get showAdminBar(): boolean {
     const url = this.router.url || "";
-    const isAdminRoute = url.startsWith("/admin") || url.startsWith("/super-admin");
-    return !!localStorage.getItem("admin_jwt_token") && !isAdminRoute;
+    const isExcluded =
+      url === "/" ||
+      url.startsWith("/login") ||
+      url.startsWith("/auth/callback") ||
+      url.startsWith("/admin") ||
+      url.startsWith("/super-admin");
+    return !!localStorage.getItem("admin_jwt_token") && !isExcluded;
   }
 
   get adminSchoolName(): string {
