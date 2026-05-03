@@ -27,7 +27,12 @@ import { LoanOverviewComponent } from "./loan-overview/loan-overview.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 import { MapScreenComponent } from "./map-screen/map-screen.component";
-import { StatisticsComponent } from "./statistics/statistics.component";
+import { MijnLijstenComponent } from "./mijn-lijsten/mijn-lijsten.component";
+import { LeerkrachtDashboardComponent } from "./leerkracht-dashboard/leerkracht-dashboard.component";
+import { KlasleeslijstBeheerComponent } from "./klasleeslijst-beheer/klasleeslijst-beheer.component";
+import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
+import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
+import { StatistiekenComponent } from "./statistieken/statistieken.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -66,6 +71,12 @@ export const appRoutes: Routes = [
     component: DashboardComponent,
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "leerkracht-dashboard",
+    component: LeerkrachtDashboardComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
   },
   { path: "", component: LoginComponent },
   {
@@ -159,8 +170,32 @@ export const appRoutes: Routes = [
     data: { roles: ["bibbeheerder"] },
   },
   {
+    path: "mijn-lijsten",
+    component: MijnLijstenComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "klasleeslijst-beheer",
+    component: KlasleeslijstBeheerComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "mijn-taken",
+    component: MijnTakenComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "boek-terugbrengen",
+    component: BoekTerugbrengenComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
     path: "statistieken",
-    component: StatisticsComponent,
+    component: StatistiekenComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
   },

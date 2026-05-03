@@ -9,16 +9,17 @@
 .school-selector-bar {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0;
   width: fit-content;
-  padding: 0.4rem 0.55rem;
   border-radius: 999px;
   border: 1px solid #d4c1c9;
   background: #fff8fb;
+  overflow: hidden;
 }
 
 .school-selector-bar label {
   margin: 0;
+  padding: 0 0.7rem;
   font-size: 0.8rem;
   font-weight: 700;
   color: #871f42;
@@ -26,14 +27,21 @@
 }
 
 .school-selector-bar select {
-  min-width: 230px;
+  min-width: 200px;
   height: 34px;
-  border: 1px solid #d4c1c9;
-  border-radius: 999px;
-  padding: 0 0.55rem;
+  border: none;
+  border-left: 1px solid #d4c1c9;
+  border-radius: 0;
+  padding: 0 0.65rem;
   background: #fff;
   color: #4f1a2e;
   font-size: 0.88rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.school-selector-bar select:focus {
+  background: #fdf0f5;
 }
 
 .book-list-header {
@@ -777,7 +785,6 @@
   .school-selector-bar {
     margin: 0 0 1rem;
     width: 100%;
-    justify-content: space-between;
   }
 
   .school-selector-bar select {

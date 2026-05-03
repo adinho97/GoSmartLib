@@ -2,9 +2,21 @@
   <header class="admin-top-nav" (click)="$event.stopPropagation()">
     <div class="admin-top-nav-inner">
       <a class="admin-top-brand" [routerLink]="['/admin/dashboard']">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path
+            d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+          />
         </svg>
         GO!SmartLib Beheer
       </a>
@@ -15,36 +27,103 @@
           (click)="toggleAdminNavMenu($event)"
           [attr.aria-expanded]="adminNavMenuOpen"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20 21a8 8 0 0 0-16 0"/>
-            <circle cx="12" cy="8" r="4"/>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 21a8 8 0 0 0-16 0" />
+            <circle cx="12" cy="8" r="4" />
           </svg>
           {{ adminUsername }}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" [class.rotated]="adminNavMenuOpen">
-            <polyline points="6 9 12 15 18 9"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            [class.rotated]="adminNavMenuOpen"
+          >
+            <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
         @if (adminNavMenuOpen) {
           <div class="admin-account-dropdown" role="menu">
-            <button type="button" class="admin-dropdown-item" role="menuitem" (click)="adminNavGoToNewSchool()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            <button
+              type="button"
+              class="admin-dropdown-item"
+              role="menuitem"
+              (click)="adminNavGoToNewSchool()"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
               School toevoegen
             </button>
-            <button type="button" class="admin-dropdown-item" role="menuitem" (click)="adminNavGoToChangePassword()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            <button
+              type="button"
+              class="admin-dropdown-item"
+              role="menuitem"
+              (click)="adminNavGoToChangePassword()"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
               Wachtwoord wijzigen
             </button>
             <div class="admin-dropdown-divider"></div>
-            <button type="button" class="admin-dropdown-item admin-dropdown-logout" role="menuitem" (click)="adminNavLogout()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
+            <button
+              type="button"
+              class="admin-dropdown-item admin-dropdown-logout"
+              role="menuitem"
+              (click)="adminNavLogout()"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
               Uitloggen
             </button>
@@ -58,8 +137,18 @@
 @if (showAdminBar) {
   <div class="admin-context-bar">
     <span class="admin-context-label">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
       Beheer — {{ adminSchoolName }}
     </span>
@@ -69,163 +158,69 @@
   </div>
 }
 
-@if (showNavbar) {
-  <header class="top-nav">
-    <nav class="top-nav-inner" aria-label="Hoofdnavigatie">
-      <div class="nav-left">
-        <a class="brand" [routerLink]="['/dashboard']">GO!SmartLib</a>
-      </div>
-      <div class="nav-links">
-        <a
-          routerLink="/dashboard"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
+<!-- Student header (editorial redesign) -->
+@if (showStudentNav) {
+  <header class="app-header" (click)="$event.stopPropagation()">
+    <div class="app-header-inner">
+      <a
+        class="app-logo"
+        [routerLink]="['/dashboard']"
+        aria-label="GO!SmartLib Home"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
         >
-          Dashboard
-        </a>
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path
+            d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+          />
+        </svg>
+        GO<span class="bang">!</span>SmartLib
+      </a>
+      <nav class="app-nav" aria-label="Hoofdnavigatie">
         <a
           href="javascript:void(0)"
           (click)="navigateToMySchoolBooks()"
           [class.active]="isBooksListActive"
+          >Boekencatalogus</a
         >
-          Boekencatalogus
-        </a>
-        @if (isLibrarian || isTeacher) {
-          <a routerLink="/map" routerLinkActive="active"> Scholenoverzicht </a>
-        }
-        @if (isLibrarian) {
-          <a routerLink="/add-general" routerLinkActive="active">
-            Boek toevoegen
-          </a>
-        }
-        @if (isTeacher) {
-          <a
-            class="teacher-badge-link"
-            routerLink="/books"
-            [queryParams]="{ genre: 'Didactiek' }"
-            [class.active]="isDidacticCollectionActive"
-          >
-            Didactische collectie
-          </a>
-        }
-        @if (canAccessLoans) {
-          <a routerLink="/uitleen-catalogus" routerLinkActive="active">
-            Uitleenhistoriek
-          </a>
-        }
-        @if (canAccessLoans) {
-          <a routerLink="/uitleen" routerLinkActive="active">Boek uitlenen</a>
-        }
-        @if (isLibrarian) {
-          <div class="overview-menu" (click)="$event.stopPropagation()">
-            <button
-              type="button"
-              class="overview-link"
-              [class.active]="overviewMenuOpen"
-              (click)="toggleOverviewMenu($event)"
-              aria-label="Overzichtingsmenu"
-            >
-              Overzichten
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                [class.rotated]="overviewMenuOpen"
-              >
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            @if (overviewMenuOpen) {
-              <div class="overview-dropdown" role="menu">
-                <a
-                  routerLink="/uitleen-conditie"
-                  routerLinkActive="active"
-                  role="menuitem"
-                  (click)="overviewMenuOpen = false"
-                >
-                  Conditie-overzicht
-                </a>
-                <a
-                  routerLink="/uitleen-overzicht"
-                  routerLinkActive="active"
-                  role="menuitem"
-                  (click)="overviewMenuOpen = false"
-                >
-                  Uitleningen overzicht
-                </a>
-                <a
-                  routerLink="/statistieken"
-                  routerLinkActive="active"
-                  role="menuitem"
-                  (click)="overviewMenuOpen = false"
-                >
-                  Statistieken
-                </a>
-              </div>
-            }
+        <a routerLink="/mijn-lijsten" routerLinkActive="active">Mijn lijsten</a>
+        <a routerLink="/info" routerLinkActive="active">Info</a>
+      </nav>
+
+      <div class="app-header-right">
+        <!-- Level chip -->
+        @if (levelInfo$ | async; as levelInfo) {
+          <div class="level-chip" title="Level {{ levelInfo.level }}">
+            <span class="lvl-num">{{ levelInfo.level }}</span>
+            <span>Level</span>
           </div>
         }
-        @if (isStudent) {
-          <a routerLink="/info" routerLinkActive="active">Informatie</a>
-        }
+
+        <!-- Avatar / profile menu -->
         <div class="profile-menu" (click)="$event.stopPropagation()">
           <button
             type="button"
-            class="profile-link"
-            aria-label="Profielmenu"
-            title="Profielmenu"
-            [class.active]="profileMenuOpen"
+            class="avatar-btn"
+            [attr.aria-label]="'Profielmenu voor ' + userName"
+            [attr.aria-expanded]="profileMenuOpen"
             (click)="toggleProfileMenu($event)"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M20 21a8 8 0 0 0-16 0"></path>
-              <circle cx="12" cy="8" r="4"></circle>
-            </svg>
+            {{ userInitial }}
           </button>
 
           @if (profileMenuOpen) {
             <div class="profile-dropdown" role="menu" aria-label="Profielmenu">
               <p class="profile-name">{{ userName }}</p>
               <p class="profile-role-text">{{ userRoleLabel }}</p>
-              @if (levelInfo$ | async; as levelInfo) {
-                <div
-                  class="menu-level-card"
-                  [ngClass]="'menu-level-tier-' + getLevelTier(levelInfo.level)"
-                >
-                  <div class="menu-level-head">
-                    <span class="menu-level-label">Niveau</span>
-                    <span class="menu-level-value">{{ levelInfo.level }}</span>
-                  </div>
-                  <p class="menu-level-tier-label">
-                    {{ getLevelTierLabel(levelInfo.level) }} Tier
-                  </p>
-                  <div class="menu-level-bar" aria-hidden="true">
-                    <div
-                      class="menu-level-fill"
-                      [style.width.%]="levelInfo.progressPercentage"
-                    ></div>
-                  </div>
-                  <p class="menu-level-xp">
-                    {{ levelInfo.experienceForCurrentLevel }} /
-                    {{ levelInfo.experienceRequiredForLevel }} XP
-                  </p>
-                </div>
-              }
               <button
                 type="button"
                 class="profile-logout-btn"
@@ -237,13 +232,116 @@
           }
         </div>
       </div>
-    </nav>
+    </div>
+  </header>
+}
+
+<!-- Staff / librarian header (matches student styling) -->
+@if (showStaffNav) {
+  <header class="app-header" (click)="$event.stopPropagation()">
+    <div class="app-header-inner">
+      <a
+        class="app-logo"
+        [routerLink]="['/leerkracht-dashboard']"
+        aria-label="GO!SmartLib Home"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path
+            d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+          />
+        </svg>
+        GO<span class="bang">!</span>SmartLib
+      </a>
+
+      <nav class="app-nav" aria-label="Hoofdnavigatie">
+        <a
+          href="javascript:void(0)"
+          (click)="navigateToMySchoolBooks()"
+          [class.active]="isBooksListActive"
+          >Boekencatalogus</a
+        >
+        @if (isLibrarian || isTeacher) {
+          <a routerLink="/map" routerLinkActive="active">Scholenoverzicht</a>
+        }
+        @if (isTeacher) {
+          <a routerLink="/mijn-taken" routerLinkActive="active">Mijn taken</a>
+        }
+        @if (isLibrarian) {
+          <a routerLink="/mijn-taken" routerLinkActive="active">Mijn taken</a>
+        }
+        @if (canAccessLoans) {
+          <a routerLink="/uitleen-catalogus" routerLinkActive="active"
+            >Uitleenhistoriek</a
+          >
+        }
+        @if (canAccessLoans) {
+          <a routerLink="/mijn-lijsten" routerLinkActive="active"
+            >Mijn lijsten</a
+          >
+        }
+        @if (isLibrarian) {
+          <a routerLink="/statistieken" routerLinkActive="active"
+            >Statistieken</a
+          >
+        }
+      </nav>
+
+      <div class="app-header-right">
+        @if (levelInfo$ | async; as levelInfo) {
+          <div class="level-chip" title="Level {{ levelInfo.level }}">
+            <span class="lvl-num">{{ levelInfo.level }}</span>
+            <span>Level</span>
+          </div>
+        }
+
+        <div class="profile-menu" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="avatar-btn"
+            [attr.aria-label]="'Profielmenu voor ' + userName"
+            [attr.aria-expanded]="profileMenuOpen"
+            (click)="toggleProfileMenu($event)"
+          >
+            {{ userInitial }}
+          </button>
+
+          @if (profileMenuOpen) {
+            <div class="profile-dropdown" role="menu" aria-label="Profielmenu">
+              <p class="profile-name">{{ userName }}</p>
+              <p class="profile-role-text">{{ userRoleLabel }}</p>
+              <button
+                type="button"
+                class="profile-logout-btn"
+                (click)="logout()"
+              >
+                Uitloggen
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
   </header>
 }
 
 <main class="app-shell" [class.with-nav]="showNavbar">
   <router-outlet></router-outlet>
 </main>
+
+@if (showFooter) {
+  <app-footer></app-footer>
+}
 
 <app-badge-toast></app-badge-toast>
 <app-ui-toast></app-ui-toast>

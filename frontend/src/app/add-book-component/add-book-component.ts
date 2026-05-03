@@ -2,7 +2,6 @@ import { Component, OnInit } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
-import { School } from "../models/school";
 
 export enum Language {
   Nederlands = "Nederlands",
@@ -77,7 +76,6 @@ export class AddBookComponent implements OnInit {
   ];
   selectedSubgenres: Set<string> = new Set();
   selectedDidacticSubgenre = "";
-  schools: School[] = [];
   selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
   coverPreviewUrl: string | null = null;
@@ -111,28 +109,8 @@ export class AddBookComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.loadSchools();
-  }
-
-  async loadSchools() {
-    try {
-      this.schools = await this.schoolService.getSchools();
-      const storedSchoolId = this.schoolService.getSelectedSchoolId();
-      const hasStoredSchool =
-        storedSchoolId !== null &&
-        this.schools.some((school) => school.id === storedSchoolId);
-      const fallbackSchoolId =
-        this.schools.length > 0 ? this.schools[0].id : null;
-      this.selectedSchoolId = hasStoredSchool
-        ? storedSchoolId
-        : fallbackSchoolId;
-      if (this.selectedSchoolId !== null) {
-        this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
-      }
-    } catch {
-      this.schools = [];
-      this.selectedSchoolId = null;
-    }
+    await this.schoolService.selectUserDefaultSchool();
+    this.selectedSchoolId = this.schoolService.getSelectedSchoolId();
   }
 
   toggleDidactic(state: boolean) {

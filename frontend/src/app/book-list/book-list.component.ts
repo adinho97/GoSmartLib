@@ -127,6 +127,7 @@ export class BookListComponent implements OnInit {
   readonly pageSize = 16;
   schools: School[] = [];
   selectedSchoolId: number | null = null;
+  userOwnSchoolId: number | null = null;
   currentPage = 1;
   searchInput = "";
   searchQuery = "";
@@ -168,7 +169,17 @@ export class BookListComponent implements OnInit {
     });
   }
 
+  get isViewingOtherSchool(): boolean {
+    return (
+      this.isTeacherOrLibrarian &&
+      this.userOwnSchoolId !== null &&
+      this.selectedSchoolId !== null &&
+      this.selectedSchoolId !== this.userOwnSchoolId
+    );
+  }
+
   async ngOnInit() {
+    this.userOwnSchoolId = this.schoolService.getUserOwnSchoolId();
     this.restoreFilterState();
     this.initializeFiltersFromQueryParams();
     this.route.queryParamMap.subscribe((params) => {

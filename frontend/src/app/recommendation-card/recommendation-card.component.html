@@ -2,7 +2,7 @@
   class="book-card"
   [class.teacher-card]="isTeacherCard"
   [class.history-variant]="profileVariant === 'history'"
-  [title]="bookReason"
+  (click)="onViewDetails()"
 >
   <!-- Dashboard: Wishlist button-->
   @if (profileVariant === "dashboard") {
@@ -126,24 +126,14 @@
         <span>{{ bookPages }} pag.</span>
       }
     </p>
-    <button
-      class="details-btn"
-      [class.teacher-btn]="isTeacherCard"
-      (click)="onViewDetails()"
-    >
-      Details
-    </button>
-
-@if (profileVariant === "history" && loanDate) {
-  <p class="loan-date">
-    @if (book.deadline) {
-      Terugbrengen voor {{ loanDate }}
-    } 
-    @else {
-      Ontleend op {{ loanDate }}
+    @if (profileVariant === "history" && loanDate) {
+      <p class="loan-date">
+        @if (book.deadline) {
+          Terugbrengen voor {{ loanDate }}
+        } @else {
+          Ontleend op {{ loanDate }}
+        }
+      </p>
     }
-  </p>
-}
-    
   </div>
 </div>

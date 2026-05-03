@@ -25,7 +25,6 @@ import { inferNameParts, composeFullName } from "./utils/name-utils";
 })
 export class AppComponent implements OnInit {
   profileMenuOpen = false;
-  overviewMenuOpen = false;
   adminNavMenuOpen = false;
   levelInfo$: Observable<LevelInfo>;
   private readonly roleLikeValues = new Set([
@@ -89,14 +88,37 @@ export class AppComponent implements OnInit {
     const isAuthPage =
       url === "/" ||
       url.startsWith("/login") ||
-      url.startsWith("/auth/callback");
+      url.startsWith("/auth/callback") ||
+      url.startsWith("/super-admin-login");
     return !!this.userRole && !isAuthPage;
+  }
+
+  get showStudentNav(): boolean {
+    return this.showNavbar && this.isStudent;
+  }
+
+  get showStaffNav(): boolean {
+    return this.showNavbar && !this.isStudent;
+  }
+
+  get showFooter(): boolean {
+    return this.showNavbar;
+  }
+
+  get userInitial(): string {
+    const name = this.userName;
+    return name ? name.charAt(0).toUpperCase() : "G";
   }
 
   get showAdminBar(): boolean {
     const url = this.router.url || "";
-    const isAdminRoute = url.startsWith("/admin") || url.startsWith("/super-admin");
-    return !!localStorage.getItem("admin_jwt_token") && !isAdminRoute;
+    const isExcluded =
+      url === "/" ||
+      url.startsWith("/login") ||
+      url.startsWith("/auth/callback") ||
+      url.startsWith("/admin") ||
+      url.startsWith("/super-admin");
+    return !!localStorage.getItem("admin_jwt_token") && !isExcluded;
   }
 
   get adminSchoolName(): string {
@@ -120,6 +142,13 @@ export class AppComponent implements OnInit {
     return (
       this.currentUrl.startsWith("/books") &&
       this.currentUrl.includes("genre=didactiek")
+    );
+  }
+
+  get isTakenMenuActive(): boolean {
+    return (
+      this.currentUrl.startsWith("/uitleen") ||
+      this.currentUrl.startsWith("/klasleeslijst-beheer")
     );
   }
 
@@ -214,11 +243,6 @@ export class AppComponent implements OnInit {
     this.profileMenuOpen = !this.profileMenuOpen;
   }
 
-  toggleOverviewMenu(event: Event): void {
-    event.stopPropagation();
-    this.overviewMenuOpen = !this.overviewMenuOpen;
-  }
-
   logout(): void {
     const accessToken = localStorage.getItem("smartschoolToken");
     this.profileMenuOpen = false;
@@ -294,7 +318,6 @@ export class AppComponent implements OnInit {
   @HostListener("document:click")
   onDocumentClick(): void {
     this.profileMenuOpen = false;
-    this.overviewMenuOpen = false;
     this.adminNavMenuOpen = false;
   }
 }

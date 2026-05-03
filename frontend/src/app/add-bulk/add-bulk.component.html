@@ -4,22 +4,6 @@
   </div>
 
   <div class="main-card">
-    @if (schools.length > 0) {
-      <div class="input-row">
-        <label for="schoolSelect">School</label>
-        <select
-          id="schoolSelect"
-          [ngModel]="selectedSchoolId"
-          (ngModelChange)="onSchoolChange($event)"
-          aria-label="Kies school"
-        >
-          @for (school of schools; track school) {
-            <option [value]="school.id">{{ school.naam }}</option>
-          }
-        </select>
-      </div>
-    }
-
     <div class="input-row">
       <label for="bulkFile">Bestand</label>
       <input

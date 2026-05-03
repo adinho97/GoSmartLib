@@ -1,150 +1,253 @@
-<div class="home-wrapper">
-  <header class="hero">
-    <h1>GO!SmartLib</h1>
-    <p>Vind je nieuwe favoriete boek</p>
+<div class="dash-page">
+
+  <!-- Greeting -->
+  <header class="dash-greeting">
+    <h1 class="dash-h1">Hé {{ currentFirstName }}, <em>tijd om verder te lezen?</em></h1>
+    <p class="dash-subtitle">
+      Je hebt {{ myLoans.length }} {{ myLoans.length === 1 ? 'boek' : 'boeken' }} geleend
+      @if (wishlistCount > 0) { en {{ wishlistCount }} op je verlanglijst }
+    </p>
   </header>
 
-  <main class="container">
-    <section class="dashboard-section">
-      <header class="dashboard-inline-header">
-        <h2 class="dashboard-inline-title">Profiel en snelle acties</h2>
-        <button
-          class="info-icon-btn"
-          type="button"
-          (click)="openInfo('profileTop')"
-          aria-label="Info over profiel en snelkoppelingen"
-        >
-          i
-        </button>
-      </header>
-      <section class="dashboard-profile-top">
-        <app-profile
-          [embedded]="true"
-          [showHero]="true"
-          [showSections]="false"
-          (logoutRequested)="logout()"
-        ></app-profile>
-      </section>
-    </section>
+  <!-- Hero row -->
+  <div class="hero-row">
 
-    <!-- Recommendation Sections -->
-    @if (recommendationsLoading) {
-      <div class="loader-container">
-        <div class="spinner"></div>
-        <p>Aanbevelingen ophalen...</p>
+    <!-- Verder lezen -->
+    <div class="hero-card verder-lezen">
+      <div class="hero-card-head">
+        <div class="hero-eyebrow-row">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span class="hero-eyebrow">Verder lezen</span>
+          <app-info-button
+            title="Verder lezen"
+            description="Hier zie je het boek dat je momenteel ontleend hebt. Klik op 'Bekijk boek' om meer details te zien."
+          ></app-info-button>
+        </div>
+        <a class="hero-head-link" (click)="goToMijnLijsten('geleend')" role="button" tabindex="0">
+          Geleend ({{ myLoans.length }}) →
+        </a>
       </div>
-    }
 
-    @if (!recommendationsLoading) {
-      <section class="dashboard-section">
-        <app-recommendation-section
-          [books]="trendingBooks"
-          [title]="'Populairste boeken'"
-          [variant]="'normal'"
-          [section]="'trending'"
-          [showInfoButton]="true"
-          [infoAriaLabel]="'Info over populairste boeken'"
-          (infoRequested)="openInfo('trending')"
-          (refreshRecommendations)="
-            onRefreshRecommendations('trending', $event)
-          "
-        ></app-recommendation-section>
-      </section>
-
-      @if (newArrivalsBooks.length > 0) {
-        <section class="dashboard-section">
-          <app-recommendation-section
-            [books]="newArrivalsBooks"
-            [title]="'Nieuwe aankomsten'"
-            [variant]="'normal'"
-            [section]="'newArrivals'"
-            [showInfoButton]="true"
-            [infoAriaLabel]="'Info over nieuwe aankomsten'"
-            (infoRequested)="openInfo('newArrivals')"
-          ></app-recommendation-section>
-        </section>
+      @if (loansLoading) {
+        <div class="hero-loader"><div class="spinner"></div></div>
+      } @else if (firstLoan) {
+        <div class="verder-lezen-body">
+          <div class="verder-cover-wrap">
+            @if (firstLoan.bookCover) {
+              <img [src]="firstLoan.bookCover" [alt]="firstLoan.bookTitel" class="verder-cover" />
+            } @else {
+              <div class="verder-cover placeholder-cover">COVER</div>
+            }
+          </div>
+          <div class="verder-info">
+            <p class="verder-title">{{ firstLoan.bookTitel }}</p>
+            <p class="verder-deadline">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              @if (isOverdue(firstLoan.dueDate)) {
+                <span class="overdue-text">Verlopen!</span>
+              } @else {
+                Inleveren {{ formatDueDate(firstLoan.dueDate) }}
+                <span class="days-badge" [class.urgent]="isUrgent(firstLoan.dueDate)">
+                  {{ daysLeft(firstLoan.dueDate) }}d
+                </span>
+              }
+            </p>
+            <div class="verder-actions">
+              <button class="btn-primary" type="button" (click)="goToDetail(firstLoan.bookId)">Bekijk boek</button>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="hero-empty">
+          <p>Je hebt momenteel geen geleende boeken.</p>
+          <a class="hero-empty-link" routerLink="/books">Ontdek boeken →</a>
+        </div>
       }
+    </div>
 
-      @if (genreBooks.length > 0) {
-        <section class="dashboard-section">
-          <app-recommendation-section
-            [books]="genreBooks"
-            [title]="'Gebaseerd op jouw meest gelezen genres'"
-            [variant]="'normal'"
-            [section]="'genre'"
-            [showInfoButton]="true"
-            [infoAriaLabel]="'Info over aanbevelingen op basis van genres'"
-            (infoRequested)="openInfo('genre')"
-            (refreshRecommendations)="onRefreshRecommendations('genre', $event)"
-          ></app-recommendation-section>
-        </section>
+    <!-- In de kijker -->
+    <div class="hero-card in-de-kijker">
+      <div class="hero-card-head">
+        <div class="hero-eyebrow-row">
+          <span class="hero-eyebrow star-eyebrow">★ In de kijker</span>
+          <app-info-button
+            title="In de kijker"
+            description="Boeken die de bibliothecaris heeft uitgelicht voor de hele school. Ideaal om nieuwe titels te ontdekken."
+          ></app-info-button>
+        </div>
+        <a class="hero-head-link" (click)="goToMijnLijsten('kijker')" role="button" tabindex="0">
+          Alles ({{ highlightedBooks.length }}) →
+        </a>
+      </div>
+
+      @if (highlightedLoading) {
+        <div class="hero-loader"><div class="spinner"></div></div>
+      } @else if (highlightedBooks.length === 0) {
+        <div class="hero-empty"><p>Geen uitgelichte boeken op dit moment.</p></div>
+      } @else {
+        <div class="kijker-grid">
+          @for (book of highlightedBooks.slice(0, 4); track book.bookId) {
+            <div class="kijker-mini-card" (click)="goToDetail(book.bookId)" role="button" tabindex="0">
+              <div class="kijker-cover-wrap">
+                @if (book.cover) {
+                  <img [src]="book.cover" [alt]="book.titel" class="kijker-cover" />
+                } @else {
+                  <div class="kijker-cover placeholder-cover">COVER</div>
+                }
+              </div>
+              <p class="kijker-title">{{ book.titel }}</p>
+              <p class="kijker-author">{{ book.auteur }}</p>
+            </div>
+          }
+        </div>
       }
+    </div>
 
-      @if (authorBooks.length > 0) {
-        <section class="dashboard-section">
-          <app-recommendation-section
-            [books]="authorBooks"
-            [title]="'Gebaseerd op jouw meest gelezen auteurs'"
-            [variant]="'normal'"
-            [section]="'author'"
-            [showInfoButton]="true"
-            [infoAriaLabel]="'Info over aanbevelingen op basis van auteurs'"
-            (infoRequested)="openInfo('author')"
-            (refreshRecommendations)="
-              onRefreshRecommendations('author', $event)
-            "
-          ></app-recommendation-section>
-        </section>
-      }
-    }
+    <!-- Mijn Lijsten shortcuts -->
+    <div class="hero-card mijn-lijsten-card">
+      <div class="hero-card-head">
+        <div class="hero-eyebrow-row">
+          <span class="hero-eyebrow">Snelkoppelingen</span>
+          <app-info-button
+            title="Mijn lijsten"
+            description="Snelle toegang tot jouw persoonlijke lijsten: geleende boeken, verlanglijst, klasleeslijst en leeshistoriek."
+          ></app-info-button>
+        </div>
+        <a class="hero-head-link" routerLink="/mijn-lijsten" role="button">Alles →</a>
+      </div>
 
-    <section class="dashboard-section">
-      <header class="dashboard-inline-header">
-        <h2 class="dashboard-inline-title">Profielgegevens</h2>
-        <button
-          class="info-icon-btn"
-          type="button"
-          (click)="openInfo('profileDetails')"
-          aria-label="Info over profielgegevens"
-        >
-          i
-        </button>
-      </header>
-      <section class="dashboard-profile-section">
-        <app-profile
-          [embedded]="true"
-          [showHero]="false"
-          [showSections]="true"
-          (logoutRequested)="logout()"
-        ></app-profile>
-      </section>
-    </section>
-  </main>
+      <ul class="shortcut-list">
+        <li class="shortcut-item" (click)="goToMijnLijsten('geleend')" role="button" tabindex="0">
+          <span class="shortcut-dot dot-brand"></span>
+          <span class="shortcut-label">Geleend</span>
+          <span class="shortcut-count">{{ myLoans.length }}</span>
+        </li>
+        <li class="shortcut-item" (click)="goToMijnLijsten('verlanglijst')" role="button" tabindex="0">
+          <span class="shortcut-dot dot-warn"></span>
+          <span class="shortcut-label">Verlanglijst</span>
+          <span class="shortcut-count">{{ wishlistCount }}</span>
+        </li>
+        <li class="shortcut-item" (click)="goToMijnLijsten('klasleeslijst')" role="button" tabindex="0">
+          <span class="shortcut-dot dot-good"></span>
+          <span class="shortcut-label">Klasleeslijst</span>
+          <span class="shortcut-count">{{ classReadingListBooks.length }}</span>
+        </li>
+        <li class="shortcut-item" (click)="goToMijnLijsten('kijker')" role="button" tabindex="0">
+          <span class="shortcut-dot dot-info"></span>
+          <span class="shortcut-label">In de kijker</span>
+          <span class="shortcut-count">{{ highlightedBooks.length }}</span>
+        </li>
+        <li class="shortcut-item" (click)="goToMijnLijsten('historiek')" role="button" tabindex="0">
+          <span class="shortcut-dot dot-ink"></span>
+          <span class="shortcut-label">Historiek</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shortcut-arrow">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </li>
+      </ul>
+    </div>
 
-  @if (activeInfoKey) {
-    <div class="info-modal-backdrop" (click)="closeInfo()">
-      <section
-        class="info-modal"
-        role="dialog"
-        aria-modal="true"
-        [attr.aria-labelledby]="'info-modal-title-' + activeInfoKey"
-        (click)="$event.stopPropagation()"
-      >
-        <header class="info-modal-header">
-          <h2 [id]="'info-modal-title-' + activeInfoKey">
-            {{ activeInfo?.title }}
-          </h2>
-          <button
-            class="info-close-btn"
-            type="button"
-            (click)="closeInfo()"
-            aria-label="Sluit informatievenster"
-          >
-            ×
-          </button>
-        </header>
-        <p>{{ activeInfo?.description }}</p>
-      </section>
+  </div><!-- /hero-row -->
+
+  <!-- Fun badges card -->
+  <app-fun-badges></app-fun-badges>
+
+  <!-- Recommendation rails -->
+  @if (recommendationsLoading) {
+    <div class="loader-container">
+      <div class="spinner"></div>
+      <p>Aanbevelingen ophalen…</p>
     </div>
   }
+
+  @if (!recommendationsLoading) {
+    <section class="rec-section">
+      <div class="overline">
+        <div>
+          <p class="overline-eyebrow">Populair</p>
+          <h2 class="overline-title">Trending boeken</h2>
+        </div>
+        <a class="overline-link" routerLink="/books">
+          Bekijk meer
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
+      <app-recommendation-section
+        [books]="trendingBooks"
+        [title]="''"
+        [variant]="'normal'"
+        [section]="'trending'"
+        [showInfoButton]="false"
+      ></app-recommendation-section>
+    </section>
+
+    @if (newArrivalsBooks.length > 0) {
+      <section class="rec-section">
+        <div class="overline">
+          <div>
+            <p class="overline-eyebrow">Nieuw</p>
+            <h2 class="overline-title">Nieuwe aankomsten</h2>
+          </div>
+          <a class="overline-link" routerLink="/books">
+            Bekijk meer
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        <app-recommendation-section
+          [books]="newArrivalsBooks"
+          [title]="''"
+          [variant]="'normal'"
+          [section]="'newArrivals'"
+          [showInfoButton]="false"
+        ></app-recommendation-section>
+      </section>
+    }
+
+    @if (genreBooks.length > 0) {
+      <section class="rec-section">
+        <div class="overline">
+          <div>
+            <p class="overline-eyebrow">Op jouw smaak</p>
+            <h2 class="overline-title">Gebaseerd op genre</h2>
+          </div>
+          <a class="overline-link" routerLink="/books">
+            Bekijk meer
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        <app-recommendation-section
+          [books]="genreBooks"
+          [title]="''"
+          [variant]="'normal'"
+          [section]="'genre'"
+          [showInfoButton]="false"
+        ></app-recommendation-section>
+      </section>
+    }
+
+    @if (authorBooks.length > 0) {
+      <section class="rec-section">
+        <div class="overline">
+          <div>
+            <p class="overline-eyebrow">Vergelijkbare auteurs</p>
+            <h2 class="overline-title">Gebaseerd op auteur</h2>
+          </div>
+          <a class="overline-link" routerLink="/books">
+            Bekijk meer
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        <app-recommendation-section
+          [books]="authorBooks"
+          [title]="''"
+          [variant]="'normal'"
+          [section]="'author'"
+          [showInfoButton]="false"
+        ></app-recommendation-section>
+      </section>
+    }
+  }
+
 </div>

@@ -1,0 +1,121 @@
+.mt-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: var(--s-7) 28px var(--s-8);
+}
+
+.mt-head {
+  margin-bottom: var(--s-7);
+}
+
+.mt-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--brand);
+  margin: 0 0 6px;
+}
+
+.mt-title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.mt-subtitle {
+  font-size: 15px;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+/* ── Cards ── */
+.mt-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.mt-card {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  cursor: pointer;
+}
+
+.mt-card:hover {
+  border-color: var(--brand-100);
+  box-shadow: 0 4px 16px rgba(135, 31, 66, 0.08);
+  transform: translateY(-2px);
+}
+
+.mt-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mt-icon-primary {
+  background: rgba(135, 31, 66, 0.08);
+  color: var(--brand);
+}
+
+.mt-icon-good {
+  background: rgba(46, 107, 63, 0.08);
+  color: var(--good);
+}
+
+.mt-icon-info {
+  background: rgba(45, 90, 120, 0.08);
+  color: var(--info);
+}
+
+.mt-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.mt-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+.mt-card-desc {
+  font-size: 13.5px;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.mt-card-arrow {
+  font-size: 20px;
+  color: var(--ink-4);
+  flex-shrink: 0;
+  transition: transform 0.15s, color 0.15s;
+}
+
+.mt-card:hover .mt-card-arrow {
+  color: var(--brand);
+  transform: translateX(4px);
+}
+
+@media (max-width: 600px) {
+  .mt-card { flex-wrap: wrap; }
+  .mt-card-arrow { display: none; }
+}

@@ -240,12 +240,13 @@ public class BookController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Role", required = false) String userRole,
-            @RequestParam(required = false) Long schoolId) {
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         if (!isLibrarian(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        boolean exists = schoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, schoolId);
+        Long librarianSchoolId = resolveEffectiveSchoolId(null, userRole, userSub);
+        boolean exists = librarianSchoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, librarianSchoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
         }

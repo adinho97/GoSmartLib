@@ -2,7 +2,6 @@ import { Component } from "@angular/core";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 import { LoanService } from "../services/loan.service";
-import { School } from "../models/school";
 
 @Component({
   selector: "app-add-isbn",
@@ -11,7 +10,6 @@ import { School } from "../models/school";
   standalone: false,
 })
 export class AddIsbnComponent {
-  schools: School[] = [];
   selectedSchoolId: number | null = null;
   isbn = "";
   aantalExemplaren: number = 1;
@@ -29,35 +27,12 @@ export class AddIsbnComponent {
     private schoolService: SchoolService,
     private loanService: LoanService,
   ) {
-    void this.loadSchools();
+    void this.loadUserSchool();
   }
 
-  async loadSchools() {
-    try {
-      this.schools = await this.schoolService.getSchools();
-      const storedSchoolId = this.schoolService.getSelectedSchoolId();
-      const hasStoredSchool =
-        storedSchoolId !== null &&
-        this.schools.some((school) => school.id === storedSchoolId);
-      const fallbackSchoolId =
-        this.schools.length > 0 ? this.schools[0].id : null;
-      this.selectedSchoolId = hasStoredSchool
-        ? storedSchoolId
-        : fallbackSchoolId;
-      if (this.selectedSchoolId !== null) {
-        this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
-      }
-    } catch {
-      this.schools = [];
-      this.selectedSchoolId = null;
-    }
-  }
-
-  onSchoolChange(value: string) {
-    this.selectedSchoolId = value ? Number(value) : null;
-    if (this.selectedSchoolId !== null) {
-      this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
-    }
+  private async loadUserSchool() {
+    await this.schoolService.selectUserDefaultSchool();
+    this.selectedSchoolId = this.schoolService.getSelectedSchoolId();
   }
 
   async searchBook() {

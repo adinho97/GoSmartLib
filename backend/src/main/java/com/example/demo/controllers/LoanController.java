@@ -41,7 +41,8 @@ public class LoanController {
     @PostMapping
     public ResponseEntity<LoanDto> createLoan(
             @Valid @RequestBody CreateLoanRequest request,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String lenderSub) {
         if (!canLoan(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -49,7 +50,7 @@ public class LoanController {
             logger.info("Creating loan for bookId={}, userSub={}, dueDate={}",
                     request.getBookId(), request.getUserSub(), request.getDueDate());
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(loanService.createLoan(request));
+                    .body(loanService.createLoan(request, lenderSub));
         } catch (IllegalArgumentException e) {
             logger.warn("Loan creation validation error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -65,7 +66,8 @@ public class LoanController {
     @PostMapping("/bulk")
     public ResponseEntity<List<LoanDto>> createLoans(
             @Valid @RequestBody List<CreateLoanRequest> requests,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-User-Sub", required = false) String lenderSub) {
         if (!canLoan(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -74,7 +76,7 @@ public class LoanController {
                 return ResponseEntity.badRequest().body(List.of());
             }
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(loanService.createLoans(requests));
+                    .body(loanService.createLoans(requests, lenderSub));
         } catch (IllegalArgumentException e) {
             logger.warn("Bulk loan validation error: {}", e.getMessage());
             return ResponseEntity.badRequest().build();

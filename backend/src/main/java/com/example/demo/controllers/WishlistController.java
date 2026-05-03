@@ -56,7 +56,7 @@ public class WishlistController {
             @Valid @RequestBody WishlistAddRequest request,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         AppUser user = getUserFromHeader(requireUserSub(userSub));
-        if ("leerling".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
+        if (user.getSchool() != null) {
             Book book = bookRepository.findById(request.getBookId()).orElse(null);
             if (book == null || book.getSchool() == null
                     || !book.getSchool().getId().equals(user.getSchool().getId())) {

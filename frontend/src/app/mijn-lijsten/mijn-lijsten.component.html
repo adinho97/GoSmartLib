@@ -1,0 +1,216 @@
+<div class="ml-page">
+  <header class="ml-head">
+    <h1 class="ml-title">Mijn lijsten</h1>
+    <p class="ml-subtitle">Jouw geleende boeken, verlanglijst en leesgeschiedenis op één plek.</p>
+  </header>
+
+  <!-- Tab strip -->
+  <div class="tabs" role="tablist">
+    <button
+      class="tab"
+      [class.active]="activeTab === 'geleend'"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'geleend'"
+      (click)="selectTab('geleend')"
+    >
+      Geleend
+      <span class="tab-count" [class.active]="activeTab === 'geleend'">{{ loans.length }}</span>
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'verlanglijst'"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'verlanglijst'"
+      (click)="selectTab('verlanglijst')"
+    >
+      Verlanglijst
+      <span class="tab-count" [class.active]="activeTab === 'verlanglijst'">{{ wishlistItems.length }}</span>
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'klasleeslijst'"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'klasleeslijst'"
+      (click)="selectTab('klasleeslijst')"
+    >
+      Klasleeslijst
+      <span class="tab-count" [class.active]="activeTab === 'klasleeslijst'">{{ classReadingBooks.length }}</span>
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'kijker'"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'kijker'"
+      (click)="selectTab('kijker')"
+    >
+      In de kijker
+      <span class="tab-count" [class.active]="activeTab === 'kijker'">{{ highlightedBooks.length }}</span>
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'historiek'"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'historiek'"
+      (click)="selectTab('historiek')"
+    >
+      Historiek
+      <span class="tab-count" [class.active]="activeTab === 'historiek'">{{ loanHistory.length }}</span>
+    </button>
+  </div>
+
+  <!-- ── Geleend ── -->
+  @if (activeTab === 'geleend') {
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Geleende boeken</h2>
+        <p class="section-desc">Boeken die je momenteel ontleend hebt.</p>
+      </div>
+    </div>
+    @if (loansLoading) {
+      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+    } @else if (loans.length === 0) {
+      <p class="empty-msg">Je hebt momenteel geen geleende boeken.</p>
+    } @else {
+      <div class="book-grid">
+        @for (loan of loans.slice(0, visibleCount); track loan.id) {
+          <app-recommendation-card
+            [book]="loanToBook(loan)"
+            [profileVariant]="'history'"
+            [loanDate]="formatDate(loan.dueDate)"
+            (viewDetails)="goToDetail(loan.bookId)"
+          ></app-recommendation-card>
+        }
+      </div>
+      @if (loans.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ loans.length - visibleCount }} meer)</span>
+        </button>
+      }
+    }
+  }
+
+  <!-- ── Verlanglijst ── -->
+  @if (activeTab === 'verlanglijst') {
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Verlanglijst</h2>
+        <p class="section-desc">Boeken die je later wilt lezen of ontlenen.</p>
+      </div>
+    </div>
+    @if (wishlistLoading) {
+      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+    } @else if (wishlistItems.length === 0) {
+      <p class="empty-msg">Je verlanglijst is leeg. Voeg boeken toe via de catalogus.</p>
+    } @else {
+      <div class="book-grid">
+        @for (item of wishlistItems.slice(0, visibleCount); track item.bookId) {
+          <app-recommendation-card
+            [book]="wishlistToBook(item)"
+            [profileVariant]="'wishlist'"
+            [isUnavailable]="item.availableCopies === 0"
+            [showRemoveBtn]="true"
+            (viewDetails)="goToDetail(item.bookId)"
+            (remove)="onRemoveFromWishlist(item)"
+            (toggleBell)="onToggleWishlistBell(item)"
+          ></app-recommendation-card>
+        }
+      </div>
+      @if (wishlistItems.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ wishlistItems.length - visibleCount }} meer)</span>
+        </button>
+      }
+    }
+  }
+
+  <!-- ── Klasleeslijst ── -->
+  @if (activeTab === 'klasleeslijst') {
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Klasleeslijst</h2>
+        <p class="section-desc">Boeken aanbevolen voor jouw klas.</p>
+      </div>
+    </div>
+    @if (classReadingLoading) {
+      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+    } @else if (classReadingBooks.length === 0) {
+      <p class="empty-msg">Er zijn momenteel geen boeken in de klasleeslijst.</p>
+    } @else {
+      <div class="book-grid">
+        @for (book of classReadingBooks.slice(0, visibleCount); track book.bookId) {
+          <app-recommendation-card
+            [book]="book"
+            [profileVariant]="'dashboard'"
+            (viewDetails)="goToDetail(book.bookId)"
+          ></app-recommendation-card>
+        }
+      </div>
+      @if (classReadingBooks.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ classReadingBooks.length - visibleCount }} meer)</span>
+        </button>
+      }
+    }
+  }
+
+  <!-- ── In de kijker ── -->
+  @if (activeTab === 'kijker') {
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">In de kijker</h2>
+        <p class="section-desc">Boeken die de bibliotheek extra in de schijnwerpers zet.</p>
+      </div>
+    </div>
+    @if (highlightedLoading) {
+      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+    } @else if (highlightedBooks.length === 0) {
+      <p class="empty-msg">Er zijn momenteel geen boeken in de kijker.</p>
+    } @else {
+      <div class="book-grid">
+        @for (book of highlightedBooks.slice(0, visibleCount); track book.bookId) {
+          <app-recommendation-card
+            [book]="book"
+            [profileVariant]="'dashboard'"
+            (viewDetails)="goToDetail(book.bookId)"
+          ></app-recommendation-card>
+        }
+      </div>
+      @if (highlightedBooks.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ highlightedBooks.length - visibleCount }} meer)</span>
+        </button>
+      }
+    }
+  }
+
+  <!-- ── Historiek ── -->
+  @if (activeTab === 'historiek') {
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Leeshistoriek</h2>
+        <p class="section-desc">Alle boeken die je eerder ontleend hebt.</p>
+      </div>
+    </div>
+    @if (historyLoading) {
+      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+    } @else if (loanHistory.length === 0) {
+      <p class="empty-msg">Je hebt nog geen boeken ontleend.</p>
+    } @else {
+      <div class="book-grid">
+        @for (loan of loanHistory.slice(0, visibleCount); track loan.id) {
+          <app-recommendation-card
+            [book]="historyToBook(loan)"
+            [profileVariant]="'history'"
+            [loanDate]="loan.returnedAt ? formatDate(loan.returnedAt) : formatDate(loan.dueDate)"
+            (viewDetails)="goToDetail(loan.bookId)"
+          ></app-recommendation-card>
+        }
+      </div>
+      @if (loanHistory.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer <span class="show-more-count">({{ loanHistory.length - visibleCount }} meer)</span>
+        </button>
+      }
+    }
+  }
+</div>

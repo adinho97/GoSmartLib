@@ -10,13 +10,17 @@
     <p class="subtitle">Super Admin Setup</p>
 
     <form class="login-form" (ngSubmit)="submitSetup()">
-      <div *ngIf="errorMessage" class="error-message">
-        <span>⚠️ {{ errorMessage }}</span>
-      </div>
+      @if (errorMessage) {
+        <div class="error-message">
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
 
-      <div *ngIf="successMessage" class="success-message">
-        <span>✅ {{ successMessage }}</span>
-      </div>
+      @if (successMessage) {
+        <div class="success-message">
+          <span> {{ successMessage }}</span>
+        </div>
+      }
 
       <div class="form-group">
         <label for="token">Setup token</label>
@@ -81,15 +85,15 @@
         />
       </div>
 
-      <button
-        type="submit"
-        class="btn-login"
-        [disabled]="isLoading"
-      >
-        <span *ngIf="!isLoading">Super admin aanmaken</span>
-        <span *ngIf="isLoading" class="loading-spinner">
-          <span class="spinner"></span> Bezig met aanmaken...
-        </span>
+      <button type="submit" class="btn-login" [disabled]="isLoading">
+        @if (!isLoading) {
+          <span>Super admin aanmaken</span>
+        }
+        @if (isLoading) {
+          <span class="loading-spinner">
+            <span class="spinner"></span> Bezig met aanmaken...
+          </span>
+        }
       </button>
     </form>
 

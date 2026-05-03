@@ -99,7 +99,7 @@ class LoanServiceTest {
 
         // 2. Act & Assert
         assertDoesNotThrow(() -> {
-            loanService.createLoan(request);
+            loanService.createLoan(request, null);
         });
 
         // Verificatie
@@ -139,7 +139,7 @@ class LoanServiceTest {
         when(smartschoolMessageService.sendMessage(eq("access-token"), any(SmartschoolMessageRequest.class)))
                 .thenReturn(Mono.just("ok"));
 
-        List<LoanDto> loans = loanService.createLoans(List.of(request1, request2));
+        List<LoanDto> loans = loanService.createLoans(List.of(request1, request2), null);
 
         assertEquals(2, loans.size());
         verify(smartschoolMessageService, times(1)).sendMessage(eq("access-token"), any(SmartschoolMessageRequest.class));
@@ -284,7 +284,7 @@ class LoanServiceTest {
         request.setUserSub("leerling-sub");
         request.setDueDate(LocalDate.now().plusDays(14));
 
-        assertThrows(IllegalArgumentException.class, () -> loanService.createLoan(request));
+        assertThrows(IllegalArgumentException.class, () -> loanService.createLoan(request, null));
     }
 
     @Test
@@ -311,12 +311,12 @@ class LoanServiceTest {
         request.setUserSub("leerling-sub");
         request.setDueDate(LocalDate.now().plusDays(14));
 
-        assertDoesNotThrow(() -> loanService.createLoan(request));
+        assertDoesNotThrow(() -> loanService.createLoan(request, null));
         verify(loanRepository, times(1)).save(any(Loan.class));
     }
 
     @Test
-    void createLoan_AllowsLeerkrachtToBorrowBookFromDifferentSchool() {
+    void createLoan_BlocksLeerkrachtFromDifferentSchoolBook() {
         School schoolA = buildSchool(1L);
         School schoolB = buildSchool(2L);
 
@@ -331,8 +331,6 @@ class LoanServiceTest {
         leerkracht.setSchool(schoolA);
 
         when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
         when(appUserRepository.findBySub("teacher-sub")).thenReturn(java.util.Optional.of(leerkracht));
 
         CreateLoanRequest request = new CreateLoanRequest();
@@ -340,12 +338,11 @@ class LoanServiceTest {
         request.setUserSub("teacher-sub");
         request.setDueDate(LocalDate.now().plusDays(14));
 
-        assertDoesNotThrow(() -> loanService.createLoan(request));
-        verify(loanRepository, times(1)).save(any(Loan.class));
+        assertThrows(IllegalArgumentException.class, () -> loanService.createLoan(request, "teacher-sub"));
     }
 
     @Test
-    void createLoan_AllowsBibbeheerderToBorrowBookFromDifferentSchool() {
+    void createLoan_BlocksBibbeheerderFromDifferentSchoolBook() {
         School schoolA = buildSchool(1L);
         School schoolB = buildSchool(2L);
 
@@ -360,8 +357,6 @@ class LoanServiceTest {
         bibbeheerder.setSchool(schoolA);
 
         when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
         when(appUserRepository.findBySub("librarian-sub")).thenReturn(java.util.Optional.of(bibbeheerder));
 
         CreateLoanRequest request = new CreateLoanRequest();
@@ -369,8 +364,7 @@ class LoanServiceTest {
         request.setUserSub("librarian-sub");
         request.setDueDate(LocalDate.now().plusDays(14));
 
-        assertDoesNotThrow(() -> loanService.createLoan(request));
-        verify(loanRepository, times(1)).save(any(Loan.class));
+        assertThrows(IllegalArgumentException.class, () -> loanService.createLoan(request, "librarian-sub"));
     }
 
     @Test
@@ -397,7 +391,7 @@ class LoanServiceTest {
         request.setUserSub("student-no-school");
         request.setDueDate(LocalDate.now().plusDays(14));
 
-        assertDoesNotThrow(() -> loanService.createLoan(request));
+        assertDoesNotThrow(() -> loanService.createLoan(request, null));
     }
 
     private School buildSchool(Long id) {
