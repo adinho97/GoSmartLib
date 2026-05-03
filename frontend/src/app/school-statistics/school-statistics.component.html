@@ -1,0 +1,72 @@
+<div class="stats-wrapper">
+  <div class="header-actions">
+    <a routerLink="/statistieken" class="back-btn">← Terug</a>
+    <h1>School Statistieken</h1>
+  </div>
+
+  @if (isLoading) {
+    <div class="loader-container">
+      <p>Gegevens ophalen...</p>
+    </div>
+  }
+
+  @if (!isLoading && stats) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label"
+          >Totaal Uitleningen: {{ stats.totalLoans }}</span
+        >
+        <div>
+          <div class="stat-value">School: {{ stats.school }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Meest gelezen boek</span>
+        @if (stats.mostReadBook) {
+          <div class="stat-value">{{ stats.mostReadBook.titel }}</div>
+          <div class="stat-subtext">
+            {{ stats.mostReadBook.auteur }} — {{ stats.mostReadBook.count }}x
+            uitgeleend
+          </div>
+        } @else {
+          <div class="no-data">
+            Geen gegevens beschikbaar voor deze periode.
+          </div>
+        }
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Top Lezer</span>
+        @if (stats.topReader) {
+          <div class="stat-value">{{ stats.topReader.displayName }}</div>
+          <div class="stat-subtext">
+            {{ stats.topReader.count }} boeken gelezen
+          </div>
+        } @else {
+          <div class="no-data">
+            Geen gegevens beschikbaar voor deze periode.
+          </div>
+        }
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Meest actieve klas</span>
+        @if (stats.topClass) {
+          <div class="stat-value">{{ stats.topClass.name }}</div>
+          <div class="stat-subtext">{{ stats.topClass.count }} uitleningen</div>
+        } @else {
+          <div class="no-data">
+            Geen gegevens beschikbaar voor deze periode.
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (error) {
+    <div class="error-msg">
+      {{ error }}
+    </div>
+  }
+</div>
