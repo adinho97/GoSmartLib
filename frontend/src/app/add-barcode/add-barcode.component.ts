@@ -6,7 +6,6 @@ import { BarcodeService } from '../services/barcode.service';
 import { BookService } from '../services/book.service';
 import { SchoolService } from '../services/school.service';
 import { LoanService } from '../services/loan.service';
-import { School } from '../models/school';
 
 export interface ScannedBookResult {
   isbn: string;
@@ -36,7 +35,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   @ViewChild('scanContainer') scanContainer!: ElementRef;
   @ViewChild('cameraVideo') cameraVideo?: ElementRef<HTMLVideoElement>;
 
-  schools: School[] = [];
   selectedSchoolId: number | null = null;
   scanMode = false;
   cameraMode = false;
@@ -82,7 +80,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
-    await this.loadSchools();
+    await this.loadUserSchool();
 
     if (this.scanContainer) {
       this.barcodeService.setupHiddenInput(
@@ -112,33 +110,9 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     this.barcodeService.cleanup();
   }
 
-  async loadSchools() {
-    try {
-      this.schools = await this.schoolService.getSchools();
-      const storedSchoolId = this.schoolService.getSelectedSchoolId();
-      const hasStoredSchool =
-        storedSchoolId !== null &&
-        this.schools.some((school) => school.id === storedSchoolId);
-
-      const fallbackSchoolId =
-        this.schools.length > 0 ? this.schools[0].id : null;
-      this.selectedSchoolId = hasStoredSchool
-        ? storedSchoolId
-        : fallbackSchoolId;
-
-      if (this.selectedSchoolId !== null) {
-        this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
-      }
-    } catch (err) {
-      this.errorMessage = 'Kon scholen niet laden.';
-    }
-  }
-
-  onSchoolChange(value: string) {
-    this.selectedSchoolId = value ? Number(value) : null;
-    if (this.selectedSchoolId !== null) {
-      this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
-    }
+  private async loadUserSchool() {
+    await this.schoolService.selectUserDefaultSchool();
+    this.selectedSchoolId = this.schoolService.getSelectedSchoolId();
   }
 
   activateScanMode() {

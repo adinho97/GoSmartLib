@@ -4,21 +4,6 @@
   </div>
 
   <div class="main-card">
-    <!-- School selector -->
-    @if (schools.length > 0) {
-      <div class="school-selector">
-        <label>SELECTEER SCHOOL</label>
-        <select
-          [ngModel]="selectedSchoolId"
-          (ngModelChange)="onSchoolChange($event)"
-        >
-          @for (school of schools; track school.id) {
-            <option [value]="school.id">{{ school.naam }}</option>
-          }
-        </select>
-      </div>
-    }
-
     <div class="section">
       <h2 class="section-label">BARCODE SCANNEN</h2>
 

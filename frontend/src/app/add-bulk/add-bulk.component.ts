@@ -6,7 +6,6 @@ import {
   BulkImportStatus,
 } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
-import { School } from "../models/school";
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -25,7 +24,6 @@ export class AddBulkComponent {
     "ERROR",
   ];
 
-  schools: School[] = [];
   selectedSchoolId: number | null = null;
   selectedFile: File | null = null;
   selectedStatusFilter: "" | BulkImportStatus = "";
@@ -40,37 +38,12 @@ export class AddBulkComponent {
     private bookService: BookService,
     private schoolService: SchoolService,
   ) {
-    void this.loadSchools();
+    void this.loadUserSchool();
   }
 
-  async loadSchools() {
-    try {
-      this.schools = await this.schoolService.getSchools();
-      const storedSchoolId = this.schoolService.getSelectedSchoolId();
-      const hasStoredSchool =
-        storedSchoolId !== null &&
-        this.schools.some((school) => school.id === storedSchoolId);
-
-      const fallbackSchoolId =
-        this.schools.length > 0 ? this.schools[0].id : null;
-      this.selectedSchoolId = hasStoredSchool
-        ? storedSchoolId
-        : fallbackSchoolId;
-
-      if (this.selectedSchoolId !== null) {
-        this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
-      }
-    } catch {
-      this.schools = [];
-      this.selectedSchoolId = null;
-    }
-  }
-
-  onSchoolChange(value: string) {
-    this.selectedSchoolId = value ? Number(value) : null;
-    if (this.selectedSchoolId !== null) {
-      this.schoolService.setSelectedSchoolId(this.selectedSchoolId);
-    }
+  private async loadUserSchool() {
+    await this.schoolService.selectUserDefaultSchool();
+    this.selectedSchoolId = this.schoolService.getSelectedSchoolId();
   }
 
   onFileSelected(event: Event) {

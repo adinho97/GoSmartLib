@@ -30,26 +30,6 @@
       </div>
 
       <div class="form-row">
-        <label for="school">School</label>
-        <select
-          id="school"
-          name="school"
-          #school="ngModel"
-          [(ngModel)]="selectedSchoolId"
-          required
-          [class.field-invalid]="school.invalid && (school.touched || isSubmitted)"
-        >
-          <option [ngValue]="null">Kies een school</option>
-          @for (school of schools; track school) {
-          <option [ngValue]="school.id">{{ school.naam }}</option>
-          }
-        </select>
-        @if (school.errors?.['required'] && (school.touched || isSubmitted)) {
-        <small class="field-error">School is verplicht.</small>
-        }
-      </div>
-
-      <div class="form-row">
         <label for="titel">Titel</label>
         <input
           id="titel"
@@ -244,7 +224,7 @@
       <button
         type="submit"
         class="submit-btn"
-        [disabled]="isSaving || bookForm.invalid || selectedSchoolId === null"
+        [disabled]="isSaving || bookForm.invalid"
       >
         {{ isSaving ? "Opslaan..." : "Boek toevoegen" }}
       </button>
