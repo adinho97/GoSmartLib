@@ -9,6 +9,7 @@ import { from, Observable, map } from "rxjs";
 export class SchoolService {
   private readonly apiUrl = "/api/scholen";
   private readonly selectedSchoolIdKey = "selectedSchoolId";
+  private readonly userOwnSchoolIdKey = "userOwnSchoolId";
 
   async getSchools(): Promise<School[]> {
     const res = await axios.get<School[]>(this.apiUrl);
@@ -55,12 +56,20 @@ export class SchoolService {
    * Fetches the logged-in user's assigned school from the database
    * and sets it as the active selection.
    */
+  getUserOwnSchoolId(): number | null {
+    const value = localStorage.getItem(this.userOwnSchoolIdKey);
+    if (!value) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
   async selectUserDefaultSchool(): Promise<void> {
     try {
       const res = await axios.get<{ schoolId: number }>(
         "/api/gebruikers/me/school",
       );
       this.setSelectedSchoolId(res.data.schoolId);
+      localStorage.setItem(this.userOwnSchoolIdKey, String(res.data.schoolId));
     } catch (err) {
       console.error("Could not fetch user's assigned school:", err);
     }

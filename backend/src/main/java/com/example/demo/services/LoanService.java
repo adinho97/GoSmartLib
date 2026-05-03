@@ -56,12 +56,12 @@ public class LoanService {
     }
 
     @Transactional
-    public LoanDto createLoan(CreateLoanRequest request) {
-        return createLoan(request, true);
+    public LoanDto createLoan(CreateLoanRequest request, String lenderSub) {
+        return createLoan(request, lenderSub, true);
     }
 
     @Transactional
-    public List<LoanDto> createLoans(List<CreateLoanRequest> requests) {
+    public List<LoanDto> createLoans(List<CreateLoanRequest> requests, String lenderSub) {
         if (requests == null || requests.isEmpty()) {
             return List.of();
         }
@@ -78,7 +78,7 @@ public class LoanService {
 
         List<LoanDto> createdLoans = new ArrayList<>();
         for (CreateLoanRequest request : requests) {
-            createdLoans.add(createLoan(request, false));
+            createdLoans.add(createLoan(request, lenderSub, false));
         }
 
         sendCombinedLoanConfirmationForDtos(userSub, createdLoans);
@@ -86,7 +86,7 @@ public class LoanService {
     }
 
     @Transactional
-    public LoanDto createLoan(CreateLoanRequest request, boolean sendMessage) {
+    public LoanDto createLoan(CreateLoanRequest request, String lenderSub, boolean sendMessage) {
         logger.info("Creating loan: bookId={}, copyId={}, userSub={}, dueDate={}, sendMessage={}",
             request.getBookId(), request.getCopyId(), request.getUserSub(), request.getDueDate(), sendMessage);
 
@@ -120,11 +120,24 @@ public class LoanService {
             throw new IllegalStateException("Geen beschikbare exemplaren");
         }
 
+        Long bookSchoolId = lendableCopies.get(0).getBook().getSchool() != null
+                ? lendableCopies.get(0).getBook().getSchool().getId()
+                : null;
+
+        if (lenderSub != null && !lenderSub.isBlank()) {
+            AppUser lender = appUserRepository.findBySub(lenderSub.trim()).orElse(null);
+            if (lender != null && lender.getSchool() != null) {
+                Long lenderSchoolId = lender.getSchool().getId();
+                if (!lenderSchoolId.equals(bookSchoolId)) {
+                    logger.warn("School mismatch for loan: book schoolId={}, lender schoolId={}, lenderSub={}",
+                            bookSchoolId, lenderSchoolId, lenderSub);
+                    throw new IllegalArgumentException("Je kan enkel boeken van je eigen school uitlenen");
+                }
+            }
+        }
+
         AppUser borrower = appUserRepository.findBySub(request.getUserSub()).orElse(null);
         if (borrower != null && "leerling".equalsIgnoreCase(borrower.getRole())) {
-            Long bookSchoolId = lendableCopies.get(0).getBook().getSchool() != null
-                    ? lendableCopies.get(0).getBook().getSchool().getId()
-                    : null;
             Long studentSchoolId = borrower.getSchool() != null ? borrower.getSchool().getId() : null;
             if (studentSchoolId != null && !studentSchoolId.equals(bookSchoolId)) {
                 logger.warn("School mismatch for loan: book schoolId={}, student schoolId={}, userSub={}",
