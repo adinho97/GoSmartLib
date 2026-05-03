@@ -4,7 +4,7 @@
       <h1>Boekenlijst</h1>
       <p>Ontdek en beheer alle beschikbare boeken op één plek.</p>
     </div>
-    @if (isTeacher && schools.length > 0) {
+    @if (isTeacherOrLibrarian && schools.length > 0) {
       <div class="school-selector-bar">
         <label for="schoolFilter">School</label>
         <select
