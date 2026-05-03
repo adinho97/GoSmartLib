@@ -51,6 +51,10 @@ export class LeerkrachtDashboardComponent implements OnInit {
     return localStorage.getItem('sub') || '';
   }
 
+  get isLibrarian(): boolean {
+    return localStorage.getItem('role') === 'bibbeheerder';
+  }
+
   get overdueLoans(): Loan[] {
     return this.allActiveLoans.filter(l => l.dueDate < this.today);
   }
@@ -206,5 +210,9 @@ export class LeerkrachtDashboardComponent implements OnInit {
 
   goToBooks(): void {
     this.router.navigate(['/books']);
+  }
+
+  goToAddBook(): void {
+    this.router.navigate(['/add-general']);
   }
 }

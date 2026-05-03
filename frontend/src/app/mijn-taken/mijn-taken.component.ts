@@ -6,4 +6,12 @@ import { Component } from '@angular/core';
   styleUrls: ['./mijn-taken.component.css'],
   standalone: false,
 })
-export class MijnTakenComponent {}
+export class MijnTakenComponent {
+  get isLibrarian(): boolean {
+    return localStorage.getItem('role') === 'bibbeheerder';
+  }
+
+  get eyebrow(): string {
+    return this.isLibrarian ? 'Bibliotheekbeheerder' : 'Leerkracht';
+  }
+}

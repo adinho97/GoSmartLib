@@ -109,6 +109,13 @@
           }
         </div>
       }
+      @if (isLibrarian) {
+        <div class="lk-kijker-manage">
+          <button class="lk-btn-manage" type="button" (click)="goToBooks()">
+            + Boeken in de kijker zetten
+          </button>
+        </div>
+      }
     </section>
 
     <!-- Col 3: Snelle acties -->
@@ -150,6 +157,15 @@
           Scholenoverzicht
           <span class="lk-quick-arrow">→</span>
         </button>
+        @if (isLibrarian) {
+          <button class="lk-quick-btn" type="button" (click)="goToAddBook()">
+            <span class="lk-quick-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+            Boek toevoegen
+            <span class="lk-quick-arrow">→</span>
+          </button>
+        }
       </div>
     </section>
 

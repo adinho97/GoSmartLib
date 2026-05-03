@@ -32,6 +32,7 @@ import { LeerkrachtDashboardComponent } from "./leerkracht-dashboard/leerkracht-
 import { KlasleeslijstBeheerComponent } from "./klasleeslijst-beheer/klasleeslijst-beheer.component";
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
+import { StatistiekenComponent } from "./statistieken/statistieken.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -191,6 +192,12 @@ export const appRoutes: Routes = [
     component: BoekTerugbrengenComponent,
     canActivate: [AuthGuard],
     data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "statistieken",
+    component: StatistiekenComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
   },
 ];
 

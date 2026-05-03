@@ -44,6 +44,7 @@ import { LeerkrachtDashboardComponent } from "./leerkracht-dashboard/leerkracht-
 import { KlasleeslijstBeheerComponent } from "./klasleeslijst-beheer/klasleeslijst-beheer.component";
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
+import { StatistiekenComponent } from "./statistieken/statistieken.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -76,6 +77,7 @@ registerLocaleData(localeNl, "nl");
     KlasleeslijstBeheerComponent,
     MijnTakenComponent,
     BoekTerugbrengenComponent,
+    StatistiekenComponent,
   ],
   imports: [
     BrowserModule,

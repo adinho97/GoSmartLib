@@ -348,6 +348,27 @@
   text-overflow: ellipsis;
 }
 
+/* ── In de kijker manage (bibbeheerder only) ── */
+.lk-kijker-manage {
+  margin-top: auto;
+  padding-top: var(--s-2);
+}
+.lk-btn-manage {
+  width: 100%;
+  padding: 8px 14px;
+  border: 1.5px dashed var(--brand);
+  border-radius: var(--r);
+  background: transparent;
+  color: var(--brand);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  text-align: center;
+}
+.lk-btn-manage:hover { background: var(--surface-2); }
+
 /* ── Quick actions ── */
 .lk-quick-actions {
   display: flex;
