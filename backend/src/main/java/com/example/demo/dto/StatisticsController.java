@@ -20,13 +20,14 @@ public class StatisticsController {
 
     /**
      * GET /api/statistics
-     * Fetches statistics. Can be filtered by schoolId.
+     * Fetches library statistics. Can be filtered by a specific school.
      */
     @GetMapping
     public ResponseEntity<StatisticsDTO> getStatistics(
             @RequestParam(required = false) Long schoolId) {
         if (schoolId != null) {
-            return ResponseEntity.ok(statisticsService.getSchoolStatistics(schoolId));
+            StatisticsDTO schoolStats = statisticsService.getSchoolStatistics(schoolId);
+            return ResponseEntity.ok(schoolStats);
         }
         return ResponseEntity.ok(statisticsService.getGlobalStatistics());
     }

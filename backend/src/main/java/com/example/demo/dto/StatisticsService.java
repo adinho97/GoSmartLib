@@ -1,6 +1,8 @@
 package com.example.demo.dto;
 
+import com.example.demo.entities.School;
 import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.SchoolRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
 import org.springframework.stereotype.Service;
@@ -17,13 +19,16 @@ public class StatisticsService {
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
     private final AppUserRepository userRepository;
+    private final SchoolRepository schoolRepository;
 
     public StatisticsService(BookRepository bookRepository,
             LoanRepository loanRepository,
-            AppUserRepository userRepository) {
+            AppUserRepository userRepository,
+            SchoolRepository schoolRepository) {
         this.bookRepository = bookRepository;
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
+        this.schoolRepository = schoolRepository;
     }
 
     /**
@@ -60,6 +65,20 @@ public class StatisticsService {
         dto.setActiveLoans(loanRepository.countByCopy_Book_School_IdAndReturnedAtIsNull(schoolId));
         dto.setTotalUsers(userRepository.countBySchool_Id(schoolId));
 
+        // Fetch school name
+        schoolIdOptional(schoolId).ifPresent(s -> dto.setSchool(s.getNaam()));
+
+        // Map the first popular book to mostReadBook
+        List<Map<String, Object>> popular = formatPopularBooks(loanRepository.findPopularBooksBySchool(schoolId));
+        dto.setPopularBooks(popular);
+        if (!popular.isEmpty()) {
+            dto.setMostReadBook(popular.get(0));
+        }
+
+        // Note: topReader and topClass would ideally be calculated via dedicated
+        // queries
+        // in LoanRepository similar to findPopularBooksBySchool.
+
         dto.setPopularBooks(formatPopularBooks(loanRepository.findPopularBooksBySchool(schoolId)));
         dto.setBooksPerGenre(formatGenreCounts(bookRepository.findAllBySchool_Id(schoolId).stream()
                 .collect(Collectors.groupingBy(
@@ -72,12 +91,16 @@ public class StatisticsService {
         return dto;
     }
 
+    private Optional<School> schoolIdOptional(Long schoolId) {
+        return schoolRepository.findById(schoolId);
+    }
+
     private List<Map<String, Object>> formatPopularBooks(List<Object[]> results) {
         return results.stream()
                 .limit(5)
                 .map(row -> {
                     Map<String, Object> map = new HashMap<>();
-                    map.put("title", row[0] != null ? row[0].toString() : "Onbekend");
+                    map.put("titel", row[0] != null ? row[0].toString() : "Onbekend");
                     map.put("count", row[1] instanceof Number ? ((Number) row[1]).longValue() : 0L);
                     return map;
                 })

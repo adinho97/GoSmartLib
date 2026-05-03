@@ -53,6 +53,8 @@ export interface SchoolStatistics {
   mostReadBook: { id: number; titel: string; auteur: string; count: number } | null;
   topReader: { sub: string; displayName: string; count: number } | null;
   topClass: { name: string; count: number } | null;
+  totalLoans: number;
+  school: string;
 }
 
 @Injectable({

@@ -1,41 +1,39 @@
 import { Component, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
 import { BookService, SchoolStatistics } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
-import { UiToastService } from "../services/ui-toast.service";
 
 @Component({
-  selector: "app-statistics",
-  templateUrl: "./statistics.component.html",
-  styleUrls: ["./statistics.component.css"],
-  standalone: false,
+  selector: "app-school-statistics",
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  templateUrl: "./school-statistics.component.html",
+  styleUrls: ["./school-statistics.component.css"],
 })
-export class StatisticsComponent implements OnInit {
+export class SchoolStatisticsComponent implements OnInit {
   stats: SchoolStatistics | null = null;
   isLoading = true;
+  error = "";
 
   constructor(
     private bookService: BookService,
     private schoolService: SchoolService,
-    private uiToastService: UiToastService,
   ) {}
 
-  ngOnInit(): void {
-    this.loadStatistics();
-  }
-
-  async loadStatistics() {
+  async ngOnInit() {
     const schoolId = this.schoolService.getSelectedSchoolId();
     if (!schoolId) {
-      this.uiToastService.error("Geen school geselecteerd.");
+      this.error = "Geen school geselecteerd. Kies eerst een school.";
       this.isLoading = false;
       return;
     }
 
     try {
       this.stats = await this.bookService.getSchoolStatistics(schoolId);
-    } catch (error) {
-      console.error("Fout bij het laden van statistieken:", error);
-      this.uiToastService.error("Laden van statistieken mislukt.");
+    } catch (err) {
+      console.error("Failed to load school statistics", err);
+      this.error = "Fout bij het laden van de statistieken.";
     } finally {
       this.isLoading = false;
     }

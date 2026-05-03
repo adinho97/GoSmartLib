@@ -12,6 +12,10 @@ public class StatisticsDTO {
     private long activeLoans;
     private long totalUsers;
     private List<Map<String, Object>> popularBooks;
+    private Map<String, Object> mostReadBook;
+    private Map<String, Object> topReader;
+    private Map<String, Object> topClass;
+    private String school;
     private Map<String, Long> booksPerGenre;
 
     public StatisticsDTO() {
@@ -55,6 +59,38 @@ public class StatisticsDTO {
 
     public void setPopularBooks(List<Map<String, Object>> popularBooks) {
         this.popularBooks = popularBooks;
+    }
+
+    public Map<String, Object> getMostReadBook() {
+        return mostReadBook;
+    }
+
+    public void setMostReadBook(Map<String, Object> mostReadBook) {
+        this.mostReadBook = mostReadBook;
+    }
+
+    public Map<String, Object> getTopReader() {
+        return topReader;
+    }
+
+    public void setTopReader(Map<String, Object> topReader) {
+        this.topReader = topReader;
+    }
+
+    public Map<String, Object> getTopClass() {
+        return topClass;
+    }
+
+    public void setTopClass(Map<String, Object> topClass) {
+        this.topClass = topClass;
+    }
+
+    public String getSchool() {
+        return school;
+    }
+
+    public void setSchool(String school) {
+        this.school = school;
     }
 
     public Map<String, Long> getBooksPerGenre() {
