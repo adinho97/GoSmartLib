@@ -40,6 +40,10 @@ import { MijnLijstenComponent } from "./mijn-lijsten/mijn-lijsten.component";
 import { AppFooterComponent } from "./components/app-footer/app-footer.component";
 import { FunBadgesComponent } from "./components/fun-badges/fun-badges.component";
 import { InfoButtonComponent } from "./components/info-button/info-button.component";
+import { LeerkrachtDashboardComponent } from "./leerkracht-dashboard/leerkracht-dashboard.component";
+import { KlasleeslijstBeheerComponent } from "./klasleeslijst-beheer/klasleeslijst-beheer.component";
+import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
+import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -68,6 +72,10 @@ registerLocaleData(localeNl, "nl");
     LeerlingInfoComponent,
     BibFaqBeheerComponent,
     MijnLijstenComponent,
+    LeerkrachtDashboardComponent,
+    KlasleeslijstBeheerComponent,
+    MijnTakenComponent,
+    BoekTerugbrengenComponent,
   ],
   imports: [
     BrowserModule,

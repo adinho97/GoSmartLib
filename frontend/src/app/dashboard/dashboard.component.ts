@@ -94,6 +94,12 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const role = localStorage.getItem('role');
+    if (role === 'leerkracht' || role === 'bibbeheerder') {
+      this.router.navigate(['/leerkracht-dashboard'], { replaceUrl: true });
+      return;
+    }
+
     this.userPreferencesService.preferences$.subscribe((prefs) => {
       this.fetchAllRecommendations({
         trending: prefs["recommendationExcludeRead_trending"] ?? true,

@@ -102,7 +102,7 @@ export class AppComponent implements OnInit {
   }
 
   get showFooter(): boolean {
-    return this.showStudentNav;
+    return this.showNavbar;
   }
 
   get userInitial(): string {
@@ -137,6 +137,13 @@ export class AppComponent implements OnInit {
     return (
       this.currentUrl.startsWith("/books") &&
       this.currentUrl.includes("genre=didactiek")
+    );
+  }
+
+  get isTakenMenuActive(): boolean {
+    return (
+      this.currentUrl.startsWith("/uitleen") ||
+      this.currentUrl.startsWith("/klasleeslijst-beheer")
     );
   }
 
