@@ -1,0 +1,261 @@
+<div class="lk-page">
+
+  <!-- Greeting -->
+  <h1 class="lk-greeting">{{ greeting }}, <em>{{ currentFirstName }}</em></h1>
+  <p class="lk-greeting-sub">
+    @if (loansLoading) {
+      Even laden…
+    } @else {
+      <strong [style.color]="overdueCount > 0 ? 'var(--warn)' : 'inherit'">
+        {{ overdueCount }} {{ overdueCount === 1 ? 'boek' : 'boeken' }} te laat
+      </strong>
+      &nbsp;·&nbsp; {{ totalActiveCount }} actieve uitleningen in de school
+    }
+  </p>
+
+  <!-- Hero row: 3 columns -->
+  <div class="lk-hero-row">
+
+    <!-- Col 1: Verder lezen -->
+    <section class="lk-hero-card">
+      <div class="lk-card-head">
+        <span class="lk-eyebrow">
+          <span class="lk-pulse" aria-hidden="true"></span>
+          Verder lezen
+        </span>
+        <a class="lk-head-link" (click)="goToMijnLijsten()" role="button" tabindex="0">
+          Geleend ({{ myLoans.length }}) →
+        </a>
+      </div>
+
+      @if (loansLoading) {
+        <div class="lk-loader"><div class="spinner"></div></div>
+      } @else if (firstOwnLoan) {
+        <div class="lk-vl-body">
+          <div class="lk-vl-cover-wrap">
+            @if (firstOwnLoan.bookCover) {
+              <img [src]="firstOwnLoan.bookCover" [alt]="firstOwnLoan.bookTitel" class="lk-vl-cover" />
+            } @else {
+              <div class="lk-vl-cover lk-vl-placeholder">COVER</div>
+            }
+          </div>
+          <div class="lk-vl-info">
+            <p class="lk-vl-title">{{ firstOwnLoan.bookTitel }}</p>
+            <p class="lk-vl-deadline">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              @if (isOverdue(firstOwnLoan.dueDate)) {
+                <span class="lk-vl-overdue">Verlopen!</span>
+              } @else {
+                Inleveren {{ formatDueDate(firstOwnLoan.dueDate) }}
+                <span class="lk-vl-badge" [class.lk-vl-urgent]="isUrgent(firstOwnLoan.dueDate)">
+                  {{ daysLeft(firstOwnLoan.dueDate) }}d
+                </span>
+              }
+            </p>
+            <div class="lk-vl-actions">
+              <button class="lk-btn-primary" type="button" (click)="goToDetail(firstOwnLoan.bookId)">
+                Bekijk boek
+              </button>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="lk-empty-state">
+          <p>Je hebt momenteel geen geleende boeken.</p>
+          <a class="lk-empty-link" (click)="goToBooks()" role="button" tabindex="0">
+            Ontdek boeken →
+          </a>
+        </div>
+      }
+    </section>
+
+    <!-- Col 2: In de kijker -->
+    <section class="lk-hero-card">
+      <div class="lk-card-head">
+        <div class="lk-card-head-right">
+          <span class="lk-eyebrow">★ In de kijker</span>
+          <app-info-button
+            title="In de kijker"
+            description="Boeken die de bibliothecaris heeft uitgelicht voor de hele school. Ideaal om nieuwe titels te ontdekken."
+          ></app-info-button>
+        </div>
+        <a class="lk-head-link" routerLink="/mijn-lijsten">
+          Alles ({{ highlightedBooks.length }}) →
+        </a>
+      </div>
+
+      @if (booksLoading) {
+        <div class="lk-loader"><div class="spinner"></div></div>
+      } @else if (highlightedBooks.length === 0) {
+        <div class="lk-empty-state">
+          <p>Geen uitgelichte boeken op dit moment.</p>
+        </div>
+      } @else {
+        <div class="kijker-grid">
+          @for (book of highlightedBooks.slice(0, 4); track book.bookId) {
+            <div class="kijker-mini-card" (click)="goToDetail(book.bookId)" role="button" tabindex="0">
+              <div class="kijker-cover-wrap">
+                @if (book.cover) {
+                  <img [src]="book.cover" [alt]="book.titel" class="kijker-cover" />
+                } @else {
+                  <div class="kijker-cover lk-kijker-placeholder">COVER</div>
+                }
+              </div>
+              <p class="kijker-title">{{ book.titel }}</p>
+              <p class="kijker-author">{{ book.auteur }}</p>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Col 3: Snelle acties -->
+    <section class="lk-hero-card">
+      <div class="lk-card-head">
+        <span class="lk-eyebrow lk-eyebrow-ink">Snelle acties</span>
+        <app-info-button
+          title="Snelle acties"
+          description="De meest gebruikte functies in één tik bereikbaar."
+        ></app-info-button>
+      </div>
+
+      <div class="lk-quick-actions">
+        <button class="lk-quick-btn lk-quick-primary" type="button" [routerLink]="'/uitleen'">
+          <span class="lk-quick-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 17l10 5 10-5M2 12l10 5 10-5M12 2L2 7l10 5 10-5-10-5z"/></svg>
+          </span>
+          Boek uitlenen
+          <span class="lk-quick-arrow">→</span>
+        </button>
+        <button class="lk-quick-btn" type="button" [routerLink]="'/uitleen-catalogus'">
+          <span class="lk-quick-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3"/></svg>
+          </span>
+          Uitleenhistoriek
+          <span class="lk-quick-arrow">→</span>
+        </button>
+        <button class="lk-quick-btn" type="button" (click)="goToBooks()">
+          <span class="lk-quick-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </span>
+          Boekencatalogus
+          <span class="lk-quick-arrow">→</span>
+        </button>
+        <button class="lk-quick-btn" type="button" [routerLink]="'/map'">
+          <span class="lk-quick-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-2V4l5 2 6-2 5 2v14l-5-2-6 2zM9 6v14M15 4v14"/></svg>
+          </span>
+          Scholenoverzicht
+          <span class="lk-quick-arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+  </div><!-- /lk-hero-row -->
+
+  <!-- Mijn leeshoek strip -->
+  @if (firstOwnLoan || kijkerBook) {
+    <section class="lk-leeshoek">
+      <div class="lk-leeshoek-label">
+        <span class="lk-leeshoek-title">Mijn leeshoek</span>
+        <span class="lk-leeshoek-sub">Want jij bent ook een lezer.</span>
+      </div>
+
+      @if (firstOwnLoan) {
+        <div class="lk-leeshoek-book" (click)="goToDetail(firstOwnLoan.bookId)" role="button" tabindex="0">
+          <div class="lk-leeshoek-cover-wrap">
+            @if (firstOwnLoan.bookCover) {
+              <img [src]="firstOwnLoan.bookCover" [alt]="firstOwnLoan.bookTitel" class="lk-leeshoek-cover" />
+            } @else {
+              <div class="lk-leeshoek-cover lk-leeshoek-placeholder">
+                {{ firstOwnLoan.bookTitel.slice(0, 2).toUpperCase() }}
+              </div>
+            }
+          </div>
+          <div class="lk-leeshoek-info">
+            <span class="lk-leeshoek-eyebrow">● Verder lezen</span>
+            <p class="lk-leeshoek-book-title">{{ firstOwnLoan.bookTitel }}</p>
+            <p class="lk-leeshoek-book-sub">Inleveren {{ formatDueDate(firstOwnLoan.dueDate) }}</p>
+          </div>
+        </div>
+      }
+
+      @if (kijkerBook) {
+        <div class="lk-leeshoek-book" (click)="goToDetail(kijkerBook.bookId)" role="button" tabindex="0">
+          <div class="lk-leeshoek-cover-wrap">
+            @if (kijkerBook.cover) {
+              <img [src]="kijkerBook.cover" [alt]="kijkerBook.titel" class="lk-leeshoek-cover" />
+            } @else {
+              <div class="lk-leeshoek-cover lk-leeshoek-placeholder">
+                {{ kijkerBook.titel.slice(0, 2).toUpperCase() }}
+              </div>
+            }
+          </div>
+          <div class="lk-leeshoek-info">
+            <span class="lk-leeshoek-eyebrow" style="color: var(--warn)">★ In de kijker</span>
+            <p class="lk-leeshoek-book-title">{{ kijkerBook.titel }}</p>
+            <p class="lk-leeshoek-book-sub">{{ kijkerBook.auteur }}</p>
+          </div>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Recommendation rails -->
+  @if (recommendationsLoading) {
+    <div class="lk-rec-loader">
+      <div class="spinner"></div>
+      <p>Aanbevelingen ophalen…</p>
+    </div>
+  }
+
+  @if (!recommendationsLoading && trendingBooks.length > 0) {
+    <section class="lk-rec-section">
+      <div class="overline">
+        <div>
+          <p class="overline-eyebrow">Populair</p>
+          <h2 class="overline-title">Trending boeken</h2>
+        </div>
+        <a class="overline-link" routerLink="/books">
+          Bekijk meer
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
+      <app-recommendation-section
+        [books]="trendingBooks"
+        [title]="''"
+        [variant]="'normal'"
+        [section]="'trending'"
+        (refreshRecommendations)="onTrendingRefresh($event)"
+      ></app-recommendation-section>
+    </section>
+  }
+
+  @if (!recommendationsLoading && newArrivalsBooks.length > 0) {
+    <section class="lk-rec-section">
+      <div class="overline">
+        <div>
+          <p class="overline-eyebrow">Nieuw</p>
+          <h2 class="overline-title">Nieuwe aankomsten</h2>
+        </div>
+        <a class="overline-link" routerLink="/books">
+          Bekijk meer
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
+      <app-recommendation-section
+        [books]="newArrivalsBooks"
+        [title]="''"
+        [variant]="'normal'"
+        [section]="'newArrivals'"
+        (refreshRecommendations)="onNewArrivalsRefresh($event)"
+      ></app-recommendation-section>
+    </section>
+  }
+
+  <!-- Fun badges -->
+  <app-fun-badges></app-fun-badges>
+
+</div>
