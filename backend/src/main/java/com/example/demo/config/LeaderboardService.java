@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import com.example.demo.entities.AppUser; 
+import com.example.demo.entities.AppUser;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.KlasRepository;
@@ -99,14 +99,16 @@ public class LeaderboardService {
         List<LeaderboardEntryDTO> dtos = new ArrayList<>();
         for (int i = 0; i < results.size(); i++) { // Rank is 1-based index from the ordered list
             Object[] row = results.get(i);
-            String sub = (String) row[0];
+            String subFromQuery = (String) row[0];
             Long count = row[1] instanceof Number ? ((Number) row[1]).longValue() : 0L;
+
+            String displayName = (subFromQuery != null && !subFromQuery.isBlank()) ? subFromQuery : "Onbekende lezer";
 
             dtos.add(new LeaderboardEntryDTO(
                     i + 1,
-                    sub,
+                    displayName,
                     count.intValue(),
-                    sub.equals(currentUserSub)));
+                    subFromQuery != null && subFromQuery.equals(currentUserSub)));
         }
         return dtos;
     }
