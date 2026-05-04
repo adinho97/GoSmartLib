@@ -4,7 +4,6 @@ import com.example.demo.dto.CreateLeeslijstRequest;
 import com.example.demo.dto.LeeslijstDTO;
 import com.example.demo.entities.Leeslijst;
 import com.example.demo.services.LeeslijstService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -24,14 +23,17 @@ public class LeeslijstController {
      * Create a new reading list (Teachers and Library Staff only)
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('leerkracht', 'bibbeheerder')")
-    public Leeslijst createLeeslijst(@RequestBody CreateLeeslijstRequest request) {
+    public Leeslijst createLeeslijst(
+        @RequestBody CreateLeeslijstRequest request
+    ) {
+        // Get authenticated user's subject (sub) from security context
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userSub = auth != null ? auth.getName() : null;
-
-        if (userSub == null || "anonymousUser".equals(userSub)) {
+        
+        if (userSub == null) {
             throw new IllegalArgumentException("Authenticated user not found");
         }
+        
         return leeslijstService.createLeeslijst(request, userSub);
     }
 
@@ -41,6 +43,11 @@ public class LeeslijstController {
     @GetMapping("/school/{schoolId}")
     public List<Leeslijst> getLeeslisten(@PathVariable Long schoolId) {
         return leeslijstService.getLeeslisten(schoolId);
+    public List<LeeslijstDTO> getLeeslisten(@PathVariable Long schoolId) {
+        return leeslijstService.getLeeslisten(schoolId)
+            .stream()
+            .map(leeslijstService::convertToDTO)
+            .toList();
     }
 
     /**
@@ -49,21 +56,25 @@ public class LeeslijstController {
     @GetMapping("/klas/{klasId}")
     public List<Leeslijst> getLeeslistenForKlas(@PathVariable Long klasId) {
         return leeslijstService.getLeeslistenForKlas(klasId);
+    public List<LeeslijstDTO> getLeeslistenForKlas(@PathVariable Long klasId) {
+        return leeslijstService.getLeeslistenForKlas(klasId)
+            .stream()
+            .map(leeslijstService::convertToDTO)
+            .toList();
     }
 
     /**
      * Get detailed information about a reading list
      */
     @GetMapping("/{id}")
-    public Leeslijst getLeeslijst(@PathVariable Long id) {
-        return leeslijstService.getLeeslijst(id).orElse(null); // Assuming service returns Optional<Leeslijst>
+    public LeeslijstDTO getLeeslijst(@PathVariable Long id) {
+        return leeslijstService.getLeeslijstDTO(id);
     }
 
     /**
      * Update a reading list (Teachers and Library Staff only)
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('leerkracht', 'bibbeheerder')")
     public Leeslijst updateLeeslijst(
         @PathVariable Long id,
         @RequestBody CreateLeeslijstRequest request
@@ -75,10 +86,7 @@ public class LeeslijstController {
      * Delete a reading list (Teachers and Library Staff only)
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('leerkracht', 'bibbeheerder')")
-    public void deleteLeeslijst(
-        @PathVariable Long id,
-    ) {
+    public void deleteLeeslijst(@PathVariable Long id) {
         leeslijstService.deleteLeeslijst(id);
     }
 }
