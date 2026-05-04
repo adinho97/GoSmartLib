@@ -43,9 +43,12 @@
 
   --font-ui: Arial, Helvetica, sans-serif;
 
-  --shadow-1: 0 1px 2px rgba(26,22,20,.04), 0 1px 1px rgba(26,22,20,.03);
-  --shadow-2: 0 4px 12px rgba(26,22,20,.06), 0 2px 4px rgba(26,22,20,.04);
-  --shadow-pop: 0 16px 40px -12px rgba(135,31,66,.18), 0 4px 12px rgba(26,22,20,.06);
+  --shadow-1:
+    0 1px 2px rgba(26, 22, 20, 0.04), 0 1px 1px rgba(26, 22, 20, 0.03);
+  --shadow-2:
+    0 4px 12px rgba(26, 22, 20, 0.06), 0 2px 4px rgba(26, 22, 20, 0.04);
+  --shadow-pop:
+    0 16px 40px -12px rgba(135, 31, 66, 0.18), 0 4px 12px rgba(26, 22, 20, 0.06);
 }
 
 body {
@@ -106,24 +109,239 @@ li {
   line-height: 1.35;
 }
 
-
 html.cb-deuteranopia app-root > header,
 html.cb-deuteranopia app-root > .admin-context-bar,
 html.cb-deuteranopia app-root > main,
 html.cb-deuteranopia app-root > app-footer,
 html.cb-deuteranopia app-root > app-badge-toast,
-html.cb-deuteranopia app-root > app-ui-toast { filter: url(#cb-deuteranopia); }
+html.cb-deuteranopia app-root > app-ui-toast {
+  filter: url(#cb-deuteranopia);
+}
 
 html.cb-protanopia app-root > header,
 html.cb-protanopia app-root > .admin-context-bar,
 html.cb-protanopia app-root > main,
 html.cb-protanopia app-root > app-footer,
 html.cb-protanopia app-root > app-badge-toast,
-html.cb-protanopia app-root > app-ui-toast { filter: url(#cb-protanopia); }
+html.cb-protanopia app-root > app-ui-toast {
+  filter: url(#cb-protanopia);
+}
 
 html.cb-tritanopia app-root > header,
 html.cb-tritanopia app-root > .admin-context-bar,
 html.cb-tritanopia app-root > main,
 html.cb-tritanopia app-root > app-footer,
 html.cb-tritanopia app-root > app-badge-toast,
-html.cb-tritanopia app-root > app-ui-toast { filter: url(#cb-tritanopia); }
+html.cb-tritanopia app-root > app-ui-toast {
+  filter: url(#cb-tritanopia);
+}
+
+html.dark {
+  --bg: #0f0e0d;
+  --surface: #1c1917;
+  --surface-2: #28231f;
+  --line: #2e2926;
+  --line-strong: #3d3733;
+  --ink: #f0ece8;
+  --ink-2: #c4bdb7;
+  --ink-3: #8c847c;
+  --ink-4: #5a534d;
+  --brand-50: #1f1014;
+  --brand-100: #2e1620;
+  --warn-bg: #1e1509;
+  --good-bg: #0d1f11;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+html.dark body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Navbar */
+html.dark .app-header,
+html.dark .admin-top-nav {
+  background: var(--surface);
+  border-bottom-color: var(--line);
+}
+
+html.dark .app-nav a {
+  color: var(--ink-2);
+}
+html.dark .app-nav a:hover,
+html.dark .app-nav a.active {
+  color: var(--ink);
+}
+
+html.dark button:not(.cb-toggle-btn):not(.dm-toggle-btn):not(.avatar-btn) {
+  background-color: var(--brand);
+  border-color: #3d0f20;
+}
+
+.dm-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid #d4c1c9 !important;
+  background: #fff !important;
+  color: #5a6472 !important;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+  margin: 0;
+}
+.dm-toggle-btn:hover {
+  background: #fff0f4 !important;
+  color: #1a1a1a !important;
+}
+.dm-toggle-btn.active {
+  border-color: #3b5bdb !important;
+  color: #3b5bdb !important;
+  background: #eef2ff !important;
+}
+
+html.dark .dm-toggle-btn.active {
+  border-color: #6b8cff;
+  color: #6b8cff;
+  background: #1a1f35;
+}
+
+html.dark .cb-toggle-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+html.dark .cb-toggle-btn.active {
+  border-color: #c4566e;
+  color: #c4566e;
+  background: #1f1014;
+}
+
+/* ─── Dark mode: boekdetail ─── */
+html.dark .detail-card {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+html.dark .book-title,
+html.dark .book-description h3,
+html.dark .review-header h3,
+html.dark .lestip-section h3,
+html.dark .publish-review-card h3,
+html.dark .preview-modal-header h2 {
+  color: var(--ink);
+}
+
+html.dark .info-grid div { color: var(--ink-2); }
+html.dark .info-grid span { color: var(--ink); }
+html.dark .book-description p,
+html.dark .review-comment,
+html.dark .publish-review-card p { color: var(--ink-2); }
+
+html.dark .book-description,
+html.dark .review-section,
+html.dark .lestip-section,
+html.dark .review-form,
+html.dark .review-item { border-color: var(--line); }
+
+/* Inputs & textareas */
+html.dark .lestip-section textarea,
+html.dark .review-form textarea,
+html.dark .review-edit-form textarea {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+/* Lestip content */
+html.dark .lestip-content {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  border-left-color: var(--brand);
+}
+html.dark .lestip-content p { color: var(--ink-2); }
+html.dark .lestip-author { color: var(--ink-3) !important; }
+
+/* Review auteur & datum */
+html.dark .review-author { color: var(--ink); }
+html.dark .review-date { color: var(--ink-3); }
+html.dark .average-rating { color: var(--ink-3); }
+html.dark .review-form label,
+html.dark .review-edit-form label { color: var(--ink-3); }
+html.dark .review-author-row { color: var(--ink-2); }
+html.dark .no-reviews { color: var(--ink-3); }
+
+/* Icon knoppen */
+html.dark .action-icon-btn.edit-review-btn,
+html.dark .action-icon-btn.delete-review-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink-3);
+}
+
+/* Back & lib knoppen */
+html.dark .back-btn {
+  background: var(--surface);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+html.dark .lib-action-btn {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+html.dark .lib-action-btn:hover {
+  background: var(--brand-100);
+}
+
+/* Cancel knop */
+html.dark .cancel-review-btn,
+html.dark .delete-lestip-btn,
+html.dark .publish-cancel-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+html.dark .publish-anonymous-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--brand);
+}
+
+/* Modals */
+html.dark .publish-review-card,
+html.dark .preview-modal-container {
+  background: var(--surface);
+  border-color: var(--line);
+}
+html.dark .preview-modal-header {
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+html.dark .publish-review-overlay,
+html.dark .preview-modal-overlay {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* Badges */
+html.dark .avail-badge.available { background: #0d2e12; color: #6fcf85; }
+html.dark .avail-badge.unavailable { background: #2a0d0d; color: #f08080; }
+html.dark .avail-badge.none { background: var(--surface-2); color: var(--ink-3); }
+
+html.dark .preview-btn,
+html.dark .save-lestip-btn,
+html.dark .submit-review-btn,
+html.dark .save-review-btn,
+html.dark .publish-name-btn,
+html.dark .lib-action-btn.active {
+  color: #ffffff !important;
+}

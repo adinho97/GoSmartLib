@@ -203,6 +203,7 @@
       </nav>
 
       <div class="app-header-right">
+        <app-dark-mode-toggle></app-dark-mode-toggle>
         <app-colorblind-toggle></app-colorblind-toggle>
 
         <!-- Level chip -->
@@ -306,7 +307,7 @@
       </nav>
 
       <div class="app-header-right">
-        <!-- Kleurenblind toggle -->
+         <app-dark-mode-toggle></app-dark-mode-toggle>
         <app-colorblind-toggle></app-colorblind-toggle>
 
         @if (levelInfo$ | async; as levelInfo) {

@@ -43,10 +43,13 @@ import { FunBadgesComponent } from "./components/fun-badges/fun-badges.component
 import { InfoButtonComponent } from "./components/info-button/info-button.component";
 import { LeerkrachtDashboardComponent } from "./leerkracht-dashboard/leerkracht-dashboard.component";
 import { KlasleeslijstBeheerComponent } from "./klasleeslijst-beheer/klasleeslijst-beheer.component";
+import { LeeslijstCreateComponent } from "./leeslijst-create/leeslijst-create.component";
+import { LeeslijstViewComponent } from "./leeslijst-view/leeslijst-view.component";
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
 import { ColorblindToggleComponent } from "./colorblind-toggle/colorblind-toggle.component";
+import { DarkModeToggleComponent } from "./dark-mode-toggle/dark-mode-toggle.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -78,6 +81,8 @@ registerLocaleData(localeNl, "nl");
     MijnLijstenComponent,
     LeerkrachtDashboardComponent,
     KlasleeslijstBeheerComponent,
+    LeeslijstCreateComponent,
+    LeeslijstViewComponent,
     MijnTakenComponent,
     BoekTerugbrengenComponent,
     StatistiekenComponent,
@@ -97,7 +102,8 @@ registerLocaleData(localeNl, "nl");
     AppFooterComponent,
     FunBadgesComponent,
     InfoButtonComponent,
-    ColorblindToggleComponent
+    ColorblindToggleComponent,
+    DarkModeToggleComponent
 ],
   providers: [provideHttpClient(), { provide: LOCALE_ID, useValue: "nl" }],
   bootstrap: [AppComponent],

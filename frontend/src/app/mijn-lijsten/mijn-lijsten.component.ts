@@ -1,39 +1,70 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { BookService } from '../services/book.service';
-import { LoanService, Loan } from '../services/loan.service';
-import { SchoolService } from '../services/school.service';
-import { RecommendedBook } from '../services/recommendation.service';
+import { Component, OnInit } from "@angular/core";
+import { Router, ActivatedRoute } from "@angular/router";
+import { BookService } from "../services/book.service";
+import { LoanService, Loan } from "../services/loan.service";
+import { SchoolService } from "../services/school.service";
+import { RecommendedBook } from "../services/recommendation.service";
 
-type Tab = 'geleend' | 'verlanglijst' | 'klasleeslijst' | 'kijker' | 'historiek';
+type Tab =
+  | "geleend"
+  | "verlanglijst"
+  | "klasleeslijst"
+  | "kijker"
+  | "historiek";
 
-const VALID_TABS: Tab[] = ['geleend', 'verlanglijst', 'klasleeslijst', 'kijker', 'historiek'];
+const VALID_TABS: Tab[] = [
+  "geleend",
+  "verlanglijst",
+  "klasleeslijst",
+  "kijker",
+  "historiek",
+];
+
+interface Leeslijst {
+  id: number;
+  titel: string;
+  description?: string;
+  createdByName: string;
+  createdAt: string;
+  books: any[];
+  klasNames: string[];
+}
 
 @Component({
-  selector: 'app-mijn-lijsten',
-  templateUrl: './mijn-lijsten.component.html',
-  styleUrls: ['./mijn-lijsten.component.css'],
+  selector: "app-mijn-lijsten",
+  templateUrl: "./mijn-lijsten.component.html",
+  styleUrls: ["./mijn-lijsten.component.css"],
   standalone: false,
 })
 export class MijnLijstenComponent implements OnInit {
-  activeTab: Tab = 'geleend';
+  activeTab: Tab = "geleend";
 
   loans: Loan[] = [];
   wishlistItems: any[] = [];
   classReadingBooks: RecommendedBook[] = [];
+  leeslisten: Leeslijst[] = [];
   highlightedBooks: RecommendedBook[] = [];
   loanHistory: Loan[] = [];
 
   loansLoading = true;
   wishlistLoading = true;
   classReadingLoading = true;
+  leeslistenLoading = true;
   highlightedLoading = true;
   historyLoading = true;
 
-  today = new Date().toISOString().split('T')[0];
+  today = new Date().toISOString().split("T")[0];
 
   get userSub(): string {
-    return localStorage.getItem('sub') || '';
+    return localStorage.getItem("sub") || "";
+  }
+
+  get userRole(): string {
+    return localStorage.getItem("role") || "";
+  }
+
+  get canCreateLeeslijst(): boolean {
+    return this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
   }
 
   constructor(
@@ -45,7 +76,7 @@ export class MijnLijstenComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const fragment = (this.route.snapshot.fragment || '') as Tab;
+    const fragment = (this.route.snapshot.fragment || "") as Tab;
     if (VALID_TABS.includes(fragment)) {
       this.activeTab = fragment;
     }
@@ -87,32 +118,27 @@ export class MijnLijstenComponent implements OnInit {
   }
 
   private async loadClassReading(): Promise<void> {
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    if (!schoolId) {
-      this.classReadingLoading = false;
-      return;
-    }
     this.classReadingLoading = true;
+    this.leeslistenLoading = true;
     try {
-      const ids = await this.bookService.getClassReadingListItemIds(schoolId);
-      if (ids?.length) {
-        const enriched = await this.bookService.enrichBooksWithDetails(
-          ids.map((id: number) => ({ bookId: id })),
-        );
-        this.classReadingBooks = enriched.map((b: any) => ({
-          bookId: b.bookId,
-          titel: b.titel,
-          auteur: b.auteur,
-          cover: b.cover || '',
-          genre: b.genre,
-          paginas: b.paginas,
-          taal: b.taal,
-        }) as RecommendedBook);
+      // Get user's klas ID
+      const klasInfo = await this.bookService.getUserKlas();
+      if (!klasInfo || !klasInfo.klasId) {
+        this.leeslisten = [];
+        this.classReadingBooks = [];
+        return;
       }
+
+      // Fetch leeslisten for the user's klas
+      this.leeslisten = await this.bookService.getLeeslistenForKlas(
+        klasInfo.klasId,
+      );
     } catch {
+      this.leeslisten = [];
       this.classReadingBooks = [];
     } finally {
       this.classReadingLoading = false;
+      this.leeslistenLoading = false;
     }
   }
 
@@ -129,15 +155,18 @@ export class MijnLijstenComponent implements OnInit {
         const enriched = await this.bookService.enrichBooksWithDetails(
           ids.map((id: number) => ({ bookId: id })),
         );
-        this.highlightedBooks = enriched.map((b: any) => ({
-          bookId: b.bookId,
-          titel: b.titel,
-          auteur: b.auteur,
-          cover: b.cover || '',
-          genre: b.genre,
-          paginas: b.paginas,
-          taal: b.taal,
-        }) as RecommendedBook);
+        this.highlightedBooks = enriched.map(
+          (b: any) =>
+            ({
+              bookId: b.bookId,
+              titel: b.titel,
+              auteur: b.auteur,
+              cover: b.cover || "",
+              genre: b.genre,
+              paginas: b.paginas,
+              taal: b.taal,
+            }) as RecommendedBook,
+        );
       }
     } catch {
       this.highlightedBooks = [];
@@ -186,20 +215,29 @@ export class MijnLijstenComponent implements OnInit {
   }
 
   goToDetail(bookId: number): void {
-    this.router.navigate(['/detail', bookId]);
+    this.router.navigate(["/detail", bookId]);
+  }
+
+  goToLeeslijst(leeslijstId: number): void {
+    this.router.navigate(["/leeslijst", leeslijstId]);
   }
 
   formatDate(dateStr: string): string {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('nl-BE', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("nl-BE", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   }
 
   loanToBook(loan: Loan): any {
-    return { bookId: loan.bookId, titel: loan.bookTitel, cover: loan.bookCover, deadline: loan.dueDate };
+    return {
+      bookId: loan.bookId,
+      titel: loan.bookTitel,
+      cover: loan.bookCover,
+      deadline: loan.dueDate,
+    };
   }
 
   wishlistToBook(item: any): any {
@@ -224,7 +262,9 @@ export class MijnLijstenComponent implements OnInit {
   async onRemoveFromWishlist(item: any): Promise<void> {
     try {
       await this.bookService.removeFromWishlist(item.bookId);
-      this.wishlistItems = this.wishlistItems.filter(w => w.bookId !== item.bookId);
+      this.wishlistItems = this.wishlistItems.filter(
+        (w) => w.bookId !== item.bookId,
+      );
     } catch {
       // keep current state on error
     }
