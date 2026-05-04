@@ -590,7 +590,7 @@
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 900; /* Must exceed Leaflet's highest pane (popup-pane: 700) so the profile dropdown renders above the map */
   background: rgba(250,248,246,.88);
   backdrop-filter: saturate(140%) blur(10px);
   -webkit-backdrop-filter: saturate(140%) blur(10px);
