@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
                         .requestMatchers("/api/admin/schools/**").hasRole("SUPER_ADMIN")
+                        
 
                         // Protected admin endpoints - require JWT token
                         .requestMatchers("/api/admin/**").authenticated()
@@ -65,8 +66,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        String[] origins = allowedOrigins.split(",");
-        configuration.setAllowedOrigins(Arrays.asList(origins));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
