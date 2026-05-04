@@ -208,3 +208,87 @@
     font-size: 1rem;
   }
 }
+
+/* Styles for rank-specific colors */
+.leaderboard-item {
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: transform 0.2s ease;
+}
+
+.leaderboard-item.rank-1 {
+  background: linear-gradient(135deg, #fffdf0 0%, #fff9c4 100%);
+  border-color: #ffd700;
+}
+
+.leaderboard-item.rank-1 .rank {
+  color: #b8860b;
+  font-weight: bold;
+}
+
+.leaderboard-item.rank-2 {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  border-color: #c0c0c0;
+}
+
+.leaderboard-item.rank-2 .rank {
+  color: #757575;
+  font-weight: bold;
+}
+
+.leaderboard-item.rank-3 {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-color: #cd7f32;
+}
+
+.leaderboard-item.rank-3 .rank {
+  color: #8d6e63;
+  font-weight: bold;
+}
+
+.leaderboard-item.is-user {
+  border-width: 2px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.rank {
+  width: 32px;
+  font-size: 1.1rem;
+}
+
+.name {
+  flex-grow: 1;
+  font-weight: 500;
+}
+
+.count {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.klas-selector select {
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color-medium);
+  background-color: var(--background-color-card);
+  font-size: 0.9rem;
+  color: var(--text-color-dark);
+}
+
+.klas-selector select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+}
