@@ -75,6 +75,11 @@
 
       <!-- Actions -->
       <div class="actions-footer">
+        @if (canEditLeeslijst) {
+          <button class="btn btn-primary" (click)="editLeeslijst()">
+            Aanpassen
+          </button>
+        }
         @if (canDeleteLeeslijst) {
           <button
             class="btn btn-outline"

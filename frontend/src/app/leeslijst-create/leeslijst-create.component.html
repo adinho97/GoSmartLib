@@ -1,7 +1,15 @@
 <div class="llc-page">
   <header class="llc-head">
-    <h1 class="llc-title">Nieuwe Leeslijst</h1>
-    <p class="llc-subtitle">Stel een boekenlijst samen voor je klassen.</p>
+    <h1 class="llc-title">
+      {{ isEditMode ? "Leeslijst Aanpassen" : "Nieuwe Leeslijst" }}
+    </h1>
+    <p class="llc-subtitle">
+      {{
+        isEditMode
+          ? "Werk titel, beschrijving, klassen en boeken bij."
+          : "Stel een boekenlijst samen voor je klassen."
+      }}
+    </p>
   </header>
 
   <div class="stepper">
@@ -294,7 +302,13 @@
           (click)="saveLeeslijst()"
           [disabled]="isSaving"
         >
-          {{ isSaving ? "Bezig met opslaan..." : "Leeslijst Opslaan" }}
+          {{
+            isSaving
+              ? "Bezig met opslaan..."
+              : isEditMode
+                ? "Wijzigingen Opslaan"
+                : "Leeslijst Opslaan"
+          }}
         </button>
       </div>
     </div>
