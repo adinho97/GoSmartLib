@@ -1,6 +1,8 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { LeaderboardService } from "../services/leaderboard.service"; // Assuming a service for data fetching
+import { formatUserInfoDisplayName } from "../utils/name-utils";
+import axios from "axios";
 
 // Define interfaces for better type safety and clarity
 export interface LeaderboardEntry {
@@ -52,8 +54,9 @@ export class LeaderboardComponent implements OnInit {
     this.leaderboardService
       .getLeaderboardData(this.selectedKlasId ?? undefined)
       .subscribe({
-        next: (data: LeaderboardData) => {
+        next: async (data: LeaderboardData) => {
           this.leaderboardData = data;
+          await this.resolveNames();
           this.isLoading = false;
         },
         error: (err) => {
@@ -63,6 +66,37 @@ export class LeaderboardComponent implements OnInit {
           this.isLoading = false;
         },
       });
+  }
+
+  private async resolveNames(): Promise<void> {
+    if (!this.leaderboardData) return;
+
+    const resolveEntry = async (entry: LeaderboardEntry) => {
+      entry.displayName = await this.getDisplayNameForSub(entry.displayName);
+    };
+
+    const promises = [
+      ...this.leaderboardData.topClassReaders.map(resolveEntry),
+      ...this.leaderboardData.topSchoolReaders.map(resolveEntry),
+    ];
+
+    if (this.leaderboardData.userClassRank)
+      promises.push(resolveEntry(this.leaderboardData.userClassRank));
+    if (this.leaderboardData.userSchoolRank)
+      promises.push(resolveEntry(this.leaderboardData.userSchoolRank));
+
+    await Promise.all(promises);
+  }
+
+  private async getDisplayNameForSub(sub: string): Promise<string> {
+    try {
+      const profile = await axios.get(
+        `/api/users/${encodeURIComponent(sub)}/profile`,
+      );
+      return formatUserInfoDisplayName(profile.data, sub);
+    } catch {
+      return sub;
+    }
   }
 
   /**

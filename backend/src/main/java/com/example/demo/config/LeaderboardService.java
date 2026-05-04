@@ -1,57 +1,74 @@
 package com.example.demo.config;
 
+import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.LoanRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class LeaderboardService {
 
+    private final LoanRepository loanRepository;
+    private final AppUserRepository userRepository;
+
+    public LeaderboardService(LoanRepository loanRepository, AppUserRepository userRepository) {
+        this.loanRepository = loanRepository;
+        this.userRepository = userRepository;
+    }
+
     /**
      * Fetches leaderboard data for a specific user.
      * 
-     * @param userId         The ID of the current authenticated user.
+     * @param userSub        The sub (identifier) of the current authenticated user.
      * @param selectedKlasId Optional ID of a specific class to view.
      * @return LeaderboardResponseDTO containing class and school rankings.
      */
-    public LeaderboardResponseDTO getLeaderboardData(Long userId, Long selectedKlasId) {
+    @Transactional(readOnly = true)
+    public LeaderboardResponseDTO getLeaderboardData(String userSub, Long selectedKlasId) {
         LeaderboardResponseDTO response = new LeaderboardResponseDTO();
 
-        // In a real app, if selectedKlasId is null, use the userId's own class
-        response.setTopClassReaders(
-                getMockTopReaders(userId, "Class " + (selectedKlasId != null ? selectedKlasId : "")));
-        response.setTopSchoolReaders(getMockTopReaders(userId, "School"));
-        response.setUserClassRank(getUserRank(userId, "Class"));
-        response.setUserSchoolRank(getUserRank(userId, "School"));
+        // 1. Get School ID for the user
+        Long schoolId = userRepository.findBySub(userSub)
+                .map(u -> u.getSchool() != null ? u.getSchool().getId() : null)
+                .orElse(null);
 
-        // Simulate providing available classes for a teacher's school
-        List<LeaderboardResponseDTO.LeaderboardKlasDTO> classes = new ArrayList<>();
-        classes.add(new LeaderboardResponseDTO.LeaderboardKlasDTO(1L, "1A"));
-        classes.add(new LeaderboardResponseDTO.LeaderboardKlasDTO(2L, "1B"));
-        classes.add(new LeaderboardResponseDTO.LeaderboardKlasDTO(3L, "2A"));
-        response.setAvailableClasses(classes);
+        if (schoolId == null)
+            return response;
+
+        // 2. Fetch Top School Readers (Returning 'sub' in displayName field for
+        // frontend resolution)
+        response.setTopSchoolReaders(convertToDTO(loanRepository.findTopReadersBySchool(schoolId), userSub));
+
+        // 3. Fetch Top Class Readers
+        // In a real implementation, you'd use selectedKlasId or the user's own klasId
+        if (selectedKlasId != null) {
+            // logic for specific class...
+        }
+
+        // 4. Set placeholders for User Ranks (You would calculate actual rank via SQL
+        // count query)
+        response.setUserSchoolRank(new LeaderboardEntryDTO(0, userSub, 0, true));
 
         return response;
     }
 
-    private List<LeaderboardEntryDTO> getMockTopReaders(Long currentUserId, String scope) {
-        List<LeaderboardEntryDTO> entries = new ArrayList<>();
-        for (int i = 1; i <= 10; i++) {
-            entries.add(new LeaderboardEntryDTO(
-                    i,
-                    "Reader " + i,
-                    100 - (i * 5),
-                    false));
-        }
-        return entries;
-    }
+    private List<LeaderboardEntryDTO> convertToDTO(List<Object[]> results, String currentUserSub) {
+        List<LeaderboardEntryDTO> dtos = new ArrayList<>();
+        for (int i = 0; i < results.size(); i++) {
+            Object[] row = results.get(i);
+            String sub = (String) row[0];
+            Long count = row[1] instanceof Number ? ((Number) row[1]).longValue() : 0L;
 
-    private LeaderboardEntryDTO getUserRank(Long userId, String scope) {
-        return new LeaderboardEntryDTO(
-                scope.equals("Class") ? 10 : 25,
-                "Current User",
-                5,
-                true);
+            dtos.add(new LeaderboardEntryDTO(
+                    i + 1,
+                    sub, // Pass sub as displayName for now; frontend will resolve it
+                    count.intValue(),
+                    sub.equals(currentUserSub)));
+        }
+        return dtos;
     }
 }
