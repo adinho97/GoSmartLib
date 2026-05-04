@@ -1,0 +1,210 @@
+/* c:\Users\lucal\SofProj\gosmartlib\frontend\src\app\leaderboard\leaderboard.component.css */
+.leaderboard-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.leaderboard-header {
+  margin-bottom: 2rem;
+  text-align: center;
+  position: relative;
+}
+
+.leaderboard-header h1 {
+  font-size: 2.5rem;
+  color: var(--text-color-dark);
+  margin-bottom: 0.5rem;
+}
+
+.leaderboard-header p {
+  font-size: 1.1rem;
+  color: var(--text-color-medium);
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease;
+}
+
+.back-btn:hover {
+  background-color: var(--hover-color);
+}
+
+.loader-container,
+.error-msg {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: var(--text-color-medium);
+}
+
+.error-msg {
+  color: var(--error-color);
+  background-color: var(--error-background);
+  border: 1px solid var(--error-border);
+  border-radius: var(--border-radius);
+  margin-top: 1rem;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.leaderboard-card {
+  background-color: var(--background-color-card);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-small);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderboard-card h2 {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.leaderboard-item:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-item .rank {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text-color-dark);
+  width: 3rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.leaderboard-item .name {
+  flex-grow: 1;
+  font-size: 1.1rem;
+  color: var(--text-color-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboard-item .count {
+  font-weight: 600;
+  color: var(--accent-color);
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.empty-leaderboard {
+  text-align: center;
+  color: var(--text-color-medium);
+  font-style: italic;
+  padding: 1rem;
+}
+
+.user-rank-info {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border-color-medium);
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--text-color-dark);
+}
+
+.user-rank-info strong {
+  color: var(--primary-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .leaderboard-page {
+    padding: 1rem;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 2rem;
+  }
+
+  .leaderboard-header p {
+    font-size: 1rem;
+  }
+
+  .back-btn {
+    top: 0;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .leaderboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .leaderboard-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .leaderboard-item .rank {
+    font-size: 1.1rem;
+    width: 2.5rem;
+  }
+
+  .leaderboard-item .name {
+    font-size: 1rem;
+  }
+
+  .leaderboard-item .count {
+    font-size: 0.9rem;
+  }
+
+  .user-rank-info {
+    font-size: 1rem;
+  }
+}
