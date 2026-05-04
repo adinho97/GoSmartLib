@@ -156,14 +156,16 @@
         <h2 class="section-title">Klasleeslijst</h2>
         <p class="section-desc">Boeken aanbevolen voor jouw klas.</p>
       </div>
-      <button
-        class="create-new-btn"
-        routerLink="/leeslijst-create"
-        title="Nieuwe leeslijst maken"
-      >
-        <span class="plus-icon">+</span>
-        Nieuwe Leeslijst
-      </button>
+      @if (canCreateLeeslijst) {
+        <button
+          class="create-new-btn"
+          routerLink="/leeslijst-create"
+          title="Nieuwe leeslijst maken"
+        >
+          <span class="plus-icon">+</span>
+          Nieuwe Leeslijst
+        </button>
+      }
     </div>
     @if (classReadingLoading) {
       <div class="loader-row">
