@@ -76,8 +76,8 @@ export class LeaderboardComponent implements OnInit {
     };
 
     const promises = [
-      ...this.leaderboardData.topClassReaders.map(resolveEntry),
-      ...this.leaderboardData.topSchoolReaders.map(resolveEntry),
+      ...(this.leaderboardData.topClassReaders || []).map(resolveEntry),
+      ...(this.leaderboardData.topSchoolReaders || []).map(resolveEntry),
     ];
 
     if (this.leaderboardData.userClassRank)
