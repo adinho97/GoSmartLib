@@ -719,13 +719,40 @@ public class BookController {
     private String generateUniqueGoNumber() {
         String goNumber;
         do {
-            goNumber = "GO-" + String.format("%08d", GO_NUMBER_RANDOM.nextInt(100_000_000));
-        } while (repo.existsByGoNumber(goNumber));
-
+            return appUserRepository.findById(review.getReviewerUserId())
+                    .map(AppUser::getSub)
+                    .map(this::resolveDisplayNameForSub)
+                    .orElse("Anoniem");
         return goNumber;
     }
 
     private String resolveReviewerUserName(Review review) {
+
+    private String resolveDisplayNameForSub(String sub) {
+        if (!StringUtils.hasText(sub)) {
+            return "Anoniem";
+        }
+
+        try {
+            return authService.getUserInfoBySub(sub.trim())
+                    .onErrorResume(err -> Mono.empty())
+                    .blockOptional()
+                    .map(userInfo -> {
+                        var fullName = userInfo.getFullName();
+                        if (fullName != null && !fullName.isBlank()) {
+                            return fullName;
+                        }
+
+                        var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
+                                .filter(part -> part != null && !part.isBlank())
+                                .collect(Collectors.joining(" ")).trim();
+                        return candidate.isEmpty() ? userInfo.getSub() : candidate;
+                    })
+                    .orElse(sub.trim());
+        } catch (Exception e) {
+            return sub.trim();
+        }
+    }
         if (Boolean.TRUE.equals(review.getAnonymous())) {
             return "Anoniem";
         }

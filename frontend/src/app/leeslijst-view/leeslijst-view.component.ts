@@ -71,6 +71,28 @@ export class LeeslijstViewComponent implements OnInit {
     this.router.navigate(["/mijn-lijsten", { fragment: "klasleeslijst" }]);
   }
 
+  goToDetail(bookId: number) {
+    this.router.navigate(["/detail", bookId]);
+  }
+
+  displayCreatorName(createdByName: string): string {
+    const currentSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    if (createdByName && createdByName !== currentSub) {
+      return createdByName;
+    }
+
+    return (
+      localStorage.getItem("userName") ||
+      localStorage.getItem("fullname") ||
+      [localStorage.getItem("firstName"), localStorage.getItem("lastName")]
+        .filter(Boolean)
+        .join(" ") ||
+      createdByName ||
+      currentSub
+    );
+  }
+
   printLeeslijst() {
     window.print();
   }

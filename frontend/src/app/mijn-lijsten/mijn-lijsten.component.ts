@@ -222,6 +222,25 @@ export class MijnLijstenComponent implements OnInit {
     this.router.navigate(["/leeslijst", leeslijstId]);
   }
 
+  displayCreatorName(createdByName: string): string {
+    const currentSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    if (createdByName && createdByName !== currentSub) {
+      return createdByName;
+    }
+
+    const fallbackName =
+      localStorage.getItem("userName") ||
+      localStorage.getItem("fullname") ||
+      [localStorage.getItem("firstName"), localStorage.getItem("lastName")]
+        .filter(Boolean)
+        .join(" ") ||
+      createdByName ||
+      currentSub;
+
+    return fallbackName;
+  }
+
   formatDate(dateStr: string): string {
     if (!dateStr) return "";
     return new Date(dateStr).toLocaleDateString("nl-BE", {
