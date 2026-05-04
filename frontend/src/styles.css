@@ -416,3 +416,123 @@ html.dark input {
 }
 html.dark textarea::placeholder,
 html.dark input::placeholder { color: var(--ink-4) !important; }
+
+/* ─── Dark mode: profiel dropdown ─── */
+html.dark .profile-dropdown {
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+html.dark .profile-name { color: var(--ink); }
+html.dark .profile-role-text { color: var(--ink-3); }
+html.dark .profile-logout-btn {
+  background: var(--surface-2) !important;
+  border-color: var(--line-strong) !important;
+  color: var(--ink-2) !important;
+}
+
+/* ─── Dark mode: boekenlijst pagina ─── */
+html.dark .book-list-page { color: var(--ink); }
+html.dark .book-list-page h1 { color: var(--ink); }
+html.dark .header-text p { color: var(--ink-3); }
+
+/* Filters sidebar */
+html.dark .filters-sidebar {
+  background: var(--surface);
+  border-color: var(--line);
+}
+html.dark .filters-sidebar h2 { color: var(--ink); }
+html.dark .filters-sidebar label { color: var(--ink-3); }
+html.dark .filters-sidebar select,
+html.dark .filters-sidebar input[type="date"] {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+/* School selector */
+html.dark .school-selector-bar {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+html.dark .school-selector-bar select {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+/* Zoekbalk */
+html.dark .search-bar-wrapper label { color: var(--ink-3); }
+html.dark .search-bar-wrapper input {
+  background: var(--surface-2) !important;
+  border-color: var(--line-strong) !important;
+  color: var(--ink) !important;
+}
+
+/* Reset filters knop */
+html.dark .reset-filters-button {
+  background: var(--surface-2) !important;
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+}
+html.dark .reset-filters-button:hover {
+  background: var(--brand-100) !important;
+}
+
+/* Paginatie */
+html.dark .pagination-button {
+  background: var(--surface) !important;
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+}
+html.dark .pagination-button.active {
+  background: var(--brand) !important;
+  color: #fff !important;
+}
+html.dark .pagination-button:hover:not(.active) {
+  background: var(--brand-100) !important;
+}
+
+/* Boekkaart in catalogus */
+html.dark .book-card {
+  background: var(--surface) !important;
+  border-color: var(--line) !important;
+}
+html.dark .book-card.didactic-card {
+  background: var(--surface-2) !important;
+  border-color: #e67e22 !important;
+}
+html.dark .book-content h2 { color: var(--ink); }
+html.dark .book-meta-group .book-meta { color: var(--ink-3); }
+html.dark .book-cover-slot { background: var(--surface-2); }
+html.dark .book-cover-placeholder { color: var(--ink-3); }
+
+/* Rating chip */
+html.dark .rating-chip {
+  background: rgba(28, 25, 23, 0.92);
+  border-color: rgba(255,255,255,0.1);
+}
+html.dark .rating-chip-count { color: var(--ink-3); }
+
+/* Kebab menu */
+html.dark .kebab-menu {
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+html.dark .kebab-item {
+  background: transparent !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+html.dark .kebab-item:hover {
+  background: var(--surface-2) !important;
+  color: var(--brand) !important;
+}
+
+/* Knoppen met witte tekst fix */
+html.dark .apply-filters-button,
+html.dark .search-button,
+html.dark .header-button {
+  color: #ffffff !important;
+}
