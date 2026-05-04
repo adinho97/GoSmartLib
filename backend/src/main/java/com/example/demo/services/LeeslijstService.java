@@ -33,6 +33,10 @@ public class LeeslijstService {
     }
 
     public Leeslijst createLeeslijst(CreateLeeslijstRequest request, String userSub) {
+        return createLeeslijst(request, userSub, null);
+    }
+
+    public Leeslijst createLeeslijst(CreateLeeslijstRequest request, String userSub, String userName) {
         // Find user by their sub (Smartschool ID)
         AppUser user = userRepository.findBySub(userSub)
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
@@ -45,6 +49,7 @@ public class LeeslijstService {
 
         Leeslijst leeslijst = new Leeslijst(request.getTitel(), school, user);
         leeslijst.setDescription(request.getDescription());
+    leeslijst.setCreatedByName((userName == null || userName.isBlank()) ? userSub : userName);
 
         // Add books
         if (request.getBookIds() != null && !request.getBookIds().isEmpty()) {
@@ -82,7 +87,7 @@ public class LeeslijstService {
             leeslijst.getTitel(),
             leeslijst.getDescription(),
             leeslijst.getSchool().getId(),
-            leeslijst.getCreatedBy().getSub(),
+            resolveCreatedByName(leeslijst),
             leeslijst.getCreatedAt()
         );
 
@@ -115,7 +120,7 @@ public class LeeslijstService {
             leeslijst.getTitel(),
             leeslijst.getDescription(),
             leeslijst.getSchool().getId(),
-            leeslijst.getCreatedBy().getSub(),
+            resolveCreatedByName(leeslijst),
             leeslijst.getCreatedAt()
         );
 
@@ -168,5 +173,18 @@ public class LeeslijstService {
         }
 
         return leeslijstRepository.save(leeslijst);
+    }
+
+    private String resolveCreatedByName(Leeslijst leeslijst) {
+        if (leeslijst.getCreatedByName() != null && !leeslijst.getCreatedByName().isBlank()) {
+            return leeslijst.getCreatedByName();
+        }
+
+        if (leeslijst.getCreatedBy() != null && leeslijst.getCreatedBy().getSub() != null
+                && !leeslijst.getCreatedBy().getSub().isBlank()) {
+            return leeslijst.getCreatedBy().getSub();
+        }
+
+        return "Onbekende gebruiker";
     }
 }
