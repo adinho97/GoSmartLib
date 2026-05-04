@@ -48,7 +48,6 @@ public class LeeslijstController {
             .map(leeslijstService::convertToDTO)
             .toList();
     }
-     */
     @GetMapping("/klas/{klasId}")
     public List<LeeslijstDTO> getLeeslistenForKlas(@PathVariable Long klasId) {
         return leeslijstService.getLeeslistenForKlas(klasId)
