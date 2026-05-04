@@ -66,7 +66,7 @@ public class LeeslijstController {
     public ResponseEntity<List<LeeslijstDTO>> getMijnLeeslisten(
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         String requiredSub = requireUserSub(userSub);
-        List<LeeslijstDTO> result = leeslijstService.getLeeslistenCreatedByUser(requiredSub)
+        List<LeeslijstDTO> result = leeslijstService.getLeeslistenForUser(requiredSub)
                 .stream()
                 .map(leeslijstService::convertToDTO)
                 .toList();

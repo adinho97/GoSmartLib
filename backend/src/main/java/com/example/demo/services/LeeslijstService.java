@@ -7,8 +7,11 @@ import com.example.demo.repositories.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,10 +77,28 @@ public class LeeslijstService {
         return leeslijstRepository.findByKlas(klasId);
     }
 
-    public List<Leeslijst> getLeeslistenCreatedByUser(String userSub) {
+    public List<Leeslijst> getLeeslistenForUser(String userSub) {
         AppUser user = userRepository.findBySub(userSub)
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
-        return leeslijstRepository.findByCreatedBy_Id(user.getId());
+        
+        // Bibbeheerders should see all lists for their school for management purposes
+        if ("bibbeheerder".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
+            return leeslijstRepository.findBySchool_Id(user.getSchool().getId());
+        }
+
+        // For other users (Teachers/Students), combine lists they created with lists for their class
+        List<Leeslijst> createdByMe = leeslijstRepository.findByCreatedBy_Id(user.getId());
+        
+        if (user.getKlas() != null) {
+            List<Leeslijst> forMyKlas = leeslijstRepository.findByKlas(user.getKlas().getId());
+            
+            // Use a Set to merge the lists and avoid duplicates (e.g., if a teacher created a list for their own class)
+            Set<Leeslijst> combined = new HashSet<>(createdByMe);
+            combined.addAll(forMyKlas);
+            return new ArrayList<>(combined);
+        }
+        
+        return createdByMe;
     }
 
     public Optional<Leeslijst> getLeeslijst(Long id) {
