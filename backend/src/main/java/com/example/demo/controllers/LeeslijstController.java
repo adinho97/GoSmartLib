@@ -1,11 +1,11 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.CreateLeeslijstRequest;
+import com.example.demo.dto.LeeslijstDTO;
 import com.example.demo.entities.Leeslijst;
 import com.example.demo.services.LeeslijstService;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,37 +23,36 @@ public class LeeslijstController {
      * Create a new reading list (Teachers and Library Staff only)
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('leerkracht', 'bibbeheerder')")
-    public Leeslijst createLeeslijst(@RequestBody CreateLeeslijstRequest request) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String userSub = auth != null ? auth.getName() : null;
-
-        if (userSub == null || "anonymousUser".equals(userSub)) {
+    public LeeslijstDTO createLeeslijst(
+        @RequestBody CreateLeeslijstRequest request,
+        @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+        @RequestHeader(value = "X-User-Role", required = false) String userRole
+    ) {
+        if (userSub == null) {
             throw new IllegalArgumentException("Authenticated user not found");
         }
-        return leeslijstService.createLeeslijst(request, userSub);
+        if (!isAuthorized(userRole)) {
+            throw new org.springframework.security.access.AccessDeniedException("Geen toegang");
+        }
+        Leeslijst created = leeslijstService.createLeeslijst(request, userSub);
+        return leeslijstService.convertToDTO(created);
     }
 
     /**
      * Get all reading lists for a school
      */
     @GetMapping("/school/{schoolId}")
-    public List<Leeslijst> getLeeslisten(@PathVariable Long schoolId) {
-        if (schoolId == null) {
-            return List.of(); // Retourneer een lege lijst als schoolId null is
-        }
-        return leeslijstService.getLeeslisten(schoolId);
-    }
-
-    /**
-     * Get reading lists for a specific class
+    public List<LeeslijstDTO> getLeeslisten(@PathVariable Long schoolId) {
+        return leeslijstService.getLeeslisten(schoolId)
+            .stream()
+            .map(leeslijstService::convertToDTO)
      */
     @GetMapping("/klas/{klasId}")
-    public List<Leeslijst> getLeeslistenForKlas(@PathVariable Long klasId) {
-        if (klasId == null) {
-            return List.of(); // Retourneer een lege lijst als klasId null is
-        }
-        return leeslijstService.getLeeslistenForKlas(klasId);
+    public List<LeeslijstDTO> getLeeslistenForKlas(@PathVariable Long klasId) {
+        return leeslijstService.getLeeslistenForKlas(klasId)
+            .stream()
+            .map(leeslijstService::convertToDTO)
+            .toList();
     }
 
     /**
@@ -69,12 +68,9 @@ public class LeeslijstController {
      */
     @PutMapping("/{id}")
     public LeeslijstDTO updateLeeslijst(
-    @PreAuthorize("hasAnyRole('leerkracht', 'bibbeheerder')")
-    public Leeslijst updateLeeslijst(
         @PathVariable Long id,
         @RequestBody CreateLeeslijstRequest request,
         @RequestHeader(value = "X-User-Role", required = false) String userRole
-        @RequestBody CreateLeeslijstRequest request
     ) {
         if (!isAuthorized(userRole)) {
             throw new org.springframework.security.access.AccessDeniedException("Geen toegang");
@@ -82,7 +78,6 @@ public class LeeslijstController {
 
         Leeslijst updated = leeslijstService.updateLeeslijst(id, request);
         return leeslijstService.convertToDTO(updated);
-        return leeslijstService.updateLeeslijst(id, request);
     }
 
     /**
@@ -96,8 +91,6 @@ public class LeeslijstController {
         if (!isAuthorized(userRole)) {
             throw new org.springframework.security.access.AccessDeniedException("Geen toegang");
         }
-    @PreAuthorize("hasAnyRole('leerkracht', 'bibbeheerder')")
-    public void deleteLeeslijst(@PathVariable Long id) {
         leeslijstService.deleteLeeslijst(id);
     }
 
