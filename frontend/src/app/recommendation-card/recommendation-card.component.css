@@ -4,7 +4,7 @@
 
 /* Boek Kaart */
 .book-card {
-  width: 100%;
+  width: 190px;
   min-width: 180px;
   max-width: 320px;
   height: 380px;
@@ -211,10 +211,10 @@
 }
 
 .book-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-10px);
   border-color: #871f42;
   box-shadow: 0 15px 35px rgba(135, 31, 66, 0.12);
-  z-index: 2;
+  z-index: 10;
 }
 
 .genre-tag {
