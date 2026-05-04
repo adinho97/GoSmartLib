@@ -49,7 +49,7 @@ public class LeeslijstService {
 
         Leeslijst leeslijst = new Leeslijst(request.getTitel(), school, user);
         leeslijst.setDescription(request.getDescription());
-    leeslijst.setCreatedByName((userName == null || userName.isBlank()) ? userSub : userName);
+        leeslijst.setCreatedByName((userName == null || userName.isBlank()) ? userSub : userName);
 
         // Add books
         if (request.getBookIds() != null && !request.getBookIds().isEmpty()) {
@@ -147,8 +147,25 @@ public class LeeslijstService {
         return dto;
     }
 
-    public void deleteLeeslijst(Long id) {
-        leeslijstRepository.deleteById(id);
+    public void deleteLeeslijst(Long id, String userSub, String userRole) {
+        Leeslijst leeslijst = leeslijstRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
+
+        if (userRole == null || userRole.isBlank()) {
+            throw new SecurityException("Missing role");
+        }
+
+        String normalizedRole = userRole.trim().toLowerCase();
+        if ("leerkracht".equals(normalizedRole)) {
+            if (leeslijst.getCreatedBy() == null || leeslijst.getCreatedBy().getSub() == null
+                    || !leeslijst.getCreatedBy().getSub().equals(userSub)) {
+                throw new SecurityException("Teachers can only delete their own leeslijsten");
+            }
+        } else if (!"bibbeheerder".equals(normalizedRole)) {
+            throw new SecurityException("Not allowed to delete leeslijsten");
+        }
+
+        leeslijstRepository.delete(leeslijst);
     }
 
     public Leeslijst updateLeeslijst(Long id, CreateLeeslijstRequest request) {

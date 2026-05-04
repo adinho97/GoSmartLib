@@ -33,6 +33,7 @@ interface LeeslijstData {
 export class LeeslijstViewComponent implements OnInit {
   leeslijst: LeeslijstData | null = null;
   loading = true;
+  deleting = false;
   error = "";
 
   constructor(
@@ -73,6 +74,41 @@ export class LeeslijstViewComponent implements OnInit {
 
   goToDetail(bookId: number) {
     this.router.navigate(["/detail", bookId]);
+  }
+
+  get canDeleteLeeslijst(): boolean {
+    const role = (localStorage.getItem("role") || "").toLowerCase();
+    return role === "leerkracht" || role === "bibbeheerder";
+  }
+
+  async deleteLeeslijst(): Promise<void> {
+    if (!this.leeslijst || this.deleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Ben je zeker dat je deze leeslijst wil verwijderen?",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.deleting = true;
+    try {
+      await this.bookService.deleteLeeslijst(this.leeslijst.id);
+      this.uiToastService.success("Leeslijst verwijderd.");
+      this.goBack();
+    } catch (err: any) {
+      if (err?.response?.status === 403) {
+        this.uiToastService.error(
+          "Je kan enkel je eigen leeslijsten verwijderen.",
+        );
+      } else {
+        this.uiToastService.error("Fout bij verwijderen van leeslijst.");
+      }
+    } finally {
+      this.deleting = false;
+    }
   }
 
   displayCreatorName(createdByName: string): string {

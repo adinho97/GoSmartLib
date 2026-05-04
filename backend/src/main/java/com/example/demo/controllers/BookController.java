@@ -437,6 +437,7 @@ public class BookController {
         String reviewerUserSub = resolveReviewUserKey(userSub, userName, userRole);
         Long reviewerUserId = isAnonymous ? null : resolveReviewerUserId(userSub, userName);
         review.setAnonymous(isAnonymous);
+        review.setReviewerUserName(isAnonymous ? "Anoniem" : normalizeUserName(userName));
 
         if (reviewerUserSub == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -728,6 +729,10 @@ public class BookController {
     private String resolveReviewerUserName(Review review) {
         if (Boolean.TRUE.equals(review.getAnonymous())) {
             return "Anoniem";
+        }
+
+        if (StringUtils.hasText(review.getReviewerUserName())) {
+            return review.getReviewerUserName().trim();
         }
 
         if (review.getReviewerUserId() == null && !StringUtils.hasText(review.getReviewerUserSub())) {

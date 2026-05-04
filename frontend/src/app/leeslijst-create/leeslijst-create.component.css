@@ -86,6 +86,67 @@
   border-bottom: 1px solid var(--line);
 }
 
+.klas-search-bar {
+  margin-bottom: var(--s-4);
+}
+
+.filters-panel {
+  margin-bottom: var(--s-6);
+  padding-bottom: var(--s-6);
+  border-bottom: 1px solid var(--line);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-field label,
+.page-slider-group > label,
+.single-page-slider label {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
+.filter-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.filter-field select:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px var(--brand-50);
+}
+
+.page-slider-group {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+}
+
+.single-page-slider {
+  display: grid;
+  gap: 6px;
+}
+
+.single-page-slider input[type="range"] {
+  width: 100%;
+}
+
 /* Grid list for klassen */
 .grid-list {
   display: grid;
@@ -129,6 +190,7 @@
 .search-bar {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
   margin-bottom: var(--s-5);
 }
 
@@ -389,13 +451,20 @@
 
 /* Title Input */
 .title-input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   margin-bottom: var(--s-5);
 }
 
 .title-input {
+  display: block;
   width: 100%;
+  min-width: 0;
   padding: 12px 16px;
   font-size: 16px;
+  line-height: 1.4;
   border: 2px solid var(--line);
   border-radius: 6px;
   color: var(--ink);
@@ -403,6 +472,7 @@
   transition: border-color 0.15s ease;
   font-family: inherit;
   box-sizing: border-box;
+  margin: 0;
 }
 
 .title-input:focus {
@@ -418,8 +488,13 @@
 .input-desc {
   font-size: 13px;
   color: var(--ink-3);
-  margin-top: 6px;
+  margin-top: 0;
   margin-bottom: 0;
+}
+
+.title-input[name="leeslijstDescription"] {
+  min-height: 112px;
+  resize: vertical;
 }
 
 /* Responsive design */
@@ -449,6 +524,10 @@
 
   .search-bar {
     flex-direction: column;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
   }
 
   .actions {
