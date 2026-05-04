@@ -32,11 +32,14 @@ public class UserController {
     }
 
     @GetMapping("/me/klas")
-    public ResponseEntity<Map<String, Object>> getCurrentUserKlas() {
+    public ResponseEntity<Map<String, Object>> getCurrentUserKlas(
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String sub = authentication.getName();
+        String sub = (userSub != null && !userSub.isBlank())
+                ? userSub
+                : (authentication != null ? authentication.getName() : null);
 
-        AppUser user = appUserRepository.findBySub(sub).orElse(null);
+        AppUser user = sub == null ? null : appUserRepository.findBySub(sub).orElse(null);
         Map<String, Object> response = new HashMap<>();
 
         if (user != null && user.getKlas() != null) {
