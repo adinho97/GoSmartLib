@@ -106,6 +106,6 @@ li {
   line-height: 1.35;
 }
 
-html.cb-deuteranopia body { filter: url(#cb-deuteranopia); }
-html.cb-protanopia   body { filter: url(#cb-protanopia); }
-html.cb-tritanopia   body { filter: url(#cb-tritanopia); }
+html.cb-deuteranopia app-root { filter: url(#cb-deuteranopia); }
+html.cb-protanopia   app-root { filter: url(#cb-protanopia); }
+html.cb-tritanopia   app-root { filter: url(#cb-tritanopia); }
