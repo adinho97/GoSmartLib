@@ -23,7 +23,7 @@
       <!-- Class Leaderboard -->
       <div class="leaderboard-card">
         <div class="card-header-flex">
-          <h2>Top 10 Klas Lezers</h2>
+          <h2>Top 10 lezers van de klas</h2>
           @if (isTeacherOrLibrarian && leaderboardData.availableClasses) {
             <div class="klas-selector">
               <select
@@ -84,7 +84,7 @@
 
       <!-- School Leaderboard -->
       <div class="leaderboard-card">
-        <h2>Top 10 School Lezers</h2>
+        <h2>Top 10 lezers van de school </h2>
         @if (leaderboardData.topSchoolReaders.length > 0) {
           <ol class="leaderboard-list">
             @for (
