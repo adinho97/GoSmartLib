@@ -66,7 +66,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     @Query(value = "SELECT rank_data.rank, rank_data.book_count " +
             "FROM ( " +
             "    SELECT au.sub, COUNT(l.id) AS book_count, " +
-            "           RANK() OVER (ORDER BY COUNT(l.id) DESC) as rank " +
+            "           RANK() OVER (ORDER BY COUNT(l.id) DESC) as `rank` " +
             "    FROM loan l " +
             "    JOIN app_users au ON l.user_sub = au.sub " +
             "    WHERE au.klas_id = :klasId " +
@@ -78,7 +78,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     @Query(value = "SELECT rank_data.rank, rank_data.book_count " +
             "FROM ( " +
             "    SELECT au.sub, COUNT(l.id) AS book_count, " +
-            "           RANK() OVER (ORDER BY COUNT(l.id) DESC) as rank " +
+            "           RANK() OVER (ORDER BY COUNT(l.id) DESC) as `rank` " +
             "    FROM loan l " +
             "    JOIN app_users au ON l.user_sub = au.sub " +
             "    WHERE au.school_id = :schoolId " +
