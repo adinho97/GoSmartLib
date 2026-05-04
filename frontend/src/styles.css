@@ -578,3 +578,12 @@ html.dark .avail-badge {
 html.dark .avail-badge.available { background: #0d2e12 !important; color: #6fcf85 !important; }
 html.dark .avail-badge.unavailable { background: #2a0d0d !important; color: #f08080 !important; }
 html.dark .avail-badge.none { background: var(--surface-2) !important; color: var(--ink-3) !important; }
+html.dark .wishlist-button,
+html.dark .wishlist-toggle-btn,
+html.dark .wishlist-toggle-detail {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
