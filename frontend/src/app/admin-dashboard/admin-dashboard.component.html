@@ -15,18 +15,25 @@
       @if (mapSchoolCount > 0) {
         <span class="map-count-badge">{{ mapSchoolCount }} locaties</span>
       }
+      <button type="button" class="fold-btn" (click)="toggleMap()" [attr.aria-expanded]="mapExpanded" aria-label="Kaart tonen/verbergen">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" [class.rotated]="mapExpanded" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
     </div>
-    <div class="admin-map-wrap">
-      <div id="admin-map" class="admin-map"></div>
-      @if (mapError) {
-        <div class="admin-map-fallback">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-          </svg>
-          <p>{{ mapError }}</p>
-        </div>
-      }
-    </div>
+    @if (mapExpanded) {
+      <div class="admin-map-wrap">
+        <div id="admin-map" class="admin-map"></div>
+        @if (mapError) {
+          <div class="admin-map-fallback">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+            <p>{{ mapError }}</p>
+          </div>
+        }
+      </div>
+    }
   </div>
 
   <!-- Schools list -->
