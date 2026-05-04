@@ -48,7 +48,9 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .admin-account-btn:hover {
@@ -459,7 +461,9 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   font-family: inherit;
 }
 
@@ -556,7 +560,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(250,248,246,.88);
+  background: rgba(250, 248, 246, 0.88);
   backdrop-filter: saturate(140%) blur(10px);
   -webkit-backdrop-filter: saturate(140%) blur(10px);
   border-bottom: 1px solid var(--line);
@@ -583,7 +587,9 @@
   text-decoration: none;
 }
 
-.app-logo .bang { color: var(--ink); }
+.app-logo .bang {
+  color: var(--ink);
+}
 
 .app-nav {
   display: flex;
@@ -598,7 +604,9 @@
   font-weight: 500;
   color: var(--ink-2);
   text-decoration: none;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .app-nav a:hover {
@@ -632,7 +640,9 @@
   transition: border-color 0.15s;
 }
 
-.level-chip:hover { border-color: var(--line-strong); }
+.level-chip:hover {
+  border-color: var(--line-strong);
+}
 
 .level-chip .lvl-num {
   display: inline-flex;
@@ -666,7 +676,9 @@
   margin: 0;
 }
 
-.avatar-btn:hover { background: var(--brand-600); }
+.avatar-btn:hover {
+  background: var(--brand-600);
+}
 
 /* Make host flex column so footer sticks to bottom */
 :host {
@@ -677,4 +689,29 @@
 
 .app-shell {
   flex: 1;
+}
+
+/* Print Styles */
+@media print {
+  /* Hide footer during printing */
+  app-footer {
+    display: none !important;
+  }
+
+  /* Hide navigation headers during printing */
+  .admin-top-nav,
+  .admin-context-bar {
+    display: none !important;
+  }
+
+  /* Ensure app shell takes full width during print */
+  .app-shell {
+    width: 100%;
+  }
+
+  /* Hide scrollbars and disable margins for print */
+  body {
+    margin: 0;
+    padding: 0;
+  }
 }
