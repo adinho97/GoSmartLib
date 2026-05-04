@@ -719,14 +719,38 @@ public class BookController {
     private String generateUniqueGoNumber() {
         String goNumber;
         do {
-            return appUserRepository.findById(review.getReviewerUserId())
-                    .map(AppUser::getSub)
-                    .map(this::resolveDisplayNameForSub)
-                    .orElse("Anoniem");
+            goNumber = "GO-" + String.format("%08d", GO_NUMBER_RANDOM.nextInt(100_000_000));
+        } while (repo.existsByGoNumber(goNumber));
+
         return goNumber;
     }
 
     private String resolveReviewerUserName(Review review) {
+        if (Boolean.TRUE.equals(review.getAnonymous())) {
+            return "Anoniem";
+        }
+
+        if (review.getReviewerUserId() == null && !StringUtils.hasText(review.getReviewerUserSub())) {
+            return "Anoniem";
+        }
+
+        if (review.getReviewerUserId() == null && StringUtils.hasText(review.getReviewerUserSub())) {
+            try {
+                return resolveDisplayNameForSub(review.getReviewerUserSub().trim());
+            } catch (Exception e) {
+                return review.getReviewerUserSub().trim();
+            }
+        }
+
+        try {
+            return appUserRepository.findById(review.getReviewerUserId())
+                    .map(AppUser::getSub)
+                    .map(this::resolveDisplayNameForSub)
+                    .orElse(String.valueOf(review.getReviewerUserId()));
+        } catch (Exception e) {
+            return String.valueOf(review.getReviewerUserId());
+        }
+    }
 
     private String resolveDisplayNameForSub(String sub) {
         if (!StringUtils.hasText(sub)) {
@@ -751,56 +775,6 @@ public class BookController {
                     .orElse(sub.trim());
         } catch (Exception e) {
             return sub.trim();
-        }
-    }
-        if (Boolean.TRUE.equals(review.getAnonymous())) {
-            return "Anoniem";
-        }
-
-        if (review.getReviewerUserId() == null && !StringUtils.hasText(review.getReviewerUserSub())) {
-            return "Anoniem";
-        }
-
-        if (review.getReviewerUserId() == null && StringUtils.hasText(review.getReviewerUserSub())) {
-            try {
-                return authService.getUserInfoBySub(review.getReviewerUserSub().trim())
-                        .onErrorResume(err -> Mono.empty())
-                        .blockOptional()
-                        .map(userInfo -> {
-                            var fullName = userInfo.getFullName();
-                            if (fullName != null && !fullName.isBlank()) {
-                                return fullName;
-                            }
-                            var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
-                                    .filter(part -> part != null && !part.isBlank())
-                                    .collect(Collectors.joining(" ")).trim();
-                            return candidate.isEmpty() ? userInfo.getSub() : candidate;
-                        })
-                        .orElse(review.getReviewerUserSub().trim());
-            } catch (Exception e) {
-                return review.getReviewerUserSub().trim();
-            }
-        }
-
-        try {
-            return appUserRepository.findById(review.getReviewerUserId())
-                    .map(AppUser::getSub)
-                    .flatMap(sub -> authService.getUserInfoBySub(sub)
-                            .onErrorResume(err -> Mono.empty())
-                            .blockOptional())
-                    .map(userInfo -> {
-                        var fullName = userInfo.getFullName();
-                        if (fullName != null && !fullName.isBlank()) {
-                            return fullName;
-                        }
-                        var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
-                                .filter(part -> part != null && !part.isBlank())
-                                .collect(Collectors.joining(" ")).trim();
-                        return candidate.isEmpty() ? userInfo.getSub() : candidate;
-                    })
-                    .orElse(String.valueOf(review.getReviewerUserId()));
-        } catch (Exception e) {
-            return String.valueOf(review.getReviewerUserId());
         }
     }
 }
