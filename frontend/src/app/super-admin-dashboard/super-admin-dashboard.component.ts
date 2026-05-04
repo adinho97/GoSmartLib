@@ -1,24 +1,15 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
+import { forkJoin, of } from "rxjs";
+import { catchError } from "rxjs/operators";
 import { AdminSchoolService } from "../services/admin-school.service";
 import { SuperAdminAuthService } from "../services/super-admin-auth.service";
-import { AdminSchoolDashboardItem } from "../models/admin-school";
+import { AdminSchoolDashboardItem, SchoolDetail } from "../models/admin-school";
 
-interface ActivityItem {
-  id: number;
-  type: "add" | "edit" | "warn" | "del";
-  text: string;
-  school: string;
-  time: string;
-}
-
-interface TaskItem {
-  id: number;
-  title: string;
-  sub: string;
-  action: string;
-  urgent?: boolean;
-}
+type EnrichedSchool = AdminSchoolDashboardItem & {
+  bookCount: number;
+  activeLoansCount: number;
+};
 
 @Component({
   selector: "app-super-admin-dashboard",
@@ -28,26 +19,11 @@ interface TaskItem {
 })
 export class SuperAdminDashboardComponent implements OnInit {
   schools: AdminSchoolDashboardItem[] = [];
+  schoolDetails: SchoolDetail[] = [];
   isLoading = true;
+  isLoadingDetails = false;
   error = "";
-
-  readonly activity: ActivityItem[] = [
-    { id: 1, type: "add", text: "Nieuwe leerling Adrian Dyszczak toegevoegd", school: "GO! Atheneum Antwerpen", time: "5 min" },
-    { id: 2, type: "warn", text: "School heeft 3+ dagen geen sync", school: "Aphogeschool", time: "12 min" },
-    { id: 3, type: "add", text: "47 boeken bulk-geïmporteerd uit ISBN-lijst", school: "GO! Middenschool Centrum", time: "38 min" },
-    { id: 4, type: "edit", text: "Rol van gebruiker gewijzigd: Leerling → Leerkracht", school: "GO! Basisschool De Brug", time: "1 u" },
-    { id: 5, type: "add", text: "Nieuwe school ingediend voor goedkeuring", school: "Nieuwe School", time: "2 u" },
-    { id: 6, type: "del", text: "Account van gebruiker gedeactiveerd", school: "GO! Atheneum Antwerpen", time: "3 u" },
-    { id: 7, type: "edit", text: "Klas hernoemd", school: "GO! Atheneum Antwerpen", time: "5 u" },
-    { id: 8, type: "add", text: "Boek toegevoegd aan klasleeslijst", school: "GO! Middenschool Centrum", time: "6 u" },
-  ];
-
-  readonly tasks: TaskItem[] = [
-    { id: 1, title: "School goedkeuren", sub: "Wacht sinds 2 dagen", action: "Bekijk", urgent: true },
-    { id: 2, title: "3 gebruikers met password reset request", sub: "Meerdere scholen", action: "Behandel" },
-    { id: 3, title: "School met lage activiteit", sub: "Geen sync sinds 3 dagen — admin contacteren?", action: "Bekijk" },
-    { id: 4, title: "12 dubbele ISBN's gedetecteerd", sub: "Verspreid over meerdere scholen — review nodig", action: "Open lijst" },
-  ];
+  topMetric: "users" | "loans" = "users";
 
   constructor(
     private readonly adminSchoolService: AdminSchoolService,
@@ -60,6 +36,7 @@ export class SuperAdminDashboardComponent implements OnInit {
       next: (schools) => {
         this.schools = schools;
         this.isLoading = false;
+        this.loadDetails(schools);
       },
       error: () => {
         this.error = "Scholen konden niet worden geladen.";
@@ -68,16 +45,28 @@ export class SuperAdminDashboardComponent implements OnInit {
     });
   }
 
+  private loadDetails(schools: AdminSchoolDashboardItem[]): void {
+    if (!schools.length) return;
+    this.isLoadingDetails = true;
+    forkJoin(
+      schools.map((s) =>
+        this.adminSchoolService.getSchoolDetail(s.id).pipe(catchError(() => of(null))),
+      ),
+    ).subscribe((details) => {
+      this.schoolDetails = details.filter((d): d is SchoolDetail => d !== null);
+      this.isLoadingDetails = false;
+    });
+  }
+
+  get greeting(): string {
+    const h = new Date().getHours();
+    if (h < 12) return "Goedemorgen";
+    if (h < 18) return "Goedemiddag";
+    return "Goedenavond";
+  }
+
   get adminUsername(): string {
     return this.superAdminAuthService.getAdminInfo()?.username || "Beheerder";
-  }
-
-  get totalUsers(): number {
-    return this.schools.reduce((sum, s) => sum + (s.userCount ?? 0), 0);
-  }
-
-  get totalKlassen(): number {
-    return this.schools.reduce((sum, s) => sum + (s.klasCount ?? 0), 0);
   }
 
   get activeSchoolCount(): number {
@@ -88,23 +77,50 @@ export class SuperAdminDashboardComponent implements OnInit {
     return this.schools.filter((s) => s.status === "PENDING").length;
   }
 
-  get issueCount(): number {
-    return this.pendingSchoolCount + this.tasks.filter((t) => t.urgent).length;
+  get pendingSchools(): AdminSchoolDashboardItem[] {
+    return this.schools.filter((s) => s.status === "PENDING");
   }
 
-  get topSchools(): AdminSchoolDashboardItem[] {
-    return [...this.schools]
-      .sort((a, b) => (b.userCount ?? 0) - (a.userCount ?? 0))
-      .slice(0, 4);
+  get totalUsers(): number {
+    return this.schools.reduce((sum, s) => sum + (s.userCount ?? 0), 0);
   }
 
-  get maxUsers(): number {
-    return Math.max(1, ...this.topSchools.map((s) => s.userCount ?? 0));
+  get totalBooks(): number {
+    return this.schoolDetails.reduce((sum, s) => sum + (s.bookCount ?? 0), 0);
   }
 
-  activityIcon(type: string): string {
-    const map: Record<string, string> = { add: "+", edit: "✎", warn: "!", del: "×" };
-    return map[type] ?? "•";
+  get totalActiveLoans(): number {
+    return this.schoolDetails.reduce((sum, s) => sum + (s.activeLoansCount ?? 0), 0);
+  }
+
+  get enrichedSchools(): EnrichedSchool[] {
+    const map = new Map(this.schoolDetails.map((d) => [d.id, d]));
+    return this.schools.map((s) => ({
+      ...s,
+      bookCount: map.get(s.id)?.bookCount ?? 0,
+      activeLoansCount: map.get(s.id)?.activeLoansCount ?? 0,
+    }));
+  }
+
+  get sortedSchools(): EnrichedSchool[] {
+    const order = (s: EnrichedSchool) =>
+      s.status === "PENDING" ? 0 : s.status === "ACTIVE" ? 1 : 2;
+    return [...this.enrichedSchools].sort((a, b) => {
+      if (order(a) !== order(b)) return order(a) - order(b);
+      return (b.userCount ?? 0) - (a.userCount ?? 0);
+    });
+  }
+
+  get topSchools(): EnrichedSchool[] {
+    const key = this.topMetric === "users" ? "userCount" : "activeLoansCount";
+    return [...this.enrichedSchools]
+      .sort((a, b) => (b[key] ?? 0) - (a[key] ?? 0))
+      .slice(0, 5);
+  }
+
+  get topMetricMax(): number {
+    const key = this.topMetric === "users" ? "userCount" : "activeLoansCount";
+    return Math.max(1, ...this.topSchools.map((s) => s[key] ?? 0));
   }
 
   schoolDisplayName(s: AdminSchoolDashboardItem): string {
@@ -117,5 +133,9 @@ export class SuperAdminDashboardComponent implements OnInit {
 
   goToScholen(): void {
     this.router.navigate(["/admin/scholen"]);
+  }
+
+  goToSchoolDetail(id: number): void {
+    this.router.navigate(["/admin/schools", id]);
   }
 }
