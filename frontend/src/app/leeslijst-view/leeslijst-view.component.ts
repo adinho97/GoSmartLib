@@ -78,8 +78,12 @@ export class LeeslijstViewComponent implements OnInit {
   }
 
   get canDeleteLeeslijst(): boolean {
-    const role = (localStorage.getItem("role") || "").toLowerCase();
-    return role === "leerkracht" || role === "bibbeheerder";
+    const raw = localStorage.getItem("role") || "";
+    const roles = raw
+      .split(/[;,|\s]+/)
+      .map((r) => r.trim().toLowerCase())
+      .filter(Boolean);
+    return roles.includes("leerkracht") || roles.includes("bibbeheerder");
   }
 
   get canEditLeeslijst(): boolean {
@@ -87,12 +91,16 @@ export class LeeslijstViewComponent implements OnInit {
       return false;
     }
 
-    const role = (localStorage.getItem("role") || "").toLowerCase();
-    if (role === "bibbeheerder") {
+    const raw = localStorage.getItem("role") || "";
+    const roles = raw
+      .split(/[;,|\s]+/)
+      .map((r) => r.trim().toLowerCase())
+      .filter(Boolean);
+    if (roles.includes("bibbeheerder")) {
       return true;
     }
 
-    if (role !== "leerkracht") {
+    if (!roles.includes("leerkracht")) {
       return false;
     }
 
