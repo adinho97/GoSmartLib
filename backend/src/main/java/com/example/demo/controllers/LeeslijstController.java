@@ -46,6 +46,8 @@ public class LeeslijstController {
         return leeslijstService.getLeeslisten(schoolId)
             .stream()
             .map(leeslijstService::convertToDTO)
+            .toList();
+    }
      */
     @GetMapping("/klas/{klasId}")
     public List<LeeslijstDTO> getLeeslistenForKlas(@PathVariable Long klasId) {
