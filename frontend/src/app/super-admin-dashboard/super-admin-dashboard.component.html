@@ -57,24 +57,32 @@
   <!-- Quick actions -->
   <div class="quick-row">
     <a class="quick-card" (click)="goToNewSchool()" role="button" tabindex="0">
-      <span class="quick-icon" style="background: #2d5a78">🏫</span>
+      <span class="quick-icon" style="background: #2d5a78">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+          <line x1="12" y1="5" x2="12" y2="5"/>
+          <line x1="19" y1="7" x2="22" y2="7"/>
+          <line x1="22" y1="5" x2="22" y2="9"/>
+        </svg>
+      </span>
       <span class="quick-meta">
         <span class="quick-title">Nieuwe school</span>
         <span class="quick-sub">Wizard openen</span>
       </span>
     </a>
     <a class="quick-card" (click)="goToScholen()" role="button" tabindex="0">
-      <span class="quick-icon" style="background: #2e6b3f">🏛</span>
+      <span class="quick-icon" style="background: #2e6b3f">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      </span>
       <span class="quick-meta">
         <span class="quick-title">Scholen</span>
         <span class="quick-sub">Volledig overzicht</span>
-      </span>
-    </a>
-    <a class="quick-card" routerLink="/admin/change-password" role="button" tabindex="0">
-      <span class="quick-icon" style="background: #b86a17">🔐</span>
-      <span class="quick-meta">
-        <span class="quick-title">Wachtwoord</span>
-        <span class="quick-sub">Wachtwoord wijzigen</span>
       </span>
     </a>
   </div>
