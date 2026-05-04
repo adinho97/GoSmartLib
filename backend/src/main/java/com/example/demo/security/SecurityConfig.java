@@ -51,11 +51,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
                         .requestMatchers("/api/admin/schools/**").hasRole("SUPER_ADMIN")
+
                         // Protected admin endpoints - require JWT token
                         .requestMatchers("/api/admin/**").authenticated()
-                        .requestMatchers("/api/leeslisten/**").authenticated()
-                        // Authenticate other API requests
-                        .anyRequest().authenticated()
+                        // All other endpoints for now (can be restricted later)
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
