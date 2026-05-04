@@ -127,3 +127,68 @@ html.cb-tritanopia app-root > main,
 html.cb-tritanopia app-root > app-footer,
 html.cb-tritanopia app-root > app-badge-toast,
 html.cb-tritanopia app-root > app-ui-toast { filter: url(#cb-tritanopia); }
+
+html.dark {
+  --bg: #0f0e0d;
+  --surface: #1c1917;
+  --surface-2: #28231f;
+  --line: #2e2926;
+  --line-strong: #3d3733;
+  --ink: #f0ece8;
+  --ink-2: #c4bdb7;
+  --ink-3: #8c847c;
+  --ink-4: #5a534d;
+  --brand-50: #1f1014;
+  --brand-100: #2e1620;
+  --warn-bg: #1e1509;
+  --good-bg: #0d1f11;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.2);
+  --shadow-2: 0 4px 12px rgba(0,0,0,.3);
+}
+
+html.dark body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Navbar */
+html.dark .app-header,
+html.dark .admin-top-nav {
+  background: var(--surface);
+  border-bottom-color: var(--line);
+}
+
+html.dark .app-nav a {
+  color: var(--ink-2);
+}
+html.dark .app-nav a:hover,
+html.dark .app-nav a.active {
+  color: var(--ink);
+}
+
+html.dark button:not(.cb-toggle-btn):not(.dm-toggle-btn):not(.avatar-btn) {
+  background-color: var(--brand);
+  border-color: #3d0f20;
+}
+
+html.dark .dm-toggle-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+html.dark .dm-toggle-btn.active {
+  border-color: #6b8cff;
+  color: #6b8cff;
+  background: #1a1f35;
+}
+
+html.dark .cb-toggle-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+html.dark .cb-toggle-btn.active {
+  border-color: #c4566e;
+  color: #c4566e;
+  background: #1f1014;
+}
