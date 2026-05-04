@@ -192,25 +192,12 @@
               </p>
               <p class="leeslijst-meta">
                 <span class="meta-item"
-                  ><strong>Door:</strong> {{ leeslijst.createdByName }}</span
+                  ><strong>Door:</strong>
+                  {{ displayCreatorName(leeslijst.createdByName) }}</span
                 >
               </p>
               @if (leeslijst.description) {
                 <p class="leeslijst-description">{{ leeslijst.description }}</p>
-              }
-              @if (leeslijst.books.length > 0) {
-                <div
-                  class="leeslijst-books-grid"
-                  (click)="$event.stopPropagation()"
-                >
-                  @for (book of leeslijst.books; track book.bookId) {
-                    <app-recommendation-card
-                      [book]="book"
-                      [profileVariant]="'history'"
-                      (viewDetails)="goToDetail(book.bookId)"
-                    ></app-recommendation-card>
-                  }
-                </div>
               }
               <div class="leeslijst-klassen">
                 @for (klas of leeslijst.klasNames; track klas) {

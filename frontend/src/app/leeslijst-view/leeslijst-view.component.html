@@ -20,7 +20,8 @@
               <strong>Voor:</strong> {{ leeslijst.klasNames.join(", ") }}
             </p>
             <p class="meta-item">
-              <strong>Door:</strong> {{ leeslijst.createdByName }}
+              <strong>Door:</strong>
+              {{ displayCreatorName(leeslijst.createdByName) }}
             </p>
             <p class="meta-item">
               <strong>Aantal boeken:</strong> {{ leeslijst.books.length }}
@@ -41,7 +42,12 @@
         <h2 class="section-title">Aanbevolen Boeken</h2>
         <div class="books-grid">
           @for (book of leeslijst.books; track book.bookId) {
-            <div class="book-card">
+            <div
+              class="book-card"
+              role="button"
+              tabindex="0"
+              (click)="goToDetail(book.bookId)"
+            >
               <div class="book-cover-wrapper">
                 <img
                   [src]="book.cover || 'assets/no-cover.png'"
