@@ -79,7 +79,7 @@ export class FunBadgesComponent implements OnInit {
       const history = await this.loanService.getMyLoanHistory();
       return history.length;
     } catch {
-      return this.readStoredLoanCount();
+      return 0;
     }
   }
 
@@ -87,32 +87,8 @@ export class FunBadgesComponent implements OnInit {
     try {
       return await this.bookService.getMyReviewCount();
     } catch {
-      return this.readStoredReviewCount();
+      return 0;
     }
-  }
-
-  private readStoredLoanCount(): number {
-    try {
-      const stored = localStorage.getItem('profileBadgeCounts');
-      if (stored) {
-        const parsed = JSON.parse(stored) as { loanCount?: number };
-        return parsed.loanCount ?? 0;
-      }
-    } catch { /* ignore */ }
-    const userSub = localStorage.getItem('sub') || '';
-    const key = userSub ? `loanXpSyncedCount:${userSub}` : 'loanXpSyncedCount';
-    return parseInt(localStorage.getItem(key) || '0', 10);
-  }
-
-  private readStoredReviewCount(): number {
-    try {
-      const stored = localStorage.getItem('profileBadgeCounts');
-      if (stored) {
-        const parsed = JSON.parse(stored) as { reviewCount?: number };
-        return parsed.reviewCount ?? 0;
-      }
-    } catch { /* ignore */ }
-    return 0;
   }
 
   getTierLabel(level: number): string {
