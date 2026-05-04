@@ -23,6 +23,9 @@ public class Leeslijst {
     @JoinColumn(name = "created_by_user_id")
     private AppUser createdBy;
 
+    @Column(name = "created_by_name")
+    private String createdByName;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -76,6 +79,9 @@ public class Leeslijst {
 
     public AppUser getCreatedBy() { return createdBy; }
     public void setCreatedBy(AppUser createdBy) { this.createdBy = createdBy; }
+
+    public String getCreatedByName() { return createdByName; }
+    public void setCreatedByName(String createdByName) { this.createdByName = createdByName; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

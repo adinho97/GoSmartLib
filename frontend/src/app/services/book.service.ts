@@ -579,6 +579,7 @@ export class BookService {
 
   async createLeeslijst(
     titel: string,
+    description: string,
     bookIds: number[],
     klasIds: number[],
   ): Promise<any> {
@@ -586,6 +587,7 @@ export class BookService {
       `/api/leeslisten`,
       {
         titel,
+        description,
         bookIds,
         klasIds,
       },

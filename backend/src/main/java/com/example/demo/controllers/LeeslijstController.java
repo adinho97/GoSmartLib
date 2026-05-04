@@ -30,8 +30,9 @@ public class LeeslijstController {
     @PostMapping
     public ResponseEntity<LeeslijstDTO> createLeeslijst(
             @RequestBody CreateLeeslijstRequest request,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        Leeslijst created = leeslijstService.createLeeslijst(request, requireUserSub(userSub));
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+        Leeslijst created = leeslijstService.createLeeslijst(request, requireUserSub(userSub), userName);
         return ResponseEntity.status(HttpStatus.CREATED).body(leeslijstService.convertToDTO(created));
     }
 
