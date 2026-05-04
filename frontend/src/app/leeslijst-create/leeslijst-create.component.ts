@@ -21,6 +21,7 @@ export class LeeslijstCreateComponent implements OnInit {
 
   // Title
   leeslijstTitel = "";
+  leeslijstDescription = "";
 
   // Klassen from database
   klassen: KlasListItem[] = [];
@@ -133,6 +134,7 @@ export class LeeslijstCreateComponent implements OnInit {
     try {
       await this.bookService.createLeeslijst(
         this.leeslijstTitel,
+        this.leeslijstDescription,
         Array.from(this.selectedBookIds),
         Array.from(this.selectedKlassenIds),
       );
