@@ -37,6 +37,7 @@ import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
 import { SchoolStatisticsComponent } from "./school-statistics/school-statistics.component";
+import { LeaderboardComponent } from "./leaderboard/leaderboard.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -226,6 +227,12 @@ export const appRoutes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
   },
+  {
+    path: "leaderboard",
+    component: LeaderboardComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
+  }
 ];
 
 @NgModule({

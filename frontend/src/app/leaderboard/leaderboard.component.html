@@ -1,0 +1,131 @@
+<div class="leaderboard-page">
+  <header class="leaderboard-header">
+    <button class="back-btn" (click)="goBack()">← Terug</button>
+    <h1>Ranglijsten</h1>
+    <p>Bekijk de top lezers in jouw klas en school.</p>
+  </header>
+
+  @if (isLoading) {
+    <div class="loader-container">
+      <div class="spinner"></div>
+      <p>Ranglijsten laden...</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="error-msg">
+      {{ error }}
+    </div>
+  }
+
+  @if (!isLoading && leaderboardData) {
+    <div class="leaderboard-grid">
+      <!-- Class Leaderboard -->
+      <div class="leaderboard-card">
+        <div class="card-header-flex">
+          <h2>Top 10 Klas Lezers</h2>
+          @if (isTeacherOrLibrarian && leaderboardData.availableClasses) {
+            <div class="klas-selector">
+              <select
+                [value]="selectedKlasId"
+                (change)="onKlasChange($event)"
+                aria-label="Selecteer een klas"
+              >
+                <option [value]="null">Mijn klas</option>
+                @for (klas of leaderboardData.availableClasses; track klas.id) {
+                  <option [value]="klas.id">{{ klas.naam }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+
+        @if (leaderboardData.topClassReaders.length > 0) {
+          <ol class="leaderboard-list">
+            @for (
+              entry of leaderboardData.topClassReaders;
+              track entry.displayName
+            ) {
+              <li
+                class="leaderboard-item"
+                [class.is-user]="entry.isCurrentUser"
+                [class.rank-1]="(entry.rank || $index + 1) === 1"
+                [class.rank-2]="(entry.rank || $index + 1) === 2"
+                [class.rank-3]="(entry.rank || $index + 1) === 3"
+              >
+                <span class="rank">{{ entry.rank || $index + 1 }}.</span>
+                <span class="name">{{ entry.displayName }}</span>
+                <span class="count">{{ entry.count }} boeken</span>
+              </li>
+            }
+          </ol>
+          @if (
+            !isUserInTopClass(leaderboardData.userClassRank) &&
+            leaderboardData.userClassRank
+          ) {
+            <div class="user-rank-info">
+              <p>
+                <span class="user-label">Jouw huidige plaats:</span>
+                <span class="user-value"
+                  ><strong
+                    >{{ leaderboardData.userClassRank.rank }}e</strong
+                  ></span
+                >
+                <span class="user-sub"
+                  >met {{ leaderboardData.userClassRank.count }} boeken</span
+                >
+              </p>
+            </div>
+          }
+        } @else {
+          <p class="empty-leaderboard">Geen klasranglijst beschikbaar.</p>
+        }
+      </div>
+
+      <!-- School Leaderboard -->
+      <div class="leaderboard-card">
+        <h2>Top 10 School Lezers</h2>
+        @if (leaderboardData.topSchoolReaders.length > 0) {
+          <ol class="leaderboard-list">
+            @for (
+              entry of leaderboardData.topSchoolReaders;
+              track entry.displayName
+            ) {
+              <li
+                class="leaderboard-item"
+                [class.is-user]="entry.isCurrentUser"
+                [class.rank-1]="(entry.rank || $index + 1) === 1"
+                [class.rank-2]="(entry.rank || $index + 1) === 2"
+                [class.rank-3]="(entry.rank || $index + 1) === 3"
+              >
+                <span class="rank">{{ entry.rank || $index + 1 }}.</span>
+                <span class="name">{{ entry.displayName }}</span>
+                <span class="count">{{ entry.count }} boeken</span>
+              </li>
+            }
+          </ol>
+          @if (
+            !isUserInTopSchool(leaderboardData.userSchoolRank) &&
+            leaderboardData.userSchoolRank
+          ) {
+            <div class="user-rank-info">
+              <p>
+                <span class="user-label">Jouw huidige plaats:</span>
+                <span class="user-value"
+                  ><strong
+                    >{{ leaderboardData.userSchoolRank.rank }}e</strong
+                  ></span
+                >
+                <span class="user-sub"
+                  >met {{ leaderboardData.userSchoolRank.count }} boeken</span
+                >
+              </p>
+            </div>
+          }
+        } @else {
+          <p class="empty-leaderboard">Geen schoolranglijst beschikbaar.</p>
+        }
+      </div>
+    </div>
+  }
+</div>
