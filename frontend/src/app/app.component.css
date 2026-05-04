@@ -32,6 +32,41 @@
   flex-shrink: 0;
 }
 
+.admin-brand-tag {
+  font-weight: 500;
+  color: #94a3b8;
+  font-size: 11px;
+  margin-left: 4px;
+  letter-spacing: 0.06em;
+}
+
+.admin-top-nav-links {
+  display: flex;
+  gap: 2px;
+  margin-left: 24px;
+  flex: 1;
+}
+
+.admin-top-nav-links a {
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4d433d;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-top-nav-links a:hover {
+  background: #f3efeb;
+  color: #1a1614;
+}
+
+.admin-top-nav-links a.active {
+  background: #1a1614;
+  color: #fff;
+}
+
 .admin-top-account {
   position: relative;
 }

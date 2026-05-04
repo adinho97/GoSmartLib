@@ -18,8 +18,14 @@
             d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
           />
         </svg>
-        GO!SmartLib Beheer
+        GO!SmartLib <span class="admin-brand-tag">BEHEER</span>
       </a>
+      <nav class="admin-top-nav-links">
+        <a [routerLink]="['/admin/dashboard']" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a>
+        <a [routerLink]="['/admin/scholen']" routerLinkActive="active">Scholen</a>
+        <a [routerLink]="['/admin/schools/new']" routerLinkActive="active">Nieuwe school</a>
+        <a [routerLink]="['/admin/change-password']" routerLinkActive="active">Instellingen</a>
+      </nav>
       <div class="admin-top-account">
         <button
           type="button"
