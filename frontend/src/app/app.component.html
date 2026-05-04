@@ -18,8 +18,12 @@
             d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
           />
         </svg>
-        GO!SmartLib Beheer
+        GO!SmartLib <span class="admin-brand-tag">BEHEER</span>
       </a>
+      <nav class="admin-top-nav-links">
+        <a [routerLink]="['/admin/scholen']" routerLinkActive="active">Scholen</a>
+        <a [routerLink]="['/admin/schools/new']" routerLinkActive="active">Nieuwe school</a>
+      </nav>
       <div class="admin-top-account">
         <button
           type="button"
@@ -158,7 +162,7 @@
   </div>
 }
 
-<!-- Student header (editorial redesign) -->
+<!-- Student header -->
 @if (showStudentNav) {
   <header class="app-header" (click)="$event.stopPropagation()">
     <div class="app-header-inner">
@@ -193,10 +197,14 @@
           >Boekencatalogus</a
         >
         <a routerLink="/mijn-lijsten" routerLinkActive="active">Mijn lijsten</a>
+        <a routerLink="/leaderboard" routerLinkActive="active">Klassement</a>
         <a routerLink="/info" routerLinkActive="active">Info</a>
       </nav>
 
       <div class="app-header-right">
+        <app-dark-mode-toggle></app-dark-mode-toggle>
+        <app-colorblind-toggle></app-colorblind-toggle>
+
         <!-- Level chip -->
         @if (levelInfo$ | async; as levelInfo) {
           <div class="level-chip" title="Level {{ levelInfo.level }}">
@@ -236,7 +244,7 @@
   </header>
 }
 
-<!-- Staff / librarian header (matches student styling) -->
+<!-- Staff / librarian header -->
 @if (showStaffNav) {
   <header class="app-header" (click)="$event.stopPropagation()">
     <div class="app-header-inner">
@@ -298,6 +306,9 @@
       </nav>
 
       <div class="app-header-right">
+         <app-dark-mode-toggle></app-dark-mode-toggle>
+        <app-colorblind-toggle></app-colorblind-toggle>
+
         @if (levelInfo$ | async; as levelInfo) {
           <div class="level-chip" title="Level {{ levelInfo.level }}">
             <span class="lvl-num">{{ levelInfo.level }}</span>

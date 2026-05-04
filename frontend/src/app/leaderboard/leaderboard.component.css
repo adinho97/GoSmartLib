@@ -1,0 +1,298 @@
+.leaderboard-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--s-7) 28px var(--s-8);
+  font-family: var(--font-ui);
+}
+
+/* ── Header ── */
+.leaderboard-header {
+  margin-bottom: var(--s-7);
+  text-align: center;
+  position: relative;
+}
+
+.leaderboard-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.leaderboard-header h1::after {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 3px;
+  background: var(--brand);
+  border-radius: 2px;
+  margin: 10px auto 0;
+}
+
+.leaderboard-header p {
+  font-size: 14px;
+  color: var(--ink-3);
+  margin: 14px 0 0;
+}
+
+/* ── Back button ── */
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: var(--r);
+  transition: background 0.15s, border-color 0.15s;
+  margin: 0;
+}
+
+.back-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+
+/* ── Loading & Error ── */
+.loader-container {
+  text-align: center;
+  padding: 4rem;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+.error-msg {
+  color: var(--warn);
+  background: var(--warn-bg);
+  border: 1px solid #f0d4b0;
+  border-radius: var(--r);
+  padding: var(--s-4);
+  margin-top: var(--s-4);
+  font-size: 14px;
+  text-align: center;
+}
+
+.spinner {
+  border: 3px solid var(--line);
+  border-left-color: var(--brand);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Grid ── */
+.leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--s-5);
+}
+
+/* ── Cards ── */
+.leaderboard-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderboard-card h2 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  margin: 0 0 var(--s-4);
+}
+
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--s-4);
+}
+
+.card-header-flex h2 {
+  margin: 0;
+}
+
+/* ── Klas selector ── */
+.klas-selector select {
+  padding: 5px 10px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 13px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  margin: 0;
+}
+
+.klas-selector select:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+
+/* ── List ── */
+.leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── List items ── */
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  transition: box-shadow 0.15s;
+}
+
+.leaderboard-item:hover {
+  box-shadow: var(--shadow-1);
+}
+
+/* ── Medal ranks ── */
+.leaderboard-item.rank-1 {
+  background: linear-gradient(120deg, #fffdf0 0%, #fff8c0 100%);
+  border-color: #e8c840;
+}
+
+.leaderboard-item.rank-1 .rank {
+  color: #a07800;
+}
+
+.leaderboard-item.rank-2 {
+  background: linear-gradient(120deg, #f8f7f5 0%, #ece9e4 100%);
+  border-color: #c4bdb5;
+}
+
+.leaderboard-item.rank-2 .rank {
+  color: var(--ink-2);
+}
+
+.leaderboard-item.rank-3 {
+  background: linear-gradient(120deg, #fdf3ec 0%, #fde3cc 100%);
+  border-color: #d4895a;
+}
+
+.leaderboard-item.rank-3 .rank {
+  color: #934f24;
+}
+
+.leaderboard-item.is-user {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px var(--brand-100);
+}
+
+/* ── Item parts ── */
+.leaderboard-item .rank {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-3);
+  width: 26px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.leaderboard-item .name {
+  flex-grow: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 var(--s-3);
+}
+
+.leaderboard-item .count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+  flex-shrink: 0;
+  background: var(--surface-2);
+  padding: 2px 9px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+}
+
+/* ── User rank info ── */
+.user-rank-info {
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  background: var(--brand-50);
+  border: 1px solid var(--brand-100);
+  border-radius: var(--r);
+  font-size: 13px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.user-rank-info p {
+  margin: 0;
+}
+
+.user-label {
+  color: var(--ink-3);
+  margin-right: 4px;
+}
+
+.user-value strong {
+  color: var(--brand);
+}
+
+.user-sub {
+  color: var(--ink-3);
+  margin-left: 4px;
+}
+
+.empty-leaderboard {
+  text-align: center;
+  color: var(--ink-4);
+  font-size: 14px;
+  padding: 2.5rem 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .leaderboard-page {
+    padding: var(--s-5) var(--s-4) var(--s-7);
+  }
+
+  .leaderboard-header h1 {
+    font-size: 26px;
+  }
+
+  .back-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .leaderboard-grid {
+    grid-template-columns: 1fr;
+    gap: var(--s-4);
+  }
+}

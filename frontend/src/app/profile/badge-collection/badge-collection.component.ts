@@ -56,6 +56,9 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     this.experienceService.reconcileLoanExperienceFromHistory(
       currentCounts.loanCount,
     );
+    this.experienceService.reconcileReviewExperienceFromHistory(
+      currentCounts.reviewCount,
+    );
     this.lastKnownCounts = currentCounts;
     this.rebuildBadges(currentCounts, previousCounts);
     this.storeCounts(currentCounts);
@@ -112,6 +115,9 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
       const currentCounts = await this.loadCounts();
       this.experienceService.reconcileLoanExperienceFromHistory(
         currentCounts.loanCount,
+      );
+      this.experienceService.reconcileReviewExperienceFromHistory(
+        currentCounts.reviewCount,
       );
       const previousCounts = this.lastKnownCounts;
 
