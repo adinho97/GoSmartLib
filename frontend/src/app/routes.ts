@@ -30,6 +30,7 @@ import { MapScreenComponent } from "./map-screen/map-screen.component";
 import { MijnLijstenComponent } from "./mijn-lijsten/mijn-lijsten.component";
 import { LeerkrachtDashboardComponent } from "./leerkracht-dashboard/leerkracht-dashboard.component";
 import { KlasleeslijstBeheerComponent } from "./klasleeslijst-beheer/klasleeslijst-beheer.component";
+import { LeeslijstCreateComponent } from "./leeslijst-create/leeslijst-create.component";
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
@@ -179,6 +180,12 @@ export const appRoutes: Routes = [
   {
     path: "klasleeslijst-beheer",
     component: KlasleeslijstBeheerComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
+    path: "leeslijst-create",
+    component: LeeslijstCreateComponent,
     canActivate: [AuthGuard],
     data: { roles: ["leerkracht", "bibbeheerder"] },
   },
