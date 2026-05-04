@@ -1,0 +1,24 @@
+<button
+  class="cb-toggle-btn"
+  [class.active]="isActive"
+  (click)="service.toggle()"
+  [attr.aria-pressed]="isActive"
+  title="Kleurenblind modus aan/uitzetten"
+  type="button"
+>
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+  {{ isActive ? 'Kleurenblind aan' : 'Kleurenblind' }}
+</button>
