@@ -23,7 +23,7 @@ public class LeeslijstController {
      * Create a new reading list (Teachers and Library Staff only)
      */
     @PostMapping
-    public Leeslijst createLeeslijst(
+    public LeeslijstDTO createLeeslijst(
         @RequestBody CreateLeeslijstRequest request,
         @RequestHeader(value = "X-User-Sub", required = false) String userSub,
         @RequestHeader(value = "X-User-Role", required = false) String userRole
@@ -34,8 +34,8 @@ public class LeeslijstController {
         if (!isAuthorized(userRole)) {
             throw new org.springframework.security.access.AccessDeniedException("Geen toegang");
         }
-        
-        return leeslijstService.createLeeslijst(request, userSub);
+        Leeslijst created = leeslijstService.createLeeslijst(request, userSub);
+        return leeslijstService.convertToDTO(created);
     }
 
     /**
@@ -72,7 +72,7 @@ public class LeeslijstController {
      * Update a reading list (Teachers and Library Staff only)
      */
     @PutMapping("/{id}")
-    public Leeslijst updateLeeslijst(
+    public LeeslijstDTO updateLeeslijst(
         @PathVariable Long id,
         @RequestBody CreateLeeslijstRequest request,
         @RequestHeader(value = "X-User-Role", required = false) String userRole
@@ -80,7 +80,9 @@ public class LeeslijstController {
         if (!isAuthorized(userRole)) {
             throw new org.springframework.security.access.AccessDeniedException("Geen toegang");
         }
-        return leeslijstService.updateLeeslijst(id, request);
+
+        Leeslijst updated = leeslijstService.updateLeeslijst(id, request);
+        return leeslijstService.convertToDTO(updated);
     }
 
     /**
