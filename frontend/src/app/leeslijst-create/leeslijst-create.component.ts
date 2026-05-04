@@ -131,22 +131,10 @@ export class LeeslijstCreateComponent implements OnInit {
   async saveLeeslijst() {
     this.isSaving = true;
     try {
-      const schoolId = this.schoolService.getSelectedSchoolId();
-      const userId = parseInt(
-        localStorage.getItem("sub") || localStorage.getItem("userId") || "0",
-        10,
-      );
-
-      if (!schoolId || !userId) {
-        throw new Error("Missing school or user ID");
-      }
-
       await this.bookService.createLeeslijst(
         this.leeslijstTitel,
         Array.from(this.selectedBookIds),
         Array.from(this.selectedKlassenIds),
-        userId,
-        schoolId,
       );
 
       this.uiToastService.success("Leeslijst succesvol aangemaakt.");

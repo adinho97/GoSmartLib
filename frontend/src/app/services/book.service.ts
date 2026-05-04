@@ -581,11 +581,9 @@ export class BookService {
     titel: string,
     bookIds: number[],
     klasIds: number[],
-    userId: number,
-    schoolId: number,
   ): Promise<any> {
     const res = await axios.post(
-      `/api/leeslisten?userId=${userId}&schoolId=${schoolId}`,
+      `/api/leeslisten`,
       {
         titel,
         bookIds,
