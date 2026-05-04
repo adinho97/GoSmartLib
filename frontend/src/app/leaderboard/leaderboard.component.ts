@@ -23,7 +23,7 @@ export interface LeaderboardData {
 @Component({
   selector: "app-leaderboard",
   templateUrl: "./leaderboard.component.html",
-  styleUrls: ["./leaderboard.component.scss"],
+  styleUrls: ["./leaderboard.component.css"],
 })
 export class LeaderboardComponent implements OnInit {
   isLoading: boolean = true;
