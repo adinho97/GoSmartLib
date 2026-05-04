@@ -74,6 +74,12 @@ public class LeeslijstService {
         return leeslijstRepository.findByKlas(klasId);
     }
 
+    public List<Leeslijst> getLeeslistenCreatedByUser(String userSub) {
+        AppUser user = userRepository.findBySub(userSub)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
+        return leeslijstRepository.findByCreatedBy_Id(user.getId());
+    }
+
     public Optional<Leeslijst> getLeeslijst(Long id) {
         return leeslijstRepository.findById(id);
     }
@@ -111,6 +117,15 @@ public class LeeslijstService {
             .collect(Collectors.toList());
         dto.setKlasNames(klasNames);
 
+        List<Long> klasIds = leeslijst.getKlassen().stream()
+            .map(Klas::getId)
+            .collect(Collectors.toList());
+        dto.setKlasIds(klasIds);
+
+        if (leeslijst.getCreatedBy() != null) {
+            dto.setCreatedBySub(leeslijst.getCreatedBy().getSub());
+        }
+
         return dto;
     }
 
@@ -144,6 +159,15 @@ public class LeeslijstService {
             .collect(Collectors.toList());
         dto.setKlasNames(klasNames);
 
+        List<Long> klasIds = leeslijst.getKlassen().stream()
+            .map(Klas::getId)
+            .collect(Collectors.toList());
+        dto.setKlasIds(klasIds);
+
+        if (leeslijst.getCreatedBy() != null) {
+            dto.setCreatedBySub(leeslijst.getCreatedBy().getSub());
+        }
+
         return dto;
     }
 
@@ -168,9 +192,23 @@ public class LeeslijstService {
         leeslijstRepository.delete(leeslijst);
     }
 
-    public Leeslijst updateLeeslijst(Long id, CreateLeeslijstRequest request) {
+    public Leeslijst updateLeeslijst(Long id, CreateLeeslijstRequest request, String userSub, String userRole) {
         Leeslijst leeslijst = leeslijstRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
+
+        if (userRole == null || userRole.isBlank()) {
+            throw new SecurityException("Missing role");
+        }
+
+        String normalizedRole = userRole.trim().toLowerCase();
+        if ("leerkracht".equals(normalizedRole)) {
+            if (leeslijst.getCreatedBy() == null || leeslijst.getCreatedBy().getSub() == null
+                    || !leeslijst.getCreatedBy().getSub().equals(userSub)) {
+                throw new SecurityException("Teachers can only edit their own leeslijsten");
+            }
+        } else if (!"bibbeheerder".equals(normalizedRole)) {
+            throw new SecurityException("Not allowed to edit leeslijsten");
+        }
 
         leeslijst.setTitel(request.getTitel());
         leeslijst.setDescription(request.getDescription());

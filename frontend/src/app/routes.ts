@@ -198,6 +198,12 @@ export const appRoutes: Routes = [
     data: { roles: ["leerkracht", "bibbeheerder"] },
   },
   {
+    path: "leeslijst-edit/:id",
+    component: LeeslijstCreateComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
     path: "leeslijst/:id",
     component: LeeslijstViewComponent,
     canActivate: [AuthGuard],

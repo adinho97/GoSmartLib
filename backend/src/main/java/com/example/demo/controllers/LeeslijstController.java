@@ -62,13 +62,25 @@ public class LeeslijstController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/mijn")
+    public ResponseEntity<List<LeeslijstDTO>> getMijnLeeslisten(
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+        String requiredSub = requireUserSub(userSub);
+        List<LeeslijstDTO> result = leeslijstService.getLeeslistenCreatedByUser(requiredSub)
+                .stream()
+                .map(leeslijstService::convertToDTO)
+                .toList();
+        return ResponseEntity.ok(result);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<LeeslijstDTO> updateLeeslijst(
             @PathVariable Long id,
             @RequestBody CreateLeeslijstRequest request,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        requireUserSub(userSub);
-        Leeslijst updated = leeslijstService.updateLeeslijst(id, request);
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        String requiredSub = requireUserSub(userSub);
+        Leeslijst updated = leeslijstService.updateLeeslijst(id, request, requiredSub, userRole);
         return ResponseEntity.ok(leeslijstService.convertToDTO(updated));
     }
 

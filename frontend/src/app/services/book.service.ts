@@ -604,6 +604,26 @@ export class BookService {
     return res.data;
   }
 
+  async updateLeeslijst(
+    id: number,
+    titel: string,
+    description: string,
+    bookIds: number[],
+    klasIds: number[],
+  ): Promise<any> {
+    const res = await axios.put(
+      `/api/leeslisten/${id}`,
+      {
+        titel,
+        description,
+        bookIds,
+        klasIds,
+      },
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
   async deleteLeeslijst(id: number): Promise<void> {
     await axios.delete(`/api/leeslisten/${id}`, this.getFullAuthHeaders());
   }
@@ -619,6 +639,14 @@ export class BookService {
   async getLeeslistenForKlas(klasId: number): Promise<any[]> {
     const res = await axios.get(
       `/api/leeslisten/klas/${klasId}`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async getMyLeeslisten(): Promise<any[]> {
+    const res = await axios.get(
+      `/api/leeslisten/mijn`,
       this.getFullAuthHeaders(),
     );
     return res.data;

@@ -19,6 +19,7 @@ interface LeeslijstData {
   description: string;
   schoolId: number;
   createdByName: string;
+  createdBySub?: string;
   createdAt: string;
   books: LeeslijstBook[];
   klasNames: string[];
@@ -79,6 +80,32 @@ export class LeeslijstViewComponent implements OnInit {
   get canDeleteLeeslijst(): boolean {
     const role = (localStorage.getItem("role") || "").toLowerCase();
     return role === "leerkracht" || role === "bibbeheerder";
+  }
+
+  get canEditLeeslijst(): boolean {
+    if (!this.leeslijst) {
+      return false;
+    }
+
+    const role = (localStorage.getItem("role") || "").toLowerCase();
+    if (role === "bibbeheerder") {
+      return true;
+    }
+
+    if (role !== "leerkracht") {
+      return false;
+    }
+
+    const currentSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    return !!currentSub && this.leeslijst.createdBySub === currentSub;
+  }
+
+  editLeeslijst(): void {
+    if (!this.leeslijst) {
+      return;
+    }
+    this.router.navigate(["/leeslijst-edit", this.leeslijst.id]);
   }
 
   async deleteLeeslijst(): Promise<void> {

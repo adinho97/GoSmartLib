@@ -75,7 +75,11 @@
 
       <!-- Actions -->
       <div class="actions-footer">
-        <button class="btn btn-outline" (click)="goBack()">Terug</button>
+        @if (canEditLeeslijst) {
+          <button class="btn btn-primary" (click)="editLeeslijst()">
+            Aanpassen
+          </button>
+        }
         @if (canDeleteLeeslijst) {
           <button
             class="btn btn-outline"

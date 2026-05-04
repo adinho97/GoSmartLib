@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
 import { Router } from "@angular/router";
 import { SchoolService, KlasListItem } from "../services/school.service";
 import { BookService } from "../services/book.service";
@@ -110,13 +111,19 @@ export class LeeslijstCreateComponent implements OnInit {
   maxPages = this.maxPageFilterLimit;
   minAvailablePages = this.minPageFilterLimit;
   maxAvailablePages = this.maxPageFilterLimit;
+  editingLeeslijstId: number | null = null;
 
   constructor(
+    private route: ActivatedRoute,
     private schoolService: SchoolService,
     private bookService: BookService,
     private uiToastService: UiToastService,
     private router: Router,
   ) {}
+
+  get isEditMode(): boolean {
+    return this.editingLeeslijstId !== null;
+  }
 
   async ngOnInit() {
     const schoolId = this.schoolService.getSelectedSchoolId();
@@ -124,6 +131,55 @@ export class LeeslijstCreateComponent implements OnInit {
       this.uiToastService.error("Geen school geselecteerd.");
       this.router.navigate(["/dashboard"]);
       return;
+    }
+
+    const leeslijstIdParam = this.route.snapshot.paramMap.get("id");
+    if (leeslijstIdParam) {
+      this.editingLeeslijstId = parseInt(leeslijstIdParam, 10);
+      await this.loadExistingLeeslijst(this.editingLeeslijstId);
+    }
+  }
+
+  private async loadExistingLeeslijst(id: number) {
+    this.isLoading = true;
+    try {
+      const existing = await this.bookService.getLeeslijst(id);
+      this.leeslijstTitel = existing?.titel || "";
+      this.leeslijstDescription = existing?.description || "";
+      this.selectedBookIds = new Set<number>(
+        Array.isArray(existing?.books)
+          ? existing.books
+              .map((book: any) => Number(book.bookId))
+              .filter((bookId: number) => Number.isFinite(bookId))
+          : [],
+      );
+
+      await this.loadKlassen();
+
+      const klasIds = Array.isArray(existing?.klasIds)
+        ? existing.klasIds
+            .map((idValue: any) => Number(idValue))
+            .filter((idValue: number) => Number.isFinite(idValue))
+        : [];
+      if (klasIds.length > 0) {
+        this.selectedKlassenIds = new Set<number>(klasIds);
+      } else if (Array.isArray(existing?.klasNames)) {
+        const idsFromNames = this.klassen
+          .filter((klas) => existing.klasNames.includes(klas.naam))
+          .map((klas) => klas.id);
+        this.selectedKlassenIds = new Set<number>(idsFromNames);
+      }
+    } catch (error: any) {
+      if (error?.response?.status === 403) {
+        this.uiToastService.error(
+          "Je kan enkel je eigen leeslijsten aanpassen.",
+        );
+      } else {
+        this.uiToastService.error("Fout bij het laden van de leeslijst.");
+      }
+      this.router.navigate(["/mijn-lijsten", { fragment: "klasleeslijst" }]);
+    } finally {
+      this.isLoading = false;
     }
   }
 
@@ -331,17 +387,34 @@ export class LeeslijstCreateComponent implements OnInit {
   async saveLeeslijst() {
     this.isSaving = true;
     try {
-      await this.bookService.createLeeslijst(
-        this.leeslijstTitel,
-        this.leeslijstDescription,
-        Array.from(this.selectedBookIds),
-        Array.from(this.selectedKlassenIds),
-      );
+      if (this.isEditMode && this.editingLeeslijstId !== null) {
+        await this.bookService.updateLeeslijst(
+          this.editingLeeslijstId,
+          this.leeslijstTitel,
+          this.leeslijstDescription,
+          Array.from(this.selectedBookIds),
+          Array.from(this.selectedKlassenIds),
+        );
+        this.uiToastService.success("Leeslijst succesvol aangepast.");
+      } else {
+        await this.bookService.createLeeslijst(
+          this.leeslijstTitel,
+          this.leeslijstDescription,
+          Array.from(this.selectedBookIds),
+          Array.from(this.selectedKlassenIds),
+        );
+        this.uiToastService.success("Leeslijst succesvol aangemaakt.");
+      }
 
-      this.uiToastService.success("Leeslijst succesvol aangemaakt.");
       this.router.navigate(["/mijn-lijsten", { fragment: "klasleeslijst" }]);
-    } catch (error) {
-      this.uiToastService.error("Fout bij het opslaan van de leeslijst.");
+    } catch (error: any) {
+      if (error?.response?.status === 403) {
+        this.uiToastService.error(
+          "Je kan enkel je eigen leeslijsten aanpassen.",
+        );
+      } else {
+        this.uiToastService.error("Fout bij het opslaan van de leeslijst.");
+      }
       console.error(error);
     } finally {
       this.isSaving = false;
@@ -370,6 +443,5 @@ export class LeeslijstCreateComponent implements OnInit {
   setPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
-    this.loadBooks();
   }
 }
