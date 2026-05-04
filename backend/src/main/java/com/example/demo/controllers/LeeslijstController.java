@@ -43,6 +43,9 @@ public class LeeslijstController {
      */
     @GetMapping("/school/{schoolId}")
     public List<LeeslijstDTO> getLeeslisten(@PathVariable Long schoolId) {
+        if (schoolId == null) {
+            return List.of(); // Retourneer een lege lijst als schoolId null is
+        }
         return leeslijstService.getLeeslisten(schoolId)
             .stream()
             .map(leeslijstService::convertToDTO)
@@ -54,6 +57,9 @@ public class LeeslijstController {
      */
     @GetMapping("/klas/{klasId}")
     public List<LeeslijstDTO> getLeeslistenForKlas(@PathVariable Long klasId) {
+        if (klasId == null) {
+            return List.of(); // Retourneer een lege lijst als klasId null is
+        }
         return leeslijstService.getLeeslistenForKlas(klasId)
             .stream()
             .map(leeslijstService::convertToDTO)
