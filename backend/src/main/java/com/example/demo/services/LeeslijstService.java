@@ -32,11 +32,16 @@ public class LeeslijstService {
         this.schoolRepository = schoolRepository;
     }
 
-    public Leeslijst createLeeslijst(CreateLeeslijstRequest request, Long userId, Long schoolId) {
-        AppUser user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        School school = schoolRepository.findById(schoolId)
-            .orElseThrow(() -> new IllegalArgumentException("School not found"));
+    public Leeslijst createLeeslijst(CreateLeeslijstRequest request, String userSub) {
+        // Find user by their sub (Smartschool ID)
+        AppUser user = userRepository.findBySub(userSub)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
+        
+        // Get user's school
+        School school = user.getSchool();
+        if (school == null) {
+            throw new IllegalArgumentException("User has no school assigned");
+        }
 
         Leeslijst leeslijst = new Leeslijst(request.getTitel(), school, user);
         leeslijst.setDescription(request.getDescription());

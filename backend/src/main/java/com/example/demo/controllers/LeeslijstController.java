@@ -4,6 +4,8 @@ import com.example.demo.dto.CreateLeeslijstRequest;
 import com.example.demo.dto.LeeslijstDTO;
 import com.example.demo.entities.Leeslijst;
 import com.example.demo.services.LeeslijstService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,11 +24,17 @@ public class LeeslijstController {
      */
     @PostMapping
     public Leeslijst createLeeslijst(
-        @RequestBody CreateLeeslijstRequest request,
-        @RequestParam Long userId,
-        @RequestParam Long schoolId
+        @RequestBody CreateLeeslijstRequest request
     ) {
-        return leeslijstService.createLeeslijst(request, userId, schoolId);
+        // Get authenticated user's subject (sub) from security context
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userSub = auth != null ? auth.getName() : null;
+        
+        if (userSub == null) {
+            throw new IllegalArgumentException("Authenticated user not found");
+        }
+        
+        return leeslijstService.createLeeslijst(request, userSub);
     }
 
     /**
