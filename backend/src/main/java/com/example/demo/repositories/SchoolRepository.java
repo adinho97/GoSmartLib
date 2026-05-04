@@ -22,4 +22,6 @@ public interface SchoolRepository extends JpaRepository<School, Long> {
             "LOWER(s.subdomein) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(s.smartschoolUrl) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<School> searchPaged(@Param("query") String query, Pageable pageable);
+
+    Optional<School> findBySmartschoolUrl(String smartschoolUrl);
 }

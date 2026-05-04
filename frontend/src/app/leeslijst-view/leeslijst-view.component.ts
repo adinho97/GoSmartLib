@@ -19,6 +19,7 @@ interface LeeslijstData {
   description: string;
   schoolId: number;
   createdByName: string;
+  createdBySub?: string;
   createdAt: string;
   books: LeeslijstBook[];
   klasNames: string[];
@@ -33,6 +34,7 @@ interface LeeslijstData {
 export class LeeslijstViewComponent implements OnInit {
   leeslijst: LeeslijstData | null = null;
   loading = true;
+  deleting = false;
   error = "";
 
   constructor(
@@ -69,6 +71,97 @@ export class LeeslijstViewComponent implements OnInit {
 
   goBack() {
     this.router.navigate(["/mijn-lijsten", { fragment: "klasleeslijst" }]);
+  }
+
+  goToDetail(bookId: number) {
+    this.router.navigate(["/detail", bookId]);
+  }
+
+  get canDeleteLeeslijst(): boolean {
+    const raw = localStorage.getItem("role") || "";
+    const roles = raw
+      .split(/[;,|\s]+/)
+      .map((r) => r.trim().toLowerCase())
+      .filter(Boolean);
+    return roles.includes("leerkracht") || roles.includes("bibbeheerder");
+  }
+
+  get canEditLeeslijst(): boolean {
+    if (!this.leeslijst) {
+      return false;
+    }
+
+    const raw = localStorage.getItem("role") || "";
+    const roles = raw
+      .split(/[;,|\s]+/)
+      .map((r) => r.trim().toLowerCase())
+      .filter(Boolean);
+    if (roles.includes("bibbeheerder")) {
+      return true;
+    }
+
+    if (!roles.includes("leerkracht")) {
+      return false;
+    }
+
+    const currentSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    return !!currentSub && this.leeslijst.createdBySub === currentSub;
+  }
+
+  editLeeslijst(): void {
+    if (!this.leeslijst) {
+      return;
+    }
+    this.router.navigate(["/leeslijst-edit", this.leeslijst.id]);
+  }
+
+  async deleteLeeslijst(): Promise<void> {
+    if (!this.leeslijst || this.deleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Ben je zeker dat je deze leeslijst wil verwijderen?",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.deleting = true;
+    try {
+      await this.bookService.deleteLeeslijst(this.leeslijst.id);
+      this.uiToastService.success("Leeslijst verwijderd.");
+      this.goBack();
+    } catch (err: any) {
+      if (err?.response?.status === 403) {
+        this.uiToastService.error(
+          "Je kan enkel je eigen leeslijsten verwijderen.",
+        );
+      } else {
+        this.uiToastService.error("Fout bij verwijderen van leeslijst.");
+      }
+    } finally {
+      this.deleting = false;
+    }
+  }
+
+  displayCreatorName(createdByName: string): string {
+    const currentSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    if (createdByName && createdByName !== currentSub) {
+      return createdByName;
+    }
+
+    return (
+      localStorage.getItem("userName") ||
+      localStorage.getItem("fullname") ||
+      [localStorage.getItem("firstName"), localStorage.getItem("lastName")]
+        .filter(Boolean)
+        .join(" ") ||
+      createdByName ||
+      currentSub
+    );
   }
 
   printLeeslijst() {

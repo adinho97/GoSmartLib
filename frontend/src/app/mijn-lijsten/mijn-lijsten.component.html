@@ -41,7 +41,7 @@
     >
       Klasleeslijst
       <span class="tab-count" [class.active]="activeTab === 'klasleeslijst'">{{
-        classReadingBooks.length
+        leeslisten.length
       }}</span>
     </button>
     <button
@@ -192,7 +192,8 @@
               </p>
               <p class="leeslijst-meta">
                 <span class="meta-item"
-                  ><strong>Door:</strong> {{ leeslijst.createdByName }}</span
+                  ><strong>Door:</strong>
+                  {{ displayCreatorName(leeslijst.createdByName) }}</span
                 >
               </p>
               @if (leeslijst.description) {

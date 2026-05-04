@@ -536,3 +536,54 @@ html.dark .search-button,
 html.dark .header-button {
   color: #ffffff !important;
 }
+/* ─── Dark mode: dropdowns globaal ─── */
+html.dark select {
+  background: var(--surface-2) !important;
+  border-color: var(--line-strong) !important;
+  color: var(--ink) !important;
+}
+html.dark select option {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+/* ─── Dark mode: boekdetail tekst fix ─── */
+html.dark .info-grid div { color: var(--ink-2) !important; }
+html.dark .info-grid span { color: var(--ink) !important; }
+html.dark .book-description p { color: var(--ink-2) !important; }
+html.dark .book-title { color: var(--ink) !important; }
+
+html.dark .review-author-row { color: var(--ink-2) !important; }
+html.dark .review-author-row strong { color: var(--brand) !important; }
+html.dark .review-author { color: var(--ink) !important; }
+html.dark .review-comment { color: var(--ink-2) !important; }
+html.dark .review-date { color: var(--ink-3) !important; }
+html.dark .average-rating { color: var(--ink-3) !important; }
+html.dark .review-form label,
+html.dark .review-edit-form label { color: var(--ink-3) !important; }
+html.dark .no-reviews { color: var(--ink-3) !important; }
+
+html.dark .lestip-content p { color: var(--ink-2) !important; }
+html.dark .lestip-author { color: var(--ink-3) !important; }
+html.dark .lestip-section h3 { color: var(--ink) !important; }
+
+html.dark .publish-review-card p { color: var(--ink-2) !important; }
+html.dark .publish-review-card h3 { color: var(--ink) !important; }
+html.dark .preview-modal-header h2 { color: var(--ink) !important; }
+
+html.dark .avail-badge {
+  color: var(--ink-2) !important;
+  background: var(--surface-2) !important;
+}
+html.dark .avail-badge.available { background: #0d2e12 !important; color: #6fcf85 !important; }
+html.dark .avail-badge.unavailable { background: #2a0d0d !important; color: #f08080 !important; }
+html.dark .avail-badge.none { background: var(--surface-2) !important; color: var(--ink-3) !important; }
+html.dark .wishlist-button,
+html.dark .wishlist-toggle-btn,
+html.dark .wishlist-toggle-detail {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}

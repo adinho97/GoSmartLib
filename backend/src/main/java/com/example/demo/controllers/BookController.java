@@ -437,6 +437,7 @@ public class BookController {
         String reviewerUserSub = resolveReviewUserKey(userSub, userName, userRole);
         Long reviewerUserId = isAnonymous ? null : resolveReviewerUserId(userSub, userName);
         review.setAnonymous(isAnonymous);
+        review.setReviewerUserName(isAnonymous ? "Anoniem" : normalizeUserName(userName));
 
         if (reviewerUserSub == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -730,26 +731,17 @@ public class BookController {
             return "Anoniem";
         }
 
+        if (StringUtils.hasText(review.getReviewerUserName())) {
+            return review.getReviewerUserName().trim();
+        }
+
         if (review.getReviewerUserId() == null && !StringUtils.hasText(review.getReviewerUserSub())) {
             return "Anoniem";
         }
 
         if (review.getReviewerUserId() == null && StringUtils.hasText(review.getReviewerUserSub())) {
             try {
-                return authService.getUserInfoBySub(review.getReviewerUserSub().trim())
-                        .onErrorResume(err -> Mono.empty())
-                        .blockOptional()
-                        .map(userInfo -> {
-                            var fullName = userInfo.getFullName();
-                            if (fullName != null && !fullName.isBlank()) {
-                                return fullName;
-                            }
-                            var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
-                                    .filter(part -> part != null && !part.isBlank())
-                                    .collect(Collectors.joining(" ")).trim();
-                            return candidate.isEmpty() ? userInfo.getSub() : candidate;
-                        })
-                        .orElse(review.getReviewerUserSub().trim());
+                return resolveDisplayNameForSub(review.getReviewerUserSub().trim());
             } catch (Exception e) {
                 return review.getReviewerUserSub().trim();
             }
@@ -758,22 +750,36 @@ public class BookController {
         try {
             return appUserRepository.findById(review.getReviewerUserId())
                     .map(AppUser::getSub)
-                    .flatMap(sub -> authService.getUserInfoBySub(sub)
-                            .onErrorResume(err -> Mono.empty())
-                            .blockOptional())
+                    .map(this::resolveDisplayNameForSub)
+                    .orElse(String.valueOf(review.getReviewerUserId()));
+        } catch (Exception e) {
+            return String.valueOf(review.getReviewerUserId());
+        }
+    }
+
+    private String resolveDisplayNameForSub(String sub) {
+        if (!StringUtils.hasText(sub)) {
+            return "Anoniem";
+        }
+
+        try {
+            return authService.getUserInfoBySub(sub.trim())
+                    .onErrorResume(err -> Mono.empty())
+                    .blockOptional()
                     .map(userInfo -> {
                         var fullName = userInfo.getFullName();
                         if (fullName != null && !fullName.isBlank()) {
                             return fullName;
                         }
+
                         var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
                                 .filter(part -> part != null && !part.isBlank())
                                 .collect(Collectors.joining(" ")).trim();
                         return candidate.isEmpty() ? userInfo.getSub() : candidate;
                     })
-                    .orElse(String.valueOf(review.getReviewerUserId()));
+                    .orElse(sub.trim());
         } catch (Exception e) {
-            return String.valueOf(review.getReviewerUserId());
+            return sub.trim();
         }
     }
 }

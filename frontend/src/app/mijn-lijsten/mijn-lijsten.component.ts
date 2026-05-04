@@ -59,12 +59,21 @@ export class MijnLijstenComponent implements OnInit {
     return localStorage.getItem("sub") || "";
   }
 
-  get userRole(): string {
+  get rawUserRoles(): string {
     return localStorage.getItem("role") || "";
   }
 
+  hasRole(roleName: string): boolean {
+    const raw = this.rawUserRoles || "";
+    return raw
+      .split(/[;,|\s]+/)
+      .map((r) => r.trim().toLowerCase())
+      .filter(Boolean)
+      .includes(roleName.toLowerCase());
+  }
+
   get canCreateLeeslijst(): boolean {
-    return this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
+    return this.hasRole("leerkracht") || this.hasRole("bibbeheerder");
   }
 
   constructor(
@@ -121,18 +130,83 @@ export class MijnLijstenComponent implements OnInit {
     this.classReadingLoading = true;
     this.leeslistenLoading = true;
     try {
-      // Get user's klas ID
-      const klasInfo = await this.bookService.getUserKlas();
-      if (!klasInfo || !klasInfo.klasId) {
-        this.leeslisten = [];
-        this.classReadingBooks = [];
-        return;
+      // Always attempt to fetch class-based lists if we have a klas
+      let klasLists: any[] = [];
+      let myLists: any[] = [];
+
+      // Get user's klas ID (may be undefined for some users)
+      let klasInfo: any = null;
+      try {
+        klasInfo = await this.bookService.getUserKlas();
+      } catch {
+        klasInfo = null;
       }
 
-      // Fetch leeslisten for the user's klas
-      this.leeslisten = await this.bookService.getLeeslistenForKlas(
-        klasInfo.klasId,
-      );
+      if (klasInfo && klasInfo.klasId) {
+        try {
+          klasLists = await this.bookService.getLeeslistenForKlas(
+            klasInfo.klasId,
+          );
+        } catch {
+          klasLists = [];
+        }
+      }
+
+      // If user is a teacher, also fetch lists they created
+      if (this.hasRole("leerkracht")) {
+        try {
+          myLists = await this.bookService.getMyLeeslisten();
+        } catch {
+          myLists = [];
+        }
+
+        // Fallback: if myLists is empty or incomplete, try fetching all school lists
+        // and filter by creator (createdBySub or createdByName) as a safety net.
+        try {
+          const schoolId = this.schoolService.getSelectedSchoolId();
+          if (schoolId) {
+            const schoolLists = await this.bookService.getLeeslisten(schoolId);
+            const currentSub = this.userSub;
+            const fallbackLists = (schoolLists || []).filter((l: any) => {
+              if (!l) return false;
+              // Prefer createdBySub when available
+              if (l.createdBySub) {
+                return l.createdBySub === currentSub;
+              }
+              // Fallback to createdByName matching current user's display name
+              const currentName =
+                localStorage.getItem("userName") ||
+                localStorage.getItem("fullname") ||
+                "";
+              return l.createdByName === currentName;
+            });
+
+            // Merge fallbackLists into myLists (dedupe by id)
+            const tmpMap = new Map<number, any>();
+            (myLists || []).forEach((l: any) => {
+              if (l && l.id) tmpMap.set(Number(l.id), l);
+            });
+            (fallbackLists || []).forEach((l: any) => {
+              if (l && l.id) tmpMap.set(Number(l.id), l);
+            });
+            myLists = Array.from(tmpMap.values());
+          }
+        } catch {
+          // ignore fallback errors
+        }
+      }
+
+      // Merge klasLists and myLists, preferring unique ids
+      const map = new Map<number, any>();
+      (klasLists || []).forEach((l: any) => {
+        if (l && l.id) map.set(Number(l.id), l);
+      });
+      (myLists || []).forEach((l: any) => {
+        if (l && l.id) map.set(Number(l.id), l);
+      });
+
+      this.leeslisten = Array.from(map.values());
+      this.classReadingBooks = [];
     } catch {
       this.leeslisten = [];
       this.classReadingBooks = [];
@@ -220,6 +294,25 @@ export class MijnLijstenComponent implements OnInit {
 
   goToLeeslijst(leeslijstId: number): void {
     this.router.navigate(["/leeslijst", leeslijstId]);
+  }
+
+  displayCreatorName(createdByName: string): string {
+    const currentSub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    if (createdByName && createdByName !== currentSub) {
+      return createdByName;
+    }
+
+    const fallbackName =
+      localStorage.getItem("userName") ||
+      localStorage.getItem("fullname") ||
+      [localStorage.getItem("firstName"), localStorage.getItem("lastName")]
+        .filter(Boolean)
+        .join(" ") ||
+      createdByName ||
+      currentSub;
+
+    return fallbackName;
   }
 
   formatDate(dateStr: string): string {

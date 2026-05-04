@@ -9,9 +9,11 @@ public class LeeslijstDTO {
     private String description;
     private Long schoolId;
     private String createdByName;
+    private String createdBySub;
     private LocalDateTime createdAt;
     private List<LeeslijstBookDTO> books;
     private List<String> klasNames;
+    private List<Long> klasIds;
 
     public LeeslijstDTO() {}
 
@@ -41,6 +43,9 @@ public class LeeslijstDTO {
     public String getCreatedByName() { return createdByName; }
     public void setCreatedByName(String createdByName) { this.createdByName = createdByName; }
 
+    public String getCreatedBySub() { return createdBySub; }
+    public void setCreatedBySub(String createdBySub) { this.createdBySub = createdBySub; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -49,6 +54,9 @@ public class LeeslijstDTO {
 
     public List<String> getKlasNames() { return klasNames; }
     public void setKlasNames(List<String> klasNames) { this.klasNames = klasNames; }
+
+    public List<Long> getKlasIds() { return klasIds; }
+    public void setKlasIds(List<Long> klasIds) { this.klasIds = klasIds; }
 
     // Inner DTO for book information
     public static class LeeslijstBookDTO {
