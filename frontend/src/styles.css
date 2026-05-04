@@ -225,3 +225,123 @@ html.dark .cb-toggle-btn.active {
   color: #c4566e;
   background: #1f1014;
 }
+
+/* ─── Dark mode: boekdetail ─── */
+html.dark .detail-card {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+html.dark .book-title,
+html.dark .book-description h3,
+html.dark .review-header h3,
+html.dark .lestip-section h3,
+html.dark .publish-review-card h3,
+html.dark .preview-modal-header h2 {
+  color: var(--ink);
+}
+
+html.dark .info-grid div { color: var(--ink-2); }
+html.dark .info-grid span { color: var(--ink); }
+html.dark .book-description p,
+html.dark .review-comment,
+html.dark .publish-review-card p { color: var(--ink-2); }
+
+html.dark .book-description,
+html.dark .review-section,
+html.dark .lestip-section,
+html.dark .review-form,
+html.dark .review-item { border-color: var(--line); }
+
+/* Inputs & textareas */
+html.dark .lestip-section textarea,
+html.dark .review-form textarea,
+html.dark .review-edit-form textarea {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+/* Lestip content */
+html.dark .lestip-content {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  border-left-color: var(--brand);
+}
+html.dark .lestip-content p { color: var(--ink-2); }
+html.dark .lestip-author { color: var(--ink-3) !important; }
+
+/* Review auteur & datum */
+html.dark .review-author { color: var(--ink); }
+html.dark .review-date { color: var(--ink-3); }
+html.dark .average-rating { color: var(--ink-3); }
+html.dark .review-form label,
+html.dark .review-edit-form label { color: var(--ink-3); }
+html.dark .review-author-row { color: var(--ink-2); }
+html.dark .no-reviews { color: var(--ink-3); }
+
+/* Icon knoppen */
+html.dark .action-icon-btn.edit-review-btn,
+html.dark .action-icon-btn.delete-review-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink-3);
+}
+
+/* Back & lib knoppen */
+html.dark .back-btn {
+  background: var(--surface);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+html.dark .lib-action-btn {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+html.dark .lib-action-btn:hover {
+  background: var(--brand-100);
+}
+
+/* Cancel knop */
+html.dark .cancel-review-btn,
+html.dark .delete-lestip-btn,
+html.dark .publish-cancel-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+html.dark .publish-anonymous-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--brand);
+}
+
+/* Modals */
+html.dark .publish-review-card,
+html.dark .preview-modal-container {
+  background: var(--surface);
+  border-color: var(--line);
+}
+html.dark .preview-modal-header {
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+html.dark .publish-review-overlay,
+html.dark .preview-modal-overlay {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* Badges */
+html.dark .avail-badge.available { background: #0d2e12; color: #6fcf85; }
+html.dark .avail-badge.unavailable { background: #2a0d0d; color: #f08080; }
+html.dark .avail-badge.none { background: var(--surface-2); color: var(--ink-3); }
+
+html.dark .preview-btn,
+html.dark .save-lestip-btn,
+html.dark .submit-review-btn,
+html.dark .save-review-btn,
+html.dark .publish-name-btn,
+html.dark .lib-action-btn.active {
+  color: #ffffff !important;
+}
