@@ -109,6 +109,39 @@ public class LeeslijstService {
         return dto;
     }
 
+    public LeeslijstDTO convertToDTO(Leeslijst leeslijst) {
+        LeeslijstDTO dto = new LeeslijstDTO(
+            leeslijst.getId(),
+            leeslijst.getTitel(),
+            leeslijst.getDescription(),
+            leeslijst.getSchool().getId(),
+            leeslijst.getCreatedBy().getSub(),
+            leeslijst.getCreatedAt()
+        );
+
+        // Map books
+        List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
+            .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
+                book.getId(),
+                book.getTitel(),
+                book.getAuteur(),
+                book.getCover(),
+                book.getGenre(),
+                book.getPaginas(),
+                book.getIsbn()
+            ))
+            .collect(Collectors.toList());
+        dto.setBooks(bookDTOs);
+
+        // Map klassen
+        List<String> klasNames = leeslijst.getKlassen().stream()
+            .map(Klas::getNaam)
+            .collect(Collectors.toList());
+        dto.setKlasNames(klasNames);
+
+        return dto;
+    }
+
     public void deleteLeeslijst(Long id) {
         leeslijstRepository.deleteById(id);
     }

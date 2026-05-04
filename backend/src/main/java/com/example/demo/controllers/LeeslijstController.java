@@ -41,16 +41,22 @@ public class LeeslijstController {
      * Get all reading lists for a school
      */
     @GetMapping("/school/{schoolId}")
-    public List<Leeslijst> getLeeslisten(@PathVariable Long schoolId) {
-        return leeslijstService.getLeeslisten(schoolId);
+    public List<LeeslijstDTO> getLeeslisten(@PathVariable Long schoolId) {
+        return leeslijstService.getLeeslisten(schoolId)
+            .stream()
+            .map(leeslijstService::convertToDTO)
+            .toList();
     }
 
     /**
      * Get reading lists for a specific class
      */
     @GetMapping("/klas/{klasId}")
-    public List<Leeslijst> getLeeslistenForKlas(@PathVariable Long klasId) {
-        return leeslijstService.getLeeslistenForKlas(klasId);
+    public List<LeeslijstDTO> getLeeslistenForKlas(@PathVariable Long klasId) {
+        return leeslijstService.getLeeslistenForKlas(klasId)
+            .stream()
+            .map(leeslijstService::convertToDTO)
+            .toList();
     }
 
     /**
