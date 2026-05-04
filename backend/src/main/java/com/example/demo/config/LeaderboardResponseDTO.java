@@ -1,13 +1,14 @@
 package com.example.demo.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LeaderboardResponseDTO {
-    private List<LeaderboardEntryDTO> topClassReaders;
-    private List<LeaderboardEntryDTO> topSchoolReaders;
+    private List<LeaderboardEntryDTO> topClassReaders = new ArrayList<>();
+    private List<LeaderboardEntryDTO> topSchoolReaders = new ArrayList<>();
     private LeaderboardEntryDTO userClassRank;
     private LeaderboardEntryDTO userSchoolRank;
-    private List<LeaderboardKlasDTO> availableClasses;
+    private List<LeaderboardKlasDTO> availableClasses = new ArrayList<>();
 
     public LeaderboardResponseDTO() {
     }
