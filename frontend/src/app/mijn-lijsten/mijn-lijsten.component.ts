@@ -121,6 +121,12 @@ export class MijnLijstenComponent implements OnInit {
     this.classReadingLoading = true;
     this.leeslistenLoading = true;
     try {
+      if (this.userRole === "leerkracht") {
+        this.leeslisten = await this.bookService.getMyLeeslisten();
+        this.classReadingBooks = [];
+        return;
+      }
+
       // Get user's klas ID
       const klasInfo = await this.bookService.getUserKlas();
       if (!klasInfo || !klasInfo.klasId) {

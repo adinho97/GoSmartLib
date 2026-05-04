@@ -74,6 +74,12 @@ public class LeeslijstService {
         return leeslijstRepository.findByKlas(klasId);
     }
 
+    public List<Leeslijst> getLeeslistenCreatedByUser(String userSub) {
+        AppUser user = userRepository.findBySub(userSub)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
+        return leeslijstRepository.findByCreatedBy_Id(user.getId());
+    }
+
     public Optional<Leeslijst> getLeeslijst(Long id) {
         return leeslijstRepository.findById(id);
     }

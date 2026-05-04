@@ -624,6 +624,14 @@ export class BookService {
     return res.data;
   }
 
+  async getMyLeeslisten(): Promise<any[]> {
+    const res = await axios.get(
+      `/api/leeslisten/mijn`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
   async getUserKlas(): Promise<{
     klasId: number;
     klasName: string;
