@@ -21,18 +21,15 @@ public class LeeslijstService {
     private final BookRepository bookRepository;
     private final KlasRepository klasRepository;
     private final AppUserRepository userRepository;
-    private final SchoolRepository schoolRepository;
 
     public LeeslijstService(LeeslijstRepository leeslijstRepository,
                           BookRepository bookRepository,
                           KlasRepository klasRepository,
-                          AppUserRepository userRepository,
-                          SchoolRepository schoolRepository) {
+                          AppUserRepository userRepository) {
         this.leeslijstRepository = leeslijstRepository;
         this.bookRepository = bookRepository;
         this.klasRepository = klasRepository;
         this.userRepository = userRepository;
-        this.schoolRepository = schoolRepository;
     }
 
     public Leeslijst createLeeslijst(CreateLeeslijstRequest request, String userSub) {

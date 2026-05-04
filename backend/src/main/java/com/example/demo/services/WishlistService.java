@@ -5,7 +5,6 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Wishlist;
-import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.WishlistRepository;
@@ -20,13 +19,11 @@ public class WishlistService {
 
     private final WishlistRepository wishlistRepo;
     private final BookRepository bookRepo;
-    private final AppUserRepository appUserRepo;
     private final BookCopyRepository bookCopyRepo;
 
-    public WishlistService(WishlistRepository wishlistRepo, BookRepository bookRepo, AppUserRepository appUserRepo, BookCopyRepository bookCopyRepo) {
+    public WishlistService(WishlistRepository wishlistRepo, BookRepository bookRepo, BookCopyRepository bookCopyRepo) {
         this.wishlistRepo = wishlistRepo;
         this.bookRepo = bookRepo;
-        this.appUserRepo = appUserRepo;
         this.bookCopyRepo = bookCopyRepo;
     }
 
