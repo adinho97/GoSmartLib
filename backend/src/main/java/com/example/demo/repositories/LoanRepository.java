@@ -56,4 +56,34 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     @Query("SELECT new map(l.copy.book.id as bookId, COUNT(l) as loanCount) FROM Loan l GROUP BY l.copy.book.id")
     List<Map<String, Object>> getLoanCountsByBook();
+
+    @Query("SELECT au.sub, COUNT(l) FROM Loan l JOIN AppUser au ON l.userSub = au.sub " +
+            "WHERE au.klas.id = :klasId " +
+            "GROUP BY au.sub " +
+            "ORDER BY COUNT(l) DESC")
+    List<Object[]> findTopReadersByClass(@Param("klasId") Long klasId);
+
+    @Query(value = "SELECT rank_data.rank, rank_data.book_count " +
+            "FROM ( " +
+            "    SELECT au.sub, COUNT(l.id) AS book_count, " +
+            "           RANK() OVER (ORDER BY COUNT(l.id) DESC) as rank " +
+            "    FROM loan l " +
+            "    JOIN app_users au ON l.user_sub = au.sub " +
+            "    WHERE au.klas_id = :klasId " +
+            "    GROUP BY au.sub " +
+            ") AS rank_data " +
+            "WHERE rank_data.sub = :userSub", nativeQuery = true)
+    List<Object[]> findUserRankAndCountInClass(@Param("userSub") String userSub, @Param("klasId") Long klasId);
+
+    @Query(value = "SELECT rank_data.rank, rank_data.book_count " +
+            "FROM ( " +
+            "    SELECT au.sub, COUNT(l.id) AS book_count, " +
+            "           RANK() OVER (ORDER BY COUNT(l.id) DESC) as rank " +
+            "    FROM loan l " +
+            "    JOIN app_users au ON l.user_sub = au.sub " +
+            "    WHERE au.school_id = :schoolId " +
+            "    GROUP BY au.sub " +
+            ") AS rank_data " +
+            "WHERE rank_data.sub = :userSub", nativeQuery = true)
+    List<Object[]> findUserRankAndCountInSchool(@Param("userSub") String userSub, @Param("schoolId") Long schoolId);
 }
