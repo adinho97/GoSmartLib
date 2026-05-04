@@ -1,9 +1,8 @@
 <div class="leaderboard-page">
-  <header class="leaderboard-header">
-    <button class="back-btn" (click)="goBack()">← Terug</button>
-    <h1>Ranglijsten</h1>
-    <p>Bekijk de top lezers in jouw klas en school.</p>
-  </header>
+  <div class="lb-head">
+    <h1 class="lb-title">Ranglijsten</h1>
+    <p class="lb-sub">Bekijk de top lezers in jouw klas en school.</p>
+  </div>
 
   @if (isLoading) {
     <div class="loader-container">
@@ -20,10 +19,11 @@
 
   @if (!isLoading && leaderboardData) {
     <div class="leaderboard-grid">
+
       <!-- Class Leaderboard -->
-      <div class="leaderboard-card">
+      <section class="leaderboard-card">
         <div class="card-header-flex">
-          <h2>Top 10 Klas Lezers</h2>
+          <h2>Top 10 · <strong>Klas-lezers</strong></h2>
           @if (isTeacherOrLibrarian && leaderboardData.availableClasses) {
             <div class="klas-selector">
               <select
@@ -41,24 +41,63 @@
         </div>
 
         @if (leaderboardData.topClassReaders.length > 0) {
-          <ol class="leaderboard-list">
-            @for (
-              entry of leaderboardData.topClassReaders;
-              track entry.displayName
-            ) {
+          <!-- Podium: 2nd left, 1st center, 3rd right -->
+          <div class="podium">
+            <div class="podium-spot p2" [class.you]="leaderboardData.topClassReaders[1]?.isCurrentUser">
+              @if (leaderboardData.topClassReaders[1]; as entry) {
+                <div class="podium-tile">
+                  <span class="podium-medal">2</span>
+                  <span class="podium-avatar">{{ getInitials(entry.displayName) }}</span>
+                  <span class="podium-name" [title]="entry.displayName">{{ entry.displayName }}</span>
+                  <span class="podium-count"><strong>{{ entry.count }}</strong> boeken</span>
+                </div>
+                <div class="podium-base">2</div>
+              }
+            </div>
+            <div class="podium-spot p1" [class.you]="leaderboardData.topClassReaders[0]?.isCurrentUser">
+              @if (leaderboardData.topClassReaders[0]; as entry) {
+                <div class="podium-tile">
+                  <span class="podium-medal">1</span>
+                  <span class="podium-avatar">{{ getInitials(entry.displayName) }}</span>
+                  <span class="podium-name" [title]="entry.displayName">{{ entry.displayName }}</span>
+                  <span class="podium-count"><strong>{{ entry.count }}</strong> boeken</span>
+                </div>
+                <div class="podium-base">1</div>
+              }
+            </div>
+            <div class="podium-spot p3" [class.you]="leaderboardData.topClassReaders[2]?.isCurrentUser">
+              @if (leaderboardData.topClassReaders[2]; as entry) {
+                <div class="podium-tile">
+                  <span class="podium-medal">3</span>
+                  <span class="podium-avatar">{{ getInitials(entry.displayName) }}</span>
+                  <span class="podium-name" [title]="entry.displayName">{{ entry.displayName }}</span>
+                  <span class="podium-count"><strong>{{ entry.count }}</strong> boeken</span>
+                </div>
+                <div class="podium-base">3</div>
+              }
+            </div>
+          </div>
+
+          <!-- Ranks 4–10 -->
+          <ol class="leaderboard-list" start="4">
+            @for (entry of leaderboardData.topClassReaders.slice(3); track entry.displayName) {
               <li
                 class="leaderboard-item"
                 [class.is-user]="entry.isCurrentUser"
-                [class.rank-1]="(entry.rank || $index + 1) === 1"
-                [class.rank-2]="(entry.rank || $index + 1) === 2"
-                [class.rank-3]="(entry.rank || $index + 1) === 3"
               >
-                <span class="rank">{{ entry.rank || $index + 1 }}.</span>
-                <span class="name">{{ entry.displayName }}</span>
+                <span class="rank">{{ entry.rank || ($index + 4) }}</span>
+                <span class="lb-avatar">{{ getInitials(entry.displayName) }}</span>
+                <span class="name">
+                  {{ entry.displayName }}
+                  @if (entry.isCurrentUser) {
+                    <span class="you-pill">Jij</span>
+                  }
+                </span>
                 <span class="count">{{ entry.count }} boeken</span>
               </li>
             }
           </ol>
+
           @if (
             !isUserInTopClass(leaderboardData.userClassRank) &&
             leaderboardData.userClassRank
@@ -66,44 +105,80 @@
             <div class="user-rank-info">
               <p>
                 <span class="user-label">Jouw huidige plaats:</span>
-                <span class="user-value"
-                  ><strong
-                    >{{ leaderboardData.userClassRank.rank }}e</strong
-                  ></span
-                >
-                <span class="user-sub"
-                  >met {{ leaderboardData.userClassRank.count }} boeken</span
-                >
+                <span class="user-value"><strong>{{ leaderboardData.userClassRank.rank }}e</strong></span>
+                <span class="user-sub">met {{ leaderboardData.userClassRank.count }} boeken</span>
               </p>
             </div>
           }
         } @else {
           <p class="empty-leaderboard">Geen klasranglijst beschikbaar.</p>
         }
-      </div>
+      </section>
 
       <!-- School Leaderboard -->
-      <div class="leaderboard-card">
-        <h2>Top 10 School Lezers</h2>
+      <section class="leaderboard-card">
+        <div class="card-header-flex">
+          <h2>Top 10 · <strong>School-lezers</strong></h2>
+        </div>
+
         @if (leaderboardData.topSchoolReaders.length > 0) {
-          <ol class="leaderboard-list">
-            @for (
-              entry of leaderboardData.topSchoolReaders;
-              track entry.displayName
-            ) {
+          <!-- Podium: 2nd left, 1st center, 3rd right -->
+          <div class="podium">
+            <div class="podium-spot p2" [class.you]="leaderboardData.topSchoolReaders[1]?.isCurrentUser">
+              @if (leaderboardData.topSchoolReaders[1]; as entry) {
+                <div class="podium-tile">
+                  <span class="podium-medal">2</span>
+                  <span class="podium-avatar">{{ getInitials(entry.displayName) }}</span>
+                  <span class="podium-name" [title]="entry.displayName">{{ entry.displayName }}</span>
+                  <span class="podium-count"><strong>{{ entry.count }}</strong> boeken</span>
+                </div>
+                <div class="podium-base">2</div>
+              }
+            </div>
+            <div class="podium-spot p1" [class.you]="leaderboardData.topSchoolReaders[0]?.isCurrentUser">
+              @if (leaderboardData.topSchoolReaders[0]; as entry) {
+                <div class="podium-tile">
+                  <span class="podium-medal">1</span>
+                  <span class="podium-avatar">{{ getInitials(entry.displayName) }}</span>
+                  <span class="podium-name" [title]="entry.displayName">{{ entry.displayName }}</span>
+                  <span class="podium-count"><strong>{{ entry.count }}</strong> boeken</span>
+                </div>
+                <div class="podium-base">1</div>
+              }
+            </div>
+            <div class="podium-spot p3" [class.you]="leaderboardData.topSchoolReaders[2]?.isCurrentUser">
+              @if (leaderboardData.topSchoolReaders[2]; as entry) {
+                <div class="podium-tile">
+                  <span class="podium-medal">3</span>
+                  <span class="podium-avatar">{{ getInitials(entry.displayName) }}</span>
+                  <span class="podium-name" [title]="entry.displayName">{{ entry.displayName }}</span>
+                  <span class="podium-count"><strong>{{ entry.count }}</strong> boeken</span>
+                </div>
+                <div class="podium-base">3</div>
+              }
+            </div>
+          </div>
+
+          <!-- Ranks 4–10 -->
+          <ol class="leaderboard-list" start="4">
+            @for (entry of leaderboardData.topSchoolReaders.slice(3); track entry.displayName) {
               <li
                 class="leaderboard-item"
                 [class.is-user]="entry.isCurrentUser"
-                [class.rank-1]="(entry.rank || $index + 1) === 1"
-                [class.rank-2]="(entry.rank || $index + 1) === 2"
-                [class.rank-3]="(entry.rank || $index + 1) === 3"
               >
-                <span class="rank">{{ entry.rank || $index + 1 }}.</span>
-                <span class="name">{{ entry.displayName }}</span>
+                <span class="rank">{{ entry.rank || ($index + 4) }}</span>
+                <span class="lb-avatar">{{ getInitials(entry.displayName) }}</span>
+                <span class="name">
+                  {{ entry.displayName }}
+                  @if (entry.isCurrentUser) {
+                    <span class="you-pill">Jij</span>
+                  }
+                </span>
                 <span class="count">{{ entry.count }} boeken</span>
               </li>
             }
           </ol>
+
           @if (
             !isUserInTopSchool(leaderboardData.userSchoolRank) &&
             leaderboardData.userSchoolRank
@@ -111,21 +186,16 @@
             <div class="user-rank-info">
               <p>
                 <span class="user-label">Jouw huidige plaats:</span>
-                <span class="user-value"
-                  ><strong
-                    >{{ leaderboardData.userSchoolRank.rank }}e</strong
-                  ></span
-                >
-                <span class="user-sub"
-                  >met {{ leaderboardData.userSchoolRank.count }} boeken</span
-                >
+                <span class="user-value"><strong>{{ leaderboardData.userSchoolRank.rank }}e</strong></span>
+                <span class="user-sub">met {{ leaderboardData.userSchoolRank.count }} boeken</span>
               </p>
             </div>
           }
         } @else {
           <p class="empty-leaderboard">Geen schoolranglijst beschikbaar.</p>
         }
-      </div>
+      </section>
+
     </div>
   }
 </div>

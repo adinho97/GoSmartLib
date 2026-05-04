@@ -141,4 +141,12 @@ export class LeaderboardComponent implements OnInit {
   isUserInTopSchool(userRank: LeaderboardEntry | undefined): boolean {
     return userRank !== undefined && userRank.rank > 0 && userRank.rank <= 10;
   }
+
+  getInitials(name: string): string {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/).filter((p) => p.length > 0);
+    if (parts.length === 0) return '?';
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  }
 }
