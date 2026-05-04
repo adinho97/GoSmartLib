@@ -130,24 +130,48 @@ export class MijnLijstenComponent implements OnInit {
     this.classReadingLoading = true;
     this.leeslistenLoading = true;
     try {
+      // Always attempt to fetch class-based lists if we have a klas
+      let klasLists: any[] = [];
+      let myLists: any[] = [];
+
+      // Get user's klas ID (may be undefined for some users)
+      let klasInfo: any = null;
+      try {
+        klasInfo = await this.bookService.getUserKlas();
+      } catch {
+        klasInfo = null;
+      }
+
+      if (klasInfo && klasInfo.klasId) {
+        try {
+          klasLists = await this.bookService.getLeeslistenForKlas(
+            klasInfo.klasId,
+          );
+        } catch {
+          klasLists = [];
+        }
+      }
+
+      // If user is a teacher, also fetch lists they created
       if (this.hasRole("leerkracht")) {
-        this.leeslisten = await this.bookService.getMyLeeslisten();
-        this.classReadingBooks = [];
-        return;
+        try {
+          myLists = await this.bookService.getMyLeeslisten();
+        } catch {
+          myLists = [];
+        }
       }
 
-      // Get user's klas ID
-      const klasInfo = await this.bookService.getUserKlas();
-      if (!klasInfo || !klasInfo.klasId) {
-        this.leeslisten = [];
-        this.classReadingBooks = [];
-        return;
-      }
+      // Merge klasLists and myLists, preferring unique ids
+      const map = new Map<number, any>();
+      (klasLists || []).forEach((l: any) => {
+        if (l && l.id) map.set(Number(l.id), l);
+      });
+      (myLists || []).forEach((l: any) => {
+        if (l && l.id) map.set(Number(l.id), l);
+      });
 
-      // Fetch leeslisten for the user's klas
-      this.leeslisten = await this.bookService.getLeeslistenForKlas(
-        klasInfo.klasId,
-      );
+      this.leeslisten = Array.from(map.values());
+      this.classReadingBooks = [];
     } catch {
       this.leeslisten = [];
       this.classReadingBooks = [];
