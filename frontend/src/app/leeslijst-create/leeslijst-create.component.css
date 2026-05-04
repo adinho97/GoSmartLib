@@ -387,6 +387,41 @@
   margin: 0 0 var(--s-5);
 }
 
+/* Title Input */
+.title-input-group {
+  margin-bottom: var(--s-5);
+}
+
+.title-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--surface);
+  transition: border-color 0.15s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.title-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-50);
+}
+
+.title-input::placeholder {
+  color: var(--ink-3);
+}
+
+.input-desc {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
 /* Responsive design */
 @media (max-width: 640px) {
   .llc-page {

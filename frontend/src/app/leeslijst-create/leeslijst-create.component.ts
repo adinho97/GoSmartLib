@@ -5,7 +5,7 @@ import { BookService, PagedBooksResponse } from "../services/book.service";
 import { UiToastService } from "../services/ui-toast.service";
 import { Book } from "../models/book";
 
-type Step = "boeken" | "bevestiging";
+type Step = "titel" | "boeken" | "bevestiging";
 
 @Component({
   selector: "app-leeslijst-create",
@@ -14,16 +14,19 @@ type Step = "boeken" | "bevestiging";
   standalone: false,
 })
 export class LeeslijstCreateComponent implements OnInit {
-  step: Step = "boeken";
+  step: Step = "titel";
   isLoading = false;
   isSaving = false;
   klassenLoading = false;
+
+  // Title
+  leeslijstTitel = "";
 
   // Klassen from database
   klassen: KlasListItem[] = [];
   selectedKlassenIds = new Set<number>();
 
-  // Step 1: Boeken
+  // Step 2: Boeken
   books: Book[] = [];
   selectedBookIds = new Set<number>();
   searchQuery = "";
@@ -45,10 +48,21 @@ export class LeeslijstCreateComponent implements OnInit {
       this.router.navigate(["/dashboard"]);
       return;
     }
-    await this.loadKlassen(schoolId);
   }
 
-  async loadKlassen(schoolId: number) {
+  goToBooks() {
+    if (!this.leeslijstTitel || this.leeslijstTitel.trim() === "") {
+      this.uiToastService.error("Voer een titel in voor de leeslijst.");
+      return;
+    }
+    this.step = "boeken";
+    this.loadKlassen();
+  }
+
+  async loadKlassen() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
     this.klassenLoading = true;
     try {
       this.klassen = await this.schoolService.getKlassenBySchool(schoolId);
@@ -103,6 +117,10 @@ export class LeeslijstCreateComponent implements OnInit {
   }
 
   goToConfirmation() {
+    if (this.selectedKlassenIds.size === 0) {
+      this.uiToastService.error("Selecteer minstens één klas.");
+      return;
+    }
     if (this.isBookSelectionEmpty) {
       this.uiToastService.error("Selecteer minstens één boek.");
       return;
@@ -113,15 +131,29 @@ export class LeeslijstCreateComponent implements OnInit {
   async saveLeeslijst() {
     this.isSaving = true;
     try {
-      // Add each selected book to the class reading list
-      const bookIds = Array.from(this.selectedBookIds);
-      for (const bookId of bookIds) {
-        await this.bookService.toggleClassReadingListItem(bookId);
+      const schoolId = this.schoolService.getSelectedSchoolId();
+      const userId = parseInt(
+        localStorage.getItem("sub") || localStorage.getItem("userId") || "0",
+        10,
+      );
+
+      if (!schoolId || !userId) {
+        throw new Error("Missing school or user ID");
       }
+
+      await this.bookService.createLeeslijst(
+        this.leeslijstTitel,
+        Array.from(this.selectedBookIds),
+        Array.from(this.selectedKlassenIds),
+        userId,
+        schoolId,
+      );
+
       this.uiToastService.success("Leeslijst succesvol aangemaakt.");
       this.router.navigate(["/mijn-lijsten", { fragment: "klasleeslijst" }]);
     } catch (error) {
       this.uiToastService.error("Fout bij het opslaan van de leeslijst.");
+      console.error(error);
     } finally {
       this.isSaving = false;
     }
@@ -129,7 +161,7 @@ export class LeeslijstCreateComponent implements OnInit {
 
   goBack() {
     if (this.step === "boeken") {
-      this.step = "boeken";
+      this.step = "titel";
     } else if (this.step === "bevestiging") {
       this.step = "boeken";
     }
