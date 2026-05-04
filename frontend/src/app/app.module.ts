@@ -45,6 +45,7 @@ import { KlasleeslijstBeheerComponent } from "./klasleeslijst-beheer/klasleeslij
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
+import { ColorblindToggleComponent } from "./colorblind-toggle/colorblind-toggle.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -94,7 +95,8 @@ registerLocaleData(localeNl, "nl");
     AppFooterComponent,
     FunBadgesComponent,
     InfoButtonComponent,
-  ],
+    ColorblindToggleComponent
+],
   providers: [provideHttpClient(), { provide: LOCALE_ID, useValue: "nl" }],
   bootstrap: [AppComponent],
 })

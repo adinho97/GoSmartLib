@@ -158,7 +158,7 @@
   </div>
 }
 
-<!-- Student header (editorial redesign) -->
+<!-- Student header -->
 @if (showStudentNav) {
   <header class="app-header" (click)="$event.stopPropagation()">
     <div class="app-header-inner">
@@ -197,6 +197,8 @@
       </nav>
 
       <div class="app-header-right">
+        <app-colorblind-toggle></app-colorblind-toggle>
+
         <!-- Level chip -->
         @if (levelInfo$ | async; as levelInfo) {
           <div class="level-chip" title="Level {{ levelInfo.level }}">
@@ -236,7 +238,7 @@
   </header>
 }
 
-<!-- Staff / librarian header (matches student styling) -->
+<!-- Staff / librarian header -->
 @if (showStaffNav) {
   <header class="app-header" (click)="$event.stopPropagation()">
     <div class="app-header-inner">
@@ -298,6 +300,9 @@
       </nav>
 
       <div class="app-header-right">
+        <!-- Kleurenblind toggle -->
+        <app-colorblind-toggle></app-colorblind-toggle>
+
         @if (levelInfo$ | async; as levelInfo) {
           <div class="level-chip" title="Level {{ levelInfo.level }}">
             <span class="lvl-num">{{ levelInfo.level }}</span>
