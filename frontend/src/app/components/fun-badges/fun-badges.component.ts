@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { Observable } from 'rxjs';
 import { ExperienceService, LevelInfo } from '../../services/experience.service';
+import { LoanService } from '../../services/loan.service';
+import { BookService } from '../../services/book.service';
 
 interface BadgeChip {
   key: string;
@@ -54,33 +56,63 @@ export class FunBadgesComponent implements OnInit {
     return this.showAllReview ? this.reviewBadges : this.reviewBadges.slice(0, 4);
   }
 
-  constructor(private experienceService: ExperienceService) {
+  constructor(
+    private experienceService: ExperienceService,
+    private loanService: LoanService,
+    private bookService: BookService,
+  ) {
     this.levelInfo$ = this.experienceService.levelInfo$;
   }
 
-  ngOnInit(): void {
-    const userSub = localStorage.getItem('sub') || '';
-    let loanCount = 0;
-    let reviewCount = 0;
-
-    // profileBadgeCounts is kept in sync by badge-collection — most reliable source
-    const storedCounts = localStorage.getItem('profileBadgeCounts');
-    if (storedCounts) {
-      try {
-        const parsed = JSON.parse(storedCounts) as { loanCount?: number; reviewCount?: number };
-        loanCount = parsed.loanCount ?? 0;
-        reviewCount = parsed.reviewCount ?? 0;
-      } catch { /* ignore */ }
-    }
-
-    // Fallback for loan count if profile page has not been visited yet
-    if (loanCount === 0) {
-      const loanKey = userSub ? `loanXpSyncedCount:${userSub}` : 'loanXpSyncedCount';
-      loanCount = parseInt(localStorage.getItem(loanKey) || '0', 10);
-    }
+  async ngOnInit(): Promise<void> {
+    const [loanCount, reviewCount] = await Promise.all([
+      this.fetchLoanCount(),
+      this.fetchReviewCount(),
+    ]);
 
     this.loanBadges = this.loanBadges.map(b => ({ ...b, unlocked: loanCount >= b.threshold }));
     this.reviewBadges = this.reviewBadges.map(b => ({ ...b, unlocked: reviewCount >= b.threshold }));
+  }
+
+  private async fetchLoanCount(): Promise<number> {
+    try {
+      const history = await this.loanService.getMyLoanHistory();
+      return history.length;
+    } catch {
+      return this.readStoredLoanCount();
+    }
+  }
+
+  private async fetchReviewCount(): Promise<number> {
+    try {
+      return await this.bookService.getMyReviewCount();
+    } catch {
+      return this.readStoredReviewCount();
+    }
+  }
+
+  private readStoredLoanCount(): number {
+    try {
+      const stored = localStorage.getItem('profileBadgeCounts');
+      if (stored) {
+        const parsed = JSON.parse(stored) as { loanCount?: number };
+        return parsed.loanCount ?? 0;
+      }
+    } catch { /* ignore */ }
+    const userSub = localStorage.getItem('sub') || '';
+    const key = userSub ? `loanXpSyncedCount:${userSub}` : 'loanXpSyncedCount';
+    return parseInt(localStorage.getItem(key) || '0', 10);
+  }
+
+  private readStoredReviewCount(): number {
+    try {
+      const stored = localStorage.getItem('profileBadgeCounts');
+      if (stored) {
+        const parsed = JSON.parse(stored) as { reviewCount?: number };
+        return parsed.reviewCount ?? 0;
+      }
+    } catch { /* ignore */ }
+    return 0;
   }
 
   getTierLabel(level: number): string {
