@@ -112,13 +112,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Badge sections ── */
+.badge-section {
+  margin-top: var(--s-4);
+}
+
+.badge-section-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-3);
+  margin: 0 0 8px;
+}
+
 .badge-row {
   display: flex;
   gap: 10px;
-  margin-top: var(--s-4);
   flex-wrap: wrap;
 }
 
+/* ── Chip base ── */
 .badge-chip {
   display: flex;
   flex-direction: column;
@@ -131,12 +145,12 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   transition: transform 0.15s;
-  cursor: pointer;
+  cursor: default;
 }
 
 .badge-chip:hover { transform: translateY(-2px); }
 .badge-chip:focus { outline: 2px solid var(--brand); outline-offset: 2px; }
-.badge-chip.locked { opacity: 0.45; filter: grayscale(0.6); }
+.badge-chip.locked { opacity: 0.38; filter: grayscale(1); }
 
 .badge-icon {
   width: 32px;
@@ -150,14 +164,21 @@
   border: 2px solid var(--line);
 }
 
-.badge-chip.b1 .badge-icon { background: linear-gradient(160deg, #ffd97a, #f5b820); border-color: #f5b820; }
-.badge-chip.b2 .badge-icon { background: linear-gradient(160deg, #c8dde8, #6ba3c4); border-color: #6ba3c4; }
-.badge-chip.b3 .badge-icon { background: linear-gradient(160deg, #f5e3eb, #d4537e); border-color: #d4537e; }
-.badge-chip.b4 .badge-icon { background: linear-gradient(160deg, #d4e6d8, #6ba87e); border-color: #6ba87e; }
-.badge-chip.b5 .badge-icon { background: linear-gradient(160deg, #ece3f8, #9b6dcf); border-color: #9b6dcf; }
-.badge-chip.b6 .badge-icon { background: linear-gradient(160deg, #d0f0f4, #3aabbf); border-color: #3aabbf; }
-.badge-chip.b7 .badge-icon { background: linear-gradient(160deg, #fde8d0, #e07d30); border-color: #e07d30; }
-.badge-chip.b8 .badge-icon { background: linear-gradient(160deg, #fff8c0, #f5c800); border-color: #c9a800; }
+/* ── Loan badge colours (lb1–lb6) ── */
+.badge-chip.lb1 .badge-icon { background: linear-gradient(160deg, #ffd97a, #f5b820); border-color: #f5b820; }
+.badge-chip.lb2 .badge-icon { background: linear-gradient(160deg, #c8dde8, #6ba3c4); border-color: #6ba3c4; }
+.badge-chip.lb3 .badge-icon { background: linear-gradient(160deg, #f5e3eb, #d4537e); border-color: #d4537e; }
+.badge-chip.lb4 .badge-icon { background: linear-gradient(160deg, #d4e6d8, #6ba87e); border-color: #6ba87e; }
+.badge-chip.lb5 .badge-icon { background: linear-gradient(160deg, #d0f0f4, #3aabbf); border-color: #3aabbf; }
+.badge-chip.lb6 .badge-icon { background: linear-gradient(160deg, #fff8c0, #f5c800); border-color: #c9a800; }
+
+/* ── Review badge colours (rb1–rb6) ── */
+.badge-chip.rb1 .badge-icon { background: linear-gradient(160deg, #fde8d0, #e07d30); border-color: #e07d30; }
+.badge-chip.rb2 .badge-icon { background: linear-gradient(160deg, #ece3f8, #9b6dcf); border-color: #9b6dcf; }
+.badge-chip.rb3 .badge-icon { background: linear-gradient(160deg, #d4ecd8, #4caf70); border-color: #4caf70; }
+.badge-chip.rb4 .badge-icon { background: linear-gradient(160deg, #fde8f0, #e05580); border-color: #e05580; }
+.badge-chip.rb5 .badge-icon { background: linear-gradient(160deg, #fff3c0, #f0b429); border-color: #f0b429; }
+.badge-chip.rb6 .badge-icon { background: linear-gradient(160deg, #e0d4f8, #7c4ddb); border-color: #7c4ddb; }
 
 .badge-more .badge-icon {
   font-size: 14px;
@@ -181,3 +202,4 @@
   line-height: 1.1;
   margin-top: 1px;
 }
+

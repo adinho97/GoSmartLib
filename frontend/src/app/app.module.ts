@@ -11,6 +11,7 @@ import { LoginComponent } from "./login/login.component";
 import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.component";
 import { AdminSetupComponent } from "./admin-setup/admin-setup.component";
 import { AdminDashboardComponent } from "./admin-dashboard/admin-dashboard.component";
+import { SuperAdminDashboardComponent } from "./super-admin-dashboard/super-admin-dashboard.component";
 import { AdminChangePasswordComponent } from "./admin-change-password/admin-change-password.component";
 import { AdminSchoolWizardComponent } from "./admin-school-wizard/admin-school-wizard.component";
 import { AdminSchoolDetailComponent } from "./admin-school-detail/admin-school-detail.component";
@@ -47,6 +48,8 @@ import { LeeslijstViewComponent } from "./leeslijst-view/leeslijst-view.componen
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
+import { ColorblindToggleComponent } from "./colorblind-toggle/colorblind-toggle.component";
+import { DarkModeToggleComponent } from "./dark-mode-toggle/dark-mode-toggle.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -57,6 +60,7 @@ registerLocaleData(localeNl, "nl");
     SuperAdminLoginComponent,
     AdminSetupComponent,
     AdminDashboardComponent,
+    SuperAdminDashboardComponent,
     AdminChangePasswordComponent,
     AdminSchoolWizardComponent,
     AdminSchoolDetailComponent,
@@ -98,7 +102,9 @@ registerLocaleData(localeNl, "nl");
     AppFooterComponent,
     FunBadgesComponent,
     InfoButtonComponent,
-  ],
+    ColorblindToggleComponent,
+    DarkModeToggleComponent
+],
   providers: [provideHttpClient(), { provide: LOCALE_ID, useValue: "nl" }],
   bootstrap: [AppComponent],
 })

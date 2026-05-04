@@ -1,0 +1,25 @@
+.dm-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid #d4c1c9;
+  background: #fff;
+  color: #5a6472;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.dm-toggle-btn:hover {
+  background: #fff0f4;
+  color: #1a1a1a;
+}
+.dm-toggle-btn.active {
+  border-color: #3b5bdb;
+  color: #3b5bdb;
+  background: #eef2ff;
+}

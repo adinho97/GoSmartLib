@@ -113,8 +113,8 @@
 /* Book grid */
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 40px 20px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 40px 24px;
   padding-top: 8px;
   padding-bottom: 20px;
   align-items: start;

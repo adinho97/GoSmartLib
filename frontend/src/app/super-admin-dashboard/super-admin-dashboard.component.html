@@ -1,0 +1,211 @@
+<main class="sa-page">
+
+  <!-- Greeting -->
+  <div class="sa-greeting-row">
+    <div>
+      <h1 class="sa-greeting">{{ greeting }}, {{ adminUsername }}</h1>
+      @if (!isLoading) {
+        <p class="sa-greeting-sub">
+          {{ activeSchoolCount }} scholen actief · {{ totalUsers | number:'1.0-0':'nl' }} gebruikers
+          @if (pendingSchoolCount > 0) {
+            · <span class="warn-text">{{ pendingSchoolCount }} school{{ pendingSchoolCount === 1 ? '' : 'en' }} wacht{{ pendingSchoolCount === 1 ? '' : 'en' }} op goedkeuring</span>
+          }
+        </p>
+      } @else {
+        <p class="sa-greeting-sub">Laden…</p>
+      }
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="sa-error">{{ error }}</div>
+  }
+
+  <!-- KPI strip -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="kpi-label">Scholen</div>
+      <div class="kpi-value">{{ isLoading ? '—' : schools.length }}</div>
+      <div class="kpi-trend flat">{{ isLoading ? '' : activeSchoolCount + ' actief' }}</div>
+    </div>
+    <div class="kpi" [class.alert]="!isLoading && pendingSchoolCount > 0">
+      <div class="kpi-label">In afwachting</div>
+      <div class="kpi-value">{{ isLoading ? '—' : pendingSchoolCount }}</div>
+      <div class="kpi-trend" [class.down]="pendingSchoolCount > 0" [class.flat]="pendingSchoolCount === 0">
+        {{ pendingSchoolCount > 0 ? '↓ vereist actie' : '= geen openstaande' }}
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Gebruikers</div>
+      <div class="kpi-value">{{ isLoading ? '—' : (totalUsers | number:'1.0-0':'nl') }}</div>
+      <div class="kpi-trend up">↑ actieve accounts</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Boeken</div>
+      <div class="kpi-value">{{ isLoadingDetails ? '—' : (totalBooks | number:'1.0-0':'nl') }}</div>
+      <div class="kpi-trend flat">= over alle scholen</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Actieve uitleningen</div>
+      <div class="kpi-value">{{ isLoadingDetails ? '—' : totalActiveLoans }}</div>
+      <div class="kpi-trend" [class.up]="totalActiveLoans > 0" [class.flat]="totalActiveLoans === 0">
+        {{ totalActiveLoans > 0 ? '↑ in omloop' : '= geen actieve' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="quick-row">
+    <a class="quick-card" (click)="goToNewSchool()" role="button" tabindex="0">
+      <span class="quick-icon" style="background: #2d5a78">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+          <line x1="12" y1="5" x2="12" y2="5"/>
+          <line x1="19" y1="7" x2="22" y2="7"/>
+          <line x1="22" y1="5" x2="22" y2="9"/>
+        </svg>
+      </span>
+      <span class="quick-meta">
+        <span class="quick-title">Nieuwe school</span>
+        <span class="quick-sub">Wizard openen</span>
+      </span>
+    </a>
+    <a class="quick-card" (click)="goToScholen()" role="button" tabindex="0">
+      <span class="quick-icon" style="background: #2e6b3f">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      </span>
+      <span class="quick-meta">
+        <span class="quick-title">Scholen</span>
+        <span class="quick-sub">Volledig overzicht</span>
+      </span>
+    </a>
+  </div>
+
+  <!-- Two-column grid -->
+  <div class="sa-grid">
+
+    <!-- Schools overview -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">
+          Scholenoverzicht
+          <span class="count">{{ schools.length }}</span>
+        </h2>
+        <a class="panel-link" (click)="goToScholen()" role="button" tabindex="0" style="cursor:pointer">Alle scholen →</a>
+      </div>
+      @if (isLoading) {
+        <p class="sa-loading-text">Laden…</p>
+      } @else if (schools.length === 0) {
+        <p class="sa-loading-text">Geen scholen gevonden.</p>
+      } @else {
+        <div class="schools-overview">
+          @for (s of sortedSchools; track s.id) {
+            <div class="school-ov-row" (click)="goToSchoolDetail(s.id)" role="button" tabindex="0" (keyup.enter)="goToSchoolDetail(s.id)">
+              <span class="status-dot dot-{{ s.status.toLowerCase() }}"></span>
+              <div class="school-ov-info">
+                <span class="school-ov-name">{{ schoolDisplayName(s) }}</span>
+                <span class="school-ov-url">{{ s.subdomain }}.smartschool.be</span>
+              </div>
+              <div class="school-ov-stats">
+                <span class="ov-stat">
+                  <span class="ov-num">{{ s.userCount }}</span>
+                  <span class="ov-lbl">gebr.</span>
+                </span>
+                <span class="ov-stat">
+                  <span class="ov-num">{{ isLoadingDetails ? '–' : s.bookCount }}</span>
+                  <span class="ov-lbl">boeken</span>
+                </span>
+                <span class="ov-stat">
+                  <span class="ov-num">{{ isLoadingDetails ? '–' : s.activeLoansCount }}</span>
+                  <span class="ov-lbl">uitl.</span>
+                </span>
+              </div>
+              @if (s.status === 'PENDING') {
+                <span class="pending-chip">Wacht</span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Right column -->
+    <div class="sa-right-col">
+
+      <!-- Tasks: real pending schools only -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">
+            Te behandelen
+            @if (pendingSchoolCount > 0) {
+              <span class="count count-warn">{{ pendingSchoolCount }}</span>
+            }
+          </h2>
+        </div>
+        @if (pendingSchoolCount === 0) {
+          <div class="tasks-empty">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span>Geen openstaande taken</span>
+          </div>
+        } @else {
+          @for (s of pendingSchools; track s.id) {
+            <div class="task-row">
+              <div class="task-info">
+                <span class="task-title">{{ schoolDisplayName(s) }}</span>
+                <span class="task-sub">Wacht op goedkeuring · {{ s.subdomain }}</span>
+              </div>
+              <button class="task-action" type="button" (click)="goToSchoolDetail(s.id)">Bekijk</button>
+            </div>
+          }
+        }
+      </section>
+
+      <!-- Top schools with metric toggle -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Top scholen</h2>
+          <div class="metric-toggle">
+            <button type="button" class="metric-btn" [class.active]="topMetric === 'users'" (click)="topMetric = 'users'">Gebruikers</button>
+            <button type="button" class="metric-btn" [class.active]="topMetric === 'loans'" (click)="topMetric = 'loans'" [disabled]="isLoadingDetails">Uitleningen</button>
+          </div>
+        </div>
+        @if (isLoading) {
+          <p class="sa-loading-text">Laden…</p>
+        } @else if (topSchools.length === 0) {
+          <p class="sa-loading-text">Geen scholen gevonden.</p>
+        } @else {
+          @for (s of topSchools; track s.id) {
+            <div class="school-mini-row">
+              <div>
+                <div class="school-mini-name">{{ schoolDisplayName(s) }}</div>
+                <div class="school-mini-sub">
+                  @if (topMetric === 'users') {
+                    {{ s.userCount }} gebruikers · {{ s.klasCount }} klassen
+                  } @else {
+                    {{ s.activeLoansCount }} actieve uitleningen
+                  }
+                </div>
+              </div>
+              <div class="school-mini-bar">
+                <div class="school-mini-fill"
+                  [style.width.%]="((topMetric === 'users' ? s.userCount : s.activeLoansCount) / topMetricMax) * 100">
+                </div>
+              </div>
+              <span class="school-mini-num">{{ topMetric === 'users' ? s.userCount : s.activeLoansCount }}</span>
+            </div>
+          }
+        }
+      </section>
+
+    </div>
+  </div>
+
+</main>

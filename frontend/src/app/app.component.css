@@ -32,6 +32,41 @@
   flex-shrink: 0;
 }
 
+.admin-brand-tag {
+  font-weight: 500;
+  color: #94a3b8;
+  font-size: 11px;
+  margin-left: 4px;
+  letter-spacing: 0.06em;
+}
+
+.admin-top-nav-links {
+  display: flex;
+  gap: 2px;
+  margin-left: 24px;
+  flex: 1;
+}
+
+.admin-top-nav-links a {
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4d433d;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-top-nav-links a:hover {
+  background: #f3efeb;
+  color: #1a1614;
+}
+
+.admin-top-nav-links a.active {
+  background: #1a1614;
+  color: #fff;
+}
+
 .admin-top-account {
   position: relative;
 }
@@ -559,8 +594,8 @@
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 50;
-  background: rgba(250, 248, 246, 0.88);
+  z-index: 900; /* Must exceed Leaflet's highest pane (popup-pane: 700) so the profile dropdown renders above the map */
+  background: rgba(250,248,246,.88);
   backdrop-filter: saturate(140%) blur(10px);
   -webkit-backdrop-filter: saturate(140%) blur(10px);
   border-bottom: 1px solid var(--line);
