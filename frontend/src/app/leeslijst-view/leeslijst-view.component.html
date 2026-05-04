@@ -76,6 +76,15 @@
       <!-- Actions -->
       <div class="actions-footer">
         <button class="btn btn-outline" (click)="goBack()">Terug</button>
+        @if (canDeleteLeeslijst) {
+          <button
+            class="btn btn-outline"
+            (click)="deleteLeeslijst()"
+            [disabled]="deleting"
+          >
+            {{ deleting ? "Verwijderen..." : "Verwijder" }}
+          </button>
+        }
         <button class="btn btn-secondary" (click)="printLeeslijst()">
           Afdrukken
         </button>

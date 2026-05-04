@@ -604,6 +604,10 @@ export class BookService {
     return res.data;
   }
 
+  async deleteLeeslijst(id: number): Promise<void> {
+    await axios.delete(`/api/leeslisten/${id}`, this.getFullAuthHeaders());
+  }
+
   async getLeeslisten(schoolId: number): Promise<any[]> {
     const res = await axios.get(
       `/api/leeslisten/school/${schoolId}`,

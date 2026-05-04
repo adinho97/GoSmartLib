@@ -75,14 +75,20 @@ public class LeeslijstController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLeeslijst(
             @PathVariable Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
         requireUserSub(userSub);
-        leeslijstService.deleteLeeslijst(id);
+        leeslijstService.deleteLeeslijst(id, userSub, userRole);
         return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<String> handleSecurity(SecurityException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 }
