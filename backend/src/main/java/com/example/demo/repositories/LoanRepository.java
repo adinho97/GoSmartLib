@@ -34,8 +34,8 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     long countByCopy_Book_School_IdAndReturnedAtIsNull(Long schoolId);
 
-    @Query("SELECT l.copy.book.id, l.copy.book.titel, l.copy.book.auteur, COUNT(l) FROM loans l " +
-            "WHERE (:schoolId IS NULL OR l.copy.book.school.id = :schoolId) " + // This line is unchanged
+    @Query("SELECT l.copy.book.id, l.copy.book.titel, l.copy.book.auteur, COUNT(l) FROM Loan l " +
+            "WHERE (:schoolId IS NULL OR l.copy.book.school.id = :schoolId) " + 
             "GROUP BY l.copy.book.id, l.copy.book.titel, l.copy.book.auteur " +
             "ORDER BY COUNT(l) DESC")
     List<Object[]> findPopularBooksBySchool(@Param("schoolId") Long schoolId);
