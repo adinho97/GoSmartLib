@@ -159,6 +159,41 @@ export class MijnLijstenComponent implements OnInit {
         } catch {
           myLists = [];
         }
+
+        // Fallback: if myLists is empty or incomplete, try fetching all school lists
+        // and filter by creator (createdBySub or createdByName) as a safety net.
+        try {
+          const schoolId = this.schoolService.getSelectedSchoolId();
+          if (schoolId) {
+            const schoolLists = await this.bookService.getLeeslisten(schoolId);
+            const currentSub = this.userSub;
+            const fallbackLists = (schoolLists || []).filter((l: any) => {
+              if (!l) return false;
+              // Prefer createdBySub when available
+              if (l.createdBySub) {
+                return l.createdBySub === currentSub;
+              }
+              // Fallback to createdByName matching current user's display name
+              const currentName =
+                localStorage.getItem("userName") ||
+                localStorage.getItem("fullname") ||
+                "";
+              return l.createdByName === currentName;
+            });
+
+            // Merge fallbackLists into myLists (dedupe by id)
+            const tmpMap = new Map<number, any>();
+            (myLists || []).forEach((l: any) => {
+              if (l && l.id) tmpMap.set(Number(l.id), l);
+            });
+            (fallbackLists || []).forEach((l: any) => {
+              if (l && l.id) tmpMap.set(Number(l.id), l);
+            });
+            myLists = Array.from(tmpMap.values());
+          }
+        } catch {
+          // ignore fallback errors
+        }
       }
 
       // Merge klasLists and myLists, preferring unique ids
