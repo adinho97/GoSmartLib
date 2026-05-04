@@ -106,6 +106,24 @@ li {
   line-height: 1.35;
 }
 
-html.cb-deuteranopia app-root { filter: url(#cb-deuteranopia); }
-html.cb-protanopia   app-root { filter: url(#cb-protanopia); }
-html.cb-tritanopia   app-root { filter: url(#cb-tritanopia); }
+
+html.cb-deuteranopia app-root > header,
+html.cb-deuteranopia app-root > .admin-context-bar,
+html.cb-deuteranopia app-root > main,
+html.cb-deuteranopia app-root > app-footer,
+html.cb-deuteranopia app-root > app-badge-toast,
+html.cb-deuteranopia app-root > app-ui-toast { filter: url(#cb-deuteranopia); }
+
+html.cb-protanopia app-root > header,
+html.cb-protanopia app-root > .admin-context-bar,
+html.cb-protanopia app-root > main,
+html.cb-protanopia app-root > app-footer,
+html.cb-protanopia app-root > app-badge-toast,
+html.cb-protanopia app-root > app-ui-toast { filter: url(#cb-protanopia); }
+
+html.cb-tritanopia app-root > header,
+html.cb-tritanopia app-root > .admin-context-bar,
+html.cb-tritanopia app-root > main,
+html.cb-tritanopia app-root > app-footer,
+html.cb-tritanopia app-root > app-badge-toast,
+html.cb-tritanopia app-root > app-ui-toast { filter: url(#cb-tritanopia); }
