@@ -20,6 +20,16 @@ const VALID_TABS: Tab[] = [
   "historiek",
 ];
 
+interface Leeslijst {
+  id: number;
+  titel: string;
+  description?: string;
+  createdByName: string;
+  createdAt: string;
+  books: any[];
+  klasNames: string[];
+}
+
 @Component({
   selector: "app-mijn-lijsten",
   templateUrl: "./mijn-lijsten.component.html",
@@ -32,12 +42,14 @@ export class MijnLijstenComponent implements OnInit {
   loans: Loan[] = [];
   wishlistItems: any[] = [];
   classReadingBooks: RecommendedBook[] = [];
+  leeslisten: Leeslijst[] = [];
   highlightedBooks: RecommendedBook[] = [];
   loanHistory: Loan[] = [];
 
   loansLoading = true;
   wishlistLoading = true;
   classReadingLoading = true;
+  leeslistenLoading = true;
   highlightedLoading = true;
   historyLoading = true;
 
@@ -106,35 +118,27 @@ export class MijnLijstenComponent implements OnInit {
   }
 
   private async loadClassReading(): Promise<void> {
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    if (!schoolId) {
-      this.classReadingLoading = false;
-      return;
-    }
     this.classReadingLoading = true;
+    this.leeslistenLoading = true;
     try {
-      const ids = await this.bookService.getClassReadingListItemIds(schoolId);
-      if (ids?.length) {
-        const enriched = await this.bookService.enrichBooksWithDetails(
-          ids.map((id: number) => ({ bookId: id })),
-        );
-        this.classReadingBooks = enriched.map(
-          (b: any) =>
-            ({
-              bookId: b.bookId,
-              titel: b.titel,
-              auteur: b.auteur,
-              cover: b.cover || "",
-              genre: b.genre,
-              paginas: b.paginas,
-              taal: b.taal,
-            }) as RecommendedBook,
-        );
+      // Get user's klas ID
+      const klasInfo = await this.bookService.getUserKlas();
+      if (!klasInfo || !klasInfo.klasId) {
+        this.leeslisten = [];
+        this.classReadingBooks = [];
+        return;
       }
+
+      // Fetch leeslisten for the user's klas
+      this.leeslisten = await this.bookService.getLeeslistenForKlas(
+        klasInfo.klasId,
+      );
     } catch {
+      this.leeslisten = [];
       this.classReadingBooks = [];
     } finally {
       this.classReadingLoading = false;
+      this.leeslistenLoading = false;
     }
   }
 
@@ -212,6 +216,10 @@ export class MijnLijstenComponent implements OnInit {
 
   goToDetail(bookId: number): void {
     this.router.navigate(["/detail", bookId]);
+  }
+
+  goToLeeslijst(leeslijstId: number): void {
+    this.router.navigate(["/leeslijst", leeslijstId]);
   }
 
   formatDate(dateStr: string): string {
