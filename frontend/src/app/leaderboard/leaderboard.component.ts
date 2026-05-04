@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { LeaderboardService } from "../services/leaderboard.service"; // Assuming a service for data fetching
 import { formatUserInfoDisplayName } from "../utils/name-utils";
 import axios from "axios";
+import { AuthContextService } from "../services/auth-context.service";
 
 // Define interfaces for better type safety and clarity
 export interface LeaderboardEntry {
@@ -34,7 +35,8 @@ export class LeaderboardComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private leaderboardService: LeaderboardService, // Inject the service
+    private leaderboardService: LeaderboardService,
+    private authContext: AuthContextService, // Inject AuthContextService
   ) {}
 
   ngOnInit(): void {
@@ -90,10 +92,18 @@ export class LeaderboardComponent implements OnInit {
 
   private async getDisplayNameForSub(sub: string): Promise<string> {
     try {
+      const token = this.authContext.getEffectiveBearerToken();
       const profile = await axios.get(
         `/api/users/${encodeURIComponent(sub)}/profile`,
+        {
+          headers: {
+            // Assuming X-User-Sub is also needed for profile lookups
+            "X-User-Sub": this.authContext.getEffectiveSub(),
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        },
       );
-      return formatUserInfoDisplayName(profile.data, sub);
+      return profile.data ? formatUserInfoDisplayName(profile.data, sub) : sub; // Check if profile.data is not null
     } catch {
       return sub;
     }

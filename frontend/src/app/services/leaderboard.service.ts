@@ -23,9 +23,14 @@ export class LeaderboardService {
     if (klasId) {
       url += `?klasId=${klasId}`;
     }
-    const headers = new HttpHeaders({
-      "X-User-Sub": this.authContext.getEffectiveSub(),
-    });
+    const token = this.authContext.getEffectiveBearerToken();
+    let headers = new HttpHeaders().set(
+      "X-User-Sub",
+      this.authContext.getEffectiveSub(),
+    );
+    if (token) {
+      headers = headers.set("Authorization", `Bearer ${token}`);
+    }
     return this.http.get<LeaderboardData>(url, { headers });
   }
 }
