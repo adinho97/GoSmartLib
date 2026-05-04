@@ -389,13 +389,20 @@
 
 /* Title Input */
 .title-input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   margin-bottom: var(--s-5);
 }
 
 .title-input {
+  display: block;
   width: 100%;
+  min-width: 0;
   padding: 12px 16px;
   font-size: 16px;
+  line-height: 1.4;
   border: 2px solid var(--line);
   border-radius: 6px;
   color: var(--ink);
@@ -403,6 +410,7 @@
   transition: border-color 0.15s ease;
   font-family: inherit;
   box-sizing: border-box;
+  margin: 0;
 }
 
 .title-input:focus {
@@ -418,8 +426,13 @@
 .input-desc {
   font-size: 13px;
   color: var(--ink-3);
-  margin-top: 6px;
+  margin-top: 0;
   margin-bottom: 0;
+}
+
+.title-input[name="leeslijstDescription"] {
+  min-height: 112px;
+  resize: vertical;
 }
 
 /* Responsive design */
