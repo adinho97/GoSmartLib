@@ -130,11 +130,12 @@ export class MijnLijstenComponent implements OnInit {
     this.classReadingLoading = true;
     this.leeslistenLoading = true;
     try {
-      // Always attempt to fetch class-based lists if we have a klas
       let klasLists: any[] = [];
       let myLists: any[] = [];
 
-      // Get user's klas ID (may be undefined for some users)
+      const schoolId = this.schoolService.getSelectedSchoolId();
+
+      // Fetch class-based lists if user has a klas ID
       let klasInfo: any = null;
       try {
         klasInfo = await this.bookService.getUserKlas();
@@ -152,62 +153,49 @@ export class MijnLijstenComponent implements OnInit {
         }
       }
 
-      // If user is a teacher, also fetch lists they created
-      if (this.hasRole("leerkracht")) {
+      // For teachers, ensure we fetch all lists they created by filtering school lists
+      if (this.hasRole("leerkracht") && schoolId) {
         try {
-          myLists = await this.bookService.getMyLeeslisten();
-        } catch {
+          // Fetch all school lists once
+          const allSchoolLists = await this.bookService.getLeeslisten(schoolId);
+          const currentSub = this.userSub;
+          const currentName =
+            localStorage.getItem("userName") ||
+            localStorage.getItem("fullname") ||
+            "";
+
+          // Filter for lists created by current teacher
+          myLists = (allSchoolLists || []).filter((l: any) => {
+            if (!l) return false;
+            // Match by sub (preferred)
+            if (l.createdBySub && l.createdBySub === currentSub) {
+              return true;
+            }
+            // Match by name as fallback
+            if (currentName && l.createdByName === currentName) {
+              return true;
+            }
+            return false;
+          });
+        } catch (error) {
+          console.error("Failed to fetch teacher's created lists:", error);
           myLists = [];
-        }
-
-        // Fallback: if myLists is empty or incomplete, try fetching all school lists
-        // and filter by creator (createdBySub or createdByName) as a safety net.
-        try {
-          const schoolId = this.schoolService.getSelectedSchoolId();
-          if (schoolId) {
-            const schoolLists = await this.bookService.getLeeslisten(schoolId);
-            const currentSub = this.userSub;
-            const fallbackLists = (schoolLists || []).filter((l: any) => {
-              if (!l) return false;
-              // Prefer createdBySub when available
-              if (l.createdBySub) {
-                return l.createdBySub === currentSub;
-              }
-              // Fallback to createdByName matching current user's display name
-              const currentName =
-                localStorage.getItem("userName") ||
-                localStorage.getItem("fullname") ||
-                "";
-              return l.createdByName === currentName;
-            });
-
-            // Merge fallbackLists into myLists (dedupe by id)
-            const tmpMap = new Map<number, any>();
-            (myLists || []).forEach((l: any) => {
-              if (l && l.id) tmpMap.set(Number(l.id), l);
-            });
-            (fallbackLists || []).forEach((l: any) => {
-              if (l && l.id) tmpMap.set(Number(l.id), l);
-            });
-            myLists = Array.from(tmpMap.values());
-          }
-        } catch {
-          // ignore fallback errors
         }
       }
 
-      // Merge klasLists and myLists, preferring unique ids
-      const map = new Map<number, any>();
+      // Merge klasLists and myLists by ID (deduplicate)
+      const mergedMap = new Map<number, any>();
       (klasLists || []).forEach((l: any) => {
-        if (l && l.id) map.set(Number(l.id), l);
+        if (l && l.id) mergedMap.set(Number(l.id), l);
       });
       (myLists || []).forEach((l: any) => {
-        if (l && l.id) map.set(Number(l.id), l);
+        if (l && l.id) mergedMap.set(Number(l.id), l);
       });
 
-      this.leeslisten = Array.from(map.values());
+      this.leeslisten = Array.from(mergedMap.values());
       this.classReadingBooks = [];
-    } catch {
+    } catch (error) {
+      console.error("Error loading class reading lists:", error);
       this.leeslisten = [];
       this.classReadingBooks = [];
     } finally {
