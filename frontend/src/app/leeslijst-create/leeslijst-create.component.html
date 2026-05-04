@@ -1,0 +1,169 @@
+<div class="llc-page">
+  <header class="llc-head">
+    <h1 class="llc-title">Nieuwe Leeslijst</h1>
+    <p class="llc-subtitle">Stel een boekenlijst samen voor je klassen.</p>
+  </header>
+
+  <div class="stepper">
+    <div class="step-pill" [class.active]="step === 'titel'">1. Titel</div>
+    <div class="step-pill" [class.active]="step === 'boeken'">2. Boeken</div>
+    <div class="step-pill" [class.active]="step === 'bevestiging'">
+      3. Bevestigen
+    </div>
+  </div>
+
+  <!-- Step 1: Title -->
+  @if (step === "titel") {
+    <div class="selection-card">
+      <h3 class="card-title">Geef je leeslijst een titel</h3>
+      <div class="title-input-group">
+        <input
+          type="text"
+          placeholder="Bijv. 'Romantische verhalen' of 'Science Fiction Classics'"
+          [(ngModel)]="leeslijstTitel"
+          class="title-input"
+          (keyup.enter)="goToBooks()"
+        />
+        <p class="input-desc">
+          Kies een duidelijke, beschrijvende titel voor je leeslijst.
+        </p>
+      </div>
+
+      <div class="actions">
+        <button
+          class="btn btn-primary"
+          (click)="goToBooks()"
+          [disabled]="!leeslijstTitel || leeslijstTitel.trim() === ''"
+        >
+          Volgende: Selecteer Klassen &amp; Boeken
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Step 2: Klassen & Boeken Selection -->
+  @if (step === "boeken") {
+    <div class="selection-card">
+      <div class="klassen-selector">
+        <h3 class="card-title">Selecteer doelklassen</h3>
+        @if (klassenLoading) {
+          <div class="loader-row">
+            <div class="spinner"></div>
+            <p>Klassen laden…</p>
+          </div>
+        } @else if (klassen.length === 0) {
+          <p class="empty-msg">Geen klassen beschikbaar.</p>
+        } @else {
+          <div class="grid-list">
+            @for (klas of klassen; track klas.id) {
+              <div
+                class="grid-item"
+                [class.selected]="selectedKlassenIds.has(klas.id)"
+                (click)="toggleKlasSelection(klas.id)"
+              >
+                <span class="item-name">{{ klas.naam }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          placeholder="Zoek boeken..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()"
+          class="search-input"
+        />
+        <button class="btn btn-secondary" (click)="onSearch()">Zoeken</button>
+      </div>
+
+      @if (isLoading) {
+        <div class="loader-row">
+          <div class="spinner"></div>
+          <p>Laden…</p>
+        </div>
+      } @else if (books.length === 0) {
+        <p class="empty-msg">Geen boeken gevonden.</p>
+      } @else {
+        <div class="book-grid">
+          @for (book of books; track book.id) {
+            <div
+              class="book-item"
+              [class.selected]="selectedBookIds.has(book.id)"
+              (click)="toggleBookSelection(book.id)"
+            >
+              <img
+                [src]="book.cover || 'assets/no-cover.png'"
+                alt="Cover"
+                class="book-cover"
+              />
+              <div class="book-info">
+                <span class="book-title">{{ book.titel }}</span>
+                <span class="book-author">{{ book.auteur }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button
+            [disabled]="currentPage === 1"
+            (click)="setPage(currentPage - 1)"
+          >
+            Vorige
+          </button>
+          <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
+          <button
+            [disabled]="currentPage === totalPages"
+            (click)="setPage(currentPage + 1)"
+          >
+            Volgende
+          </button>
+        </div>
+      }
+
+      <div class="actions">
+        <button
+          class="btn btn-primary"
+          (click)="goToConfirmation()"
+          [disabled]="
+            selectedBookIds.size === 0 || selectedKlassenIds.size === 0
+          "
+        >
+          Volgende: Bevestigen
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Step 3: Bevestiging -->
+  @if (step === "bevestiging") {
+    <div class="selection-card">
+      <h3 class="card-title">Overzicht</h3>
+      <div class="summary">
+        <p class="summary-item"><strong>Titel:</strong> {{ leeslijstTitel }}</p>
+        <p class="summary-item">
+          <strong>Doelklassen:</strong> {{ getSelectedKlassenNames() }}
+        </p>
+        <p class="summary-item">
+          <strong>Aantal boeken:</strong> {{ selectedBookIds.size }}
+        </p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-outline" (click)="goBack()">Terug</button>
+        <button
+          class="btn btn-success"
+          (click)="saveLeeslijst()"
+          [disabled]="isSaving"
+        >
+          {{ isSaving ? "Bezig met opslaan..." : "Leeslijst Opslaan" }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

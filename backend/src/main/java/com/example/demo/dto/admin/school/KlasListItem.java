@@ -6,6 +6,14 @@ public class KlasListItem {
     private String groupId;
     private String naam;
 
+    public KlasListItem() {}
+
+    public KlasListItem(Long id, String groupId, String naam) {
+        this.id = id;
+        this.groupId = groupId;
+        this.naam = naam;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
