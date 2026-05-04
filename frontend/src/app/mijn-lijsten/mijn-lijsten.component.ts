@@ -59,12 +59,21 @@ export class MijnLijstenComponent implements OnInit {
     return localStorage.getItem("sub") || "";
   }
 
-  get userRole(): string {
-    return (localStorage.getItem("role") || "").trim().toLowerCase();
+  get rawUserRoles(): string {
+    return localStorage.getItem("role") || "";
+  }
+
+  hasRole(roleName: string): boolean {
+    const raw = this.rawUserRoles || "";
+    return raw
+      .split(/[;,|\s]+/)
+      .map((r) => r.trim().toLowerCase())
+      .filter(Boolean)
+      .includes(roleName.toLowerCase());
   }
 
   get canCreateLeeslijst(): boolean {
-    return this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
+    return this.hasRole("leerkracht") || this.hasRole("bibbeheerder");
   }
 
   constructor(
@@ -121,7 +130,7 @@ export class MijnLijstenComponent implements OnInit {
     this.classReadingLoading = true;
     this.leeslistenLoading = true;
     try {
-      if (this.userRole === "leerkracht") {
+      if (this.hasRole("leerkracht")) {
         this.leeslisten = await this.bookService.getMyLeeslisten();
         this.classReadingBooks = [];
         return;
