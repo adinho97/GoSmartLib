@@ -43,9 +43,12 @@
 
   --font-ui: Arial, Helvetica, sans-serif;
 
-  --shadow-1: 0 1px 2px rgba(26,22,20,.04), 0 1px 1px rgba(26,22,20,.03);
-  --shadow-2: 0 4px 12px rgba(26,22,20,.06), 0 2px 4px rgba(26,22,20,.04);
-  --shadow-pop: 0 16px 40px -12px rgba(135,31,66,.18), 0 4px 12px rgba(26,22,20,.06);
+  --shadow-1:
+    0 1px 2px rgba(26, 22, 20, 0.04), 0 1px 1px rgba(26, 22, 20, 0.03);
+  --shadow-2:
+    0 4px 12px rgba(26, 22, 20, 0.06), 0 2px 4px rgba(26, 22, 20, 0.04);
+  --shadow-pop:
+    0 16px 40px -12px rgba(135, 31, 66, 0.18), 0 4px 12px rgba(26, 22, 20, 0.06);
 }
 
 body {
@@ -106,27 +109,32 @@ li {
   line-height: 1.35;
 }
 
-
 html.cb-deuteranopia app-root > header,
 html.cb-deuteranopia app-root > .admin-context-bar,
 html.cb-deuteranopia app-root > main,
 html.cb-deuteranopia app-root > app-footer,
 html.cb-deuteranopia app-root > app-badge-toast,
-html.cb-deuteranopia app-root > app-ui-toast { filter: url(#cb-deuteranopia); }
+html.cb-deuteranopia app-root > app-ui-toast {
+  filter: url(#cb-deuteranopia);
+}
 
 html.cb-protanopia app-root > header,
 html.cb-protanopia app-root > .admin-context-bar,
 html.cb-protanopia app-root > main,
 html.cb-protanopia app-root > app-footer,
 html.cb-protanopia app-root > app-badge-toast,
-html.cb-protanopia app-root > app-ui-toast { filter: url(#cb-protanopia); }
+html.cb-protanopia app-root > app-ui-toast {
+  filter: url(#cb-protanopia);
+}
 
 html.cb-tritanopia app-root > header,
 html.cb-tritanopia app-root > .admin-context-bar,
 html.cb-tritanopia app-root > main,
 html.cb-tritanopia app-root > app-footer,
 html.cb-tritanopia app-root > app-badge-toast,
-html.cb-tritanopia app-root > app-ui-toast { filter: url(#cb-tritanopia); }
+html.cb-tritanopia app-root > app-ui-toast {
+  filter: url(#cb-tritanopia);
+}
 
 html.dark {
   --bg: #0f0e0d;
@@ -142,8 +150,8 @@ html.dark {
   --brand-100: #2e1620;
   --warn-bg: #1e1509;
   --good-bg: #0d1f11;
-  --shadow-1: 0 1px 2px rgba(0,0,0,.2);
-  --shadow-2: 0 4px 12px rgba(0,0,0,.3);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 html.dark body {
@@ -171,11 +179,36 @@ html.dark button:not(.cb-toggle-btn):not(.dm-toggle-btn):not(.avatar-btn) {
   border-color: #3d0f20;
 }
 
-html.dark .dm-toggle-btn {
-  background: var(--surface-2);
-  border-color: var(--line-strong);
-  color: var(--ink-2);
+.dm-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid #d4c1c9 !important;
+  background: #fff !important;
+  color: #5a6472 !important;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+  margin: 0;
 }
+.dm-toggle-btn:hover {
+  background: #fff0f4 !important;
+  color: #1a1a1a !important;
+}
+.dm-toggle-btn.active {
+  border-color: #3b5bdb !important;
+  color: #3b5bdb !important;
+  background: #eef2ff !important;
+}
+
 html.dark .dm-toggle-btn.active {
   border-color: #6b8cff;
   color: #6b8cff;
