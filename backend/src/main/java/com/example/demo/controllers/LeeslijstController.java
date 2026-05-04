@@ -4,9 +4,8 @@ import com.example.demo.dto.CreateLeeslijstRequest;
 import com.example.demo.dto.LeeslijstDTO;
 import com.example.demo.entities.Leeslijst;
 import com.example.demo.services.LeeslijstService;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,13 +23,16 @@ public class LeeslijstController {
      * Create a new reading list (Teachers and Library Staff only)
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('leerkracht', 'bibbeheerder')")
     public Leeslijst createLeeslijst(
         @RequestBody CreateLeeslijstRequest request,
-        @RequestHeader(value = "X-User-Sub", required = false) String userSub
+        @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+        @RequestHeader(value = "X-User-Role", required = false) String userRole
     ) {
         if (userSub == null) {
             throw new IllegalArgumentException("Authenticated user not found");
+        }
+        if (!isAuthorized(userRole)) {
+            throw new org.springframework.security.access.AccessDeniedException("Geen toegang");
         }
         
         return leeslijstService.createLeeslijst(request, userSub);
@@ -72,8 +74,12 @@ public class LeeslijstController {
     @PutMapping("/{id}")
     public Leeslijst updateLeeslijst(
         @PathVariable Long id,
-        @RequestBody CreateLeeslijstRequest request
+        @RequestBody CreateLeeslijstRequest request,
+        @RequestHeader(value = "X-User-Role", required = false) String userRole
     ) {
+        if (!isAuthorized(userRole)) {
+            throw new org.springframework.security.access.AccessDeniedException("Geen toegang");
+        }
         return leeslijstService.updateLeeslijst(id, request);
     }
 
@@ -81,7 +87,17 @@ public class LeeslijstController {
      * Delete a reading list (Teachers and Library Staff only)
      */
     @DeleteMapping("/{id}")
-    public void deleteLeeslijst(@PathVariable Long id) {
+    public void deleteLeeslijst(
+        @PathVariable Long id,
+        @RequestHeader(value = "X-User-Role", required = false) String userRole
+    ) {
+        if (!isAuthorized(userRole)) {
+            throw new org.springframework.security.access.AccessDeniedException("Geen toegang");
+        }
         leeslijstService.deleteLeeslijst(id);
+    }
+
+    private boolean isAuthorized(String userRole) {
+        return "leerkracht".equalsIgnoreCase(userRole) || "bibbeheerder".equalsIgnoreCase(userRole);
     }
 }
