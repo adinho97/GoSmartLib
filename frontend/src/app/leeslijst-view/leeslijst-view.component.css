@@ -249,6 +249,7 @@
   .leeslijst-container {
     padding: 0;
     background: white;
+    min-height: auto;
   }
 
   .leeslijst-page {
@@ -263,6 +264,12 @@
 
   .leeslijst-title-page {
     page-break-after: always;
+    background: white;
+    border-bottom: 2px solid #333;
+  }
+
+  .leeslijst-title {
+    color: #000;
   }
 
   .books-grid {
@@ -272,6 +279,27 @@
 
   .book-card {
     page-break-inside: avoid;
+    border: 1px solid #ccc;
+  }
+
+  .book-cover-wrapper {
+    background: #f0f0f0;
+  }
+
+  /* Ensure all text is visible and black for printing */
+  body,
+  .leeslijst-container,
+  .leeslijst-page {
+    color: #000 !important;
+  }
+
+  /* Remove background colors that won't print well */
+  .leeslijst-title-page {
+    background: white !important;
+  }
+
+  .leeslijst-meta {
+    background: white !important;
   }
 }
 
