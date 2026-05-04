@@ -5,6 +5,7 @@ import com.example.demo.dto.LeeslijstDTO;
 import com.example.demo.entities.Leeslijst;
 import com.example.demo.services.LeeslijstService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,13 +24,11 @@ public class LeeslijstController {
      * Create a new reading list (Teachers and Library Staff only)
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('leerkracht', 'bibbeheerder')")
     public Leeslijst createLeeslijst(
-        @RequestBody CreateLeeslijstRequest request
+        @RequestBody CreateLeeslijstRequest request,
+        @RequestHeader(value = "X-User-Sub", required = false) String userSub
     ) {
-        // Get authenticated user's subject (sub) from security context
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String userSub = auth != null ? auth.getName() : null;
-        
         if (userSub == null) {
             throw new IllegalArgumentException("Authenticated user not found");
         }
@@ -41,16 +40,22 @@ public class LeeslijstController {
      * Get all reading lists for a school
      */
     @GetMapping("/school/{schoolId}")
-    public List<Leeslijst> getLeeslisten(@PathVariable Long schoolId) {
-        return leeslijstService.getLeeslisten(schoolId);
+    public List<LeeslijstDTO> getLeeslisten(@PathVariable Long schoolId) {
+        return leeslijstService.getLeeslisten(schoolId)
+            .stream()
+            .map(leeslijstService::convertToDTO)
+            .toList();
     }
 
     /**
      * Get reading lists for a specific class
      */
     @GetMapping("/klas/{klasId}")
-    public List<Leeslijst> getLeeslistenForKlas(@PathVariable Long klasId) {
-        return leeslijstService.getLeeslistenForKlas(klasId);
+    public List<LeeslijstDTO> getLeeslistenForKlas(@PathVariable Long klasId) {
+        return leeslijstService.getLeeslistenForKlas(klasId)
+            .stream()
+            .map(leeslijstService::convertToDTO)
+            .toList();
     }
 
     /**

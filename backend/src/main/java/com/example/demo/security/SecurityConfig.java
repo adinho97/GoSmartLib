@@ -53,8 +53,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/schools/**").hasRole("SUPER_ADMIN")
                         // Protected admin endpoints - require JWT token
                         .requestMatchers("/api/admin/**").authenticated()
-                        // All other endpoints for now (can be restricted later)
-                        .anyRequest().permitAll()
+                        .requestMatchers("/api/leeslisten/**").authenticated()
+                        // Authenticate other API requests
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
