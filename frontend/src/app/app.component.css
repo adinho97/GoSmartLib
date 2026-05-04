@@ -700,7 +700,8 @@
 
   /* Hide navigation headers during printing */
   .admin-top-nav,
-  .admin-context-bar {
+  .admin-context-bar,
+  .app-header {
     display: none !important;
   }
 
