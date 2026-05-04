@@ -345,3 +345,74 @@ html.dark .publish-name-btn,
 html.dark .lib-action-btn.active {
   color: #ffffff !important;
 }
+
+/* ─── Dark mode: boekkaart ─── */
+html.dark .book-card {
+  background: var(--surface);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+html.dark .book-card:hover {
+  box-shadow: 0 15px 35px rgba(135,31,66,0.2);
+}
+html.dark .book-card.teacher-card {
+  background: var(--surface-2);
+}
+html.dark .author { color: var(--ink-3); }
+html.dark .book-meta { color: var(--ink-4); }
+html.dark .loan-date { color: var(--ink-4); }
+html.dark .cover-placeholder { background: var(--surface-2); color: var(--ink-3); }
+html.dark .remove-button { color: var(--ink-3); }
+
+/* ─── Dark mode: info pagina ─── */
+html.dark .info-page { background: var(--bg); color: var(--ink); }
+
+html.dark .info-hero {
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+  border-bottom-color: var(--line);
+}
+html.dark .info-hero h1 { color: var(--ink); }
+html.dark .info-hero p { color: var(--ink-3); }
+
+html.dark .info-card {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink-2);
+}
+html.dark .info-card h2 { color: var(--ink); }
+html.dark .tip-card { background: var(--surface-2); border-color: var(--line-strong); }
+
+html.dark .faq-item { background: var(--surface-2); border-color: var(--line); }
+html.dark .faq-question { color: var(--ink); background: transparent; }
+html.dark .faq-question:hover { background: var(--surface); }
+html.dark .faq-indicator { color: var(--ink-3); }
+html.dark .faq-answer { color: var(--ink-2); }
+
+html.dark .edit-hero-btn {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+html.dark .edit-hero-btn:hover { background: var(--surface); }
+
+/* ─── Dark mode: terugknop onzichtbaar fix ─── */
+html.dark .back-btn {
+  background: var(--surface) !important;
+  border-color: var(--brand) !important;
+  color: var(--brand) !important;
+}
+html.dark .back-btn:hover {
+  background: var(--brand-100) !important;
+}
+
+/* ─── Dark mode: edit tekst donkergrijs fix ─── */
+html.dark textarea,
+html.dark input[type="text"],
+html.dark input[type="email"],
+html.dark input[type="password"],
+html.dark input {
+  background: var(--surface-2) !important;
+  border-color: var(--line-strong) !important;
+  color: var(--ink) !important;
+}
+html.dark textarea::placeholder,
+html.dark input::placeholder { color: var(--ink-4) !important; }
