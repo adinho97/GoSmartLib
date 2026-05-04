@@ -51,11 +51,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
                         .requestMatchers("/api/admin/schools/**").hasRole("SUPER_ADMIN")
-                        .requestMatchers("/api/gebruikers/me/klas").authenticated()
-                        .requestMatchers("/api/leeslisten/school/**").authenticated() // Beveiligd voor leerkrachten
-                        .requestMatchers("/api/leeslisten/klas/**").authenticated() // Beveiligd voor leerlingen
-                        .requestMatchers("/api/leeslisten/{id}").authenticated() // Beveiligd voor individuele leeslijsten
-
                         // Protected admin endpoints - require JWT token
                         .requestMatchers("/api/admin/**").authenticated()
                         // All other endpoints for now (can be restricted later)
