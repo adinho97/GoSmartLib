@@ -34,11 +34,25 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     long countByCopy_Book_School_IdAndReturnedAtIsNull(Long schoolId);
 
-    @Query("SELECT l.copy.book.titel, COUNT(l) FROM Loan l " +
+    @Query("SELECT l.copy.book.id, l.copy.book.titel, l.copy.book.auteur, COUNT(l) FROM Loan l " +
             "WHERE (:schoolId IS NULL OR l.copy.book.school.id = :schoolId) " +
-            "GROUP BY l.copy.book.titel " +
+            "GROUP BY l.copy.book.id, l.copy.book.titel, l.copy.book.auteur " +
             "ORDER BY COUNT(l) DESC")
     List<Object[]> findPopularBooksBySchool(@Param("schoolId") Long schoolId);
+
+    @Query("SELECT l.userSub, COUNT(l) FROM Loan l " +
+            "WHERE (:schoolId IS NULL OR l.copy.book.school.id = :schoolId) " +
+            "GROUP BY l.userSub " +
+            "ORDER BY COUNT(l) DESC")
+    List<Object[]> findTopReadersBySchool(@Param("schoolId") Long schoolId);
+
+    @Query("SELECT u.klas.naam, COUNT(l) FROM Loan l, AppUser u " +
+            "WHERE l.userSub = u.sub " +
+            "AND (:schoolId IS NULL OR l.copy.book.school.id = :schoolId) " +
+            "AND u.klas IS NOT NULL " +
+            "GROUP BY u.klas.naam " +
+            "ORDER BY COUNT(l) DESC")
+    List<Object[]> findTopClassesBySchool(@Param("schoolId") Long schoolId);
 
     @Query("SELECT new map(l.copy.book.id as bookId, COUNT(l) as loanCount) FROM Loan l GROUP BY l.copy.book.id")
     List<Map<String, Object>> getLoanCountsByBook();
