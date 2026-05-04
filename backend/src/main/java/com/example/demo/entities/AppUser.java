@@ -24,7 +24,8 @@ public class AppUser {
 
     @Column(nullable = true)
     private String platform;
-
+    @Column(nullable = false)
+    private boolean active = true;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id")
     private School school;
@@ -82,6 +83,14 @@ public class AppUser {
 
     public void setPlatform(String platform) {
         this.platform = platform;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public School getSchool() {

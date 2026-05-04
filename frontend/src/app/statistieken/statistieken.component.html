@@ -1,0 +1,93 @@
+<div class="mt-page">
+  <header class="mt-head">
+    <p class="mt-eyebrow">Bibliotheekbeheerder</p>
+    <h1 class="mt-title">Statistieken</h1>
+    <p class="mt-subtitle">
+      Bekijk de uitleen- en conditiestatus van uw schoolbibliotheek.
+    </p>
+  </header>
+
+  <div class="mt-cards">
+    <a class="mt-card" routerLink="/uitleen-conditie">
+      <div class="mt-card-icon mt-icon-info">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M2 20h20M5 20V10l7-7 7 7v10" />
+          <rect x="9" y="14" width="6" height="6" />
+        </svg>
+      </div>
+      <div class="mt-card-body">
+        <h2 class="mt-card-title">Conditie-overzicht</h2>
+        <p class="mt-card-desc">
+          Bekijk de staat van de uitgeleende boeken in uw bibliotheek.
+          Identificeer boeken die herstel of vervanging nodig hebben.
+        </p>
+      </div>
+      <span class="mt-card-arrow">→</span>
+    </a>
+
+    <a class="mt-card" routerLink="/uitleen-overzicht">
+      <div class="mt-card-icon mt-icon-primary">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 3v18h18" />
+          <path d="M18 17V9M13 17V5M8 17v-3" />
+        </svg>
+      </div>
+      <div class="mt-card-body">
+        <h2 class="mt-card-title">Uitleningen overzicht</h2>
+        <p class="mt-card-desc">
+          Alle actieve en historische uitleningen in één overzicht. Filter op
+          leerling, datum of boektitel.
+        </p>
+      </div>
+      <span class="mt-card-arrow">→</span>
+    </a>
+
+    <a class="mt-card" routerLink="/statistieken/school">
+      <div class="mt-card-icon mt-icon-good">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 20V10" />
+          <path d="M18 20V4" />
+          <path d="M6 20v-4" />
+        </svg>
+      </div>
+      <div class="mt-card-body">
+        <h2 class="mt-card-title">School Statistieken</h2>
+        <p class="mt-card-desc">
+          Bekijk trends, populairste boeken en de meest actieve lezers binnen uw
+          schoolbibliotheek.
+        </p>
+      </div>
+      <span class="mt-card-arrow">→</span>
+    </a>
+  </div>
+</div>
