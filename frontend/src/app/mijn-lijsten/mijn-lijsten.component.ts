@@ -60,7 +60,7 @@ export class MijnLijstenComponent implements OnInit {
   }
 
   get userRole(): string {
-    return localStorage.getItem("role") || "";
+    return (localStorage.getItem("role") || "").trim().toLowerCase();
   }
 
   get canCreateLeeslijst(): boolean {
