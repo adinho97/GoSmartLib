@@ -37,6 +37,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
+import java.util.Objects;
 import java.security.SecureRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -136,7 +137,8 @@ public class BookController {
         }
 
         if (bookDto.getIsbn() != null && !bookDto.getIsbn().trim().isEmpty()) {
-            if (repo.findByIsbnAndSchool_Id(bookDto.getIsbn(), school.getId()).isPresent()) {
+            Long schoolId = Objects.requireNonNull(school.getId(), "schoolId is required");
+            if (repo.findByIsbnAndSchool_Id(bookDto.getIsbn(), schoolId).isPresent()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }
@@ -692,7 +694,7 @@ public class BookController {
         }
         return appUserRepository.findBySub(userSub.trim())
                 .filter(user -> user.getSchool() != null)
-                .map(user -> user.getSchool().getId())
+            .map(user -> Objects.requireNonNull(user.getSchool().getId(), "schoolId is required"))
                 .orElse(null);
     }
 
@@ -704,7 +706,9 @@ public class BookController {
         if (schoolId == null) {
             return true;
         }
-        return repo.existsByIdAndSchool_Id(bookId, schoolId);
+        Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        return repo.existsByIdAndSchool_Id(resolvedBookId, resolvedSchoolId);
     }
 
     private void assignGoNumberIfNeeded(Book book) {

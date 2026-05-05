@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,18 +22,15 @@ public class LeeslijstService {
     private final BookRepository bookRepository;
     private final KlasRepository klasRepository;
     private final AppUserRepository userRepository;
-    private final SchoolRepository schoolRepository;
 
     public LeeslijstService(LeeslijstRepository leeslijstRepository,
-                          BookRepository bookRepository,
-                          KlasRepository klasRepository,
-                          AppUserRepository userRepository,
-                          SchoolRepository schoolRepository) {
+            BookRepository bookRepository,
+            KlasRepository klasRepository,
+            AppUserRepository userRepository) {
         this.leeslijstRepository = leeslijstRepository;
         this.bookRepository = bookRepository;
         this.klasRepository = klasRepository;
         this.userRepository = userRepository;
-        this.schoolRepository = schoolRepository;
     }
 
     public Leeslijst createLeeslijst(CreateLeeslijstRequest request, String userSub) {
@@ -42,8 +40,8 @@ public class LeeslijstService {
     public Leeslijst createLeeslijst(CreateLeeslijstRequest request, String userSub, String userName) {
         // Find user by their sub (Smartschool ID)
         AppUser user = userRepository.findBySub(userSub)
-            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
-        
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
+
         // Get user's school
         School school = user.getSchool();
         if (school == null) {
@@ -56,91 +54,107 @@ public class LeeslijstService {
 
         // Add books
         if (request.getBookIds() != null && !request.getBookIds().isEmpty()) {
-            List<Book> books = bookRepository.findAllById(request.getBookIds());
+            List<Long> bookIds = request.getBookIds().stream()
+                    .filter(Objects::nonNull)
+                    .map(id -> Objects.requireNonNull(id, "bookId is required"))
+                    .toList();
+            List<Book> books = bookRepository.findAllById(bookIds);
             leeslijst.getBooks().addAll(books);
         }
 
         // Add klassen
         if (request.getKlasIds() != null && !request.getKlasIds().isEmpty()) {
-            List<Klas> klassen = klasRepository.findAllById(request.getKlasIds());
+            List<Long> klasIds = request.getKlasIds().stream()
+                    .filter(Objects::nonNull)
+                    .map(id -> Objects.requireNonNull(id, "klasId is required"))
+                    .toList();
+            List<Klas> klassen = klasRepository.findAllById(klasIds);
             leeslijst.getKlassen().addAll(klassen);
         }
 
-        return leeslijstRepository.save(leeslijst);
+        return leeslijstRepository.save(Objects.requireNonNull(leeslijst, "leeslijst is required"));
     }
 
     public List<Leeslijst> getLeeslisten(Long schoolId) {
-        return leeslijstRepository.findBySchool_Id(schoolId);
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        return leeslijstRepository.findBySchool_Id(resolvedSchoolId);
     }
 
     public List<Leeslijst> getLeeslistenForKlas(Long klasId) {
-        return leeslijstRepository.findByKlas(klasId);
+        Long resolvedKlasId = Objects.requireNonNull(klasId, "klasId is required");
+        return leeslijstRepository.findByKlas(resolvedKlasId);
     }
 
     public List<Leeslijst> getLeeslistenForUser(String userSub) {
         AppUser user = userRepository.findBySub(userSub)
-            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
-        
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
+
         // Bibbeheerders should see all lists for their school for management purposes
         if ("bibbeheerder".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
-            return leeslijstRepository.findBySchool_Id(user.getSchool().getId());
+            Long schoolId = Objects.requireNonNull(user.getSchool().getId(), "School id is required");
+            return leeslijstRepository.findBySchool_Id(schoolId);
         }
 
-        // For other users (Teachers/Students), combine lists they created with lists for their class
-        List<Leeslijst> createdByMe = leeslijstRepository.findByCreatedBy_Id(user.getId());
-        
+        // For other users (Teachers/Students), combine lists they created with lists
+        // for their class
+        Long userId = Objects.requireNonNull(user.getId(), "userId is required");
+        List<Leeslijst> createdByMe = leeslijstRepository.findByCreatedBy_Id(userId);
+
         if (user.getKlas() != null) {
-            List<Leeslijst> forMyKlas = leeslijstRepository.findByKlas(user.getKlas().getId());
-            
-            // Use a Set to merge the lists and avoid duplicates (e.g., if a teacher created a list for their own class)
+            Long klasId = Objects.requireNonNull(user.getKlas().getId(), "Klas id is required");
+            List<Leeslijst> forMyKlas = leeslijstRepository.findByKlas(klasId);
+
+            // Use a Set to merge the lists and avoid duplicates (e.g., if a teacher created
+            // a list for their own class)
             Set<Leeslijst> combined = new HashSet<>(createdByMe);
             combined.addAll(forMyKlas);
             return new ArrayList<>(combined);
         }
-        
+
         return createdByMe;
     }
 
     public Optional<Leeslijst> getLeeslijst(Long id) {
-        return leeslijstRepository.findById(id);
+        Long resolvedId = Objects.requireNonNull(id, "leeslijstId is required");
+        return leeslijstRepository.findById(resolvedId);
     }
 
     public LeeslijstDTO getLeeslijstDTO(Long id) {
-        Leeslijst leeslijst = leeslijstRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
+        Long resolvedId = Objects.requireNonNull(id, "leeslijstId is required");
+        Leeslijst leeslijst = leeslijstRepository.findById(resolvedId)
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
 
+        Long schoolId = Objects.requireNonNull(leeslijst.getSchool().getId(), "School id is required");
         LeeslijstDTO dto = new LeeslijstDTO(
             leeslijst.getId(),
             leeslijst.getTitel(),
             leeslijst.getDescription(),
-            leeslijst.getSchool().getId(),
+            schoolId,
             resolveCreatedByName(leeslijst),
-            leeslijst.getCreatedAt()
-        );
+            leeslijst.getCreatedAt());
 
         // Map books
         List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
-            .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
-                book.getId(),
-                book.getTitel(),
-                book.getAuteur(),
-                book.getCover(),
-                book.getGenre(),
-                book.getPaginas(),
-                book.getIsbn()
-            ))
-            .collect(Collectors.toList());
+                .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
+                    Objects.requireNonNull(book.getId(), "bookId is required"),
+                        book.getTitel(),
+                        book.getAuteur(),
+                        book.getCover(),
+                        book.getGenre(),
+                        book.getPaginas(),
+                        book.getIsbn()))
+                .collect(Collectors.toList());
         dto.setBooks(bookDTOs);
 
         // Map klassen
         List<String> klasNames = leeslijst.getKlassen().stream()
-            .map(Klas::getNaam)
-            .collect(Collectors.toList());
+                .map(Klas::getNaam)
+                .collect(Collectors.toList());
         dto.setKlasNames(klasNames);
 
         List<Long> klasIds = leeslijst.getKlassen().stream()
-            .map(Klas::getId)
-            .collect(Collectors.toList());
+            .map(klas -> Objects.requireNonNull(klas.getId(), "klasId is required"))
+                .collect(Collectors.toList());
         dto.setKlasIds(klasIds);
 
         if (leeslijst.getCreatedBy() != null) {
@@ -151,38 +165,37 @@ public class LeeslijstService {
     }
 
     public LeeslijstDTO convertToDTO(Leeslijst leeslijst) {
+        Long schoolId = Objects.requireNonNull(leeslijst.getSchool().getId(), "School id is required");
         LeeslijstDTO dto = new LeeslijstDTO(
             leeslijst.getId(),
             leeslijst.getTitel(),
             leeslijst.getDescription(),
-            leeslijst.getSchool().getId(),
+            schoolId,
             resolveCreatedByName(leeslijst),
-            leeslijst.getCreatedAt()
-        );
+            leeslijst.getCreatedAt());
 
         // Map books
         List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
-            .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
-                book.getId(),
-                book.getTitel(),
-                book.getAuteur(),
-                book.getCover(),
-                book.getGenre(),
-                book.getPaginas(),
-                book.getIsbn()
-            ))
-            .collect(Collectors.toList());
+                .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
+                    Objects.requireNonNull(book.getId(), "bookId is required"),
+                        book.getTitel(),
+                        book.getAuteur(),
+                        book.getCover(),
+                        book.getGenre(),
+                        book.getPaginas(),
+                        book.getIsbn()))
+                .collect(Collectors.toList());
         dto.setBooks(bookDTOs);
 
         // Map klassen
         List<String> klasNames = leeslijst.getKlassen().stream()
-            .map(Klas::getNaam)
-            .collect(Collectors.toList());
+                .map(Klas::getNaam)
+                .collect(Collectors.toList());
         dto.setKlasNames(klasNames);
 
         List<Long> klasIds = leeslijst.getKlassen().stream()
-            .map(Klas::getId)
-            .collect(Collectors.toList());
+            .map(klas -> Objects.requireNonNull(klas.getId(), "klasId is required"))
+                .collect(Collectors.toList());
         dto.setKlasIds(klasIds);
 
         if (leeslijst.getCreatedBy() != null) {
@@ -193,8 +206,9 @@ public class LeeslijstService {
     }
 
     public void deleteLeeslijst(Long id, String userSub, String userRole) {
-        Leeslijst leeslijst = leeslijstRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
+        Long resolvedId = Objects.requireNonNull(id, "leeslijstId is required");
+        Leeslijst leeslijst = leeslijstRepository.findById(resolvedId)
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
 
         if (userRole == null || userRole.isBlank()) {
             throw new SecurityException("Missing role");
@@ -214,8 +228,9 @@ public class LeeslijstService {
     }
 
     public Leeslijst updateLeeslijst(Long id, CreateLeeslijstRequest request, String userSub, String userRole) {
-        Leeslijst leeslijst = leeslijstRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
+        Long resolvedId = Objects.requireNonNull(id, "leeslijstId is required");
+        Leeslijst leeslijst = leeslijstRepository.findById(resolvedId)
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
 
         if (userRole == null || userRole.isBlank()) {
             throw new SecurityException("Missing role");
@@ -237,18 +252,26 @@ public class LeeslijstService {
         // Update books
         if (request.getBookIds() != null) {
             leeslijst.getBooks().clear();
-            List<Book> books = bookRepository.findAllById(request.getBookIds());
+            List<Long> bookIds = request.getBookIds().stream()
+                    .filter(Objects::nonNull)
+                    .map(bookId -> Objects.requireNonNull(bookId, "bookId is required"))
+                    .toList();
+            List<Book> books = bookRepository.findAllById(bookIds);
             leeslijst.getBooks().addAll(books);
         }
 
         // Update klassen
         if (request.getKlasIds() != null) {
             leeslijst.getKlassen().clear();
-            List<Klas> klassen = klasRepository.findAllById(request.getKlasIds());
+            List<Long> klasIds = request.getKlasIds().stream()
+                    .filter(Objects::nonNull)
+                    .map(klasId -> Objects.requireNonNull(klasId, "klasId is required"))
+                    .toList();
+            List<Klas> klassen = klasRepository.findAllById(klasIds);
             leeslijst.getKlassen().addAll(klassen);
         }
 
-        return leeslijstRepository.save(leeslijst);
+        return leeslijstRepository.save(Objects.requireNonNull(leeslijst, "leeslijst is required"));
     }
 
     private String resolveCreatedByName(Leeslijst leeslijst) {

@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -34,9 +35,10 @@ class JwtAuthenticationFilterTest {
     @BeforeEach
     void setUp() {
         jwtTokenProvider = new JwtTokenProvider();
-        ReflectionTestUtils.setField(jwtTokenProvider, "jwtSecret",
+        ReflectionTestUtils.setField(Objects.requireNonNull(jwtTokenProvider, "jwtTokenProvider"), "jwtSecret",
                 "test-secret-key-for-hs512-must-be-at-least-64-bytes-long-1234567890");
-        ReflectionTestUtils.setField(jwtTokenProvider, "jwtExpirationInMs", 86_400_000);
+        ReflectionTestUtils.setField(Objects.requireNonNull(jwtTokenProvider, "jwtTokenProvider"),
+            "jwtExpirationInMs", 86_400_000);
         filter = new JwtAuthenticationFilter(jwtTokenProvider, superAdminRepository);
     }
 

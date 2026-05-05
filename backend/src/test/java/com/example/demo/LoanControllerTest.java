@@ -2,7 +2,6 @@ package com.example.demo;
 
 import com.example.demo.controllers.LoanController;
 import com.example.demo.dto.LoanDto;
-import com.example.demo.entities.BookCopy;
 import com.example.demo.services.LoanService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

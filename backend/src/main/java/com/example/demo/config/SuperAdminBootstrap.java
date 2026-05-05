@@ -23,14 +23,11 @@ public class SuperAdminBootstrap implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(SuperAdminBootstrap.class);
     private final SuperAdminRepository superAdminRepository;
     private final SuperAdminSetupTokenRepository setupTokenRepository;
-    private final SuperAdminAuthService superAdminAuthService;
 
     public SuperAdminBootstrap(SuperAdminRepository superAdminRepository,
-                             SuperAdminSetupTokenRepository setupTokenRepository,
-                             SuperAdminAuthService superAdminAuthService) {
+                             SuperAdminSetupTokenRepository setupTokenRepository) {
         this.superAdminRepository = superAdminRepository;
         this.setupTokenRepository = setupTokenRepository;
-        this.superAdminAuthService = superAdminAuthService;
     }
 
     @Override

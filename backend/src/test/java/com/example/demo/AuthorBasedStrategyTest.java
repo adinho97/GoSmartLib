@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
@@ -48,7 +47,7 @@ class AuthorBasedStrategyTest {
     private Book rowlingBook1, rowlingBook2, rowlingBook3;
     private Book tolkienBook1, tolkienBook2;
     private Book herbertBook1;
-    private BookCopy copy1, copy2, copy3, copy4, copy5, copy6;
+    private BookCopy copy1, copy2, copy3, copy4;
 
     @BeforeEach
     void setUp() {
@@ -69,8 +68,6 @@ class AuthorBasedStrategyTest {
         copy2 = createBookCopy(2L, rowlingBook2);
         copy3 = createBookCopy(3L, rowlingBook3);
         copy4 = createBookCopy(4L, tolkienBook1);
-        copy5 = createBookCopy(5L, tolkienBook2);
-        copy6 = createBookCopy(6L, herbertBook1);
     }
 
     @Test

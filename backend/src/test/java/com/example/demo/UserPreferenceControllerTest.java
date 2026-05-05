@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,8 +70,7 @@ class UserPreferenceControllerTest {
         ResponseEntity<Map<String, Boolean>> response = userPreferenceController.getUserPreferences("user123");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<String, Boolean> body = response.getBody();
+        Map<String, Boolean> body = Objects.requireNonNull(response.getBody());
         assertEquals(2, body.size());
         assertTrue(body.get("recommendationExcludeRead_trending"));
         assertFalse(body.get("recommendationExcludeRead_genre"));
@@ -84,8 +85,7 @@ class UserPreferenceControllerTest {
         ResponseEntity<Map<String, Boolean>> response = userPreferenceController.getUserPreferences("user123");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<String, Boolean> body = response.getBody();
+        Map<String, Boolean> body = Objects.requireNonNull(response.getBody());
         assertTrue(body.isEmpty());
     }
 
@@ -99,7 +99,7 @@ class UserPreferenceControllerTest {
         ResponseEntity<Void> response = userPreferenceController.savePreference(null, request);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(userPreferenceRepository, never()).save(any());
+        verifyNoInteractions(userPreferenceRepository);
     }
 
     @Test
@@ -112,7 +112,7 @@ class UserPreferenceControllerTest {
         ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(userPreferenceRepository, never()).save(any());
+        verifyNoInteractions(userPreferenceRepository);
     }
 
     @Test
@@ -125,7 +125,7 @@ class UserPreferenceControllerTest {
         ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(userPreferenceRepository, never()).save(any());
+        verifyNoInteractions(userPreferenceRepository);
     }
 
     @Test
@@ -137,18 +137,16 @@ class UserPreferenceControllerTest {
 
         when(userPreferenceRepository.findByUserSubAndPreferenceKey("user123", "newKey"))
             .thenReturn(Optional.empty());
-        when(userPreferenceRepository.save(any(UserPreference.class)))
-            .thenReturn(new UserPreference("user123", "newKey", true));
 
-        @SuppressWarnings("unchecked")
         ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(userPreferenceRepository).save(argThat(pref ->
-            pref.getUserSub().equals("user123") &&
-            pref.getPreferenceKey().equals("newKey") &&
-            pref.getPreferenceValue() == true
-        ));
+        ArgumentCaptor<UserPreference> captor = ArgumentCaptor.forClass(UserPreference.class);
+        verify(userPreferenceRepository).save(captor.capture());
+        UserPreference saved = captor.getValue();
+        assertEquals("user123", saved.getUserSub());
+        assertEquals("newKey", saved.getPreferenceKey());
+        assertTrue(saved.getPreferenceValue());
     }
 
     @Test
@@ -163,17 +161,15 @@ class UserPreferenceControllerTest {
 
         when(userPreferenceRepository.findByUserSubAndPreferenceKey("user123", "existingKey"))
             .thenReturn(Optional.of(existing));
-        when(userPreferenceRepository.save(any(UserPreference.class)))
-            .thenReturn(existing);
 
-        @SuppressWarnings("unchecked")
         ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(userPreferenceRepository).save(argThat(pref ->
-            pref.getUserSub().equals("user123") &&
-            pref.getPreferenceKey().equals("existingKey") &&
-            pref.getPreferenceValue() == false
-        ));
+        ArgumentCaptor<UserPreference> captor = ArgumentCaptor.forClass(UserPreference.class);
+        verify(userPreferenceRepository).save(captor.capture());
+        UserPreference saved = captor.getValue();
+        assertEquals("user123", saved.getUserSub());
+        assertEquals("existingKey", saved.getPreferenceKey());
+        assertFalse(saved.getPreferenceValue());
     }
 }
