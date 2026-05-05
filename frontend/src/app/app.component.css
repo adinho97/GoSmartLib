@@ -678,3 +678,21 @@
 .app-shell {
   flex: 1;
 }
+
+.profile-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin: 4px 0 8px;
+}
+
+.profile-toggles .dm-toggle-btn,
+.profile-toggles .cb-toggle-btn {
+  width: 100% !important;
+  border-radius: 8px !important;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+}
