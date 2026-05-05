@@ -30,6 +30,7 @@
   margin-bottom: var(--s-5);
   overflow-x: auto;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tabs::-webkit-scrollbar {
@@ -53,6 +54,8 @@
   transition:
     color 0.15s,
     border-color 0.15s;
+  /* Larger touch target on mobile */
+  min-height: 44px;
 }
 
 .tab:hover {
@@ -193,6 +196,7 @@
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .create-new-btn:hover {
@@ -320,4 +324,86 @@
 
 .btn-sm:hover {
   background: var(--brand-700);
+}
+
+/* ── Mobile (≤ 600px) ── */
+@media (max-width: 600px) {
+  .ml-page {
+    padding: var(--s-5) 16px var(--s-7);
+  }
+
+  .ml-title {
+    font-size: 22px;
+  }
+
+  /* Tighter tab padding so all 5 tabs fit more easily */
+  .tab {
+    padding: 12px 12px 10px;
+    font-size: 13px;
+    gap: 5px;
+  }
+
+  /* Hide tab counts on very small screens to save space */
+  .tab-count {
+    display: none;
+  }
+
+  /* Section head stacks vertically so the "Nieuwe Leeslijst" button
+     doesn't get squeezed next to a long title */
+  .section-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-3);
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  /* Full-width create button on mobile */
+  .create-new-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Single-column book grid on phones */
+  .book-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 12px;
+  }
+
+  /* Single-column leeslisten cards */
+  .leeslisten-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .show-more-btn {
+    width: 100%;
+    margin-top: 24px;
+  }
+}
+
+/* ── Small-medium (601px – 768px) ── */
+@media (min-width: 601px) and (max-width: 768px) {
+  .ml-page {
+    padding: var(--s-6) 20px var(--s-7);
+  }
+
+  .tab {
+    padding: 13px 14px 11px;
+  }
+
+  /* Stack section-head if viewport is still narrow */
+  .section-head {
+    flex-wrap: wrap;
+  }
+
+  .book-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 32px 16px;
+  }
+
+  .leeslisten-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -47,6 +47,36 @@
   flex: 1;
 }
 
+.nav-toggle-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  margin: 0;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.nav-toggle-btn:hover,
+.nav-toggle-btn:focus-visible {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1f2937;
+}
+
+.nav-toggle-btn svg {
+  display: block;
+}
+
 .admin-top-nav-links a {
   padding: 6px 13px;
   border-radius: 999px;
@@ -54,7 +84,9 @@
   font-weight: 500;
   color: #4d433d;
   text-decoration: none;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .admin-top-nav-links a:hover {
@@ -571,6 +603,97 @@
 }
 
 @media (max-width: 768px) {
+  .admin-top-nav-inner,
+  .app-header-inner {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .nav-toggle-btn {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .admin-top-brand,
+  .app-logo {
+    min-width: 0;
+    margin-right: 0;
+  }
+
+  .admin-top-nav-links,
+  .app-nav {
+    order: 4;
+    width: 100%;
+    margin: 0;
+    display: none !important;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+
+  .admin-top-nav-links.open,
+  .app-nav.open {
+    display: flex !important;
+  }
+
+  .admin-top-nav-links a,
+  .app-nav a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    justify-content: flex-start;
+    box-sizing: border-box;
+  }
+
+  .app-nav-logout-btn {
+    display: flex !important;
+    align-items: center;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    background: #fff;
+    border: 1.5px solid #871f42;
+    font-size: 14px;
+    font-weight: 700;
+    color: #871f42;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      color 0.15s,
+      border-color 0.15s;
+    margin-top: 8px;
+    gap: 8px;
+  }
+
+  .app-nav-logout-btn:hover {
+    background: #fff0f4;
+    color: #871f42;
+    border-color: #6f1533;
+  }
+
+  .admin-top-account,
+  .app-header-right {
+    margin-left: auto;
+  }
+
+  .app-header-right {
+    display: none !important;
+  }
+
+  .admin-account-dropdown,
+  .profile-dropdown {
+    right: 0;
+    left: auto;
+    transform: none;
+    width: min(260px, calc(100vw - 32px));
+  }
+
   .top-nav-inner {
     flex-direction: column;
     height: auto;
@@ -585,8 +708,31 @@
   }
 
   .profile-dropdown {
-    right: 50%;
-    transform: translateX(50%);
+    right: 0;
+    left: auto;
+    transform: none;
+    width: min(260px, calc(100vw - 32px));
+  }
+
+  .admin-top-nav {
+    z-index: 1305;
+  }
+
+  .admin-context-bar {
+    padding: 0 16px;
+    height: auto;
+    min-height: 42px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .admin-context-back {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-header {
+    z-index: 905;
   }
 }
 
@@ -595,7 +741,7 @@
   position: sticky;
   top: 0;
   z-index: 900; /* Must exceed Leaflet's highest pane (popup-pane: 700) so the profile dropdown renders above the map */
-  background: rgba(250,248,246,.88);
+  background: rgba(250, 248, 246, 0.88);
   backdrop-filter: saturate(140%) blur(10px);
   -webkit-backdrop-filter: saturate(140%) blur(10px);
   border-bottom: 1px solid var(--line);
@@ -652,6 +798,10 @@
 .app-nav a.active {
   background: var(--ink);
   color: #fff;
+}
+
+.app-nav-logout-btn {
+  display: none;
 }
 
 .app-header-right {
