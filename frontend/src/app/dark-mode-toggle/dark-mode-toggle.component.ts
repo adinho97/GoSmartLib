@@ -1,3 +1,4 @@
+// dark-mode-toggle.component.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DarkModeService } from '../services/dark-mode.service';
@@ -11,5 +12,7 @@ import { DarkModeService } from '../services/dark-mode.service';
 })
 export class DarkModeToggleComponent {
   constructor(public service: DarkModeService) {}
-  get isDark(): boolean { return this.service.isDark(); }
+  get isDark(): boolean { 
+    return this.service.isDark(); 
+  }
 }
