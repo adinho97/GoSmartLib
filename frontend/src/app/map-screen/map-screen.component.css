@@ -1,28 +1,24 @@
-/* General Layout */
+/* ── General Layout ── */
 .map-page {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Full viewport height */
-  background-color: var(
-    --background-color-light
-  ); /* Assuming a variable for light background */
+  height: 100vh;
+  background-color: var(--background-color-light);
 }
 
 .map-layout {
   display: flex;
-  flex-grow: 1; /* Allows it to take remaining vertical space */
-  overflow: hidden; /* Prevents layout issues with map */
+  flex-grow: 1;
+  overflow: hidden;
 }
 
-/* Sidebar Styling */
+/* ── Sidebar ── */
 .school-sidebar {
-  flex: 0 0 350px; /* Fixed width sidebar */
-  background-color: var(
-    --background-color-card
-  ); /* Assuming a card background color */
-  border-right: 1px solid var(--border-color); /* Assuming a border color variable */
+  flex: 0 0 350px;
+  background-color: var(--background-color-card);
+  border-right: 1px solid var(--border-color);
   padding: 1.5rem;
-  overflow-y: auto; /* Scrollable if many schools */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
@@ -40,23 +36,25 @@
 .sidebar-header h2 {
   margin: 0;
   font-size: 1.3rem;
-  color: var(--text-color-dark); /* Assuming a dark text color variable */
+  color: var(--text-color-dark);
 }
 
 .school-count {
-  background-color: var(--accent-color); /* Assuming an accent color variable */
+  background-color: var(--accent-color);
   color: white;
   padding: 0.3rem 0.7rem;
   border-radius: 1rem;
   font-size: 0.85rem;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
-/* Search Bar */
+/* ── Search Bar ── */
 .search-bar {
   position: relative;
   margin-bottom: 1.5rem;
 }
+
 .search-bar input {
   width: 100%;
   padding: 0.8rem 1rem 0.8rem 2.8rem;
@@ -64,11 +62,15 @@
   border-radius: var(--border-radius);
   font-size: 0.95rem;
   transition: border-color 0.2s;
+  box-sizing: border-box;
+  min-height: 44px;
 }
+
 .search-bar input:focus {
   outline: none;
   border-color: var(--primary-color);
 }
+
 .search-icon {
   position: absolute;
   left: 0.8rem;
@@ -78,7 +80,7 @@
   pointer-events: none;
 }
 
-/* Pagination (using history-pagination style) */
+/* ── Pagination ── */
 .history-pagination {
   margin-top: 1.2rem;
   display: flex;
@@ -86,20 +88,20 @@
   gap: 0.4rem;
   flex-wrap: wrap;
   max-width: 100%;
-  padding: 1.5rem 0 0.5rem; /* Added padding to match previous sidebar-pagination */
-  border-top: 1px solid var(--border-color-light); /* Added border-top */
+  padding: 1.5rem 0 0.5rem;
+  border-top: 1px solid var(--border-color-light);
 }
 
 .history-page-btn {
-  min-width: 32px;
-  height: 32px;
-  border-radius: 999px; /* Changed to 999px for full circle */
-  border: 1px solid var(--border-color); /* Using var for consistency */
+  min-width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
   background: white;
-  color: var(--text-color-medium); /* Using var for consistency */
+  color: var(--text-color-medium);
   font-weight: 600;
   cursor: pointer;
-  font-family: Arial, sans-serif; /* Explicitly set font */
+  font-family: Arial, sans-serif;
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -107,12 +109,12 @@
 }
 
 .history-page-btn:hover {
-  background: var(--hover-color); /* Using var for consistency */
+  background: var(--hover-color);
 }
 
 .history-page-btn.active {
-  background: var(--primary-color); /* Using var for consistency */
-  border-color: var(--primary-color); /* Using var for consistency */
+  background: var(--primary-color);
+  border-color: var(--primary-color);
   color: #ffffff;
 }
 
@@ -121,6 +123,7 @@
   cursor: not-allowed;
 }
 
+/* ── School List ── */
 .school-list {
   list-style: none;
   padding: 0;
@@ -134,21 +137,22 @@
   padding: 1rem;
   margin-bottom: 0.5rem;
   background-color: white;
-  border-radius: var(--border-radius); /* Assuming a border-radius variable */
+  border-radius: var(--border-radius);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  min-height: 44px;
 }
 
 .school-item:hover {
-  background-color: var(--hover-color); /* Assuming a hover color variable */
+  background-color: var(--hover-color);
   transform: translateY(-2px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
 }
 
 .school-item.selected {
   border: 2px solid var(--primary-color);
-  background-color: var(--primary-color-light); /* Lighter shade of primary */
+  background-color: var(--primary-color-light);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
@@ -166,7 +170,7 @@
 
 .school-address {
   font-size: 0.85rem;
-  color: var(--text-color-medium); /* Assuming a medium text color variable */
+  color: var(--text-color-medium);
   margin-top: 0.2rem;
 }
 
@@ -177,24 +181,24 @@
   font-style: italic;
 }
 
-/* Map Container Styling */
+/* ── Map ── */
 .map-main {
   flex-grow: 1;
-  position: relative; /* For loader positioning */
-  background-color: #e0e0e0; /* Placeholder background */
+  position: relative;
+  background-color: #e0e0e0;
 }
 
 .map-canvas {
   width: 100%;
   height: 100%;
-  background-color: #f0f0f0; /* Light background for map area */
+  background-color: #f0f0f0;
   border-radius: var(--border-radius);
-  overflow: hidden; /* Ensure map tiles stay within bounds */
+  overflow: hidden;
 }
 
-/* Leaflet specific overrides (optional, but good for consistency) */
+/* ── Leaflet overrides ── */
 .leaflet-container {
-  font-family: "Inter", sans-serif; /* Assuming Inter font is used */
+  font-family: "Inter", sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   color: var(--text-color-dark);
@@ -209,7 +213,7 @@
   margin: 0;
 }
 
-/* Popup Custom Styling */
+/* ── Popup ── */
 .map-popup-card {
   padding: 4px;
   min-width: 180px;
@@ -238,13 +242,14 @@
   font-weight: 600;
   font-size: 0.85rem;
   transition: opacity 0.2s;
+  min-height: 44px;
 }
 
 .popup-nav-btn:hover {
   opacity: 0.9;
 }
 
-/* Loading Spinner */
+/* ── Loading Spinner ── */
 .map-loader {
   position: absolute;
   top: 0;
@@ -256,7 +261,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Above the map */
+  z-index: 1000;
   border-radius: var(--border-radius);
   font-size: 1.1rem;
   color: var(--text-color-dark);
@@ -281,57 +286,105 @@
   }
 }
 
-/* Responsive Adjustments */
+/* ── Mobile (≤ 768px) ──
+   On mobile the fixed 100vh layout is replaced with a natural
+   scrolling page: sidebar on top, map below. The user scrolls
+   down to reach the map, which avoids the "trapped in viewport"
+   problem of a fixed-height layout on phones.
+── */
 @media (max-width: 768px) {
-  .map-layout {
-    flex-direction: column;
+  /* Let the page scroll naturally instead of being viewport-locked */
+  .map-page {
+    height: auto;
+    min-height: 100vh;
   }
 
+  /* Stack sidebar above map */
+  .map-layout {
+    flex-direction: column;
+    overflow: visible; /* allow natural page scroll */
+  }
+
+  /* Sidebar: full width, scrolls with the page */
   .school-sidebar {
-    flex: none; /* Remove fixed width */
+    flex: none;
     width: 100%;
-    max-height: 40vh; /* Limit height on small screens */
-    max-height: 40vh; /* Limit height on small screens */
+    max-height: none; /* no height cap — shows all schools */
+    overflow-y: visible;
     border-right: none;
     border-bottom: 1px solid var(--border-color);
     padding: 1rem;
-  }
-
-  .map-header {
-    padding: 1rem 1.5rem;
-  }
-
-  .map-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .map-header p {
-    font-size: 0.8rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   }
 
   .sidebar-header {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .sidebar-header h2 {
     font-size: 1.1rem;
   }
 
-  .school-item {
-    padding: 0.8rem;
-    margin-bottom: 0.4rem;
+  .search-bar {
+    margin-bottom: 0.75rem;
   }
 
-  .school-icon {
-    font-size: 1.5rem;
-    margin-right: 0.8rem;
+  /* Compact school items for the list */
+  .school-item {
+    padding: 0.75rem;
+    margin-bottom: 0.35rem;
   }
 
   .school-name {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .school-address {
+    font-size: 0.78rem;
+  }
+
+  /* Map: fixed height below the sidebar so it's usable
+     without taking over the whole screen */
+  .map-main {
+    width: 100%;
+    height: 55vw; /* ~55% of viewport width — landscape-ish ratio */
+    min-height: 280px;
+    max-height: 420px;
+    position: relative;
+  }
+
+  .map-canvas {
+    height: 100%;
+    border-radius: 0; /* edge-to-edge on mobile */
+  }
+
+  /* Scroll hint label above map */
+  .map-main::before {
+    content: "↓ Scroll omlaag voor de kaart";
+    display: block;
+    text-align: center;
     font-size: 0.75rem;
+    color: var(--text-color-medium);
+    padding: 6px 0 4px;
+    background: var(--background-color-light);
+    letter-spacing: 0.02em;
+  }
+
+  /* Pagination: bigger tap targets */
+  .history-page-btn {
+    min-width: 40px;
+    height: 40px;
+  }
+}
+
+/* ── Small tablets (769px – 1024px) ── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .school-sidebar {
+    flex: 0 0 280px;
+    padding: 1rem;
+  }
+
+  .sidebar-header h2 {
+    font-size: 1.1rem;
   }
 }

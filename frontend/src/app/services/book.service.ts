@@ -50,7 +50,12 @@ export interface PagedBooksResponse {
 }
 
 export interface SchoolStatistics {
-  mostReadBook: { id: number; titel: string; auteur: string; count: number } | null;
+  mostReadBook: {
+    id: number;
+    titel: string;
+    auteur: string;
+    count: number;
+  } | null;
   topReader: { sub: string; displayName: string; count: number } | null;
   topClass: { name: string; count: number } | null;
   totalLoans: number;
@@ -139,7 +144,8 @@ export class BookService {
     return this.http.get<Book[]>(this.apiUrl);
   }
 
-  getBookById(id: number): Observable<Book> { // TODO: This should use axios for consistency
+  getBookById(id: number): Observable<Book> {
+    // TODO: This should use axios for consistency
     return this.http.get<Book>(this.withSchoolId(`${this.apiUrl}/${id}`));
   }
 
@@ -566,6 +572,93 @@ export class BookService {
   async getSchoolStatistics(schoolId: number): Promise<SchoolStatistics> {
     const res = await axios.get<SchoolStatistics>(
       `/api/scholen/${schoolId}/statistieken`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async createLeeslijst(
+    titel: string,
+    description: string,
+    bookIds: number[],
+    klasIds: number[],
+  ): Promise<any> {
+    const res = await axios.post(
+      `/api/leeslisten`,
+      {
+        titel,
+        description,
+        bookIds,
+        klasIds,
+      },
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async getLeeslijst(id: number): Promise<any> {
+    const res = await axios.get(
+      `/api/leeslisten/${id}`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async updateLeeslijst(
+    id: number,
+    titel: string,
+    description: string,
+    bookIds: number[],
+    klasIds: number[],
+  ): Promise<any> {
+    const res = await axios.put(
+      `/api/leeslisten/${id}`,
+      {
+        titel,
+        description,
+        bookIds,
+        klasIds,
+      },
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async deleteLeeslijst(id: number): Promise<void> {
+    await axios.delete(`/api/leeslisten/${id}`, this.getFullAuthHeaders());
+  }
+
+  async getLeeslisten(schoolId: number): Promise<any[]> {
+    const res = await axios.get(
+      `/api/leeslisten/school/${schoolId}`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async getLeeslistenForKlas(klasId: number): Promise<any[]> {
+    const res = await axios.get(
+      `/api/leeslisten/klas/${klasId}`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async getMyLeeslisten(): Promise<any[]> {
+    const res = await axios.get(
+      `/api/leeslisten/mijn`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async getUserKlas(): Promise<{
+    klasId: number;
+    klasName: string;
+    schoolId: number;
+  }> {
+    const res = await axios.get(
+      `/api/gebruikers/me/klas`,
       this.getFullAuthHeaders(),
     );
     return res.data;

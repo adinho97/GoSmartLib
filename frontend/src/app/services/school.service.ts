@@ -3,6 +3,12 @@ import axios from "axios";
 import { School } from "../models/school";
 import { from, Observable, map } from "rxjs";
 
+export interface KlasListItem {
+  id: number;
+  groupId: string;
+  naam: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -36,6 +42,16 @@ export class SchoolService {
         params: { page, size, query },
       }),
     ).pipe(map((res) => ({ items: res.data.items, total: res.data.total })));
+  }
+
+  /**
+   * Fetch klassen (classes) for a school
+   */
+  async getKlassenBySchool(schoolId: number): Promise<KlasListItem[]> {
+    const res = await axios.get<KlasListItem[]>(
+      `${this.apiUrl}/${schoolId}/klassen`,
+    );
+    return res.data;
   }
 
   getSelectedSchoolId(): number | null {

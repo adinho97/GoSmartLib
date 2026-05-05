@@ -23,6 +23,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class ImportCoreServiceTest {
 
@@ -65,7 +66,7 @@ class ImportCoreServiceTest {
         assertNotNull(result.bookDto());
         assertEquals("Dune", result.bookDto().getTitel());
         verify(openLibraryService, never()).fetchBookFromOpenLibrary(any());
-        verify(bookRepository, never()).save(any());
+        verify(bookRepository, never()).save(any(Book.class));
     }
 
     @Test
@@ -93,7 +94,7 @@ class ImportCoreServiceTest {
 
         assertEquals(ImportCoreService.ImportStatus.NOT_FOUND, result.status());
         assertNull(result.bookDto());
-        verify(bookRepository, never()).save(any());
+        verify(bookRepository, never()).save(any(Book.class));
     }
 
     @Test
@@ -103,7 +104,8 @@ class ImportCoreServiceTest {
         Book fetched = makeBook();
         fetched.setIsbn("978-0-553-80804-9");
         when(openLibraryService.fetchBookFromOpenLibrary("9780553808049")).thenReturn(fetched);
-        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookRepository.save(any(Book.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         ImportCoreService.ImportOutcome result = importCoreService.importByNormalizedIsbn("9780553808049",
                 makeSchool());

@@ -175,7 +175,8 @@ public class SuperAdminAuthService {
 
         // Update password
         admin.setPasswordHash(passwordEncoder.encode(newPassword));
-        admin.setTokenVersion(admin.getTokenVersion() + 1L);
+        Long currentTokenVersion = admin.getTokenVersion();
+        admin.setTokenVersion((currentTokenVersion == null ? 0L : currentTokenVersion) + 1L);
         admin.setUpdatedAt(LocalDateTime.now());
         superAdminRepository.save(admin);
         logger.info("Password changed successfully for userId: {}", userId);

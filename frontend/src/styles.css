@@ -2,6 +2,12 @@
 
 @import "leaflet/dist/leaflet.css";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 /* ─── GO!SmartLib design tokens ─── */
 :root {
   --brand: #871f42;
@@ -55,6 +61,34 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+main,
+app-root {
+  min-width: 0;
 }
 
 input {
@@ -241,17 +275,25 @@ html.dark .preview-modal-header h2 {
   color: var(--ink);
 }
 
-html.dark .info-grid div { color: var(--ink-2); }
-html.dark .info-grid span { color: var(--ink); }
+html.dark .info-grid div {
+  color: var(--ink-2);
+}
+html.dark .info-grid span {
+  color: var(--ink);
+}
 html.dark .book-description p,
 html.dark .review-comment,
-html.dark .publish-review-card p { color: var(--ink-2); }
+html.dark .publish-review-card p {
+  color: var(--ink-2);
+}
 
 html.dark .book-description,
 html.dark .review-section,
 html.dark .lestip-section,
 html.dark .review-form,
-html.dark .review-item { border-color: var(--line); }
+html.dark .review-item {
+  border-color: var(--line);
+}
 
 /* Inputs & textareas */
 html.dark .lestip-section textarea,
@@ -268,17 +310,33 @@ html.dark .lestip-content {
   border-color: var(--line-strong);
   border-left-color: var(--brand);
 }
-html.dark .lestip-content p { color: var(--ink-2); }
-html.dark .lestip-author { color: var(--ink-3) !important; }
+html.dark .lestip-content p {
+  color: var(--ink-2);
+}
+html.dark .lestip-author {
+  color: var(--ink-3) !important;
+}
 
 /* Review auteur & datum */
-html.dark .review-author { color: var(--ink); }
-html.dark .review-date { color: var(--ink-3); }
-html.dark .average-rating { color: var(--ink-3); }
+html.dark .review-author {
+  color: var(--ink);
+}
+html.dark .review-date {
+  color: var(--ink-3);
+}
+html.dark .average-rating {
+  color: var(--ink-3);
+}
 html.dark .review-form label,
-html.dark .review-edit-form label { color: var(--ink-3); }
-html.dark .review-author-row { color: var(--ink-2); }
-html.dark .no-reviews { color: var(--ink-3); }
+html.dark .review-edit-form label {
+  color: var(--ink-3);
+}
+html.dark .review-author-row {
+  color: var(--ink-2);
+}
+html.dark .no-reviews {
+  color: var(--ink-3);
+}
 
 /* Icon knoppen */
 html.dark .action-icon-btn.edit-review-btn,
@@ -333,9 +391,18 @@ html.dark .preview-modal-overlay {
 }
 
 /* Badges */
-html.dark .avail-badge.available { background: #0d2e12; color: #6fcf85; }
-html.dark .avail-badge.unavailable { background: #2a0d0d; color: #f08080; }
-html.dark .avail-badge.none { background: var(--surface-2); color: var(--ink-3); }
+html.dark .avail-badge.available {
+  background: #0d2e12;
+  color: #6fcf85;
+}
+html.dark .avail-badge.unavailable {
+  background: #2a0d0d;
+  color: #f08080;
+}
+html.dark .avail-badge.none {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
 
 html.dark .preview-btn,
 html.dark .save-lestip-btn,
@@ -349,50 +416,87 @@ html.dark .lib-action-btn.active {
 /* ─── Dark mode: boekkaart ─── */
 html.dark .book-card {
   background: var(--surface);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 html.dark .book-card:hover {
-  box-shadow: 0 15px 35px rgba(135,31,66,0.2);
+  box-shadow: 0 15px 35px rgba(135, 31, 66, 0.2);
 }
 html.dark .book-card.teacher-card {
   background: var(--surface-2);
 }
-html.dark .author { color: var(--ink-3); }
-html.dark .book-meta { color: var(--ink-4); }
-html.dark .loan-date { color: var(--ink-4); }
-html.dark .cover-placeholder { background: var(--surface-2); color: var(--ink-3); }
-html.dark .remove-button { color: var(--ink-3); }
+html.dark .author {
+  color: var(--ink-3);
+}
+html.dark .book-meta {
+  color: var(--ink-4);
+}
+html.dark .loan-date {
+  color: var(--ink-4);
+}
+html.dark .cover-placeholder {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+html.dark .remove-button {
+  color: var(--ink-3);
+}
 
 /* ─── Dark mode: info pagina ─── */
-html.dark .info-page { background: var(--bg); color: var(--ink); }
+html.dark .info-page {
+  background: var(--bg);
+  color: var(--ink);
+}
 
 html.dark .info-hero {
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
   border-bottom-color: var(--line);
 }
-html.dark .info-hero h1 { color: var(--ink); }
-html.dark .info-hero p { color: var(--ink-3); }
+html.dark .info-hero h1 {
+  color: var(--ink);
+}
+html.dark .info-hero p {
+  color: var(--ink-3);
+}
 
 html.dark .info-card {
   background: var(--surface);
   border-color: var(--line);
   color: var(--ink-2);
 }
-html.dark .info-card h2 { color: var(--ink); }
-html.dark .tip-card { background: var(--surface-2); border-color: var(--line-strong); }
+html.dark .info-card h2 {
+  color: var(--ink);
+}
+html.dark .tip-card {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
 
-html.dark .faq-item { background: var(--surface-2); border-color: var(--line); }
-html.dark .faq-question { color: var(--ink); background: transparent; }
-html.dark .faq-question:hover { background: var(--surface); }
-html.dark .faq-indicator { color: var(--ink-3); }
-html.dark .faq-answer { color: var(--ink-2); }
+html.dark .faq-item {
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+html.dark .faq-question {
+  color: var(--ink);
+  background: transparent;
+}
+html.dark .faq-question:hover {
+  background: var(--surface);
+}
+html.dark .faq-indicator {
+  color: var(--ink-3);
+}
+html.dark .faq-answer {
+  color: var(--ink-2);
+}
 
 html.dark .edit-hero-btn {
   background: var(--surface-2);
   border-color: var(--line-strong);
   color: var(--ink);
 }
-html.dark .edit-hero-btn:hover { background: var(--surface); }
+html.dark .edit-hero-btn:hover {
+  background: var(--surface);
+}
 
 /* ─── Dark mode: terugknop onzichtbaar fix ─── */
 html.dark .back-btn {
@@ -415,16 +519,22 @@ html.dark input {
   color: var(--ink) !important;
 }
 html.dark textarea::placeholder,
-html.dark input::placeholder { color: var(--ink-4) !important; }
+html.dark input::placeholder {
+  color: var(--ink-4) !important;
+}
 
 /* ─── Dark mode: profiel dropdown ─── */
 html.dark .profile-dropdown {
   background: var(--surface);
   border-color: var(--line);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
-html.dark .profile-name { color: var(--ink); }
-html.dark .profile-role-text { color: var(--ink-3); }
+html.dark .profile-name {
+  color: var(--ink);
+}
+html.dark .profile-role-text {
+  color: var(--ink-3);
+}
 html.dark .profile-logout-btn {
   background: var(--surface-2) !important;
   border-color: var(--line-strong) !important;
@@ -432,17 +542,27 @@ html.dark .profile-logout-btn {
 }
 
 /* ─── Dark mode: boekenlijst pagina ─── */
-html.dark .book-list-page { color: var(--ink); }
-html.dark .book-list-page h1 { color: var(--ink); }
-html.dark .header-text p { color: var(--ink-3); }
+html.dark .book-list-page {
+  color: var(--ink);
+}
+html.dark .book-list-page h1 {
+  color: var(--ink);
+}
+html.dark .header-text p {
+  color: var(--ink-3);
+}
 
 /* Filters sidebar */
 html.dark .filters-sidebar {
   background: var(--surface);
   border-color: var(--line);
 }
-html.dark .filters-sidebar h2 { color: var(--ink); }
-html.dark .filters-sidebar label { color: var(--ink-3); }
+html.dark .filters-sidebar h2 {
+  color: var(--ink);
+}
+html.dark .filters-sidebar label {
+  color: var(--ink-3);
+}
 html.dark .filters-sidebar select,
 html.dark .filters-sidebar input[type="date"] {
   background: var(--surface-2);
@@ -462,7 +582,9 @@ html.dark .school-selector-bar select {
 }
 
 /* Zoekbalk */
-html.dark .search-bar-wrapper label { color: var(--ink-3); }
+html.dark .search-bar-wrapper label {
+  color: var(--ink-3);
+}
 html.dark .search-bar-wrapper input {
   background: var(--surface-2) !important;
   border-color: var(--line-strong) !important;
@@ -502,23 +624,33 @@ html.dark .book-card.didactic-card {
   background: var(--surface-2) !important;
   border-color: #e67e22 !important;
 }
-html.dark .book-content h2 { color: var(--ink); }
-html.dark .book-meta-group .book-meta { color: var(--ink-3); }
-html.dark .book-cover-slot { background: var(--surface-2); }
-html.dark .book-cover-placeholder { color: var(--ink-3); }
+html.dark .book-content h2 {
+  color: var(--ink);
+}
+html.dark .book-meta-group .book-meta {
+  color: var(--ink-3);
+}
+html.dark .book-cover-slot {
+  background: var(--surface-2);
+}
+html.dark .book-cover-placeholder {
+  color: var(--ink-3);
+}
 
 /* Rating chip */
 html.dark .rating-chip {
   background: rgba(28, 25, 23, 0.92);
-  border-color: rgba(255,255,255,0.1);
+  border-color: rgba(255, 255, 255, 0.1);
 }
-html.dark .rating-chip-count { color: var(--ink-3); }
+html.dark .rating-chip-count {
+  color: var(--ink-3);
+}
 
 /* Kebab menu */
 html.dark .kebab-menu {
   background: var(--surface);
   border-color: var(--line);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 html.dark .kebab-item {
   background: transparent !important;
@@ -548,36 +680,81 @@ html.dark select option {
 }
 
 /* ─── Dark mode: boekdetail tekst fix ─── */
-html.dark .info-grid div { color: var(--ink-2) !important; }
-html.dark .info-grid span { color: var(--ink) !important; }
-html.dark .book-description p { color: var(--ink-2) !important; }
-html.dark .book-title { color: var(--ink) !important; }
+html.dark .info-grid div {
+  color: var(--ink-2) !important;
+}
+html.dark .info-grid span {
+  color: var(--ink) !important;
+}
+html.dark .book-description p {
+  color: var(--ink-2) !important;
+}
+html.dark .book-title {
+  color: var(--ink) !important;
+}
 
-html.dark .review-author-row { color: var(--ink-2) !important; }
-html.dark .review-author-row strong { color: var(--brand) !important; }
-html.dark .review-author { color: var(--ink) !important; }
-html.dark .review-comment { color: var(--ink-2) !important; }
-html.dark .review-date { color: var(--ink-3) !important; }
-html.dark .average-rating { color: var(--ink-3) !important; }
+html.dark .review-author-row {
+  color: var(--ink-2) !important;
+}
+html.dark .review-author-row strong {
+  color: var(--brand) !important;
+}
+html.dark .review-author {
+  color: var(--ink) !important;
+}
+html.dark .review-comment {
+  color: var(--ink-2) !important;
+}
+html.dark .review-date {
+  color: var(--ink-3) !important;
+}
+html.dark .average-rating {
+  color: var(--ink-3) !important;
+}
 html.dark .review-form label,
-html.dark .review-edit-form label { color: var(--ink-3) !important; }
-html.dark .no-reviews { color: var(--ink-3) !important; }
+html.dark .review-edit-form label {
+  color: var(--ink-3) !important;
+}
+html.dark .no-reviews {
+  color: var(--ink-3) !important;
+}
 
-html.dark .lestip-content p { color: var(--ink-2) !important; }
-html.dark .lestip-author { color: var(--ink-3) !important; }
-html.dark .lestip-section h3 { color: var(--ink) !important; }
+html.dark .lestip-content p {
+  color: var(--ink-2) !important;
+}
+html.dark .lestip-author {
+  color: var(--ink-3) !important;
+}
+html.dark .lestip-section h3 {
+  color: var(--ink) !important;
+}
 
-html.dark .publish-review-card p { color: var(--ink-2) !important; }
-html.dark .publish-review-card h3 { color: var(--ink) !important; }
-html.dark .preview-modal-header h2 { color: var(--ink) !important; }
+html.dark .publish-review-card p {
+  color: var(--ink-2) !important;
+}
+html.dark .publish-review-card h3 {
+  color: var(--ink) !important;
+}
+html.dark .preview-modal-header h2 {
+  color: var(--ink) !important;
+}
 
 html.dark .avail-badge {
   color: var(--ink-2) !important;
   background: var(--surface-2) !important;
 }
-html.dark .avail-badge.available { background: #0d2e12 !important; color: #6fcf85 !important; }
-html.dark .avail-badge.unavailable { background: #2a0d0d !important; color: #f08080 !important; }
-html.dark .avail-badge.none { background: var(--surface-2) !important; color: var(--ink-3) !important; }
+html.dark .avail-badge.available {
+  background: #0d2e12 !important;
+  color: #6fcf85 !important;
+}
+html.dark .avail-badge.unavailable {
+  background: #2a0d0d !important;
+  color: #f08080 !important;
+}
+html.dark .avail-badge.none {
+  background: var(--surface-2) !important;
+  color: var(--ink-3) !important;
+}
 html.dark .wishlist-button,
 html.dark .wishlist-toggle-btn,
 html.dark .wishlist-toggle-detail {

@@ -1,7 +1,15 @@
 .fun-badges {
   background:
-    radial-gradient(120% 80% at 0% 0%, rgba(245,158,11,.12), transparent 60%),
-    radial-gradient(120% 80% at 100% 100%, rgba(135,31,66,.10), transparent 55%),
+    radial-gradient(
+      120% 80% at 0% 0%,
+      rgba(245, 158, 11, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      120% 80% at 100% 100%,
+      rgba(135, 31, 66, 0.1),
+      transparent 55%
+    ),
     var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -28,14 +36,21 @@
   width: 38px;
   height: 38px;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 30%, #ffd97a 0%, #f5b820 50%, #c9890e 100%);
+  background: radial-gradient(
+    circle at 30% 30%,
+    #ffd97a 0%,
+    #f5b820 50%,
+    #c9890e 100%
+  );
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #4a2e05;
   font-weight: 800;
   font-size: 15px;
-  box-shadow: 0 4px 10px -2px rgba(201,137,14,.5), inset 0 -2px 0 rgba(0,0,0,.12);
+  box-shadow:
+    0 4px 10px -2px rgba(201, 137, 14, 0.5),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.12);
   border: 2px solid #fff;
   flex-shrink: 0;
 }
@@ -63,7 +78,7 @@
   color: #fff;
   font-weight: 700;
   font-size: 12px;
-  box-shadow: 0 2px 6px rgba(240,69,69,.3);
+  box-shadow: 0 2px 6px rgba(240, 69, 69, 0.3);
   white-space: nowrap;
 }
 
@@ -79,27 +94,44 @@
 
 .xp-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--brand) 0%, #d4537e 50%, #f5b820 100%);
+  background: linear-gradient(
+    90deg,
+    var(--brand) 0%,
+    #d4537e 50%,
+    #f5b820 100%
+  );
   border-radius: 999px;
   position: relative;
   transition: width 0.4s ease;
 }
 
 .xp-fill::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.4) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
   animation: shimmer 2s infinite;
 }
 
 @keyframes shimmer {
-  0%, 100% { transform: translateX(-100%); }
-  50% { transform: translateX(100%); }
+  0%,
+  100% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .xp-fill::after { animation: none; }
+  .xp-fill::after {
+    animation: none;
+  }
 }
 
 .xp-meta {
@@ -112,13 +144,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Badge sections ── */
+.badge-section {
+  margin-top: var(--s-4);
+}
+
+.badge-section-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-3);
+  margin: 0 0 8px;
+}
+
 .badge-row {
   display: flex;
   gap: 10px;
-  margin-top: var(--s-4);
   flex-wrap: wrap;
 }
 
+/* ── Chip base ── */
 .badge-chip {
   display: flex;
   flex-direction: column;
@@ -131,12 +177,30 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   transition: transform 0.15s;
-  cursor: pointer;
+  cursor: default;
+  position: relative;
 }
 
-.badge-chip:hover { transform: translateY(-2px); }
-.badge-chip:focus { outline: 2px solid var(--brand); outline-offset: 2px; }
-.badge-chip.locked { opacity: 0.45; filter: grayscale(0.6); }
+.badge-chip:hover {
+  transform: translateY(-2px);
+}
+.badge-chip:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.badge-chip.locked::after {
+  content: "🔒";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 12px;
+  line-height: 1;
+  font-family:
+    "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
+    "Twemoji Mozilla", "Segoe UI Symbol", "Arial", sans-serif;
+  font-variant-emoji: emoji;
+}
 
 .badge-icon {
   width: 32px;
@@ -145,19 +209,68 @@
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  line-height: 1;
+  color: #1a1614;
+  font-family:
+    "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
+    "Twemoji Mozilla", "Segoe UI Symbol", "Arial", sans-serif;
+  font-variant-emoji: emoji;
   border-radius: 999px;
   background: linear-gradient(160deg, #fff 0%, #f3efeb 100%);
   border: 2px solid var(--line);
 }
 
-.badge-chip.b1 .badge-icon { background: linear-gradient(160deg, #ffd97a, #f5b820); border-color: #f5b820; }
-.badge-chip.b2 .badge-icon { background: linear-gradient(160deg, #c8dde8, #6ba3c4); border-color: #6ba3c4; }
-.badge-chip.b3 .badge-icon { background: linear-gradient(160deg, #f5e3eb, #d4537e); border-color: #d4537e; }
-.badge-chip.b4 .badge-icon { background: linear-gradient(160deg, #d4e6d8, #6ba87e); border-color: #6ba87e; }
-.badge-chip.b5 .badge-icon { background: linear-gradient(160deg, #ece3f8, #9b6dcf); border-color: #9b6dcf; }
-.badge-chip.b6 .badge-icon { background: linear-gradient(160deg, #d0f0f4, #3aabbf); border-color: #3aabbf; }
-.badge-chip.b7 .badge-icon { background: linear-gradient(160deg, #fde8d0, #e07d30); border-color: #e07d30; }
-.badge-chip.b8 .badge-icon { background: linear-gradient(160deg, #fff8c0, #f5c800); border-color: #c9a800; }
+/* ── Loan badge colours (lb1–lb6) ── */
+.badge-chip.lb1 .badge-icon {
+  background: linear-gradient(160deg, #ffd97a, #f5b820);
+  border-color: #f5b820;
+}
+.badge-chip.lb2 .badge-icon {
+  background: linear-gradient(160deg, #c8dde8, #6ba3c4);
+  border-color: #6ba3c4;
+}
+.badge-chip.lb3 .badge-icon {
+  background: linear-gradient(160deg, #f5e3eb, #d4537e);
+  border-color: #d4537e;
+}
+.badge-chip.lb4 .badge-icon {
+  background: linear-gradient(160deg, #d4e6d8, #6ba87e);
+  border-color: #6ba87e;
+}
+.badge-chip.lb5 .badge-icon {
+  background: linear-gradient(160deg, #d0f0f4, #3aabbf);
+  border-color: #3aabbf;
+}
+.badge-chip.lb6 .badge-icon {
+  background: linear-gradient(160deg, #fff8c0, #f5c800);
+  border-color: #c9a800;
+}
+
+/* ── Review badge colours (rb1–rb6) ── */
+.badge-chip.rb1 .badge-icon {
+  background: linear-gradient(160deg, #fde8d0, #e07d30);
+  border-color: #e07d30;
+}
+.badge-chip.rb2 .badge-icon {
+  background: linear-gradient(160deg, #ece3f8, #9b6dcf);
+  border-color: #9b6dcf;
+}
+.badge-chip.rb3 .badge-icon {
+  background: linear-gradient(160deg, #d4ecd8, #4caf70);
+  border-color: #4caf70;
+}
+.badge-chip.rb4 .badge-icon {
+  background: linear-gradient(160deg, #fde8f0, #e05580);
+  border-color: #e05580;
+}
+.badge-chip.rb5 .badge-icon {
+  background: linear-gradient(160deg, #fff3c0, #f0b429);
+  border-color: #f0b429;
+}
+.badge-chip.rb6 .badge-icon {
+  background: linear-gradient(160deg, #e0d4f8, #7c4ddb);
+  border-color: #7c4ddb;
+}
 
 .badge-more .badge-icon {
   font-size: 14px;

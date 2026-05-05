@@ -4,9 +4,7 @@ import com.example.demo.config.AuthService;
 import com.example.demo.config.SmartschoolMessageRequest;
 import com.example.demo.config.SmartschoolMessageService;
 import com.example.demo.config.SmartschoolProperties;
-import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Loan;
-import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.LoanRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,16 +23,14 @@ public class LoanReminderService {
     private static final Logger logger = LoggerFactory.getLogger(LoanReminderService.class);
 
     private final LoanRepository loanRepository;
-    private final AppUserRepository appUserRepository;
     private final SmartschoolMessageService smartschoolMessageService;
     private final AuthService authService;
     private final SmartschoolProperties smartschoolProperties;
 
-    public LoanReminderService(LoanRepository loanRepository, AppUserRepository appUserRepository,
-            SmartschoolMessageService smartschoolMessageService, AuthService authService,
-            SmartschoolProperties smartschoolProperties) {
+    public LoanReminderService(LoanRepository loanRepository,
+        SmartschoolMessageService smartschoolMessageService, AuthService authService,
+        SmartschoolProperties smartschoolProperties) {
         this.loanRepository = loanRepository;
-        this.appUserRepository = appUserRepository;
         this.smartschoolMessageService = smartschoolMessageService;
         this.authService = authService;
         this.smartschoolProperties = smartschoolProperties;

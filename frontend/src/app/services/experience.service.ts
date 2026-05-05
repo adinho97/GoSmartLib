@@ -19,6 +19,7 @@ export class ExperienceService {
   private readonly STORAGE_KEY = "userExperience";
   private readonly CLAIMED_BADGE_REWARDS_KEY = "claimedBadgeRewards";
   private readonly LOAN_XP_SYNCED_COUNT_KEY = "loanXpSyncedCount";
+  private readonly REVIEW_XP_SYNCED_COUNT_KEY = "reviewXpSyncedCount";
   private readonly API_URL = "/api/user/experience";
   private readonly backendSyncDebounceMs = 350;
   private readonly BASE_EXPERIENCE = 40;
@@ -125,6 +126,26 @@ export class ExperienceService {
     )) {
       if (normalizedLoanCount >= threshold) {
         this.addExperienceForBadge(threshold, "loan");
+      }
+    }
+  }
+
+  reconcileReviewExperienceFromHistory(reviewCount: number): void {
+    const normalizedReviewCount = Math.max(0, Math.floor(Number(reviewCount) || 0));
+    const previouslySyncedReviewCount = this.readReviewXpSyncedCount();
+    const delta = normalizedReviewCount - previouslySyncedReviewCount;
+
+    if (delta > 0) {
+      this.addExperience(delta * this.REWARDS.reviewWritten);
+    } else if (delta < 0) {
+      this.removeExperience(Math.abs(delta) * this.REWARDS.reviewWritten);
+    }
+
+    this.persistReviewXpSyncedCount(normalizedReviewCount);
+
+    for (const threshold of Object.keys(this.BADGE_THRESHOLD_REWARDS).map(Number)) {
+      if (normalizedReviewCount >= threshold) {
+        this.addExperienceForBadge(threshold, "review");
       }
     }
   }
@@ -391,6 +412,21 @@ export class ExperienceService {
     localStorage.setItem(
       this.getUserScopedKey(this.LOAN_XP_SYNCED_COUNT_KEY),
       Math.max(0, Math.floor(Number(loanCount) || 0)).toString(),
+    );
+  }
+
+  private readReviewXpSyncedCount(): number {
+    const rawValue = this.readScopedValueWithLegacyMigration(
+      this.REVIEW_XP_SYNCED_COUNT_KEY,
+    );
+    const parsedValue = rawValue ? parseInt(rawValue, 10) : 0;
+    return Number.isFinite(parsedValue) ? Math.max(0, parsedValue) : 0;
+  }
+
+  private persistReviewXpSyncedCount(reviewCount: number): void {
+    localStorage.setItem(
+      this.getUserScopedKey(this.REVIEW_XP_SYNCED_COUNT_KEY),
+      Math.max(0, Math.floor(Number(reviewCount) || 0)).toString(),
     );
   }
 }

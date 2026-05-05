@@ -11,6 +11,7 @@ import { LoginComponent } from "./login/login.component";
 import { SuperAdminLoginComponent } from "./super-admin-login/super-admin-login.component";
 import { AdminSetupComponent } from "./admin-setup/admin-setup.component";
 import { AdminDashboardComponent } from "./admin-dashboard/admin-dashboard.component";
+import { SuperAdminDashboardComponent } from "./super-admin-dashboard/super-admin-dashboard.component";
 import { AdminChangePasswordComponent } from "./admin-change-password/admin-change-password.component";
 import { AdminSchoolWizardComponent } from "./admin-school-wizard/admin-school-wizard.component";
 import { AdminSchoolDetailComponent } from "./admin-school-detail/admin-school-detail.component";
@@ -42,6 +43,8 @@ import { FunBadgesComponent } from "./components/fun-badges/fun-badges.component
 import { InfoButtonComponent } from "./components/info-button/info-button.component";
 import { LeerkrachtDashboardComponent } from "./leerkracht-dashboard/leerkracht-dashboard.component";
 import { KlasleeslijstBeheerComponent } from "./klasleeslijst-beheer/klasleeslijst-beheer.component";
+import { LeeslijstCreateComponent } from "./leeslijst-create/leeslijst-create.component";
+import { LeeslijstViewComponent } from "./leeslijst-view/leeslijst-view.component";
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
@@ -57,6 +60,7 @@ registerLocaleData(localeNl, "nl");
     SuperAdminLoginComponent,
     AdminSetupComponent,
     AdminDashboardComponent,
+    SuperAdminDashboardComponent,
     AdminChangePasswordComponent,
     AdminSchoolWizardComponent,
     AdminSchoolDetailComponent,
@@ -77,6 +81,8 @@ registerLocaleData(localeNl, "nl");
     MijnLijstenComponent,
     LeerkrachtDashboardComponent,
     KlasleeslijstBeheerComponent,
+    LeeslijstCreateComponent,
+    LeeslijstViewComponent,
     MijnTakenComponent,
     BoekTerugbrengenComponent,
     StatistiekenComponent,

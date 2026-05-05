@@ -1,7 +1,9 @@
 <div class="ml-page">
   <header class="ml-head">
     <h1 class="ml-title">Mijn lijsten</h1>
-    <p class="ml-subtitle">Jouw geleende boeken, verlanglijst en leesgeschiedenis op één plek.</p>
+    <p class="ml-subtitle">
+      Jouw geleende boeken, verlanglijst en leesgeschiedenis op één plek.
+    </p>
   </header>
 
   <!-- Tab strip -->
@@ -14,7 +16,9 @@
       (click)="selectTab('geleend')"
     >
       Geleend
-      <span class="tab-count" [class.active]="activeTab === 'geleend'">{{ loans.length }}</span>
+      <span class="tab-count" [class.active]="activeTab === 'geleend'">{{
+        loans.length
+      }}</span>
     </button>
     <button
       class="tab"
@@ -24,7 +28,9 @@
       (click)="selectTab('verlanglijst')"
     >
       Verlanglijst
-      <span class="tab-count" [class.active]="activeTab === 'verlanglijst'">{{ wishlistItems.length }}</span>
+      <span class="tab-count" [class.active]="activeTab === 'verlanglijst'">{{
+        wishlistItems.length
+      }}</span>
     </button>
     <button
       class="tab"
@@ -34,7 +40,9 @@
       (click)="selectTab('klasleeslijst')"
     >
       Klasleeslijst
-      <span class="tab-count" [class.active]="activeTab === 'klasleeslijst'">{{ classReadingBooks.length }}</span>
+      <span class="tab-count" [class.active]="activeTab === 'klasleeslijst'">{{
+        leeslisten.length
+      }}</span>
     </button>
     <button
       class="tab"
@@ -44,7 +52,9 @@
       (click)="selectTab('kijker')"
     >
       In de kijker
-      <span class="tab-count" [class.active]="activeTab === 'kijker'">{{ highlightedBooks.length }}</span>
+      <span class="tab-count" [class.active]="activeTab === 'kijker'">{{
+        highlightedBooks.length
+      }}</span>
     </button>
     <button
       class="tab"
@@ -54,12 +64,14 @@
       (click)="selectTab('historiek')"
     >
       Historiek
-      <span class="tab-count" [class.active]="activeTab === 'historiek'">{{ loanHistory.length }}</span>
+      <span class="tab-count" [class.active]="activeTab === 'historiek'">{{
+        loanHistory.length
+      }}</span>
     </button>
   </div>
 
   <!-- ── Geleend ── -->
-  @if (activeTab === 'geleend') {
+  @if (activeTab === "geleend") {
     <div class="section-head">
       <div>
         <h2 class="section-title">Geleende boeken</h2>
@@ -67,7 +79,10 @@
       </div>
     </div>
     @if (loansLoading) {
-      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+      <div class="loader-row">
+        <div class="spinner"></div>
+        <p>Laden…</p>
+      </div>
     } @else if (loans.length === 0) {
       <p class="empty-msg">Je hebt momenteel geen geleende boeken.</p>
     } @else {
@@ -83,14 +98,17 @@
       </div>
       @if (loans.length > visibleCount) {
         <button class="show-more-btn" (click)="showMore()">
-          Toon meer <span class="show-more-count">({{ loans.length - visibleCount }} meer)</span>
+          Toon meer
+          <span class="show-more-count"
+            >({{ loans.length - visibleCount }} meer)</span
+          >
         </button>
       }
     }
   }
 
   <!-- ── Verlanglijst ── -->
-  @if (activeTab === 'verlanglijst') {
+  @if (activeTab === "verlanglijst") {
     <div class="section-head">
       <div>
         <h2 class="section-title">Verlanglijst</h2>
@@ -98,9 +116,14 @@
       </div>
     </div>
     @if (wishlistLoading) {
-      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+      <div class="loader-row">
+        <div class="spinner"></div>
+        <p>Laden…</p>
+      </div>
     } @else if (wishlistItems.length === 0) {
-      <p class="empty-msg">Je verlanglijst is leeg. Voeg boeken toe via de catalogus.</p>
+      <p class="empty-msg">
+        Je verlanglijst is leeg. Voeg boeken toe via de catalogus.
+      </p>
     } @else {
       <div class="book-grid">
         @for (item of wishlistItems.slice(0, visibleCount); track item.bookId) {
@@ -117,57 +140,108 @@
       </div>
       @if (wishlistItems.length > visibleCount) {
         <button class="show-more-btn" (click)="showMore()">
-          Toon meer <span class="show-more-count">({{ wishlistItems.length - visibleCount }} meer)</span>
+          Toon meer
+          <span class="show-more-count"
+            >({{ wishlistItems.length - visibleCount }} meer)</span
+          >
         </button>
       }
     }
   }
 
   <!-- ── Klasleeslijst ── -->
-  @if (activeTab === 'klasleeslijst') {
+  @if (activeTab === "klasleeslijst") {
     <div class="section-head">
       <div>
         <h2 class="section-title">Klasleeslijst</h2>
-        <p class="section-desc">Boeken aanbevolen voor jouw klas.</p>
+        <p class="section-desc">Leeslisten samengesteld voor jouw klas.</p>
       </div>
-    </div>
-    @if (classReadingLoading) {
-      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
-    } @else if (classReadingBooks.length === 0) {
-      <p class="empty-msg">Er zijn momenteel geen boeken in de klasleeslijst.</p>
-    } @else {
-      <div class="book-grid">
-        @for (book of classReadingBooks.slice(0, visibleCount); track book.bookId) {
-          <app-recommendation-card
-            [book]="book"
-            [profileVariant]="'dashboard'"
-            (viewDetails)="goToDetail(book.bookId)"
-          ></app-recommendation-card>
-        }
-      </div>
-      @if (classReadingBooks.length > visibleCount) {
-        <button class="show-more-btn" (click)="showMore()">
-          Toon meer <span class="show-more-count">({{ classReadingBooks.length - visibleCount }} meer)</span>
+      @if (canCreateLeeslijst) {
+        <button
+          class="create-new-btn"
+          routerLink="/leeslijst-create"
+          title="Nieuwe leeslijst maken"
+        >
+          <span class="plus-icon">+</span>
+          Nieuwe Leeslijst
         </button>
       }
+    </div>
+    @if (classReadingLoading || leeslistenLoading) {
+      <div class="loader-row">
+        <div class="spinner"></div>
+        <p>Laden…</p>
+      </div>
+    } @else if (leeslisten.length === 0) {
+      <p class="empty-msg">
+        Er zijn momenteel geen leeslisten beschikbaar voor jouw klas.
+      </p>
+    } @else {
+      <div class="leeslisten-grid">
+        @for (leeslijst of leeslisten; track leeslijst.id) {
+          <div class="leeslijst-card">
+            <div
+              class="leeslijst-card-content"
+              (click)="goToLeeslijst(leeslijst.id)"
+            >
+              <h3 class="leeslijst-title">{{ leeslijst.titel }}</h3>
+              <p class="leeslijst-meta">
+                <span class="meta-item"
+                  ><strong>Boeken:</strong> {{ leeslijst.books.length }}</span
+                >
+              </p>
+              <p class="leeslijst-meta">
+                <span class="meta-item"
+                  ><strong>Door:</strong>
+                  {{ displayCreatorName(leeslijst.createdByName) }}</span
+                >
+              </p>
+              @if (leeslijst.description) {
+                <p class="leeslijst-description">{{ leeslijst.description }}</p>
+              }
+              <div class="leeslijst-klassen">
+                @for (klas of leeslijst.klasNames; track klas) {
+                  <span class="klas-badge">{{ klas }}</span>
+                }
+              </div>
+            </div>
+            <div class="leeslijst-card-action">
+              <button
+                class="btn btn-sm"
+                (click)="goToLeeslijst(leeslijst.id); $event.stopPropagation()"
+              >
+                Bekijk leeslijst
+              </button>
+            </div>
+          </div>
+        }
+      </div>
     }
   }
 
   <!-- ── In de kijker ── -->
-  @if (activeTab === 'kijker') {
+  @if (activeTab === "kijker") {
     <div class="section-head">
       <div>
         <h2 class="section-title">In de kijker</h2>
-        <p class="section-desc">Boeken die de bibliotheek extra in de schijnwerpers zet.</p>
+        <p class="section-desc">
+          Boeken die de bibliotheek extra in de schijnwerpers zet.
+        </p>
       </div>
     </div>
     @if (highlightedLoading) {
-      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+      <div class="loader-row">
+        <div class="spinner"></div>
+        <p>Laden…</p>
+      </div>
     } @else if (highlightedBooks.length === 0) {
       <p class="empty-msg">Er zijn momenteel geen boeken in de kijker.</p>
     } @else {
       <div class="book-grid">
-        @for (book of highlightedBooks.slice(0, visibleCount); track book.bookId) {
+        @for (
+          book of highlightedBooks.slice(0, visibleCount);
+          track book.bookId
+        ) {
           <app-recommendation-card
             [book]="book"
             [profileVariant]="'dashboard'"
@@ -177,14 +251,17 @@
       </div>
       @if (highlightedBooks.length > visibleCount) {
         <button class="show-more-btn" (click)="showMore()">
-          Toon meer <span class="show-more-count">({{ highlightedBooks.length - visibleCount }} meer)</span>
+          Toon meer
+          <span class="show-more-count"
+            >({{ highlightedBooks.length - visibleCount }} meer)</span
+          >
         </button>
       }
     }
   }
 
   <!-- ── Historiek ── -->
-  @if (activeTab === 'historiek') {
+  @if (activeTab === "historiek") {
     <div class="section-head">
       <div>
         <h2 class="section-title">Leeshistoriek</h2>
@@ -192,7 +269,10 @@
       </div>
     </div>
     @if (historyLoading) {
-      <div class="loader-row"><div class="spinner"></div><p>Laden…</p></div>
+      <div class="loader-row">
+        <div class="spinner"></div>
+        <p>Laden…</p>
+      </div>
     } @else if (loanHistory.length === 0) {
       <p class="empty-msg">Je hebt nog geen boeken ontleend.</p>
     } @else {
@@ -201,14 +281,21 @@
           <app-recommendation-card
             [book]="historyToBook(loan)"
             [profileVariant]="'history'"
-            [loanDate]="loan.returnedAt ? formatDate(loan.returnedAt) : formatDate(loan.dueDate)"
+            [loanDate]="
+              loan.returnedAt
+                ? formatDate(loan.returnedAt)
+                : formatDate(loan.dueDate)
+            "
             (viewDetails)="goToDetail(loan.bookId)"
           ></app-recommendation-card>
         }
       </div>
       @if (loanHistory.length > visibleCount) {
         <button class="show-more-btn" (click)="showMore()">
-          Toon meer <span class="show-more-count">({{ loanHistory.length - visibleCount }} meer)</span>
+          Toon meer
+          <span class="show-more-count"
+            >({{ loanHistory.length - visibleCount }} meer)</span
+          >
         </button>
       }
     }
