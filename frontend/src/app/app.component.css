@@ -649,6 +649,33 @@
     box-sizing: border-box;
   }
 
+  .app-nav-logout-btn {
+    display: flex !important;
+    align-items: center;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      color 0.15s;
+    margin-top: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+  }
+
+  .app-nav-logout-btn:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
   .admin-top-account,
   .app-header-right {
     margin-left: auto;
@@ -770,6 +797,10 @@
 .app-nav a.active {
   background: var(--ink);
   color: #fff;
+}
+
+.app-nav-logout-btn {
+  display: none;
 }
 
 .app-header-right {

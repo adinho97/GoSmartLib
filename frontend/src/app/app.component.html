@@ -254,6 +254,14 @@
         <a routerLink="/mijn-lijsten" routerLinkActive="active">Mijn lijsten</a>
         <a routerLink="/leaderboard" routerLinkActive="active">Klassement</a>
         <a routerLink="/info" routerLinkActive="active">Info</a>
+        <button
+          type="button"
+          class="app-nav-logout-btn"
+          (click)="logout()"
+          aria-label="Uitloggen"
+        >
+          Uitloggen
+        </button>
       </nav>
 
       <div class="app-header-right">
@@ -386,6 +394,14 @@
             >Statistieken</a
           >
         }
+        <button
+          type="button"
+          class="app-nav-logout-btn"
+          (click)="logout()"
+          aria-label="Uitloggen"
+        >
+          Uitloggen
+        </button>
       </nav>
 
       <div class="app-header-right">
