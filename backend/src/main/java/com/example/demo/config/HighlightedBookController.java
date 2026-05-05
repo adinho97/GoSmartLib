@@ -1,9 +1,8 @@
 package com.example.demo.config;
-import com.example.demo.config.HighlightedBook;
-import com.example.demo.config.HighlightedBookRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,7 +27,7 @@ public class HighlightedBookController {
     public boolean toggleHighlight(@PathVariable Long bookId, @RequestParam Long schoolId) {
         var existing = repository.findByBookIdAndSchoolId(bookId, schoolId);
         if (existing.isPresent()) {
-            repository.delete(existing.get());
+            repository.delete(Objects.requireNonNull(existing.get(), "highlightedBook"));
             return false;
         } else {
             repository.save(new HighlightedBook(bookId, schoolId));

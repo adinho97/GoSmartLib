@@ -54,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(BookController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@SuppressWarnings("null")
 class BookControllerTest {
 
         @Autowired

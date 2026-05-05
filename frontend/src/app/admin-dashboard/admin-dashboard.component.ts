@@ -24,6 +24,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
 
   mapError = "";
   mapSchoolCount = 0;
+  mapExpanded = false;
   private adminMap: L.Map | null = null;
 
   constructor(
@@ -38,7 +39,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngAfterViewInit(): void {
-    this.initMap();
+    // map initializes lazily on first expand
   }
 
   ngOnDestroy(): void {
@@ -49,6 +50,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private initMap(): void {
+    if (this.adminMap) return;
     const el = document.getElementById("admin-map");
     if (!el) return;
 
@@ -139,6 +141,13 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
 
   prevPage(): void { if (this.currentPage > 1) this.currentPage--; }
   nextPage(): void { if (this.currentPage < this.totalPages) this.currentPage++; }
+
+  toggleMap(): void {
+    this.mapExpanded = !this.mapExpanded;
+    if (this.mapExpanded) {
+      setTimeout(() => this.initMap(), 0);
+    }
+  }
 
   goToSchoolWizard(): void {
     this.router.navigate(["/admin/schools/new"]);

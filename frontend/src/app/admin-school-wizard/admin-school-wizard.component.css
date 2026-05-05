@@ -1,5 +1,5 @@
 .wizard-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 56px);
   background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
   padding: 24px;
 }

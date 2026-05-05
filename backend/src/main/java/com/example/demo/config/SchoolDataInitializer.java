@@ -6,6 +6,7 @@ import com.example.demo.entities.SchoolStatus;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import java.util.Objects;
 
 @Configuration
 public class SchoolDataInitializer {
@@ -22,7 +23,7 @@ public class SchoolDataInitializer {
     }
 
     private void saveOrUpdateSchool(SchoolRepository repo, Long id, String naam, String subdomein) {
-        School school = repo.findById(id).orElse(new School());
+        School school = repo.findById(Objects.requireNonNull(id, "id")).orElse(new School());
         school.setNaam(naam);
         school.setSubdomein(subdomein);
         school.setSmartschoolUrl("https://" + subdomein + ".smartschool.be");

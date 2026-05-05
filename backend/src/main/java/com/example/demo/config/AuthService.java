@@ -96,9 +96,10 @@ public class AuthService {
         }
 
         public Mono<Boolean> validateToken(String accessToken) {
+                String accessTokenValue = Objects.requireNonNull(accessToken, "accessToken");
                 return this.webClient.get()
                                 .uri(smartschoolProperties.getApiBaseUrl() + "/Api/V1/userinfo")
-                                .headers(headers -> headers.setBearerAuth(accessToken))
+                                .headers(headers -> headers.setBearerAuth(accessTokenValue))
                                 .retrieve()
                                 .toBodilessEntity()
                                 .then(Mono.just(true))
@@ -299,6 +300,7 @@ public class AuthService {
                 formData.add("redirect_uri", smartschoolProperties.getRedirectUri());
                 formData.add("client_id", smartschoolProperties.getClientId());
                 formData.add("client_secret", clientSecret);
+                MediaType formContentType = Objects.requireNonNull(MediaType.APPLICATION_FORM_URLENCODED);
 
                 String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/index/token";
                 logger.info("Requesting access token from: {}", tokenUrl);
@@ -306,7 +308,7 @@ public class AuthService {
                 return this.webClient.post()
                                 .uri(tokenUrl)
                                 .header("User-Agent", "GoSmartLib-Backend")
-                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .contentType(formContentType)
                                 .bodyValue(formData)
                                 .exchangeToMono(response -> {
                                         if (!response.statusCode().is2xxSuccessful()) {
@@ -365,6 +367,7 @@ public class AuthService {
                 formData.add("refresh_token", refreshToken);
                 formData.add("client_id", smartschoolProperties.getClientId());
                 formData.add("client_secret", clientSecret);
+                MediaType formContentType = Objects.requireNonNull(MediaType.APPLICATION_FORM_URLENCODED);
 
                 String baseUrl = (platformUrl != null && !platformUrl.isBlank())
                                 ? platformUrl
@@ -375,7 +378,7 @@ public class AuthService {
                 return this.webClient.post()
                                 .uri(tokenUrl)
                                 .header("User-Agent", "GoSmartLib-Backend")
-                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .contentType(formContentType)
                                 .bodyValue(formData)
                                 .exchangeToMono(response -> {
                                         if (!response.statusCode().is2xxSuccessful()) {
@@ -483,13 +486,14 @@ public class AuthService {
         }
 
         public Mono<SmartschoolUserInfo> getUserInfo(SmartschoolTokenResponse tokenResponse, String platformUrl) {
+                String accessToken = Objects.requireNonNull(tokenResponse.getAccessToken(), "accessToken");
                 String baseUrl = (platformUrl != null && !platformUrl.isBlank())
                                 ? platformUrl
                                 : smartschoolProperties.getApiBaseUrl();
 
                 return this.webClient.get()
                                 .uri(baseUrl + "/Api/V1/userinfo")
-                                .headers(headers -> headers.setBearerAuth(tokenResponse.getAccessToken()))
+                                .headers(headers -> headers.setBearerAuth(accessToken))
                                 .exchangeToMono(response -> {
                                         if (response.statusCode().is2xxSuccessful()) {
                                                 if (response.headers().contentType()
@@ -538,12 +542,12 @@ public class AuthService {
                                                         });
                                 })
                                 .map(userInfo -> {
-                                        userInfo.setAccessToken(tokenResponse.getAccessToken());
+                                        userInfo.setAccessToken(accessToken);
                                         userInfo.setRefreshToken(tokenResponse.getRefreshToken());
                                         return userInfo;
                                 })
                                 .flatMap(userInfo -> this.enrichUserRoleFromGroupInfo(userInfo,
-                                                tokenResponse.getAccessToken(), baseUrl))
+                                                accessToken, baseUrl))
                                 .doOnSuccess(userInfo -> logger.info("Successfully retrieved user info for user: {}",
                                                 userInfo.getName()))
                                 .doOnError(error -> logger.error("Failed to retrieve user info", error.getMessage()));

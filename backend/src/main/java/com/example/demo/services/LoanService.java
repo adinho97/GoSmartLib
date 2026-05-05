@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -430,7 +431,7 @@ public class LoanService {
 
     @Transactional
     public LoanDto returnLoan(Long loanId, ReturnLoanRequest request) {
-        Loan loan = loanRepo.findById(loanId)
+        Loan loan = loanRepo.findById(Objects.requireNonNull(loanId, "loanId"))
                 .orElseThrow(() -> new IllegalArgumentException("Uitlening niet gevonden"));
 
         if (loan.getReturnedAt() != null) {
@@ -453,7 +454,7 @@ public class LoanService {
         loan.setReturnedCondition(targetCondition);
         loan.getCopy().setStatus(targetStatus);
         loan.getCopy().setCondition(targetCondition);
-        copyRepo.save(loan.getCopy());
+        copyRepo.save(Objects.requireNonNull(loan.getCopy(), "copy"));
 
         // Check if book just became available (was 0, now 1+)
         if ((targetStatus == BookCopy.CopyStatus.AVAILABLE
@@ -660,7 +661,7 @@ public class LoanService {
 
     @Transactional
     public void updateDueDate(Long id, LocalDate newDate) {
-        Loan loan = loanRepo.findById(id)
+        Loan loan = loanRepo.findById(Objects.requireNonNull(id, "id"))
                 .orElseThrow(() -> new IllegalArgumentException("Loan not found"));
 
         if (loan.getReturnedAt() != null) {

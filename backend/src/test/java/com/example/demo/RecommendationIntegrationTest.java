@@ -37,7 +37,6 @@ class RecommendationIntegrationTest {
     private LoanRepository loanRepository;
 
     private AppUser testUser;
-    private Book fantasyBook;
 
     @BeforeEach
     void setUp() {
@@ -50,7 +49,7 @@ class RecommendationIntegrationTest {
         testUser.setRole("leerling");
         appUserRepository.save(testUser);
 
-        fantasyBook = createAndSaveBook(1L, "Fantasy Book", "Author A", "Fantasy");
+        createAndSaveBook(1L, "Fantasy Book", "Author A", "Fantasy");
         createAndSaveBook(2L, "Another Fantasy", "Author B", "Fantasy");
         createAndSaveBook(3L, "Other by Author A", "Author A", "SciFi");
         createAndSaveBook(4L, "Brand New Book", "Author C", "Mystery");

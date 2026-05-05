@@ -13,7 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -53,10 +52,10 @@ class RecommendationControllerTest {
         mockMvc.perform(get(ENDPOINT)
             .header("X-User-Sub", "user123"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(2)))
-            .andExpect(jsonPath("$[0].bookId", is(1)))
-            .andExpect(jsonPath("$[0].titel", is("Book1")))
-            .andExpect(jsonPath("$[1].bookId", is(2)));
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].bookId").value(1))
+            .andExpect(jsonPath("$[0].titel").value("Book1"))
+            .andExpect(jsonPath("$[1].bookId").value(2));
     }
 
     @Test
@@ -74,7 +73,7 @@ class RecommendationControllerTest {
             .param("limit", "5")
             .param("excludeRead", "false"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(1)));
+            .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
@@ -103,8 +102,8 @@ class RecommendationControllerTest {
             .header("X-User-Sub", "user123")
             .param("strategies", "TrendingStrategy"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(1)))
-            .andExpect(jsonPath("$[0].bookId", is(1)));
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].bookId").value(1));
     }
 
     @Test
@@ -125,8 +124,8 @@ class RecommendationControllerTest {
         mockMvc.perform(get(ENDPOINT + "/grouped")
             .header("X-User-Sub", "user123"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.TrendingStrategy", hasSize(1)))
-            .andExpect(jsonPath("$.GenreBasedStrategy", hasSize(1)));
+            .andExpect(jsonPath("$.TrendingStrategy.length()").value(1))
+            .andExpect(jsonPath("$.GenreBasedStrategy.length()").value(1));
     }
 
     @Test
@@ -144,8 +143,8 @@ class RecommendationControllerTest {
 
         mockMvc.perform(get(ENDPOINT + "/strategies"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(4)))
-            .andExpect(jsonPath("$[0]", is("TrendingStrategy")))
-            .andExpect(jsonPath("$[1]", is("GenreBasedStrategy")));
+            .andExpect(jsonPath("$.length()").value(4))
+            .andExpect(jsonPath("$[0]").value("TrendingStrategy"))
+            .andExpect(jsonPath("$[1]").value("GenreBasedStrategy"));
     }
 }
