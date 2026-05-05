@@ -23,7 +23,7 @@
       <!-- Class Leaderboard -->
       <section class="leaderboard-card">
         <div class="card-header-flex">
-          <h2>Top 10 · <strong>Klas-lezers</strong></h2>
+          <h2>Top 10 lezers van de klas</h2>
           @if (isTeacherOrLibrarian && leaderboardData.availableClasses) {
             <div class="klas-selector">
               <select
@@ -117,10 +117,7 @@
 
       <!-- School Leaderboard -->
       <section class="leaderboard-card">
-        <div class="card-header-flex">
-          <h2>Top 10 · <strong>School-lezers</strong></h2>
-        </div>
-
+        <h2>Top 10 lezers van de school </h2>
         @if (leaderboardData.topSchoolReaders.length > 0) {
           <!-- Podium: 2nd left, 1st center, 3rd right -->
           <div class="podium">
