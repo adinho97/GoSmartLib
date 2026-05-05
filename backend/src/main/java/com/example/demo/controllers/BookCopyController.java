@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -39,8 +40,9 @@ public class BookCopyController {
 
     @GetMapping("/boek/{bookId}/summary")
     public ResponseEntity<Map<String, Long>> getSummary(@PathVariable Long bookId) {
-        long total = copyRepo.countByBook_Id(bookId);
-        long available = copyRepo.findByBook_Id(bookId).stream()
+        Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
+        long total = copyRepo.countByBook_Id(resolvedBookId);
+        long available = copyRepo.findByBook_Id(resolvedBookId).stream()
             .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
                 || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
             .count();
@@ -49,7 +51,8 @@ public class BookCopyController {
 
     @GetMapping("/boek/{bookId}")
     public ResponseEntity<List<CopyDto>> getCopies(@PathVariable Long bookId) {
-        List<CopyDto> dtos = copyRepo.findByBook_Id(bookId).stream()
+        Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
+        List<CopyDto> dtos = copyRepo.findByBook_Id(resolvedBookId).stream()
                 .map(c -> {
                     CopyDto dto = new CopyDto();
                     dto.setId(c.getId());
@@ -67,7 +70,8 @@ public class BookCopyController {
         if (!canLoan(userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        Book book = bookRepo.findById(bookId).orElse(null);
+        Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
+        Book book = bookRepo.findById(resolvedBookId).orElse(null);
         if (book == null)
             return ResponseEntity.notFound().build();
 
@@ -93,7 +97,8 @@ public class BookCopyController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        BookCopy copy = copyRepo.findById(id).orElse(null);
+        Long resolvedId = Objects.requireNonNull(id, "id is required");
+        BookCopy copy = copyRepo.findById(resolvedId).orElse(null);
         if (copy == null) {
             return ResponseEntity.notFound().build();
         }
@@ -130,7 +135,8 @@ public class BookCopyController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        BookCopy copy = copyRepo.findById(id).orElse(null);
+        Long resolvedId = Objects.requireNonNull(id, "id is required");
+        BookCopy copy = copyRepo.findById(resolvedId).orElse(null);
         if (copy == null)
             return ResponseEntity.notFound().build();
 
@@ -140,9 +146,9 @@ public class BookCopyController {
         }
 
         // Verwijder eerst alle loan records gekoppeld aan dit exemplaar
-        loanRepository.deleteByCopy_Id(id);
+        loanRepository.deleteByCopy_Id(resolvedId);
 
-        copyRepo.deleteById(id);
+        copyRepo.deleteById(resolvedId);
         return ResponseEntity.noContent().build();
     }
 }

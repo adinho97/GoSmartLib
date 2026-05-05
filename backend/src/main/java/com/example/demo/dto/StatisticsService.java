@@ -59,28 +59,29 @@ public class StatisticsService {
      */
     @Transactional(readOnly = true)
     public StatisticsDTO getSchoolStatistics(Long schoolId) {
+        Long requiredSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
         StatisticsDTO dto = new StatisticsDTO();
-        dto.setTotalBooks(bookRepository.countBySchool_Id(schoolId));
-        dto.setTotalLoans(loanRepository.countByCopy_Book_School_Id(schoolId));
-        dto.setActiveLoans(loanRepository.countByCopy_Book_School_IdAndReturnedAtIsNull(schoolId));
-        dto.setTotalUsers(userRepository.countBySchool_Id(schoolId));
+        dto.setTotalBooks(bookRepository.countBySchool_Id(requiredSchoolId));
+        dto.setTotalLoans(loanRepository.countByCopy_Book_School_Id(requiredSchoolId));
+        dto.setActiveLoans(loanRepository.countByCopy_Book_School_IdAndReturnedAtIsNull(requiredSchoolId));
+        dto.setTotalUsers(userRepository.countBySchool_Id(requiredSchoolId));
 
         // Fetch school name
-        schoolIdOptional(schoolId).ifPresent(s -> dto.setSchool(s.getNaam()));
+        schoolIdOptional(requiredSchoolId).ifPresent(s -> dto.setSchool(s.getNaam()));
 
         // Map the first popular book to mostReadBook
-        List<Map<String, Object>> popular = formatPopularBooks(loanRepository.findPopularBooksBySchool(schoolId));
+        List<Map<String, Object>> popular = formatPopularBooks(loanRepository.findPopularBooksBySchool(requiredSchoolId));
         dto.setPopularBooks(popular);
         if (!popular.isEmpty()) {
             dto.setMostReadBook(popular.get(0));
         }
 
         // Populate Top Reader and Top Class
-        dto.setTopReader(formatTopItem(loanRepository.findTopReadersBySchool(schoolId), "sub", "displayName"));
-        dto.setTopClass(formatTopItem(loanRepository.findTopClassesBySchool(schoolId), "name"));
+        dto.setTopReader(formatTopItem(loanRepository.findTopReadersBySchool(requiredSchoolId), "sub", "displayName"));
+        dto.setTopClass(formatTopItem(loanRepository.findTopClassesBySchool(requiredSchoolId), "name"));
 
-        dto.setPopularBooks(formatPopularBooks(loanRepository.findPopularBooksBySchool(schoolId)));
-        dto.setBooksPerGenre(formatGenreCounts(bookRepository.findAllBySchool_Id(schoolId).stream()
+        dto.setPopularBooks(formatPopularBooks(loanRepository.findPopularBooksBySchool(requiredSchoolId)));
+        dto.setBooksPerGenre(formatGenreCounts(bookRepository.findAllBySchool_Id(requiredSchoolId).stream()
                 .collect(Collectors.groupingBy(
                         b -> b.getGenre() != null && !b.getGenre().isBlank() ? b.getGenre() : "Onbekend",
                         Collectors.counting()))
@@ -92,6 +93,9 @@ public class StatisticsService {
     }
 
     private Optional<School> schoolIdOptional(Long schoolId) {
+        if (schoolId == null) {
+            return Optional.empty();
+        }
         return schoolRepository.findById(schoolId);
     }
 

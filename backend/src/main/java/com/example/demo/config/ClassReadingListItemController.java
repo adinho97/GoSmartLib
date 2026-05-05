@@ -3,6 +3,7 @@ package com.example.demo.config;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -17,7 +18,8 @@ public class ClassReadingListItemController {
 
     @GetMapping("/school/{schoolId}")
     public List<Long> getHighlightedBookIds(@PathVariable Long schoolId) {
-        return repository.findBySchoolId(schoolId).stream()
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        return repository.findBySchoolId(resolvedSchoolId).stream()
                 .map(ClassReadingListItem::getBookId)
                 .collect(Collectors.toList());
     }
@@ -25,18 +27,22 @@ public class ClassReadingListItemController {
     @PostMapping("/{bookId}/toggle")
     @Transactional
     public boolean toggleHighlight(@PathVariable Long bookId, @RequestParam Long schoolId) {
-        var existing = repository.findByBookIdAndSchoolId(bookId, schoolId);
+        Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        var existing = repository.findByBookIdAndSchoolId(resolvedBookId, resolvedSchoolId);
         if (existing.isPresent()) {
             repository.delete(existing.get());
             return false;
         } else {
-            repository.save(new ClassReadingListItem(bookId, schoolId));
+            repository.save(new ClassReadingListItem(resolvedBookId, resolvedSchoolId));
             return true;
         }
     }
 
     @GetMapping("/{bookId}/status")
     public boolean isHighlighted(@PathVariable Long bookId, @RequestParam Long schoolId) {
-        return repository.existsByBookIdAndSchoolId(bookId, schoolId);
+        Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        return repository.existsByBookIdAndSchoolId(resolvedBookId, resolvedSchoolId);
     }
 }

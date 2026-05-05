@@ -18,6 +18,7 @@ import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.SchoolRepository;
 import com.example.demo.repositories.WishlistRepository;
+import java.util.Objects;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -80,14 +81,16 @@ public class SchoolAdminService {
 
     @Transactional(readOnly = true)
     public SchoolDetailResponse getSchoolDetail(Long id) {
-        School school = schoolRepository.findById(id)
+        Long resolvedId = Objects.requireNonNull(id, "schoolId is required");
+        School school = schoolRepository.findById(resolvedId)
                 .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
         return toDetailResponse(school);
     }
 
     @Transactional
     public SchoolDetailResponse updateSchoolInfo(Long id, UpdateSchoolInfoRequest request) {
-        School school = schoolRepository.findById(id)
+        Long resolvedId = Objects.requireNonNull(id, "schoolId is required");
+        School school = schoolRepository.findById(resolvedId)
                 .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
 
         String naam = request.getNaam();
@@ -106,7 +109,8 @@ public class SchoolAdminService {
     public SchoolDetailResponse updateSchoolStatus(Long schoolId, SchoolStatus status) {
         schoolAdminValidationService.validateUpdatableStatus(status);
 
-        School school = schoolRepository.findById(schoolId)
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        School school = schoolRepository.findById(resolvedSchoolId)
                 .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
 
         school.setStatus(status);
@@ -115,18 +119,21 @@ public class SchoolAdminService {
 
     @Transactional(readOnly = true)
     public List<AdminUserListItem> getSchoolUsers(Long schoolId) {
-        schoolRepository.findById(schoolId)
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        schoolRepository.findById(resolvedSchoolId)
                 .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
-        return appUserRepository.findBySchool_Id(schoolId).stream()
+        return appUserRepository.findBySchool_Id(resolvedSchoolId).stream()
                 .map(this::toUserListItem)
                 .toList();
     }
 
     @Transactional
     public AdminUserListItem toggleUserActive(Long schoolId, Long userId) {
-        AppUser user = appUserRepository.findById(userId)
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        Long resolvedUserId = Objects.requireNonNull(userId, "userId is required");
+        AppUser user = appUserRepository.findById(resolvedUserId)
                 .orElseThrow(() -> new ApiException("Gebruiker niet gevonden", HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
-        if (user.getSchool() == null || !user.getSchool().getId().equals(schoolId)) {
+        if (user.getSchool() == null || !user.getSchool().getId().equals(resolvedSchoolId)) {
             throw new ApiException("Gebruiker behoort niet tot deze school", HttpStatus.FORBIDDEN, "ACCESS_DENIED");
         }
         user.setActive(!user.isActive());
@@ -135,9 +142,11 @@ public class SchoolAdminService {
 
     @Transactional
     public AdminUserListItem setUserRole(Long schoolId, Long userId, String newRole) {
-        AppUser user = appUserRepository.findById(userId)
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        Long resolvedUserId = Objects.requireNonNull(userId, "userId is required");
+        AppUser user = appUserRepository.findById(resolvedUserId)
                 .orElseThrow(() -> new ApiException("Gebruiker niet gevonden", HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
-        if (user.getSchool() == null || !user.getSchool().getId().equals(schoolId)) {
+        if (user.getSchool() == null || !user.getSchool().getId().equals(resolvedSchoolId)) {
             throw new ApiException("Gebruiker behoort niet tot deze school", HttpStatus.FORBIDDEN, "ACCESS_DENIED");
         }
         if (!"leerkracht".equals(newRole) && !"bibbeheerder".equals(newRole)) {
@@ -152,9 +161,10 @@ public class SchoolAdminService {
 
     @Transactional(readOnly = true)
     public List<KlasListItem> getSchoolKlassen(Long schoolId) {
-        schoolRepository.findById(schoolId)
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        schoolRepository.findById(resolvedSchoolId)
                 .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
-        return klasRepository.findBySchool_Id(schoolId).stream()
+        return klasRepository.findBySchool_Id(resolvedSchoolId).stream()
                 .map(k -> {
                     KlasListItem item = new KlasListItem();
                     item.setId(k.getId());
@@ -186,7 +196,7 @@ public class SchoolAdminService {
         r.setLongitude(school.getLongitude());
         r.setStatus(school.getStatus());
         r.setAangemaaktOp(school.getAangemaaktOp());
-        Long schoolId = school.getId();
+        Long schoolId = Objects.requireNonNull(school.getId(), "School id is required");
         r.setUserCount(appUserRepository.countBySchool_Id(schoolId));
         r.setKlasCount(klasRepository.countBySchool_Id(schoolId));
         r.setBookCount(bookRepository.countBySchool_Id(schoolId));
@@ -198,12 +208,13 @@ public class SchoolAdminService {
 
     private SchoolDashboardItemResponse toDashboardItem(School school) {
         SchoolDashboardItemResponse item = new SchoolDashboardItemResponse();
-        item.setId(school.getId());
+        Long schoolId = Objects.requireNonNull(school.getId(), "School id is required");
+        item.setId(schoolId);
         item.setNaam(school.getNaam());
         item.setSubdomain(school.getSubdomein());
         item.setStatus(school.getStatus());
-        item.setUserCount(appUserRepository.countBySchool_Id(school.getId()));
-        item.setKlasCount(klasRepository.countBySchool_Id(school.getId()));
+        item.setUserCount(appUserRepository.countBySchool_Id(schoolId));
+        item.setKlasCount(klasRepository.countBySchool_Id(schoolId));
         return item;
     }
 

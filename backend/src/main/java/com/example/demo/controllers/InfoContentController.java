@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/info-content")
@@ -33,8 +34,9 @@ public class InfoContentController {
             @RequestParam(required = false) Long schoolId,
             @RequestParam Sectie sectie) {
         School school = schoolService.getByIdOrDefault(schoolId);
+        Long resolvedSchoolId = Objects.requireNonNull(school.getId(), "schoolId is required");
         return infoContentRepository.findBySchoolIdAndSectieOrderBySortOrderAsc(
-                school.getId(), sectie);
+            resolvedSchoolId, sectie);
     }
 
     @GetMapping("/has-content")
@@ -42,7 +44,8 @@ public class InfoContentController {
             @RequestParam(required = false) Long schoolId,
             @RequestParam Sectie sectie) {
         School school = schoolService.getByIdOrDefault(schoolId);
-        return infoContentRepository.existsBySchoolIdAndSectie(school.getId(), sectie);
+        Long resolvedSchoolId = Objects.requireNonNull(school.getId(), "schoolId is required");
+        return infoContentRepository.existsBySchoolIdAndSectie(resolvedSchoolId, sectie);
     }
 
     @PostMapping
@@ -51,6 +54,9 @@ public class InfoContentController {
             @RequestHeader("X-User-Role") String role) {
         if (!isBibbeheerder(sub, role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Geen toegang.");
+        }
+        if (request.getSchoolId() == null) {
+            return ResponseEntity.badRequest().build();
         }
         School school = schoolService.getByIdOrDefault(request.getSchoolId());
         InfoContent item = new InfoContent();
@@ -70,6 +76,7 @@ public class InfoContentController {
         if (!isBibbeheerder(sub, role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Geen toegang.");
         }
+        Objects.requireNonNull(id, "id is required");
         return infoContentRepository.findById(id).map(item -> {
             item.setTitel(request.getTitel());
             item.setInhoud(request.getInhoud());
