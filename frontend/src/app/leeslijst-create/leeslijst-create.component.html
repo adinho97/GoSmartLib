@@ -1,0 +1,316 @@
+<div class="llc-page">
+  <header class="llc-head">
+    <h1 class="llc-title">
+      {{ isEditMode ? "Leeslijst Aanpassen" : "Nieuwe Leeslijst" }}
+    </h1>
+    <p class="llc-subtitle">
+      {{
+        isEditMode
+          ? "Werk titel, beschrijving, klassen en boeken bij."
+          : "Stel een boekenlijst samen voor je klassen."
+      }}
+    </p>
+  </header>
+
+  <div class="stepper">
+    <div class="step-pill" [class.active]="step === 'titel'">1. Titel</div>
+    <div class="step-pill" [class.active]="step === 'boeken'">2. Boeken</div>
+    <div class="step-pill" [class.active]="step === 'bevestiging'">
+      3. Bevestigen
+    </div>
+  </div>
+
+  <!-- Step 1: Title -->
+  @if (step === "titel") {
+    <div class="selection-card">
+      <h3 class="card-title">Geef je leeslijst een titel</h3>
+      <div class="title-input-group">
+        <input
+          type="text"
+          placeholder="Bijv. 'Romantische verhalen' of 'Science Fiction Classics'"
+          [(ngModel)]="leeslijstTitel"
+          class="title-input"
+          (keyup.enter)="goToBooks()"
+        />
+        <p class="input-desc">
+          Kies een duidelijke, beschrijvende titel voor je leeslijst.
+        </p>
+      </div>
+
+      <div class="title-input-group">
+        <textarea
+          placeholder="Optionele beschrijving voor de klasleeslijst"
+          [(ngModel)]="leeslijstDescription"
+          class="title-input"
+          rows="4"
+        ></textarea>
+        <p class="input-desc">
+          Voeg een korte toelichting toe voor leerlingen en collega’s.
+        </p>
+      </div>
+
+      <div class="actions">
+        <button
+          class="btn btn-primary"
+          (click)="goToBooks()"
+          [disabled]="!leeslijstTitel || leeslijstTitel.trim() === ''"
+        >
+          Volgende: Selecteer Klassen &amp; Boeken
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Step 2: Klassen & Boeken Selection -->
+  @if (step === "boeken") {
+    <div class="selection-card">
+      <div class="klassen-selector">
+        <h3 class="card-title">Selecteer doelklassen</h3>
+        <div class="search-bar klas-search-bar">
+          <input
+            type="text"
+            placeholder="Zoek klas..."
+            [(ngModel)]="klasSearchQuery"
+            class="search-input"
+          />
+        </div>
+        @if (klassenLoading) {
+          <div class="loader-row">
+            <div class="spinner"></div>
+            <p>Klassen laden…</p>
+          </div>
+        } @else if (klassen.length === 0) {
+          <p class="empty-msg">Geen klassen beschikbaar.</p>
+        } @else {
+          <div class="grid-list">
+            @for (klas of filteredKlassen; track klas.id) {
+              <div
+                class="grid-item"
+                [class.selected]="selectedKlassenIds.has(klas.id)"
+                (click)="toggleKlasSelection(klas.id)"
+              >
+                <span class="item-name">{{ klas.naam }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="filters-panel">
+        <h3 class="card-title">Boekfilters</h3>
+        <div class="filters-grid">
+          <div class="filter-field">
+            <label for="genreFilter">Genre</label>
+            <select
+              id="genreFilter"
+              [(ngModel)]="selectedGenre"
+              (ngModelChange)="onGenreChange()"
+            >
+              <option value="">Alle genres</option>
+              @for (genre of genres; track genre) {
+                <option [value]="genre">{{ genre }}</option>
+              }
+            </select>
+          </div>
+
+          @if (selectedGenre === "Non-fictie algemeen") {
+            <div class="filter-field">
+              <label for="nonFictionSubgenreFilter">Subgenre</label>
+              <select
+                id="nonFictionSubgenreFilter"
+                [(ngModel)]="selectedNonFictionSubgenre"
+              >
+                <option value="">Alle subgenres</option>
+                @for (subgenre of nonFictionSubgenres; track subgenre) {
+                  <option [value]="subgenre">{{ subgenre }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (selectedGenre === "Didactiek") {
+            <div class="filter-field">
+              <label for="didacticSubgenreFilter">Subgenre</label>
+              <select
+                id="didacticSubgenreFilter"
+                [(ngModel)]="selectedDidacticSubgenre"
+              >
+                <option value="">Alle subgenres</option>
+                @for (subgenre of didacticSubgenres; track subgenre) {
+                  <option [value]="subgenre">{{ subgenre }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <div class="filter-field">
+            <label for="taalFilter">Taal</label>
+            <select id="taalFilter" [(ngModel)]="selectedLanguage">
+              <option value="">Alle talen</option>
+              @for (language of languages; track language) {
+                <option [value]="language">{{ language }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="leesniveauFilter">Leesniveau</label>
+            <select id="leesniveauFilter" [(ngModel)]="selectedLeesniveau">
+              <option value="">Alle leesniveaus</option>
+              @for (leesniveau of leesniveaus; track leesniveau) {
+                <option [value]="leesniveau">{{ leesniveau }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="averageFilter">Gemiddelde score (min.)</label>
+            <select id="averageFilter" [(ngModel)]="selectedMinAverageRating">
+              <option value="">Alle scores</option>
+              <option value="1">1.0+</option>
+              <option value="2">2.0+</option>
+              <option value="3">3.0+</option>
+              <option value="4">4.0+</option>
+              <option value="4.5">4.5+</option>
+            </select>
+          </div>
+
+          <div class="page-slider-group">
+            <label>Pagina's: {{ minPages }} - {{ maxPages }}</label>
+            <div class="single-page-slider">
+              <label for="minPages">Minimum pagina's: {{ minPages }}</label>
+              <input
+                id="minPages"
+                type="range"
+                [min]="minAvailablePages"
+                [max]="maxAvailablePages"
+                [value]="minPages"
+                (input)="onMinPagesChange($any($event.target).value)"
+              />
+            </div>
+            <div class="single-page-slider">
+              <label for="maxPages">Maximum pagina's: {{ maxPages }}</label>
+              <input
+                id="maxPages"
+                type="range"
+                [min]="minAvailablePages"
+                [max]="maxAvailablePages"
+                [value]="maxPages"
+                (input)="onMaxPagesChange($any($event.target).value)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          placeholder="Zoek boeken..."
+          [(ngModel)]="searchInput"
+          (keyup.enter)="applyFilters()"
+          class="search-input"
+        />
+        <button class="btn btn-secondary" (click)="applyFilters()">
+          Zoeken
+        </button>
+        <button class="btn btn-outline" (click)="clearFilters()">
+          Filters wissen
+        </button>
+      </div>
+
+      @if (isLoading) {
+        <div class="loader-row">
+          <div class="spinner"></div>
+          <p>Laden…</p>
+        </div>
+      } @else if (filteredBooks.length === 0) {
+        <p class="empty-msg">Geen boeken gevonden.</p>
+      } @else {
+        <p class="empty-msg">{{ filteredBooks.length }} boek(en) gevonden.</p>
+        <div class="book-grid">
+          @for (book of pagedBooks; track book.id) {
+            <div
+              class="book-item"
+              [class.selected]="selectedBookIds.has(book.id)"
+              (click)="toggleBookSelection(book.id)"
+            >
+              <img
+                [src]="book.cover || 'assets/no-cover.png'"
+                alt="Cover"
+                class="book-cover"
+              />
+              <div class="book-info">
+                <span class="book-title">{{ book.titel }}</span>
+                <span class="book-author">{{ book.auteur }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button
+            [disabled]="currentPage === 1"
+            (click)="setPage(currentPage - 1)"
+          >
+            Vorige
+          </button>
+          <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
+          <button
+            [disabled]="currentPage === totalPages"
+            (click)="setPage(currentPage + 1)"
+          >
+            Volgende
+          </button>
+        </div>
+      }
+
+      <div class="actions">
+        <button
+          class="btn btn-primary"
+          (click)="goToConfirmation()"
+          [disabled]="
+            selectedBookIds.size === 0 || selectedKlassenIds.size === 0
+          "
+        >
+          Volgende: Bevestigen
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Step 3: Bevestiging -->
+  @if (step === "bevestiging") {
+    <div class="selection-card">
+      <h3 class="card-title">Overzicht</h3>
+      <div class="summary">
+        <p class="summary-item"><strong>Titel:</strong> {{ leeslijstTitel }}</p>
+        <p class="summary-item">
+          <strong>Doelklassen:</strong> {{ getSelectedKlassenNames() }}
+        </p>
+        <p class="summary-item">
+          <strong>Aantal boeken:</strong> {{ selectedBookIds.size }}
+        </p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-outline" (click)="goBack()">Terug</button>
+        <button
+          class="btn btn-success"
+          (click)="saveLeeslijst()"
+          [disabled]="isSaving"
+        >
+          {{
+            isSaving
+              ? "Bezig met opslaan..."
+              : isEditMode
+                ? "Wijzigingen Opslaan"
+                : "Leeslijst Opslaan"
+          }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

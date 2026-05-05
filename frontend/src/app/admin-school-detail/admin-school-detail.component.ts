@@ -274,9 +274,10 @@ export class AdminSchoolDetailComponent implements OnInit {
     const k = this.klasFilter;
     const a = this.activeFilter;
     return this.users.filter((u) => {
+      const displayName = (this.userDisplayNames[u.sub] ?? "").toLowerCase();
       const matchesText =
         !q ||
-        u.sub?.toLowerCase().includes(q) ||
+        displayName.includes(q) ||
         u.klasNaam?.toLowerCase().includes(q);
       const matchesRole   = !r || u.role === r;
       const matchesKlas   = !k || u.klasNaam === k;

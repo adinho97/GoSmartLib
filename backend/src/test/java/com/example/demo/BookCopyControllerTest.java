@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class BookCopyControllerTest {
 
     @Mock
@@ -59,14 +61,15 @@ class BookCopyControllerTest {
         savedCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenReturn(savedCopy);
+        ArgumentCaptor<BookCopy> savedCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(savedCopyCaptor.capture())).thenReturn(savedCopy);
 
         ResponseEntity<CopyDto> response = bookCopyController.addCopy(bookId, "bibbeheerder");
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(10L, response.getBody().getId());
-        assertEquals(BookCopy.CopyStatus.AVAILABLE, response.getBody().getStatus());
+        CopyDto body = Objects.requireNonNull(response.getBody());
+        assertEquals(10L, body.getId());
+        assertEquals(BookCopy.CopyStatus.AVAILABLE, body.getStatus());
         
         // Verify copy was saved with correct book
         ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);
@@ -80,8 +83,9 @@ class BookCopyControllerTest {
         Book book = makeBook();
         
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> {
-            BookCopy copy = invocation.getArgument(0);
+        ArgumentCaptor<BookCopy> statusCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(statusCopyCaptor.capture())).thenAnswer(invocation -> {
+            BookCopy copy = statusCopyCaptor.getValue();
             assertEquals(BookCopy.CopyStatus.AVAILABLE, copy.getStatus());
             copy.setId(99L);
             return copy;
@@ -89,7 +93,7 @@ class BookCopyControllerTest {
 
         bookCopyController.addCopy(bookId, "leerkracht");
 
-        verify(bookCopyRepository).save(any(BookCopy.class));
+        verify(bookCopyRepository).save(statusCopyCaptor.capture());
     }
 
     @Test
@@ -125,13 +129,14 @@ class BookCopyControllerTest {
         savedCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenReturn(savedCopy);
+        ArgumentCaptor<BookCopy> leerkrachtCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(leerkrachtCopyCaptor.capture())).thenReturn(savedCopy);
 
         ResponseEntity<CopyDto> response = bookCopyController.addCopy(bookId, "leerkracht");
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        verify(bookCopyRepository).save(any(BookCopy.class));
+        verify(bookCopyRepository).save(leerkrachtCopyCaptor.capture());
     }
 
     @Test
@@ -144,13 +149,14 @@ class BookCopyControllerTest {
         savedCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenReturn(savedCopy);
+        ArgumentCaptor<BookCopy> bibbeheerderCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(bibbeheerderCopyCaptor.capture())).thenReturn(savedCopy);
 
         ResponseEntity<CopyDto> response = bookCopyController.addCopy(bookId, "bibbeheerder");
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        verify(bookCopyRepository).save(any(BookCopy.class));
+        verify(bookCopyRepository).save(bibbeheerderCopyCaptor.capture());
     }
 
     @Test
@@ -166,7 +172,8 @@ class BookCopyControllerTest {
         savedCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenReturn(savedCopy);
+        ArgumentCaptor<BookCopy> linkCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(linkCopyCaptor.capture())).thenReturn(savedCopy);
 
         bookCopyController.addCopy(bookId, "bibbeheerder");
 
@@ -185,7 +192,8 @@ class BookCopyControllerTest {
         savedCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenReturn(savedCopy);
+        ArgumentCaptor<BookCopy> createdCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(createdCopyCaptor.capture())).thenReturn(savedCopy);
 
         ResponseEntity<CopyDto> response = bookCopyController.addCopy(bookId, "bibbeheerder");
 

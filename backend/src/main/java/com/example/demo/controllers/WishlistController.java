@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/verlanglijst")
@@ -55,15 +56,17 @@ public class WishlistController {
     public ResponseEntity<Void> addToWishlist(
             @Valid @RequestBody WishlistAddRequest request,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+        Long bookId = Objects.requireNonNull(request.getBookId(), "bookId is required");
         AppUser user = getUserFromHeader(requireUserSub(userSub));
         if (user.getSchool() != null) {
-            Book book = bookRepository.findById(request.getBookId()).orElse(null);
+            Book book = bookRepository.findById(bookId).orElse(null);
             if (book == null || book.getSchool() == null
-                    || !book.getSchool().getId().equals(user.getSchool().getId())) {
+                    || !Objects.requireNonNull(book.getSchool().getId(), "schoolId is required")
+                            .equals(Objects.requireNonNull(user.getSchool().getId(), "schoolId is required"))) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }
-        wishlistService.addToWishlist(request.getBookId(), user);
+        wishlistService.addToWishlist(bookId, user);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -101,11 +104,12 @@ public class WishlistController {
         requireUserSub(userSub);
         Wishlist wishlist = wishlistRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Wishlist not found"));
+        Long bookId = Objects.requireNonNull(wishlist.getBook().getId(), "bookId is required");
 
         // Validation: Can only enable notifications if book is unavailable
         if (dto.isNotificationEnabled()) {
             long availableCopies = bookCopyRepository.countByBook_IdAndStatus(
-                    wishlist.getBook().getId(),
+                    bookId,
                     BookCopy.CopyStatus.AVAILABLE);
 
             if (availableCopies > 0) {
@@ -118,14 +122,14 @@ public class WishlistController {
             wishlist.setLastNotifiedAt(null);
         }
         Wishlist updated = wishlistRepository.save(wishlist);
-        long totalCopies = bookCopyRepository.countByBook_Id(updated.getBook().getId());
+        long totalCopies = bookCopyRepository.countByBook_Id(bookId);
         long availableCopies = bookCopyRepository.countByBook_IdAndStatus(
-                updated.getBook().getId(),
+            bookId,
                 BookCopy.CopyStatus.AVAILABLE);
 
         WishlistDto responseDto = new WishlistDto(
                 updated.getId(),
-                updated.getBook().getId(),
+            bookId,
                 updated.getBook().getTitel(),
                 updated.getBook().getAuteur(),
                 updated.getBook().getCover(),

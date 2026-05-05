@@ -20,12 +20,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class SuperAdminAuthServiceTest {
 
@@ -44,7 +45,8 @@ class SuperAdminAuthServiceTest {
         jwtTokenProvider = new JwtTokenProvider();
         ReflectionTestUtils.setField(jwtTokenProvider, "jwtSecret",
                 "test-secret-key-for-hs512-must-be-at-least-64-bytes-long-1234567890");
-        ReflectionTestUtils.setField(jwtTokenProvider, "jwtExpirationInMs", 86_400_000);
+        ReflectionTestUtils.setField(Objects.requireNonNull(jwtTokenProvider, "jwtTokenProvider"),
+            "jwtExpirationInMs", 86_400_000);
         service = new SuperAdminAuthService(superAdminRepository, setupTokenRepository, jwtTokenProvider);
         passwordEncoder = new BCryptPasswordEncoder();
     }
@@ -63,8 +65,10 @@ class SuperAdminAuthServiceTest {
         when(superAdminRepository.count()).thenReturn(0L);
         when(setupTokenRepository.findByTokenHash(sha256(rawToken))).thenReturn(Optional.of(setupToken));
         when(superAdminRepository.findByEmail(email)).thenReturn(Optional.empty());
-        when(superAdminRepository.save(any(SuperAdmin.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(setupTokenRepository.save(any(SuperAdminSetupToken.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(superAdminRepository.save(any(SuperAdmin.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
+        when(setupTokenRepository.save(any(SuperAdminSetupToken.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         SuperAdmin created = service.createSuperAdminFromSetupToken(rawToken, email, password);
 
@@ -103,12 +107,13 @@ class SuperAdminAuthServiceTest {
         admin.setTokenVersion(0L);
 
         when(superAdminRepository.findById(5L)).thenReturn(Optional.of(admin));
-        when(superAdminRepository.save(any(SuperAdmin.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(superAdminRepository.save(any(SuperAdmin.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         service.changeSuperAdminPassword(5L, "OldPass1", "NewPass1A");
 
         ArgumentCaptor<SuperAdmin> captor = ArgumentCaptor.forClass(SuperAdmin.class);
-        verify(superAdminRepository).save(captor.capture());
+        verify(superAdminRepository).save(Objects.requireNonNull(captor.capture()));
         SuperAdmin saved = captor.getValue();
 
         assertEquals(1L, saved.getTokenVersion());

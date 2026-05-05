@@ -3,15 +3,36 @@ import { HttpClientTestingModule } from "@angular/common/http/testing";
 import axios from "axios";
 
 import { BookService } from "./book.service";
+import { AuthContextService } from "./auth-context.service";
 
 describe("BookService", () => {
   let service: BookService;
+  let authContextSpy: jasmine.SpyObj<AuthContextService>;
 
   beforeEach(() => {
+    authContextSpy = jasmine.createSpyObj<AuthContextService>(
+      "AuthContextService",
+      [
+        "getEffectiveRole",
+        "getEffectiveSub",
+        "getEffectiveBearerToken",
+        "isAdminMode",
+      ],
+    );
+    authContextSpy.getEffectiveRole.and.returnValue("leerkracht");
+    authContextSpy.getEffectiveSub.and.returnValue("test-sub-123");
+    authContextSpy.getEffectiveBearerToken.and.returnValue("test-token");
+    authContextSpy.isAdminMode.and.returnValue(false);
+
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
+      providers: [{ provide: AuthContextService, useValue: authContextSpy }],
     });
     service = TestBed.inject(BookService);
+  });
+
+  afterEach(() => {
+    localStorage.clear();
   });
 
   it("should be created", () => {
@@ -61,6 +82,160 @@ describe("BookService", () => {
       await expectAsync(
         service.getBookByGoNumberFromLibrary("GO-00000000", 1),
       ).toBeRejected();
+    });
+  });
+
+  describe("Leeslijst functionality", () => {
+    it("should toggle a class reading list item for the selected school", async () => {
+      localStorage.setItem("selectedSchoolId", "7");
+      const axiosPostSpy = spyOn(axios, "post").and.resolveTo({
+        data: true,
+      } as any);
+
+      const result = await service.toggleClassReadingListItem(42);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        "/api/class-reading-list/42/toggle?schoolId=7",
+        {},
+        {
+          headers: {
+            "X-User-Sub": "test-sub-123",
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+      expect(result).toBeTrue();
+    });
+
+    it("should return false when no school is selected for class reading list status", async () => {
+      const axiosGetSpy = spyOn(axios, "get");
+
+      const result = await service.isClassReadingListItem(42);
+
+      expect(result).toBeFalse();
+      expect(axiosGetSpy).not.toHaveBeenCalled();
+    });
+
+    it("should check class reading list status for the selected school", async () => {
+      localStorage.setItem("selectedSchoolId", "11");
+      const axiosGetSpy = spyOn(axios, "get").and.resolveTo({
+        data: false,
+      } as any);
+
+      const result = await service.isClassReadingListItem(99);
+
+      expect(axiosGetSpy).toHaveBeenCalledWith(
+        "/api/class-reading-list/99/status?schoolId=11",
+        {
+          headers: {
+            "X-User-Sub": "test-sub-123",
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+      expect(result).toBeFalse();
+    });
+
+    it("should get class reading list item ids for a school", async () => {
+      const axiosGetSpy = spyOn(axios, "get").and.resolveTo({
+        data: [1, 2, 3],
+      } as any);
+
+      const result = await service.getClassReadingListItemIds(5);
+
+      expect(axiosGetSpy).toHaveBeenCalledWith(
+        "/api/class-reading-list/school/5",
+        {
+          headers: {
+            "X-User-Sub": "test-sub-123",
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+      expect(result).toEqual([1, 2, 3]);
+    });
+
+    it("should create a leeslijst with title, description, books and klas ids", async () => {
+      const axiosPostSpy = spyOn(axios, "post").and.resolveTo({
+        data: { id: 77 },
+      } as any);
+
+      const result = await service.createLeeslijst(
+        "Nieuwe lijst",
+        "Beschrijving",
+        [10, 11],
+        [3, 4],
+      );
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        "/api/leeslisten",
+        {
+          titel: "Nieuwe lijst",
+          description: "Beschrijving",
+          bookIds: [10, 11],
+          klasIds: [3, 4],
+        },
+        {
+          headers: {
+            "X-User-Role": "leerkracht",
+            "X-User-Sub": "test-sub-123",
+            "X-User-Name": "Gebruiker",
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+      expect(result).toEqual({ id: 77 });
+    });
+
+    it("should get leeslijst by id with full auth headers", async () => {
+      const axiosGetSpy = spyOn(axios, "get").and.resolveTo({
+        data: { id: 9, titel: "Lijst" },
+      } as any);
+
+      const result = await service.getLeeslijst(9);
+
+      expect(axiosGetSpy).toHaveBeenCalledWith("/api/leeslisten/9", {
+        headers: {
+          "X-User-Role": "leerkracht",
+          "X-User-Sub": "test-sub-123",
+          "X-User-Name": "Gebruiker",
+          Authorization: "Bearer test-token",
+        },
+      });
+      expect(result).toEqual({ id: 9, titel: "Lijst" });
+    });
+
+    it("should update leeslijst with title, description, books and klas ids", async () => {
+      const axiosPutSpy = spyOn(axios, "put").and.resolveTo({
+        data: { id: 9, titel: "Bijgewerkt" },
+      } as any);
+
+      const result = await service.updateLeeslijst(
+        9,
+        "Bijgewerkt",
+        "Nieuwe beschrijving",
+        [1],
+        [2],
+      );
+
+      expect(axiosPutSpy).toHaveBeenCalledWith(
+        "/api/leeslisten/9",
+        {
+          titel: "Bijgewerkt",
+          description: "Nieuwe beschrijving",
+          bookIds: [1],
+          klasIds: [2],
+        },
+        {
+          headers: {
+            "X-User-Role": "leerkracht",
+            "X-User-Sub": "test-sub-123",
+            "X-User-Name": "Gebruiker",
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+      expect(result).toEqual({ id: 9, titel: "Bijgewerkt" });
     });
   });
 });

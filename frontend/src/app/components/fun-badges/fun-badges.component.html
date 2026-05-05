@@ -4,14 +4,28 @@
       <div class="fun-badges-title-row">
         <div class="lvl-coin">{{ info.level }}</div>
         <div>
-          <p class="fun-badges-title">Level {{ info.level }} &middot; {{ getTierLabel(info.level) }}</p>
-          <p class="fun-badges-sub">Nog {{ info.experienceRequiredForLevel - info.experienceForCurrentLevel }} XP tot level {{ info.level + 1 }}</p>
+          <p class="fun-badges-title">
+            Level {{ info.level }} &middot; {{ getTierLabel(info.level) }}
+          </p>
+          <p class="fun-badges-sub">
+            Nog
+            {{
+              info.experienceRequiredForLevel - info.experienceForCurrentLevel
+            }}
+            XP tot level {{ info.level + 1 }}
+          </p>
         </div>
       </div>
       <div class="streak-flame">🔥 Lees verder</div>
     </div>
 
-    <div class="xp-track" role="progressbar" [attr.aria-valuenow]="info.progressPercentage" aria-valuemin="0" aria-valuemax="100">
+    <div
+      class="xp-track"
+      role="progressbar"
+      [attr.aria-valuenow]="info.progressPercentage"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
       <div class="xp-fill" [style.width.%]="info.progressPercentage"></div>
     </div>
     <div class="xp-meta">
@@ -19,31 +33,82 @@
       <span>{{ info.experienceRequiredForLevel }} XP</span>
     </div>
 
-    <div class="badge-row">
-      @for (badge of displayedBadges; track badge.key) {
-        <div
-          class="badge-chip"
-          [class]="badge.cssClass"
-          [class.locked]="!badge.unlocked"
-          [attr.title]="badge.unlocked ? badge.label + ' behaald' : 'Ontleen ' + badge.hint + ' om te ontgrendelen'"
-          role="img"
-          [attr.aria-label]="badge.label + (badge.unlocked ? ' (behaald)' : ' (nog niet behaald — ' + badge.hint + ')')"
+    <div class="badge-section">
+      <p class="badge-section-label">Uitleenbadges</p>
+      <div class="badge-row">
+        @for (badge of displayedLoanBadges; track badge.key) {
+          <div
+            class="badge-chip"
+            [ngClass]="{ locked: !badge.unlocked }"
+            [attr.title]="
+              badge.unlocked
+                ? badge.label + ' behaald'
+                : 'Ontleen ' + badge.hint + ' om te ontgrendelen'
+            "
+            role="img"
+            [attr.aria-label]="
+              badge.label +
+              (badge.unlocked
+                ? ' (behaald)'
+                : ' (nog niet behaald — ' + badge.hint + ')')
+            "
+          >
+            <div class="badge-icon">{{ badge.icon }}</div>
+            <span class="badge-name">{{ badge.label }}</span>
+            <span class="badge-hint">{{ badge.hint }}</span>
+          </div>
+        }
+        <button
+          class="badge-chip badge-more"
+          type="button"
+          (click)="toggleLoan()"
+          [attr.aria-expanded]="showAllLoan"
+          aria-label="Bekijk alle uitleenbadges"
         >
-          <div class="badge-icon">{{ badge.icon }}</div>
-          <span class="badge-name">{{ badge.label }}</span>
-          <span class="badge-hint">{{ badge.hint }}</span>
-        </div>
-      }
-      <button
-        class="badge-chip badge-more"
-        type="button"
-        (click)="toggleShowAll()"
-        [attr.aria-expanded]="showAll"
-        aria-label="Bekijk alle badges"
-      >
-        <div class="badge-icon">{{ showAll ? '−' : '+' }}</div>
-        <span class="badge-name">{{ showAll ? 'Minder' : 'Bekijk alle' }}</span>
-      </button>
+          <div class="badge-icon">{{ showAllLoan ? "−" : "+" }}</div>
+          <span class="badge-name">{{ showAllLoan ? "Minder" : "Meer" }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="badge-section">
+      <p class="badge-section-label">Reviewbadges</p>
+      <div class="badge-row">
+        @for (badge of displayedReviewBadges; track badge.key) {
+          <div
+            class="badge-chip"
+            [ngClass]="{ locked: !badge.unlocked }"
+            [attr.title]="
+              badge.unlocked
+                ? badge.label + ' behaald'
+                : 'Schrijf ' + badge.hint + ' om te ontgrendelen'
+            "
+            role="img"
+            [attr.aria-label]="
+              badge.label +
+              (badge.unlocked
+                ? ' (behaald)'
+                : ' (nog niet behaald — ' + badge.hint + ')')
+            "
+          >
+            <div class="badge-icon">{{ badge.icon }}</div>
+            <span class="badge-name">{{ badge.label }}</span>
+            <span class="badge-hint">{{ badge.hint }}</span>
+          </div>
+        }
+        <button
+          class="badge-chip badge-more"
+          type="button"
+          (click)="toggleReview()"
+          [attr.aria-expanded]="showAllReview"
+          aria-label="Bekijk alle reviewbadges"
+        >
+          <div class="badge-icon">{{ showAllReview ? "−" : "+" }}</div>
+          <span class="badge-name">{{
+            showAllReview ? "Minder" : "Meer"
+          }}</span>
+        </button>
+      </div>
     </div>
   </div>
 }

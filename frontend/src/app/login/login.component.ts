@@ -4,6 +4,7 @@ import { HttpClient } from "@angular/common/http";
 import { ExperienceService } from "../services/experience.service";
 import { UserPreferencesService } from "../services/user-preferences.service";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
+import { environment } from "../../environments/environment";
 
 @Component({
   selector: "app-login",
@@ -13,7 +14,7 @@ import { inferNameParts, composeFullName } from "../utils/name-utils";
 })
 export class LoginComponent implements OnInit {
   private readonly clientId = "2ebf496d131b";
-  private readonly redirectUri = "https://gosmartlibs07.tech/auth/callback";
+  private readonly redirectUri = environment.smartschool.redirectUri;
   public isLoading = false;
 
   constructor(

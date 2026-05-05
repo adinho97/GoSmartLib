@@ -20,10 +20,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,15 +65,14 @@ class WishlistControllerTest {
         when(wishlistRepository.findById(5L)).thenReturn(Optional.of(wishlist));
         when(bookCopyRepository.countByBook_IdAndStatus(11L, BookCopy.CopyStatus.AVAILABLE)).thenReturn(0L);
         when(bookCopyRepository.countByBook_Id(11L)).thenReturn(3L);
-        when(wishlistRepository.save(any(Wishlist.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(wishlistRepository.save(wishlist)).thenReturn(wishlist);
 
         ResponseEntity<?> response = wishlistController.updateWishlist(5L, dto, "test-sub");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertInstanceOf(WishlistDto.class, response.getBody());
 
-        WishlistDto responseDto = (WishlistDto) response.getBody();
-        assertNotNull(responseDto);
+        WishlistDto responseDto = (WishlistDto) Objects.requireNonNull(response.getBody());
         assertTrue(responseDto.isNotificationEnabled());
         assertNull(responseDto.getLastNotifiedAt());
 
@@ -103,7 +102,7 @@ class WishlistControllerTest {
                 () -> wishlistController.updateWishlist(7L, dto, "test-sub"));
 
         assertEquals("Cannot enable notifications for available book", ex.getMessage());
-        verify(wishlistRepository, never()).save(any());
+        verify(wishlistRepository, never()).save(wishlist);
     }
 
     @Test

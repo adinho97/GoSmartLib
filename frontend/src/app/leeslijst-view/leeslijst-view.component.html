@@ -1,0 +1,99 @@
+<div class="leeslijst-container">
+  @if (loading) {
+    <div class="loader-container">
+      <div class="spinner"></div>
+      <p>Leeslijst laden…</p>
+    </div>
+  } @else if (error) {
+    <div class="error-container">
+      <h2>{{ error }}</h2>
+      <button class="btn btn-primary" (click)="goBack()">Terug</button>
+    </div>
+  } @else if (leeslijst) {
+    <div class="leeslijst-page">
+      <!-- Header/Title Page -->
+      <div class="leeslijst-title-page">
+        <div class="title-content">
+          <h1 class="leeslijst-title">{{ leeslijst.titel }}</h1>
+          <div class="leeslijst-meta">
+            <p class="meta-item">
+              <strong>Voor:</strong> {{ leeslijst.klasNames.join(", ") }}
+            </p>
+            <p class="meta-item">
+              <strong>Door:</strong>
+              {{ displayCreatorName(leeslijst.createdByName) }}
+            </p>
+            <p class="meta-item">
+              <strong>Aantal boeken:</strong> {{ leeslijst.books.length }}
+            </p>
+            <p class="meta-item">
+              <strong>Aangemaakt:</strong>
+              {{ leeslijst.createdAt | date: "d MMMM yyyy" }}
+            </p>
+          </div>
+          @if (leeslijst.description) {
+            <p class="leeslijst-description">{{ leeslijst.description }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- Books Grid -->
+      <div class="books-section">
+        <h2 class="section-title">Aanbevolen Boeken</h2>
+        <div class="books-grid">
+          @for (book of leeslijst.books; track book.bookId) {
+            <div
+              class="book-card"
+              role="button"
+              tabindex="0"
+              (click)="goToDetail(book.bookId)"
+            >
+              <div class="book-cover-wrapper">
+                <img
+                  [src]="book.cover || 'assets/no-cover.png'"
+                  alt="{{ book.titel }}"
+                  class="book-cover"
+                />
+              </div>
+              <div class="book-details">
+                <h3 class="book-title">{{ book.titel }}</h3>
+                <p class="book-author">{{ book.auteur }}</p>
+                @if (book.genre) {
+                  <p class="book-genre">{{ book.genre }}</p>
+                }
+                @if (book.paginas) {
+                  <p class="book-pages">{{ book.paginas }} pagina's</p>
+                }
+                @if (book.isbn) {
+                  <p class="book-isbn">ISBN: {{ book.isbn }}</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-footer">
+        <button class="btn btn-outline" (click)="goBack()">Terug</button>
+        @if (canEditLeeslijst) {
+          <button class="btn btn-primary" (click)="editLeeslijst()">
+            Aanpassen
+          </button>
+        }
+        @if (canDeleteLeeslijst) {
+          <button
+            class="btn btn-outline"
+            (click)="deleteLeeslijst()"
+            [disabled]="deleting"
+          >
+            {{ deleting ? "Verwijderen..." : "Verwijder" }}
+          </button>
+        }
+        <button class="btn btn-secondary" (click)="printLeeslijst()">
+          Afdrukken
+        </button>
+      </div>
+    </div>
+  }
+</div>

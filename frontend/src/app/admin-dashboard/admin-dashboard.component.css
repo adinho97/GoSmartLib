@@ -1,5 +1,5 @@
 .admin-dashboard {
-  min-height: 100vh;
+  min-height: calc(100vh - 56px);
   background: #f4f5f7;
   padding: 28px 24px;
   display: flex;
@@ -60,6 +60,31 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.fold-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.fold-btn:hover {
+  color: #1a1a2e;
+}
+
+.fold-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.fold-btn svg.rotated {
+  transform: rotate(180deg);
 }
 
 .map-card-title {
