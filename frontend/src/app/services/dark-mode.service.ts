@@ -1,30 +1,42 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
+import { BehaviorSubject } from "rxjs";
 
-export type ThemeMode = 'light' | 'dark';
-const STORAGE_KEY = 'themeMode';
+export type ThemeMode = "light" | "dark";
+const STORAGE_KEY = "themeMode";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class DarkModeService {
-  private current: ThemeMode = 'light';
+  // Gebruik een BehaviorSubject zodat de component de status altijd live ziet
+  private modeSubject = new BehaviorSubject<ThemeMode>("light");
+  mode$ = this.modeSubject.asObservable();
 
   constructor() {
     const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    this.applyMode(saved ?? (prefersDark ? 'dark' : 'light'));
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
 
-    // Volg OS voorkeur als er geen opgeslagen keuze is
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-      if (!localStorage.getItem(STORAGE_KEY)) {
-        this.applyMode(e.matches ? 'dark' : 'light');
-      }
-    });
+    // Bepaal de initiële modus
+    const initialMode = saved ?? (prefersDark ? "dark" : "light");
+    this.applyMode(initialMode);
+
+    // Alleen luisteren naar OS als de gebruiker nog NOOIT zelf gekozen heeft
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (e) => {
+        if (!localStorage.getItem(STORAGE_KEY)) {
+          this.applyMode(e.matches ? "dark" : "light");
+        }
+      });
   }
 
-  getMode(): ThemeMode { return this.current; }
-  isDark(): boolean { return this.current === 'dark'; }
+  isDark(): boolean {
+    return this.modeSubject.value === "dark";
+  }
 
   toggle(): void {
-    this.setMode(this.current === 'dark' ? 'light' : 'dark');
+    const newMode = this.modeSubject.value === "dark" ? "light" : "dark";
+    this.setMode(newMode);
   }
 
   setMode(mode: ThemeMode): void {
@@ -33,7 +45,7 @@ export class DarkModeService {
   }
 
   private applyMode(mode: ThemeMode): void {
-    this.current = mode;
-    document.documentElement.classList.toggle('dark', mode === 'dark');
+    this.modeSubject.next(mode);
+    document.documentElement.classList.toggle("dark", mode === "dark");
   }
 }
