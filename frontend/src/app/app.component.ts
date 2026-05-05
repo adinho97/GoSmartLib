@@ -26,6 +26,8 @@ import { inferNameParts, composeFullName } from "./utils/name-utils";
 export class AppComponent implements OnInit {
   profileMenuOpen = false;
   adminNavMenuOpen = false;
+  mainNavOpen = false;
+  adminMobileMenuOpen = false;
   levelInfo$: Observable<LevelInfo>;
   private readonly roleLikeValues = new Set([
     "leerling",
@@ -55,6 +57,10 @@ export class AppComponent implements OnInit {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
+        this.profileMenuOpen = false;
+        this.adminNavMenuOpen = false;
+        this.mainNavOpen = false;
+        this.adminMobileMenuOpen = false;
         this.changeDetectorRef.detectChanges();
       });
   }
@@ -241,6 +247,20 @@ export class AppComponent implements OnInit {
   toggleProfileMenu(event: Event): void {
     event.stopPropagation();
     this.profileMenuOpen = !this.profileMenuOpen;
+    if (this.profileMenuOpen) {
+      this.mainNavOpen = false;
+      this.adminMobileMenuOpen = false;
+    }
+  }
+
+  toggleMainNav(event: Event): void {
+    event.stopPropagation();
+    this.mainNavOpen = !this.mainNavOpen;
+    if (this.mainNavOpen) {
+      this.profileMenuOpen = false;
+      this.adminNavMenuOpen = false;
+      this.adminMobileMenuOpen = false;
+    }
   }
 
   logout(): void {
@@ -297,6 +317,21 @@ export class AppComponent implements OnInit {
   toggleAdminNavMenu(event: Event): void {
     event.stopPropagation();
     this.adminNavMenuOpen = !this.adminNavMenuOpen;
+    if (this.adminNavMenuOpen) {
+      this.mainNavOpen = false;
+      this.profileMenuOpen = false;
+      this.adminMobileMenuOpen = false;
+    }
+  }
+
+  toggleAdminMobileNav(event: Event): void {
+    event.stopPropagation();
+    this.adminMobileMenuOpen = !this.adminMobileMenuOpen;
+    if (this.adminMobileMenuOpen) {
+      this.mainNavOpen = false;
+      this.profileMenuOpen = false;
+      this.adminNavMenuOpen = false;
+    }
   }
 
   adminNavGoToNewSchool(): void {
@@ -319,5 +354,7 @@ export class AppComponent implements OnInit {
   onDocumentClick(): void {
     this.profileMenuOpen = false;
     this.adminNavMenuOpen = false;
+    this.mainNavOpen = false;
+    this.adminMobileMenuOpen = false;
   }
 }
