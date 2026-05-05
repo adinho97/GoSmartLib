@@ -1,6 +1,5 @@
 package com.example.demo.config;
-import com.example.demo.config.ClassReadingListItem;
-import com.example.demo.config.ClassReadingListItemRepository;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;

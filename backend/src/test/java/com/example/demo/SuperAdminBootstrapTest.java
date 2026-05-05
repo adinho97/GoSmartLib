@@ -11,11 +11,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class SuperAdminBootstrapTest {
 
@@ -29,13 +31,14 @@ class SuperAdminBootstrapTest {
     void run_shouldGenerateTokenWhenNoAdminAndNoActiveToken() throws Exception {
         when(superAdminRepository.count()).thenReturn(0L);
         when(setupTokenRepository.countByUsedAtIsNullAndExpiresAtAfter(any(LocalDateTime.class))).thenReturn(0L);
-        when(setupTokenRepository.save(any(SuperAdminSetupToken.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(setupTokenRepository.save(any(SuperAdminSetupToken.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
-        SuperAdminBootstrap bootstrap = new SuperAdminBootstrap(superAdminRepository, setupTokenRepository, null);
+        SuperAdminBootstrap bootstrap = new SuperAdminBootstrap(superAdminRepository, setupTokenRepository);
         bootstrap.run();
 
         ArgumentCaptor<SuperAdminSetupToken> captor = ArgumentCaptor.forClass(SuperAdminSetupToken.class);
-        verify(setupTokenRepository).save(captor.capture());
+        verify(setupTokenRepository).save(Objects.requireNonNull(captor.capture()));
         SuperAdminSetupToken saved = captor.getValue();
 
         assertNotNull(saved.getTokenHash());
@@ -48,9 +51,9 @@ class SuperAdminBootstrapTest {
     void run_shouldNotGenerateTokenWhenAdminExists() throws Exception {
         when(superAdminRepository.count()).thenReturn(1L);
 
-        SuperAdminBootstrap bootstrap = new SuperAdminBootstrap(superAdminRepository, setupTokenRepository, null);
+        SuperAdminBootstrap bootstrap = new SuperAdminBootstrap(superAdminRepository, setupTokenRepository);
         bootstrap.run();
 
-        verify(setupTokenRepository, never()).save(any());
+        verify(setupTokenRepository, never()).save(any(SuperAdminSetupToken.class));
     }
 }

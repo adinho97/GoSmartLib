@@ -1,7 +1,5 @@
 package com.example.demo.dto;
 
-import com.example.demo.dto.StatisticsDTO;
-import com.example.demo.dto.StatisticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

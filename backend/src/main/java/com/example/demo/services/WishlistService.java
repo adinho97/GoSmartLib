@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +30,7 @@ public class WishlistService {
 
     @Transactional
     public void addToWishlist(Long bookId, AppUser user) {
-        Book book = bookRepo.findById(bookId)
+        Book book = bookRepo.findById(Objects.requireNonNull(bookId, "bookId"))
                 .orElseThrow(() -> new IllegalArgumentException("Boek niet gevonden"));
 
         boolean alreadyWishlisted = wishlistRepo.findByUserAndBook(user, book).isPresent();
@@ -45,7 +46,7 @@ public class WishlistService {
 
     @Transactional
     public void removeFromWishlist(Long bookId, AppUser user) {
-        Book book = bookRepo.findById(bookId)
+        Book book = bookRepo.findById(Objects.requireNonNull(bookId, "bookId"))
                 .orElseThrow(() -> new IllegalArgumentException("Boek niet gevonden"));
 
         wishlistRepo.deleteByUserAndBook(user, book);
@@ -61,7 +62,7 @@ public class WishlistService {
 
     @Transactional(readOnly = true)
     public boolean isWishlisted(Long bookId, AppUser user) {
-        Book book = bookRepo.findById(bookId)
+        Book book = bookRepo.findById(Objects.requireNonNull(bookId, "bookId"))
                 .orElseThrow(() -> new IllegalArgumentException("Boek niet gevonden"));
 
         return wishlistRepo.findByUserAndBook(user, book).isPresent();

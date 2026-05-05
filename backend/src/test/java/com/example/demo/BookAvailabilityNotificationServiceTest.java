@@ -21,12 +21,14 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class BookAvailabilityNotificationServiceTest {
 
@@ -70,14 +72,15 @@ class BookAvailabilityNotificationServiceTest {
         when(smartschoolProperties.getApiBaseUrl()).thenReturn("https://school.example");
         when(messageService.sendMessage(eq("access-token"), any(SmartschoolMessageRequest.class)))
                 .thenReturn(Mono.just("ok"));
-        when(wishlistRepository.save(any(Wishlist.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(wishlistRepository.save(any(Wishlist.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         notificationService.notifyWishlistersThatBookIsAvailable(book);
 
         verify(messageService, times(1)).sendMessage(eq("access-token"), any(SmartschoolMessageRequest.class));
 
         ArgumentCaptor<Wishlist> savedWishlist = ArgumentCaptor.forClass(Wishlist.class);
-        verify(wishlistRepository, times(1)).save(savedWishlist.capture());
+        verify(wishlistRepository, times(1)).save(Objects.requireNonNull(savedWishlist.capture()));
 
         assertFalse(savedWishlist.getValue().isNotificationEnabled());
         assertNotNull(savedWishlist.getValue().getLastNotifiedAt());

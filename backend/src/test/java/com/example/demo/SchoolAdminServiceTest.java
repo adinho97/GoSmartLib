@@ -31,12 +31,14 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class SchoolAdminServiceTest {
 
@@ -86,7 +88,7 @@ class SchoolAdminServiceTest {
         verify(validationService).assertSubdomainAvailable("myschool");
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(captor.capture());
+        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
         School persisted = captor.getValue();
         assertEquals("myschool", persisted.getSubdomein());
         assertEquals("https://myschool.smartschool.be", persisted.getSmartschoolUrl());
@@ -107,12 +109,13 @@ class SchoolAdminServiceTest {
 
         when(validationService.normalizeSubdomain("school")).thenReturn("school");
         when(validationService.buildSmartschoolUrl("school")).thenReturn("https://school.smartschool.be");
-        when(schoolRepository.save(any(School.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(schoolRepository.save(any(School.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         service.addSchool(request);
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(captor.capture());
+        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
         assertEquals("Trimmed Name", captor.getValue().getNaam());
         assertEquals("Trimmed Adres", captor.getValue().getAdres());
     }
@@ -126,12 +129,13 @@ class SchoolAdminServiceTest {
 
         when(validationService.normalizeSubdomain("school")).thenReturn("school");
         when(validationService.buildSmartschoolUrl("school")).thenReturn("https://school.smartschool.be");
-        when(schoolRepository.save(any(School.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(schoolRepository.save(any(School.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         service.addSchool(request);
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(captor.capture());
+        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
         assertNull(captor.getValue().getNaam());
         assertNull(captor.getValue().getAdres());
     }
@@ -216,7 +220,8 @@ class SchoolAdminServiceTest {
     void updateSchoolInfo_shouldUpdateFieldsAndReturnDetail() {
         School school = makeSchool(1L, "school", "https://school.smartschool.be");
         when(schoolRepository.findById(1L)).thenReturn(Optional.of(school));
-        when(schoolRepository.save(any(School.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(schoolRepository.save(any(School.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
         stubDetailCounts(1L);
 
         UpdateSchoolInfoRequest request = new UpdateSchoolInfoRequest();
@@ -228,7 +233,7 @@ class SchoolAdminServiceTest {
         SchoolDetailResponse result = service.updateSchoolInfo(1L, request);
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(captor.capture());
+        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
         School saved = captor.getValue();
         assertEquals("Nieuw Naam", saved.getNaam());
         assertEquals("Nieuw Adres", saved.getAdres());
@@ -243,7 +248,8 @@ class SchoolAdminServiceTest {
         school.setNaam("Oud Naam");
 
         when(schoolRepository.findById(1L)).thenReturn(Optional.of(school));
-        when(schoolRepository.save(any(School.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(schoolRepository.save(any(School.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
         stubDetailCounts(1L);
 
         UpdateSchoolInfoRequest request = new UpdateSchoolInfoRequest();
@@ -252,7 +258,7 @@ class SchoolAdminServiceTest {
         service.updateSchoolInfo(1L, request);
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(captor.capture());
+        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
         assertNull(captor.getValue().getNaam());
     }
 
@@ -273,14 +279,15 @@ class SchoolAdminServiceTest {
         school.setStatus(SchoolStatus.PENDING);
 
         when(schoolRepository.findById(1L)).thenReturn(Optional.of(school));
-        when(schoolRepository.save(any(School.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(schoolRepository.save(any(School.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
         stubDetailCounts(1L);
 
         SchoolDetailResponse result = service.updateSchoolStatus(1L, SchoolStatus.ACTIVE);
 
         verify(validationService).validateUpdatableStatus(SchoolStatus.ACTIVE);
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(captor.capture());
+        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
         assertEquals(SchoolStatus.ACTIVE, captor.getValue().getStatus());
         assertNotNull(result);
     }
@@ -341,7 +348,8 @@ class SchoolAdminServiceTest {
         user.setSchool(school);
 
         when(appUserRepository.findById(5L)).thenReturn(Optional.of(user));
-        when(appUserRepository.save(any(AppUser.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(appUserRepository.save(any(AppUser.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         AdminUserListItem result = service.toggleUserActive(1L, 5L);
 
@@ -359,7 +367,8 @@ class SchoolAdminServiceTest {
         user.setSchool(school);
 
         when(appUserRepository.findById(5L)).thenReturn(Optional.of(user));
-        when(appUserRepository.save(any(AppUser.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(appUserRepository.save(any(AppUser.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         AdminUserListItem result = service.toggleUserActive(1L, 5L);
 
@@ -412,7 +421,8 @@ class SchoolAdminServiceTest {
         user.setSchool(school);
 
         when(appUserRepository.findById(5L)).thenReturn(Optional.of(user));
-        when(appUserRepository.save(any(AppUser.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(appUserRepository.save(any(AppUser.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         AdminUserListItem result = service.setUserRole(1L, 5L, "bibbeheerder");
 
@@ -428,7 +438,8 @@ class SchoolAdminServiceTest {
         user.setSchool(school);
 
         when(appUserRepository.findById(5L)).thenReturn(Optional.of(user));
-        when(appUserRepository.save(any(AppUser.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(appUserRepository.save(any(AppUser.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         AdminUserListItem result = service.setUserRole(1L, 5L, "leerkracht");
 

@@ -23,9 +23,9 @@ public class LeeslijstService {
     private final AppUserRepository userRepository;
 
     public LeeslijstService(LeeslijstRepository leeslijstRepository,
-                          BookRepository bookRepository,
-                          KlasRepository klasRepository,
-                          AppUserRepository userRepository) {
+            BookRepository bookRepository,
+            KlasRepository klasRepository,
+            AppUserRepository userRepository) {
         this.leeslijstRepository = leeslijstRepository;
         this.bookRepository = bookRepository;
         this.klasRepository = klasRepository;
@@ -39,8 +39,8 @@ public class LeeslijstService {
     public Leeslijst createLeeslijst(CreateLeeslijstRequest request, String userSub, String userName) {
         // Find user by their sub (Smartschool ID)
         AppUser user = userRepository.findBySub(userSub)
-            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
-        
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
+
         // Get user's school
         School school = user.getSchool();
         if (school == null) {
@@ -76,25 +76,27 @@ public class LeeslijstService {
 
     public List<Leeslijst> getLeeslistenForUser(String userSub) {
         AppUser user = userRepository.findBySub(userSub)
-            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
-        
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
+
         // Bibbeheerders should see all lists for their school for management purposes
         if ("bibbeheerder".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
             return leeslijstRepository.findBySchool_Id(user.getSchool().getId());
         }
 
-        // For other users (Teachers/Students), combine lists they created with lists for their class
+        // For other users (Teachers/Students), combine lists they created with lists
+        // for their class
         List<Leeslijst> createdByMe = leeslijstRepository.findByCreatedBy_Id(user.getId());
-        
+
         if (user.getKlas() != null) {
             List<Leeslijst> forMyKlas = leeslijstRepository.findByKlas(user.getKlas().getId());
-            
-            // Use a Set to merge the lists and avoid duplicates (e.g., if a teacher created a list for their own class)
+
+            // Use a Set to merge the lists and avoid duplicates (e.g., if a teacher created
+            // a list for their own class)
             Set<Leeslijst> combined = new HashSet<>(createdByMe);
             combined.addAll(forMyKlas);
             return new ArrayList<>(combined);
         }
-        
+
         return createdByMe;
     }
 
@@ -104,40 +106,38 @@ public class LeeslijstService {
 
     public LeeslijstDTO getLeeslijstDTO(Long id) {
         Leeslijst leeslijst = leeslijstRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
 
         LeeslijstDTO dto = new LeeslijstDTO(
-            leeslijst.getId(),
-            leeslijst.getTitel(),
-            leeslijst.getDescription(),
-            leeslijst.getSchool().getId(),
-            resolveCreatedByName(leeslijst),
-            leeslijst.getCreatedAt()
-        );
+                leeslijst.getId(),
+                leeslijst.getTitel(),
+                leeslijst.getDescription(),
+                leeslijst.getSchool().getId(),
+                resolveCreatedByName(leeslijst),
+                leeslijst.getCreatedAt());
 
         // Map books
         List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
-            .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
-                book.getId(),
-                book.getTitel(),
-                book.getAuteur(),
-                book.getCover(),
-                book.getGenre(),
-                book.getPaginas(),
-                book.getIsbn()
-            ))
-            .collect(Collectors.toList());
+                .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
+                        book.getId(),
+                        book.getTitel(),
+                        book.getAuteur(),
+                        book.getCover(),
+                        book.getGenre(),
+                        book.getPaginas(),
+                        book.getIsbn()))
+                .collect(Collectors.toList());
         dto.setBooks(bookDTOs);
 
         // Map klassen
         List<String> klasNames = leeslijst.getKlassen().stream()
-            .map(Klas::getNaam)
-            .collect(Collectors.toList());
+                .map(Klas::getNaam)
+                .collect(Collectors.toList());
         dto.setKlasNames(klasNames);
 
         List<Long> klasIds = leeslijst.getKlassen().stream()
-            .map(Klas::getId)
-            .collect(Collectors.toList());
+                .map(Klas::getId)
+                .collect(Collectors.toList());
         dto.setKlasIds(klasIds);
 
         if (leeslijst.getCreatedBy() != null) {
@@ -149,37 +149,35 @@ public class LeeslijstService {
 
     public LeeslijstDTO convertToDTO(Leeslijst leeslijst) {
         LeeslijstDTO dto = new LeeslijstDTO(
-            leeslijst.getId(),
-            leeslijst.getTitel(),
-            leeslijst.getDescription(),
-            leeslijst.getSchool().getId(),
-            resolveCreatedByName(leeslijst),
-            leeslijst.getCreatedAt()
-        );
+                leeslijst.getId(),
+                leeslijst.getTitel(),
+                leeslijst.getDescription(),
+                leeslijst.getSchool().getId(),
+                resolveCreatedByName(leeslijst),
+                leeslijst.getCreatedAt());
 
         // Map books
         List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
-            .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
-                book.getId(),
-                book.getTitel(),
-                book.getAuteur(),
-                book.getCover(),
-                book.getGenre(),
-                book.getPaginas(),
-                book.getIsbn()
-            ))
-            .collect(Collectors.toList());
+                .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
+                        book.getId(),
+                        book.getTitel(),
+                        book.getAuteur(),
+                        book.getCover(),
+                        book.getGenre(),
+                        book.getPaginas(),
+                        book.getIsbn()))
+                .collect(Collectors.toList());
         dto.setBooks(bookDTOs);
 
         // Map klassen
         List<String> klasNames = leeslijst.getKlassen().stream()
-            .map(Klas::getNaam)
-            .collect(Collectors.toList());
+                .map(Klas::getNaam)
+                .collect(Collectors.toList());
         dto.setKlasNames(klasNames);
 
         List<Long> klasIds = leeslijst.getKlassen().stream()
-            .map(Klas::getId)
-            .collect(Collectors.toList());
+                .map(Klas::getId)
+                .collect(Collectors.toList());
         dto.setKlasIds(klasIds);
 
         if (leeslijst.getCreatedBy() != null) {
@@ -191,7 +189,7 @@ public class LeeslijstService {
 
     public void deleteLeeslijst(Long id, String userSub, String userRole) {
         Leeslijst leeslijst = leeslijstRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
 
         if (userRole == null || userRole.isBlank()) {
             throw new SecurityException("Missing role");
@@ -212,7 +210,7 @@ public class LeeslijstService {
 
     public Leeslijst updateLeeslijst(Long id, CreateLeeslijstRequest request, String userSub, String userRole) {
         Leeslijst leeslijst = leeslijstRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
 
         if (userRole == null || userRole.isBlank()) {
             throw new SecurityException("Missing role");

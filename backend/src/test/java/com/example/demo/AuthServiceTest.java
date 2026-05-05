@@ -21,15 +21,18 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
@@ -40,12 +43,10 @@ class AuthServiceTest {
     private WebClient webClient;
 
     @Mock
-    @SuppressWarnings("rawtypes")
-    private WebClient.RequestHeadersUriSpec requestHeadersUriSpec;
+    private WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec;
 
     @Mock
-    @SuppressWarnings("rawtypes")
-    private WebClient.RequestHeadersSpec requestHeadersSpec;
+    private WebClient.RequestHeadersSpec<?> requestHeadersSpec;
 
     @Mock
     private WebClient.ResponseSpec responseSpec;
@@ -84,8 +85,9 @@ class AuthServiceTest {
 
         // The login flow tries to fetch groupinfo; we don't want these tests to depend on WebClient fluent mocks.
         // Force an error so AuthService uses its onErrorResume fallback (empty group list).
-        when(webClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(org.mockito.ArgumentMatchers.anyString())).thenReturn(requestHeadersSpec);
+        doReturn(requestHeadersUriSpec).when(webClient).get();
+        doReturn(requestHeadersSpec).when(requestHeadersUriSpec)
+            .uri(org.mockito.ArgumentMatchers.anyString());
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(String.class))
                 .thenReturn(Mono.error(new RuntimeException("skip groupinfo in unit test")));
@@ -106,7 +108,8 @@ class AuthServiceTest {
                 "https://aphogeschool.smartschool.be");
 
         when(appUserRepository.findBySub(sub)).thenReturn(Optional.of(existing));
-        when(appUserRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(appUserRepository.save(any(AppUser.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         AuthLoginResponse response = invokeSaveUserAndBuildResponse(userInfo);
 
@@ -115,7 +118,7 @@ class AuthServiceTest {
         assertEquals("new-access-token", response.getAccessToken());
 
         ArgumentCaptor<AppUser> captor = ArgumentCaptor.forClass(AppUser.class);
-        verify(appUserRepository, times(1)).save(captor.capture());
+        verify(appUserRepository, times(1)).save(Objects.requireNonNull(captor.capture()));
         AppUser saved = captor.getValue();
         assertEquals("bibbeheerder", saved.getRole());
         assertEquals("new-access-token", saved.getAccessToken());
@@ -131,7 +134,8 @@ class AuthServiceTest {
                 "https://aphogeschool.smartschool.be");
 
         when(appUserRepository.findBySub(sub)).thenReturn(Optional.empty());
-        when(appUserRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(appUserRepository.save(any(AppUser.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         AuthLoginResponse response = invokeSaveUserAndBuildResponse(userInfo);
 
@@ -140,7 +144,7 @@ class AuthServiceTest {
         assertNotNull(response.getAccessToken());
 
         ArgumentCaptor<AppUser> captor = ArgumentCaptor.forClass(AppUser.class);
-        verify(appUserRepository, times(1)).save(captor.capture());
+        verify(appUserRepository, times(1)).save(Objects.requireNonNull(captor.capture()));
         AppUser saved = captor.getValue();
         assertEquals("leerkracht", saved.getRole());
         assertEquals(sub, saved.getSub());
@@ -154,14 +158,15 @@ class AuthServiceTest {
                 "https://aphogeschool.smartschool.be");
 
         when(appUserRepository.findBySub(sub)).thenReturn(Optional.empty());
-        when(appUserRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(appUserRepository.save(any(AppUser.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         AuthLoginResponse response = invokeSaveUserAndBuildResponse(userInfo);
 
         assertEquals("leerling", response.getRole());
 
         ArgumentCaptor<AppUser> captor = ArgumentCaptor.forClass(AppUser.class);
-        verify(appUserRepository, times(1)).save(captor.capture());
+        verify(appUserRepository, times(1)).save(Objects.requireNonNull(captor.capture()));
         AppUser saved = captor.getValue();
         assertEquals("leerling", saved.getRole());
     }
