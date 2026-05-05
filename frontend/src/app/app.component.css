@@ -657,23 +657,24 @@
     border-radius: 12px;
     justify-content: flex-start;
     box-sizing: border-box;
-    background: none;
-    border: none;
+    background: #fff;
+    border: 1.5px solid #871f42;
     font-size: 14px;
-    font-weight: 500;
-    color: var(--ink-2);
+    font-weight: 700;
+    color: #871f42;
     cursor: pointer;
     transition:
       background 0.15s,
-      color 0.15s;
+      color 0.15s,
+      border-color 0.15s;
     margin-top: 8px;
-    border-top: 1px solid var(--line);
-    padding-top: 20px;
+    gap: 8px;
   }
 
   .app-nav-logout-btn:hover {
-    background: var(--surface-2);
-    color: var(--ink);
+    background: #fff0f4;
+    color: #871f42;
+    border-color: #6f1533;
   }
 
   .admin-top-account,
