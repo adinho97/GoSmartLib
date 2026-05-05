@@ -30,6 +30,9 @@
   padding: 0.6rem 0.9rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-height: 44px;
 }
 
 .reload-btn:disabled {
@@ -102,6 +105,7 @@
 
 .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -136,17 +140,7 @@ th {
   object-fit: cover;
   border-radius: 0.3rem;
   border: 1px solid #d1d5db;
-}
-
-@media (max-width: 900px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  flex-shrink: 0;
 }
 
 .search-and-filter {
@@ -163,6 +157,7 @@ th {
   border-radius: 0.5rem;
   font-size: 0.9rem;
   transition: border-color 0.2s;
+  min-height: 44px;
 }
 
 .search-input:focus {
@@ -237,6 +232,7 @@ th {
   white-space: nowrap;
   transition: background 0.2s;
   font-family: Arial, sans-serif;
+  min-height: 36px;
 }
 
 .recover-btn:hover:not(:disabled) {
@@ -248,6 +244,7 @@ th {
   cursor: not-allowed;
 }
 
+/* Modal */
 .return-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -289,8 +286,8 @@ th {
 }
 
 .return-modal-close {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
   border: 1px solid #d0d4d9;
   background: #f3f5f7;
@@ -339,6 +336,7 @@ th {
   border-radius: 10px;
   background: #fff;
   font-size: 0.95rem;
+  min-height: 44px;
 }
 
 .return-modal-field select:focus {
@@ -362,6 +360,7 @@ th {
   cursor: pointer;
   transition: all 0.2s;
   border: 1px solid transparent;
+  min-height: 44px;
 }
 
 .cancel-return-btn {
@@ -387,4 +386,122 @@ th {
 .cancel-return-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+/* ── Mobile (≤ 600px) ── */
+@media (max-width: 600px) {
+  .condition-overview-page {
+    padding: 1rem 12px 1.5rem;
+  }
+
+  /* Header stacks vertically; button goes full-width */
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .reload-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Stats stack to a single column */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  /* Lay out 3 stat cards in a row on mobile using a tighter design */
+  /* Actually keep single-col but make them compact */
+  .stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+  }
+
+  .stat-label {
+    font-size: 0.82rem;
+    max-width: 70%;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+    margin: 0;
+  }
+
+  .card-section {
+    padding: 0.75rem;
+    border-radius: 0.6rem;
+  }
+
+  .card-section h2 {
+    font-size: 1rem;
+  }
+
+  /* Search input goes full width on mobile */
+  .search-input {
+    max-width: 100%;
+  }
+
+  /* Scroll hint: subtle shadow on the right edge of table container */
+  .table-wrap {
+    border-radius: 0.4rem;
+    box-shadow: inset -6px 0 8px -6px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Tighten table cells to fit more columns in the scroll area */
+  th,
+  td {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.82rem;
+  }
+
+  /* Modal takes full screen on very small phones */
+  .return-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .return-modal {
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  /* Pagination: smaller buttons, allow wrapping */
+  .page-btn {
+    min-width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+
+  .book-pagination {
+    gap: 0.3rem;
+  }
+}
+
+/* ── Small-medium (601px – 900px) ── */
+@media (min-width: 601px) and (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reload-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .search-input {
+    max-width: 100%;
+  }
 }
