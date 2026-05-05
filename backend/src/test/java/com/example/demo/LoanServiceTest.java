@@ -92,10 +92,12 @@ class LoanServiceTest {
         when(bookCopyRepository.findByBook_Id(anyLong()))
             .thenReturn(Collections.singletonList(mockCopy));
         
-        when(loanRepository.save(any(Loan.class))).thenReturn(savedLoan);
+        ArgumentCaptor<Loan> savedLoanCaptor = ArgumentCaptor.forClass(Loan.class);
+        when(loanRepository.save(savedLoanCaptor.capture())).thenReturn(savedLoan);
         
         // Mock de save van de bookCopy (als de service de status van de kopie aanpast naar 'uitgeleend')
-        when(bookCopyRepository.save(any(BookCopy.class))).thenReturn(mockCopy);
+        ArgumentCaptor<BookCopy> savedCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(savedCopyCaptor.capture())).thenReturn(mockCopy);
 
         // 2. Act & Assert
         assertDoesNotThrow(() -> {
@@ -103,7 +105,7 @@ class LoanServiceTest {
         });
 
         // Verificatie
-        verify(loanRepository, times(1)).save(any(Loan.class));
+        verify(loanRepository, times(1)).save(savedLoanCaptor.capture());
         verify(bookCopyRepository, times(1)).findByBook_Id(1L);
     }
 
@@ -127,8 +129,10 @@ class LoanServiceTest {
 
         when(bookCopyRepository.findByBook_Id(1L)).thenReturn(Collections.singletonList(copy1));
         when(bookCopyRepository.findByBook_Id(2L)).thenReturn(Collections.singletonList(copy2));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(loanRepository.save(any(Loan.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        ArgumentCaptor<BookCopy> batchCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(batchCopyCaptor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
+        ArgumentCaptor<Loan> batchLoanCaptor = ArgumentCaptor.forClass(Loan.class);
+        when(loanRepository.save(batchLoanCaptor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
         SmartschoolUserInfo userInfo = new SmartschoolUserInfo();
         userInfo.setName("Test Leerling");
@@ -302,8 +306,10 @@ class LoanServiceTest {
         leerling.setSchool(school);
 
         when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
+        ArgumentCaptor<BookCopy> sameSchoolCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(sameSchoolCopyCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
+        ArgumentCaptor<Loan> sameSchoolLoanCaptor = ArgumentCaptor.forClass(Loan.class);
+        when(loanRepository.save(sameSchoolLoanCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
         when(appUserRepository.findBySub("leerling-sub")).thenReturn(java.util.Optional.of(leerling));
 
         CreateLoanRequest request = new CreateLoanRequest();
@@ -312,7 +318,8 @@ class LoanServiceTest {
         request.setDueDate(LocalDate.now().plusDays(14));
 
         assertDoesNotThrow(() -> loanService.createLoan(request, null));
-        verify(loanRepository, times(1)).save(any(Loan.class));
+        ArgumentCaptor<Loan> savedLoanCaptor = ArgumentCaptor.forClass(Loan.class);
+        verify(loanRepository, times(1)).save(savedLoanCaptor.capture());
     }
 
     @Test
@@ -382,8 +389,10 @@ class LoanServiceTest {
         leerling.setSchool(null);
 
         when(bookCopyRepository.findByBook_Id(10L)).thenReturn(Collections.singletonList(copy));
-        when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
+        ArgumentCaptor<BookCopy> noSchoolCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        when(bookCopyRepository.save(noSchoolCopyCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
+        ArgumentCaptor<Loan> noSchoolLoanCaptor = ArgumentCaptor.forClass(Loan.class);
+        when(loanRepository.save(noSchoolLoanCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
         when(appUserRepository.findBySub("student-no-school")).thenReturn(java.util.Optional.of(leerling));
 
         CreateLoanRequest request = new CreateLoanRequest();

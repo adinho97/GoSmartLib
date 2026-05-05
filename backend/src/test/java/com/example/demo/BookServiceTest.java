@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.lang.NonNull;
 import org.springframework.web.multipart.MultipartFile;
@@ -119,7 +120,7 @@ class BookServiceTest {
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
-        verify(bookRepository, never()).save(any());
+        verifyNoInteractions(bookRepository);
         verify(importCoreService).importByNormalizedIsbn(eq("9780553808049"), any(School.class));
     }
 
@@ -146,7 +147,7 @@ class BookServiceTest {
         BookDto result = bookService.importByIsbn("0000000000000", 1L);
 
         assertNull(result);
-        verify(bookRepository, never()).save(any());
+        verifyNoInteractions(bookRepository);
         verify(importCoreService).importByNormalizedIsbn(eq("0000000000000"), any(School.class));
     }
 
@@ -164,7 +165,7 @@ class BookServiceTest {
         assertEquals("Dune", result.getTitel());
         assertEquals("Frank Herbert", result.getAuteur());
         assertEquals("Engels", result.getTaal());
-        verify(bookRepository, never()).save(any());
+        verifyNoInteractions(bookRepository);
         verify(openLibraryService).fetchBookFromOpenLibrary("9780553808049");
     }
 
@@ -197,6 +198,9 @@ class BookServiceTest {
     void importBulkByIsbnShouldAggregateInvalidAndCoreOutcomes() {
         MultipartFile file = mock(MultipartFile.class);
         School school = makeSchool();
+                Book existingBook = makeBook();
+                existingBook.setIsbn("9780156012195");
+                existingBook.setId(2L);
 
         List<ImportResultDto.RowResult> invalidRows = List.of(
                 new ImportResultDto.RowResult("bad-isbn", ImportResultDto.Status.INVALID_ISBN,
@@ -221,6 +225,8 @@ class BookServiceTest {
                         makeBookDto()));
         when(importCoreService.importByNormalizedIsbn("0000000000000", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.NOT_FOUND, null));
+        when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
+                .thenReturn(Optional.of(existingBook));
 
         ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
 
@@ -291,7 +297,8 @@ class BookServiceTest {
         ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
 
         // Verify 3 copies were created
-        verify(bookCopyRepository, times(3)).save(any(BookCopy.class));
+        ArgumentCaptor<BookCopy> newBookCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        verify(bookCopyRepository, times(3)).save(newBookCopiesCaptor.capture());
         
         // Verify totalCopiesAdded is 3
         assertEquals(3, result.getTotalCopiesAdded());
@@ -325,7 +332,8 @@ class BookServiceTest {
         ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
 
         // Verify 5 copies were created
-        verify(bookCopyRepository, times(5)).save(any(BookCopy.class));
+        ArgumentCaptor<BookCopy> existingBookCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        verify(bookCopyRepository, times(5)).save(existingBookCopiesCaptor.capture());
         
         // Verify totalCopiesAdded is 5
         assertEquals(5, result.getTotalCopiesAdded());
@@ -373,7 +381,8 @@ class BookServiceTest {
         assertEquals(5, result.getTotalCopiesAdded());
         
         // Verify copies were saved (2 + 3 = 5 times)
-        verify(bookCopyRepository, times(5)).save(any(BookCopy.class));
+        ArgumentCaptor<BookCopy> totalCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        verify(bookCopyRepository, times(5)).save(totalCopiesCaptor.capture());
     }
 
     @Test
@@ -399,10 +408,7 @@ class BookServiceTest {
         bookService.importBulkByIsbn(file, 1L);
 
         // Verify each saved copy has AVAILABLE status
-        verify(bookCopyRepository, times(2)).save(any(BookCopy.class));
-        
-        List<BookCopy> capturedCopies = new ArrayList<>();
-        var captor = org.mockito.ArgumentCaptor.forClass(BookCopy.class);
+        ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);
         verify(bookCopyRepository, times(2)).save(captor.capture());
         
         for (BookCopy copy : captor.getAllValues()) {
