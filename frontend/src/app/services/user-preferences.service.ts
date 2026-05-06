@@ -10,6 +10,8 @@ export type PreferenceKey =
   | "recommendationExcludeRead_genre"
   | "recommendationExcludeRead_author"
   | "recommendationExcludeRead_newArrivals"
+  | "ui_darkMode"
+  | "ui_colorblind"     
   | "dashboard_showWishlist"
   | "dashboard_showReadingHistory"
   | "dashboard_showBorrowed"
