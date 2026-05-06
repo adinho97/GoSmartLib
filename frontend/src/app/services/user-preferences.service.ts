@@ -131,6 +131,11 @@ export class UserPreferencesService {
       return {};
     }
   }
+  public async forceRefresh(): Promise<void> {
+  if (this.isUserAuthenticated()) {
+    await this.loadPreferencesFromBackend();
+  }
+}
 
   private saveToLocalStorage(prefs: Record<string, boolean>): void {
     try {

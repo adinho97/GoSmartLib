@@ -1,48 +1,58 @@
 import { Injectable } from '@angular/core';
 import { UserPreferencesService } from './user-preferences.service';
 
-export type ColorblindMode = 'none' | 'deuteranopia'; // Je kunt dit uitbreiden
+export type ColorblindMode = 'none' | 'deuteranopia'; 
 const STORAGE_KEY = 'colorblindMode';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class ColorblindService {
-  private current: ColorblindMode = 'none';
+  private currentMode: ColorblindMode = 'none';
 
   constructor(private prefsService: UserPreferencesService) {
-    // Init uit localStorage
-    const saved = (localStorage.getItem(STORAGE_KEY) as ColorblindMode) || 'none';
-    this.applyMode(saved);
+    // 1. Snelle initialisatie vanuit localStorage
+    const saved = localStorage.getItem(STORAGE_KEY) as ColorblindMode;
+    if (saved) {
+      this.applyMode(saved);
+    }
 
-    // Sync met Database
+    // 2. Luister naar updates vanuit de database sync
     this.prefsService.preferences$.subscribe(prefs => {
       if (prefs['ui_colorblind'] !== undefined) {
-        const dbMode = prefs['ui_colorblind'] ? 'deuteranopia' : 'none';
-        if (dbMode !== this.current) {
-          this.applyMode(dbMode);
+        const modeFromDb: ColorblindMode = prefs['ui_colorblind'] ? 'deuteranopia' : 'none';
+        if (modeFromDb !== this.currentMode) {
+          this.applyMode(modeFromDb);
         }
       }
     });
   }
 
-  getMode(): ColorblindMode { return this.current; }
+  getCurrentMode(): ColorblindMode {
+    return this.currentMode;
+  }
 
   toggle(): void {
-    const newMode = this.current === 'none' ? 'deuteranopia' : 'none';
+    const newMode: ColorblindMode = this.currentMode === 'none' ? 'deuteranopia' : 'none';
     this.setMode(newMode);
   }
 
   private setMode(mode: ColorblindMode): void {
     localStorage.setItem(STORAGE_KEY, mode);
     this.applyMode(mode);
-    this.prefsService.savePreference("ui_colorblind", mode !== 'none');
+    
+    // Opslaan in database via de centrale service
+    this.prefsService.savePreference('ui_colorblind', mode !== 'none');
   }
 
   private applyMode(mode: ColorblindMode): void {
-    this.current = mode;
-    const html = document.documentElement;
-    html.classList.remove('cb-deuteranopia', 'cb-protanopia', 'cb-tritanopia');
+    this.currentMode = mode;
+    const htmlElement = document.documentElement;
+    
+    // Verwijder oude klassen en voeg nieuwe toe indien nodig
+    htmlElement.classList.remove('cb-deuteranopia');
     if (mode !== 'none') {
-      html.classList.add(`cb-${mode}`);
+      htmlElement.classList.add(`cb-${mode}`);
     }
   }
 }

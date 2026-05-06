@@ -11,16 +11,20 @@ export class DarkModeService {
   mode$ = this.modeSubject.asObservable();
 
   constructor(private prefsService: UserPreferencesService) {
-    // 1. Snelle start: Kijk in localStorage (voorkomt flits van wit scherm)
+    // 1. Snel laden uit localStorage voor de eerste seconde
     const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-    const initialMode = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    this.applyMode(initialMode);
+    if (saved) {
+      this.applyMode(saved);
+    } else {
+      // Fallback naar OS als er niks in storage staat
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      this.applyMode(prefersDark ? 'dark' : 'light');
+    }
 
-    // 2. Sync met Database: Luister naar updates van de UserPreferencesService
+    // 2. ABONNEER op database updates (Dit regelt de switch na login!)
     this.prefsService.preferences$.subscribe(prefs => {
       if (prefs['ui_darkMode'] !== undefined) {
         const dbMode = prefs['ui_darkMode'] ? 'dark' : 'light';
-        // Alleen updaten als het verschilt van de huidige state
         if (dbMode !== this.modeSubject.value) {
           this.applyMode(dbMode);
         }
@@ -28,7 +32,9 @@ export class DarkModeService {
     });
   }
 
-  isDark(): boolean { return this.modeSubject.value === 'dark'; }
+  isDark(): boolean {
+    return this.modeSubject.value === 'dark';
+  }
 
   toggle(): void {
     const newMode = this.isDark() ? 'light' : 'dark';
@@ -38,8 +44,7 @@ export class DarkModeService {
   private setMode(mode: ThemeMode): void {
     localStorage.setItem(STORAGE_KEY, mode);
     this.applyMode(mode);
-    
-    // Sla op in de database via de UserPreferencesService
+    // Sla op in DB
     this.prefsService.savePreference("ui_darkMode", mode === 'dark');
   }
 
