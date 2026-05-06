@@ -273,12 +273,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
   goBack(): void {
-    if (window.history.length > 1) {
-      this.location.back();
-      return;
-    }
-
-    this.router.navigate(["/dashboard"]);
+    this.router.navigate(["/books"]);
   }
 
   goToEditBook(): void {
