@@ -240,7 +240,12 @@ export class MijnLijstenComponent implements OnInit {
   private async loadHistory(): Promise<void> {
     this.historyLoading = true;
     try {
-      this.loanHistory = await this.loanService.getMyLoanHistory();
+      const history = await this.loanService.getMyLoanHistory();
+      this.loanHistory = history.sort((a, b) => {
+        const dateA = new Date(a.returnedAt || a.dueDate).getTime();
+        const dateB = new Date(b.returnedAt || b.dueDate).getTime();
+        return dateB - dateA; // Sort descending: newest (higher timestamp) first
+      });
     } catch {
       this.loanHistory = [];
     } finally {
