@@ -31,7 +31,7 @@
                 (change)="onKlasChange($event)"
                 aria-label="Selecteer een klas"
               >
-                <option [value]="null">Mijn klas</option>
+                <option [value]="null">Kies een klas</option>
                 @for (klas of leaderboardData.availableClasses; track klas.id) {
                   <option [value]="klas.id">{{ klas.naam }}</option>
                 }
