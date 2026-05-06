@@ -28,7 +28,7 @@ export class ColorblindService {
     });
   }
 
-  getCurrentMode(): ColorblindMode {
+  getMode(): ColorblindMode {
     return this.currentMode;
   }
 
