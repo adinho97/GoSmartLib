@@ -217,7 +217,8 @@ export class DetailComponent implements OnInit, OnDestroy {
   private async loadClassReadingListState(bookId: number): Promise<void> {
     if (!this.isLibrarian) return;
     try {
-      this.isInClassReadingList = await this.bookService.isClassReadingListItem(bookId);
+      this.isInClassReadingList =
+        await this.bookService.isClassReadingListItem(bookId);
     } catch (error) {
       console.error("Failed to load class reading list state:", error);
       this.isInClassReadingList = false;
@@ -237,10 +238,14 @@ export class DetailComponent implements OnInit, OnDestroy {
     if (!this.currentBookId || !this.isLibrarian) return; // Only librarians can toggle highlight
 
     try {
-      const newStatus = await this.bookService.toggleHighlight(this.currentBookId);
+      const newStatus = await this.bookService.toggleHighlight(
+        this.currentBookId,
+      );
       this.isHighlighted = newStatus;
       this.uiToastService.success(
-        this.isHighlighted ? "Boek gemarkeerd." : "Markering van boek verwijderd.",
+        this.isHighlighted
+          ? "Boek gemarkeerd."
+          : "Markering van boek verwijderd.",
       );
     } catch (error) {
       console.error("Failed to toggle highlight:", error);
@@ -253,10 +258,14 @@ export class DetailComponent implements OnInit, OnDestroy {
     if (!this.currentBookId || !this.isLibrarian) return; // Only librarians can toggle class reading list
 
     try {
-      const newStatus = await this.bookService.toggleClassReadingListItem(this.currentBookId);
+      const newStatus = await this.bookService.toggleClassReadingListItem(
+        this.currentBookId,
+      );
       this.isInClassReadingList = newStatus;
       this.uiToastService.success(
-        this.isInClassReadingList ? "Boek toegevoegd aan Klasleeslijst." : "Boek verwijderd uit Klasleeslijst.",
+        this.isInClassReadingList
+          ? "Boek toegevoegd aan Klasleeslijst."
+          : "Boek verwijderd uit Klasleeslijst.",
       );
     } catch (error) {
       console.error("Failed to toggle highlight:", error);
@@ -270,6 +279,10 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
 
     this.router.navigate(["/dashboard"]);
+  }
+
+  goToEditBook(): void {
+    this.router.navigate(["/edit", this.book.id]);
   }
 
   async openPreview(): Promise<void> {

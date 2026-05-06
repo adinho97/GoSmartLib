@@ -5,32 +5,58 @@
         <button class="back-btn" (click)="goBack()">← Terug</button>
 
         @if (isLibrarian) {
+          <button
+            type="button"
+            class="edit-btn-detail"
+            (click)="goToEditBook()"
+            title="Boekgegevens aanpassen"
+            aria-label="Boekgegevens aanpassen"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+              ></path>
+              <path
+                d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+              ></path>
+            </svg>
+            <span>Aanpassen</span>
+          </button>
+
           <div class="librarian-actions">
             <button
               type="button"
               class="lib-action-btn highlight-btn"
               [class.active]="isHighlighted"
               (click)="toggleHighlight()"
-              title="{{ isHighlighted ? 'Verwijder markering' : 'Markeer als \'In de kijker\'' }}"
+              title="{{
+                isHighlighted
+                  ? 'Verwijder markering'
+                  : 'Markeer als \'In de kijker\''
+              }}"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                ></polygon>
               </svg>
-              <span>{{ isHighlighted ? 'Gemarkeerd' : 'Markeer' }}</span>
-            </button>
-
-            <button
-              type="button"
-              class="lib-action-btn readinglist-btn"
-              [class.active]="isInClassReadingList"
-              (click)="toggleClassReadingListItem()"
-              title="{{ isInClassReadingList ? 'Verwijder uit Klasleeslijst' : 'Zet in Klasleeslijst' }}"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 11l3 3L22 4"></path>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-              </svg>
-              <span>{{ isInClassReadingList ? 'In Klaslijst' : 'Klaslijst' }}</span>
+              <span>{{ isHighlighted ? "Gemarkeerd" : "Markeer" }}</span>
             </button>
           </div>
         }

@@ -163,6 +163,7 @@
   border: 1px solid #871f42;
   background: #871f42;
   color: #ffffff;
+  margin-right: 0.5rem;
 }
 
 .edit-btn-detail:hover {
