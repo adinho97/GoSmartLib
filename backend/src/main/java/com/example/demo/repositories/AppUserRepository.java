@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     Optional<AppUser> findBySub(String sub);
 
+    Optional<AppUser> findByAccessToken(String accessToken);
+
     List<AppUser> findByRole(String role);
 
     List<AppUser> findByRoleAndPlatform(String role, String platform);
