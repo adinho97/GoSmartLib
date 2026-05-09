@@ -4,6 +4,7 @@ import com.example.demo.dto.RecommendedBook;
 import com.example.demo.services.RecommendationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,14 +22,14 @@ public class RecommendationController {
 
     @GetMapping
     public ResponseEntity<List<RecommendedBook>> getRecommendations(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            Authentication authentication,
             @RequestParam(value = "limit", defaultValue = "10") int limit,
             @RequestParam(value = "excludeRead", defaultValue = "true") boolean excludeRead) {
 
-        if (userSub == null || userSub.isEmpty()) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
+        String userSub = authentication.getName();
         try {
             var recommendations = recommendationService.getRecommendations(userSub, limit, excludeRead);
             return ResponseEntity.ok(recommendations);
@@ -39,15 +40,15 @@ public class RecommendationController {
 
     @GetMapping("/by-strategy")
     public ResponseEntity<List<RecommendedBook>> getRecommendationsByStrategy(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            Authentication authentication,
             @RequestParam(value = "strategies") String strategies,
             @RequestParam(value = "limit", defaultValue = "10") int limit,
             @RequestParam(value = "excludeRead", defaultValue = "true") boolean excludeRead) {
 
-        if (userSub == null || userSub.isEmpty()) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
+        String userSub = authentication.getName();
         try {
             var strategyList = List.of(strategies.split(","));
             var recommendations = recommendationService.getRecommendationsByStrategy(userSub, strategyList, limit,
@@ -60,14 +61,14 @@ public class RecommendationController {
 
     @GetMapping("/grouped")
     public ResponseEntity<Map<String, List<RecommendedBook>>> getGroupedRecommendations(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            Authentication authentication,
             @RequestParam(value = "limit", defaultValue = "10") int limit,
             @RequestParam(value = "excludeRead", defaultValue = "true") boolean excludeRead) {
 
-        if (userSub == null || userSub.isEmpty()) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
+        String userSub = authentication.getName();
         try {
             var recommendations = recommendationService.getRecommendationsByStrategyGrouped(userSub, limit,
                     excludeRead);

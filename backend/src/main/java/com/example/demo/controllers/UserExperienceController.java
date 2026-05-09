@@ -4,10 +4,10 @@ import com.example.demo.entities.UserExperience;
 import com.example.demo.repositories.UserExperienceRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,12 +22,11 @@ public class UserExperienceController {
     }
 
     @GetMapping
-    public ResponseEntity<UserExperienceResponse> getUserExperience(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        if (!isValidUserSub(userSub)) {
+    public ResponseEntity<UserExperienceResponse> getUserExperience(Authentication authentication) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
+        String userSub = authentication.getName();
         try {
             UserExperience userExperience = findOrCreate(userSub);
             return ResponseEntity.ok(toResponse(userExperience));
@@ -38,12 +37,12 @@ public class UserExperienceController {
 
     @PatchMapping
     public ResponseEntity<Void> saveUserExperience(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            Authentication authentication,
             @RequestBody UserExperienceRequest request) {
-        if (!isValidUserSub(userSub)) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
+        String userSub = authentication.getName();
         if (request == null || request.getTotalExperience() == null || request.getTotalExperience() < 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -59,10 +58,6 @@ public class UserExperienceController {
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    private boolean isValidUserSub(String userSub) {
-        return userSub != null && !userSub.isBlank();
     }
 
     private UserExperience findOrCreate(String userSub) {

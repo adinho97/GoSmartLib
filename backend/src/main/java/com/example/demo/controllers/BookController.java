@@ -74,8 +74,8 @@ public class BookController {
     @GetMapping
     public List<BookDto> getAll(
             @RequestParam(required = false) Long schoolId,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
+            Authentication authentication) {
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
         List<Book> books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
         return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
     }
@@ -86,11 +86,11 @@ public class BookController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(required = false) String query,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+            Authentication authentication) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.max(size, 1);
         String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
 
         Page<Book> books = repo.searchPaged(
                 effectiveSchoolId,
@@ -112,8 +112,8 @@ public class BookController {
     @GetMapping("/{id}")
     public ResponseEntity<BookDto> getBook(@PathVariable @NonNull Long id,
             @RequestParam(required = false) Long schoolId,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
+            Authentication authentication) {
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
         return (effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId))
                 .map(BookMapper::toDto)
                 .map(ResponseEntity::ok)
@@ -164,9 +164,9 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> getByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+            Authentication authentication) {
         try {
-            Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
+            Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
             return bookService.findByIsbn(isbn, effectiveSchoolId)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
@@ -178,12 +178,12 @@ public class BookController {
     @GetMapping("/go/{goNumber}")
     public ResponseEntity<BookDto> getByGoNumber(@PathVariable @NonNull String goNumber,
             @RequestParam(required = false) Long schoolId,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+            Authentication authentication) {
         String trimmedGoNumber = goNumber.trim().toUpperCase(Locale.ROOT);
         if (!StringUtils.hasText(trimmedGoNumber)) {
             return ResponseEntity.badRequest().build();
         }
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
         return (effectiveSchoolId == null
                 ? repo.findByGoNumber(trimmedGoNumber)
                 : repo.findByGoNumberAndSchool_Id(trimmedGoNumber, effectiveSchoolId))
@@ -240,8 +240,8 @@ public class BookController {
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        Long librarianSchoolId = resolveEffectiveSchoolId(null, userSub);
+            Authentication authentication) {
+        Long librarianSchoolId = resolveEffectiveSchoolId(null, authentication);
         boolean exists = librarianSchoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, librarianSchoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
@@ -288,24 +288,22 @@ public class BookController {
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> getLestip(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+            Authentication authentication) {
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
             return ResponseEntity.notFound().build();
         }
 
-        String currentUserSub = resolveUserSub(userSub, userName);
+        String currentUserSub = authentication != null ? authentication.getName() : null;
         return ResponseEntity.ok(toLestipDto(book, currentUserSub));
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> updateLestip(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Name", required = false) String userName,
+            Authentication authentication,
             @Valid @RequestBody UpdateLestipRequest request) {
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+        String normalizedUserSub = authentication != null ? authentication.getName() : null;
 
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
@@ -331,9 +329,8 @@ public class BookController {
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}/lestip")
     public ResponseEntity<Void> deleteLestip(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Name", required = false) String userName) {
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+            Authentication authentication) {
+        String normalizedUserSub = authentication != null ? authentication.getName() : null;
 
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
@@ -358,17 +355,16 @@ public class BookController {
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+            Authentication authentication) {
         if (!repo.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(id, userSub)) {
+        if (!isBookAccessibleToLeerling(id, authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+        String normalizedUserSub = authentication != null ? authentication.getName() : null;
 
         List<ReviewDto> reviews = reviewRepository.findByBook_IdOrderByCreatedAtDesc(id)
                 .stream()
@@ -379,15 +375,13 @@ public class BookController {
     }
 
     @GetMapping("/reviews/mijn/aantal")
-    public ResponseEntity<Map<String, Long>> getMyReviewCount(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Name", required = false) String userName) {
-        String reviewerUserSub = resolveUserSub(userSub, userName);
+    public ResponseEntity<Map<String, Long>> getMyReviewCount(Authentication authentication) {
+        String reviewerUserSub = authentication != null ? authentication.getName() : null;
         if (!StringUtils.hasText(reviewerUserSub)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        Long reviewerUserId = resolveReviewerUserId(userSub, userName);
+        Long reviewerUserId = resolveCurrentUserId(reviewerUserSub);
         long count = reviewerUserId == null
                 ? reviewRepository.countByReviewerUserSub(reviewerUserSub)
                 : reviewRepository.countByReviewerUserSubOrReviewerUserId(reviewerUserSub, reviewerUserId);
@@ -397,7 +391,7 @@ public class BookController {
 
     @PostMapping("/{id}/reviews")
     public ResponseEntity<ReviewDto> createReview(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            Authentication authentication,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody CreateReviewRequest request) {
         Book book = repo.findById(id).orElse(null);
@@ -405,7 +399,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(id, userSub)) {
+        if (!isBookAccessibleToLeerling(id, authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -416,8 +410,8 @@ public class BookController {
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
         boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
-        String reviewerUserSub = resolveUserSub(userSub, userName);
-        Long reviewerUserId = isAnonymous ? null : resolveReviewerUserId(userSub, userName);
+        String reviewerUserSub = authentication != null ? authentication.getName() : null;
+        Long reviewerUserId = isAnonymous ? null : resolveCurrentUserId(reviewerUserSub);
         review.setAnonymous(isAnonymous);
         review.setReviewerUserName(isAnonymous ? "Anoniem" : normalizeUserName(userName));
 
@@ -448,14 +442,13 @@ public class BookController {
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Name", required = false) String userName,
-            @PathVariable @NonNull Long reviewId) {
+            @PathVariable @NonNull Long reviewId,
+            Authentication authentication) {
         if (!repo.existsById(bookId)) {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(bookId, userSub)) {
+        if (!isBookAccessibleToLeerling(bookId, authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -464,7 +457,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+        String normalizedUserSub = authentication != null ? authentication.getName() : null;
         if (!canManageReview(review, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -476,14 +469,13 @@ public class BookController {
     @PutMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<ReviewDto> updateReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Name", required = false) String userName,
+            Authentication authentication,
             @Valid @RequestBody UpdateReviewRequest request) {
         if (!repo.existsById(bookId)) {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(bookId, userSub)) {
+        if (!isBookAccessibleToLeerling(bookId, authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -492,7 +484,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveUserSub(userSub, userName);
+        String normalizedUserSub = authentication != null ? authentication.getName() : null;
         if (!canManageReview(review, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -576,34 +568,6 @@ public class BookController {
                 .toLowerCase(Locale.ROOT);
     }
 
-    private String resolveUserSub(String userSub, String userName) {
-        if (StringUtils.hasText(userSub)) {
-            return userSub.trim();
-        }
-        return normalizeUserName(userName);
-    }
-
-    private Long resolveReviewerUserId(String userSub, String userName) {
-        if (StringUtils.hasText(userSub)) {
-            String trimmed = userSub.trim();
-            try {
-                return Long.parseLong(trimmed);
-            } catch (NumberFormatException ignored) {
-                return appUserRepository.findBySub(trimmed)
-                        .map(AppUser::getId)
-                        .orElse(null);
-            }
-        }
-
-        if (StringUtils.hasText(userName)) {
-            try {
-                return Long.parseLong(userName.trim());
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        return null;
-    }
-
     private Long resolveCurrentUserId(String userSub) {
         if (StringUtils.hasText(userSub)) {
             String trimmed = userSub.trim();
@@ -658,24 +622,28 @@ public class BookController {
                 .anyMatch(a -> "ROLE_LEERLING".equalsIgnoreCase(a.getAuthority()));
     }
 
-    private Long resolveEffectiveSchoolId(Long requestedSchoolId, String userSub) {
+    private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication) {
         if (requestedSchoolId != null) {
             return requestedSchoolId;
         }
-        if (!StringUtils.hasText(userSub)) {
+        if (authentication == null) {
             return null;
         }
-        return appUserRepository.findBySub(userSub.trim())
+        String sub = authentication.getName();
+        if (!StringUtils.hasText(sub)) {
+            return null;
+        }
+        return appUserRepository.findBySub(sub.trim())
                 .filter(user -> user.getSchool() != null)
                 .map(user -> Objects.requireNonNull(user.getSchool().getId(), "schoolId is required"))
                 .orElse(null);
     }
 
-    private boolean isBookAccessibleToLeerling(Long bookId, String userSub) {
+    private boolean isBookAccessibleToLeerling(Long bookId, Authentication authentication) {
         if (!isStudentRole()) {
             return true;
         }
-        Long schoolId = resolveEffectiveSchoolId(null, userSub);
+        Long schoolId = resolveEffectiveSchoolId(null, authentication);
         if (schoolId == null) {
             return true;
         }
