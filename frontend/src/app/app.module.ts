@@ -3,6 +3,7 @@ import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
 import { AppRoutingModule } from "./app-routing.module";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
+import { authInterceptor } from "./interceptors/auth.interceptor";
 
 import { registerLocaleData } from "@angular/common";
 import localeNl from "@angular/common/locales/nl";
@@ -105,7 +106,7 @@ registerLocaleData(localeNl, "nl");
     ColorblindToggleComponent,
     DarkModeToggleComponent
 ],
-  providers: [provideHttpClient(), { provide: LOCALE_ID, useValue: "nl" }],
+  providers: [provideHttpClient(withInterceptors([authInterceptor])), { provide: LOCALE_ID, useValue: "nl" }],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

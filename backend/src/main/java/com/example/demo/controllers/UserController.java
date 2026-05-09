@@ -2,6 +2,7 @@ package com.example.demo.controllers;
 
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.entities.AppUser;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,18 @@ public class UserController {
                 .map(u -> new UserDto(u.getSub(), u.getRole()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(leerlingen);
+    }
+
+    @GetMapping("/me/school")
+    public ResponseEntity<Map<String, Object>> getCurrentUserSchool(Authentication authentication) {
+        String sub = authentication != null ? authentication.getName() : null;
+        AppUser user = sub == null ? null : appUserRepository.findBySub(sub).orElse(null);
+        if (user == null || user.getSchool() == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("schoolId", user.getSchool().getId());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me/klas")
