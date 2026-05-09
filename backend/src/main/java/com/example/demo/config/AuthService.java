@@ -92,7 +92,13 @@ public class AuthService {
                 return revokeSmartschoolToken(accessToken)
                                 .doOnSuccess(v -> logger.info("User logged out and token revoked successfully"))
                                 .doOnError(error -> logger.error("Error during logout, but proceeding anyway", error))
-                                .onErrorResume(error -> Mono.empty()); // Continue even if revocation fails
+                                .onErrorResume(error -> Mono.empty())
+                                .then(Mono.fromRunnable(() ->
+                                        appUserRepository.findByAccessToken(accessToken).ifPresent(user -> {
+                                                user.setAccessToken(null);
+                                                appUserRepository.save(user);
+                                        })
+                                ));
         }
 
         public Mono<Boolean> validateToken(String accessToken) {

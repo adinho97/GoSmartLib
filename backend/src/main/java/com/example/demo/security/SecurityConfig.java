@@ -1,6 +1,7 @@
 package com.example.demo.security;
 
 import com.example.demo.config.JwtAuthenticationFilter;
+import com.example.demo.config.SmartschoolAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,9 +29,12 @@ public class SecurityConfig {
     private String allowedOrigins;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final SmartschoolAuthenticationFilter smartschoolAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          SmartschoolAuthenticationFilter smartschoolAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.smartschoolAuthenticationFilter = smartschoolAuthenticationFilter;
     }
 
     @Bean
@@ -57,10 +61,10 @@ public class SecurityConfig {
 
                         // Protected admin endpoints - require JWT token
                         .requestMatchers("/api/admin/**").authenticated()
-                        // All other endpoints for now (can be restricted later)
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(smartschoolAuthenticationFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
