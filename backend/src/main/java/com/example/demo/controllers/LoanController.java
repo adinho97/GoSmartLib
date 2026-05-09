@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,30 +21,17 @@ import java.util.List;
 public class LoanController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanController.class);
-    private static final List<String> LOAN_ROLES = List.of("leerkracht", "bibbeheerder");
     private final LoanService loanService;
 
     public LoanController(LoanService loanService) {
         this.loanService = loanService;
     }
 
-    private boolean canLoan(String userRole) {
-        return userRole != null && LOAN_ROLES.stream()
-                .anyMatch(r -> r.equalsIgnoreCase(userRole));
-    }
-
-    private boolean isLibrarian(String userRole) {
-        return userRole != null && "bibbeheerder".equalsIgnoreCase(userRole);
-    }
-
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<LoanDto> createLoan(
             @Valid @RequestBody CreateLoanRequest request,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String lenderSub) {
-        if (!canLoan(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
         try {
             logger.info("Creating loan for bookId={}, userSub={}, dueDate={}",
                     request.getBookId(), request.getUserSub(), request.getDueDate());
@@ -61,14 +49,11 @@ public class LoanController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/bulk")
     public ResponseEntity<List<LoanDto>> createLoans(
             @Valid @RequestBody List<CreateLoanRequest> requests,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String lenderSub) {
-        if (!canLoan(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
         try {
             if (requests == null || requests.isEmpty()) {
                 return ResponseEntity.badRequest().body(List.of());
@@ -87,14 +72,11 @@ public class LoanController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}/teruggeven")
     public ResponseEntity<LoanDto> returnLoan(
             @PathVariable Long id,
-            @RequestBody(required = false) ReturnLoanRequest request,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
-        if (!canLoan(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+            @RequestBody(required = false) ReturnLoanRequest request) {
         try {
             return ResponseEntity.ok(loanService.returnLoan(id, request));
         } catch (IllegalArgumentException e) {
@@ -104,11 +86,13 @@ public class LoanController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/gebruiker/{sub}")
     public List<LoanDto> getActiveLoans(@PathVariable("sub") String userSub) {
         return loanService.getActiveLoansForUser(userSub);
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/gebruiker/{sub}/historiek")
     public List<LoanDto> getLoanHistory(@PathVariable("sub") String userSub) {
         return loanService.getLoanHistoryForUser(userSub);
@@ -124,34 +108,25 @@ public class LoanController {
         return loanService.getLoanHistoryForUser(userSub);
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/boek/{bookId}")
-    public ResponseEntity<List<LoanDto>> getLoansForBook(
-            @PathVariable Long bookId,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
-        if (!canLoan(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    public ResponseEntity<List<LoanDto>> getLoansForBook(@PathVariable Long bookId) {
         return ResponseEntity.ok(loanService.getActiveLoansForBook(bookId));
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/inspectie/conditie")
-    public ResponseEntity<LoanConditionOverviewDto> getConditionOverview(
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
-        if (!isLibrarian(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    public ResponseEntity<LoanConditionOverviewDto> getConditionOverview() {
         return ResponseEntity.ok(loanService.getConditionOverview());
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/all-active")
-    public ResponseEntity<List<LoanDto>> getAllActiveLoans(
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
-        if (!isLibrarian(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    public ResponseEntity<List<LoanDto>> getAllActiveLoans() {
         return ResponseEntity.ok(loanService.getAllActiveLoans());
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PatchMapping("/{id}/due-date")
     public ResponseEntity<Void> updateLoanDueDate(
             @PathVariable Long id,

@@ -6,6 +6,7 @@ import com.example.demo.entities.Leeslijst;
 import com.example.demo.services.LeeslijstService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class LeeslijstController {
         return userSub;
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<LeeslijstDTO> createLeeslijst(
             @RequestBody CreateLeeslijstRequest request,
@@ -62,6 +64,7 @@ public class LeeslijstController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/mijn")
     public ResponseEntity<List<LeeslijstDTO>> getMijnLeeslisten(
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
@@ -73,24 +76,24 @@ public class LeeslijstController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<LeeslijstDTO> updateLeeslijst(
             @PathVariable Long id,
             @RequestBody CreateLeeslijstRequest request,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         String requiredSub = requireUserSub(userSub);
-        Leeslijst updated = leeslijstService.updateLeeslijst(id, request, requiredSub, userRole);
+        Leeslijst updated = leeslijstService.updateLeeslijst(id, request, requiredSub);
         return ResponseEntity.ok(leeslijstService.convertToDTO(updated));
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLeeslijst(
             @PathVariable Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         requireUserSub(userSub);
-        leeslijstService.deleteLeeslijst(id, userSub, userRole);
+        leeslijstService.deleteLeeslijst(id, userSub);
         return ResponseEntity.noContent().build();
     }
 

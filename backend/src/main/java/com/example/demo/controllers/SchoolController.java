@@ -7,6 +7,7 @@ import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.SchoolRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,7 @@ public class SchoolController {
         return schoolRepository.findAll();
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/paged")
     public Map<String, Object> getPaged(
             @RequestParam(defaultValue = "0") int page,
@@ -48,6 +50,7 @@ public class SchoolController {
         return Map.of("items", schoolPage.getContent(), "total", schoolPage.getTotalElements());
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/{schoolId}/statistieken")
     public StatisticsDTO getSchoolStatistics(@PathVariable Long schoolId) {
         return statisticsService.getSchoolStatistics(schoolId);

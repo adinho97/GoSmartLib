@@ -3,11 +3,10 @@ package com.example.demo.controllers;
 import com.example.demo.entities.InfoContent;
 import com.example.demo.entities.InfoContent.Sectie;
 import com.example.demo.entities.School;
-import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.InfoContentRepository;
 import com.example.demo.services.SchoolService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,14 +17,11 @@ import java.util.Objects;
 public class InfoContentController {
 
     private final InfoContentRepository infoContentRepository;
-    private final AppUserRepository appUserRepository;
     private final SchoolService schoolService;
 
     public InfoContentController(InfoContentRepository infoContentRepository,
-            AppUserRepository appUserRepository,
             SchoolService schoolService) {
         this.infoContentRepository = infoContentRepository;
-        this.appUserRepository = appUserRepository;
         this.schoolService = schoolService;
     }
 
@@ -48,13 +44,9 @@ public class InfoContentController {
         return infoContentRepository.existsBySchoolIdAndSectie(resolvedSchoolId, sectie);
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody InfoContentRequest request,
-            @RequestHeader("X-User-Sub") String sub,
-            @RequestHeader("X-User-Role") String role) {
-        if (!isBibbeheerder(sub, role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Geen toegang.");
-        }
+    public ResponseEntity<?> create(@RequestBody InfoContentRequest request) {
         if (request.getSchoolId() == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -68,14 +60,10 @@ public class InfoContentController {
         return ResponseEntity.ok(infoContentRepository.save(item));
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,
-            @RequestBody InfoContentRequest request,
-            @RequestHeader("X-User-Sub") String sub,
-            @RequestHeader("X-User-Role") String role) {
-        if (!isBibbeheerder(sub, role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Geen toegang.");
-        }
+            @RequestBody InfoContentRequest request) {
         Objects.requireNonNull(id, "id is required");
         return infoContentRepository.findById(id).map(item -> {
             item.setTitel(request.getTitel());
@@ -85,26 +73,14 @@ public class InfoContentController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id,
-            @RequestHeader("X-User-Sub") String sub,
-            @RequestHeader("X-User-Role") String role) {
-        if (!isBibbeheerder(sub, role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Geen toegang.");
-        }
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         if (!infoContentRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         infoContentRepository.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private boolean isBibbeheerder(String sub, String role) {
-        if ("bibbeheerder".equals(role))
-            return true;
-        return appUserRepository.findBySub(sub)
-                .map(u -> "bibbeheerder".equals(u.getRole()))
-                .orElse(false);
     }
 
     public static class InfoContentRequest {

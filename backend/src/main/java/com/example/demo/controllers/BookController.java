@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import reactor.core.publisher.Mono;
@@ -47,7 +48,6 @@ import java.util.stream.Stream;
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final String LIBRARIAN_ROLE = "bibbeheerder";
-    private static final String TEACHER_ROLE = "leerkracht";
     private static final String STUDENT_ROLE = "leerling";
     private static final SecureRandom GO_NUMBER_RANDOM = new SecureRandom();
     private final BookRepository repo;
@@ -123,6 +123,7 @@ public class BookController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<BookDto> create(@Valid @RequestBody BookDto bookDto) {
         logger.info("Creating book: titel={}, auteur={}, schoolId={}", bookDto.getTitel(), bookDto.getAuteur(),
@@ -211,6 +212,7 @@ public class BookController {
         return ResponseEntity.ok(dto);
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> importByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId) {
@@ -227,6 +229,7 @@ public class BookController {
         return ResponseEntity.ok(dto);
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/isbn/bulk")
     public ResponseEntity<ImportResultDto> importBulkByIsbn(
             @RequestParam("file") MultipartFile file,
@@ -239,15 +242,11 @@ public class BookController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        if (!isLibrarian(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        Long librarianSchoolId = resolveEffectiveSchoolId(null, userRole, userSub);
+        Long librarianSchoolId = resolveEffectiveSchoolId(null, null, userSub);
         boolean exists = librarianSchoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, librarianSchoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
@@ -257,6 +256,7 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<BookDto> update(@PathVariable @NonNull Long id, @Valid @RequestBody BookDto bookDto) {
         Book existing = repo.findById(id).orElse(null);
@@ -290,15 +290,11 @@ public class BookController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> getLestip(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
-        if (!isTeacher(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
             return ResponseEntity.notFound().build();
@@ -308,16 +304,12 @@ public class BookController {
         return ResponseEntity.ok(toLestipDto(book, currentUserSub));
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> updateLestip(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody UpdateLestipRequest request) {
-        if (!isTeacher(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         String normalizedUserSub = resolveUserSub(userSub, userName);
 
         Book book = repo.findById(id).orElse(null);
@@ -341,15 +333,11 @@ public class BookController {
         return ResponseEntity.ok(toLestipDto(savedBook, normalizedUserSub));
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}/lestip")
     public ResponseEntity<Void> deleteLestip(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
-        if (!isTeacher(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         String normalizedUserSub = resolveUserSub(userSub, userName);
 
         Book book = repo.findById(id).orElse(null);
@@ -679,10 +667,6 @@ public class BookController {
 
     private boolean isLibrarian(String userRole) {
         return LIBRARIAN_ROLE.equalsIgnoreCase(userRole);
-    }
-
-    private boolean isTeacher(String userRole) {
-        return TEACHER_ROLE.equalsIgnoreCase(userRole);
     }
 
     private Long resolveEffectiveSchoolId(Long requestedSchoolId, String userRole, String userSub) {

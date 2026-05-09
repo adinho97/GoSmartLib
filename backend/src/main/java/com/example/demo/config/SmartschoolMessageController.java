@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ public class SmartschoolMessageController {
         this.messageService = messageService;
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/messages")
     public Mono<ResponseEntity<Void>> sendMessage(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
