@@ -7,6 +7,7 @@ import com.example.demo.services.LeeslijstService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,20 +22,13 @@ public class LeeslijstController {
         this.leeslijstService = leeslijstService;
     }
 
-    private String requireUserSub(String userSub) {
-        if (userSub == null || userSub.isBlank()) {
-            throw new IllegalArgumentException("X-User-Sub header is required");
-        }
-        return userSub;
-    }
-
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<LeeslijstDTO> createLeeslijst(
             @RequestBody CreateLeeslijstRequest request,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            Authentication authentication,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
-        Leeslijst created = leeslijstService.createLeeslijst(request, requireUserSub(userSub), userName);
+        Leeslijst created = leeslijstService.createLeeslijst(request, authentication.getName(), userName);
         return ResponseEntity.status(HttpStatus.CREATED).body(leeslijstService.convertToDTO(created));
     }
 
@@ -66,10 +60,8 @@ public class LeeslijstController {
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/mijn")
-    public ResponseEntity<List<LeeslijstDTO>> getMijnLeeslisten(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        String requiredSub = requireUserSub(userSub);
-        List<LeeslijstDTO> result = leeslijstService.getLeeslistenForUser(requiredSub)
+    public ResponseEntity<List<LeeslijstDTO>> getMijnLeeslisten(Authentication authentication) {
+        List<LeeslijstDTO> result = leeslijstService.getLeeslistenForUser(authentication.getName())
                 .stream()
                 .map(leeslijstService::convertToDTO)
                 .toList();
@@ -81,9 +73,8 @@ public class LeeslijstController {
     public ResponseEntity<LeeslijstDTO> updateLeeslijst(
             @PathVariable Long id,
             @RequestBody CreateLeeslijstRequest request,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        String requiredSub = requireUserSub(userSub);
-        Leeslijst updated = leeslijstService.updateLeeslijst(id, request, requiredSub);
+            Authentication authentication) {
+        Leeslijst updated = leeslijstService.updateLeeslijst(id, request, authentication.getName());
         return ResponseEntity.ok(leeslijstService.convertToDTO(updated));
     }
 
@@ -91,9 +82,8 @@ public class LeeslijstController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLeeslijst(
             @PathVariable Long id,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        requireUserSub(userSub);
-        leeslijstService.deleteLeeslijst(id, userSub);
+            Authentication authentication) {
+        leeslijstService.deleteLeeslijst(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 
