@@ -10,11 +10,11 @@ import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.WishlistRepository;
-import com.example.demo.exception.ApiException;
 import com.example.demo.services.WishlistService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,24 +40,17 @@ public class WishlistController {
         this.bookRepository = bookRepository;
     }
 
-    private AppUser getUserFromHeader(String userSub) {
+    private AppUser getUserFromSub(String userSub) {
         return appUserRepository.findBySub(userSub)
                 .orElseThrow(() -> new IllegalArgumentException("Gebruiker niet gevonden"));
-    }
-
-    private String requireUserSub(String userSub) {
-        if (userSub == null || userSub.isEmpty()) {
-            throw new ApiException("Niet ingelogd", HttpStatus.UNAUTHORIZED, "UNAUTHORIZED");
-        }
-        return userSub;
     }
 
     @PostMapping
     public ResponseEntity<Void> addToWishlist(
             @Valid @RequestBody WishlistAddRequest request,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+            Authentication authentication) {
         Long bookId = Objects.requireNonNull(request.getBookId(), "bookId is required");
-        AppUser user = getUserFromHeader(requireUserSub(userSub));
+        AppUser user = getUserFromSub(authentication.getName());
         if (user.getSchool() != null) {
             Book book = bookRepository.findById(bookId).orElse(null);
             if (book == null || book.getSchool() == null
@@ -73,16 +66,15 @@ public class WishlistController {
     @DeleteMapping("/{bookId}")
     public ResponseEntity<Void> removeFromWishlist(
             @PathVariable Long bookId,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        AppUser user = getUserFromHeader(requireUserSub(userSub));
+            Authentication authentication) {
+        AppUser user = getUserFromSub(authentication.getName());
         wishlistService.removeFromWishlist(bookId, user);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<WishlistDto>> getUserWishlist(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        AppUser user = getUserFromHeader(requireUserSub(userSub));
+    public ResponseEntity<List<WishlistDto>> getUserWishlist(Authentication authentication) {
+        AppUser user = getUserFromSub(authentication.getName());
         List<WishlistDto> wishlist = wishlistService.getUserWishlist(user);
         return ResponseEntity.ok(wishlist);
     }
@@ -90,8 +82,8 @@ public class WishlistController {
     @GetMapping("/{bookId}/check")
     public ResponseEntity<Boolean> isWishlisted(
             @PathVariable Long bookId,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        AppUser user = getUserFromHeader(requireUserSub(userSub));
+            Authentication authentication) {
+        AppUser user = getUserFromSub(authentication.getName());
         boolean isWishlisted = wishlistService.isWishlisted(bookId, user);
         return ResponseEntity.ok(isWishlisted);
     }
@@ -99,9 +91,7 @@ public class WishlistController {
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateWishlist(
             @PathVariable Long id,
-            @RequestBody WishlistDto dto,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        requireUserSub(userSub);
+            @RequestBody WishlistDto dto) {
         Wishlist wishlist = wishlistRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Wishlist not found"));
         Long bookId = Objects.requireNonNull(wishlist.getBook().getId(), "bookId is required");

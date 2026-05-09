@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +45,14 @@ class UserPreferenceControllerTest {
         pref2.setId(2L);
     }
 
+    private Authentication authFor(String sub) {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(sub);
+        return auth;
+    }
+
     @Test
-    @DisplayName("should return 401 when X-User-Sub header is missing in GET")
+    @DisplayName("should return 401 when authentication is null in GET")
     void testGetPreferencesUnauthorized() {
         ResponseEntity<Map<String, Boolean>> response = userPreferenceController.getUserPreferences(null);
 
@@ -54,20 +61,12 @@ class UserPreferenceControllerTest {
     }
 
     @Test
-    @DisplayName("should return 401 when X-User-Sub is empty in GET")
-    void testGetPreferencesUnauthorizedEmpty() {
-        ResponseEntity<Map<String, Boolean>> response = userPreferenceController.getUserPreferences("");
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    @Test
     @DisplayName("should return all preferences for user in map format")
     void testGetPreferencesSuccess() {
         when(userPreferenceRepository.findByUserSub("user123"))
             .thenReturn(List.of(pref1, pref2));
 
-        ResponseEntity<Map<String, Boolean>> response = userPreferenceController.getUserPreferences("user123");
+        ResponseEntity<Map<String, Boolean>> response = userPreferenceController.getUserPreferences(authFor("user123"));
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<String, Boolean> body = Objects.requireNonNull(response.getBody());
@@ -82,7 +81,7 @@ class UserPreferenceControllerTest {
         when(userPreferenceRepository.findByUserSub("user123"))
             .thenReturn(new ArrayList<>());
 
-        ResponseEntity<Map<String, Boolean>> response = userPreferenceController.getUserPreferences("user123");
+        ResponseEntity<Map<String, Boolean>> response = userPreferenceController.getUserPreferences(authFor("user123"));
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<String, Boolean> body = Objects.requireNonNull(response.getBody());
@@ -90,7 +89,7 @@ class UserPreferenceControllerTest {
     }
 
     @Test
-    @DisplayName("should return 401 when X-User-Sub header is missing in PATCH")
+    @DisplayName("should return 401 when authentication is null in PATCH")
     void testSavePreferenceUnauthorized() {
         UserPreferenceController.PreferenceRequest request = new UserPreferenceController.PreferenceRequest();
         request.setKey("testKey");
@@ -109,7 +108,7 @@ class UserPreferenceControllerTest {
         request.setKey(null);
         request.setValue(true);
 
-        ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
+        ResponseEntity<Void> response = userPreferenceController.savePreference(authFor("user123"), request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verifyNoInteractions(userPreferenceRepository);
@@ -122,7 +121,7 @@ class UserPreferenceControllerTest {
         request.setKey("testKey");
         request.setValue(null);
 
-        ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
+        ResponseEntity<Void> response = userPreferenceController.savePreference(authFor("user123"), request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verifyNoInteractions(userPreferenceRepository);
@@ -138,7 +137,7 @@ class UserPreferenceControllerTest {
         when(userPreferenceRepository.findByUserSubAndPreferenceKey("user123", "newKey"))
             .thenReturn(Optional.empty());
 
-        ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
+        ResponseEntity<Void> response = userPreferenceController.savePreference(authFor("user123"), request);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         ArgumentCaptor<UserPreference> captor = ArgumentCaptor.forClass(UserPreference.class);
@@ -162,7 +161,7 @@ class UserPreferenceControllerTest {
         when(userPreferenceRepository.findByUserSubAndPreferenceKey("user123", "existingKey"))
             .thenReturn(Optional.of(existing));
 
-        ResponseEntity<Void> response = userPreferenceController.savePreference("user123", request);
+        ResponseEntity<Void> response = userPreferenceController.savePreference(authFor("user123"), request);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         ArgumentCaptor<UserPreference> captor = ArgumentCaptor.forClass(UserPreference.class);

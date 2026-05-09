@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,12 +32,12 @@ public class LoanController {
     @PostMapping
     public ResponseEntity<LoanDto> createLoan(
             @Valid @RequestBody CreateLoanRequest request,
-            @RequestHeader(value = "X-User-Sub", required = false) String lenderSub) {
+            Authentication authentication) {
         try {
             logger.info("Creating loan for bookId={}, userSub={}, dueDate={}",
                     request.getBookId(), request.getUserSub(), request.getDueDate());
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(loanService.createLoan(request, lenderSub));
+                    .body(loanService.createLoan(request, authentication.getName()));
         } catch (IllegalArgumentException e) {
             logger.warn("Loan creation validation error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -53,13 +54,13 @@ public class LoanController {
     @PostMapping("/bulk")
     public ResponseEntity<List<LoanDto>> createLoans(
             @Valid @RequestBody List<CreateLoanRequest> requests,
-            @RequestHeader(value = "X-User-Sub", required = false) String lenderSub) {
+            Authentication authentication) {
         try {
             if (requests == null || requests.isEmpty()) {
                 return ResponseEntity.badRequest().body(List.of());
             }
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(loanService.createLoans(requests, lenderSub));
+                    .body(loanService.createLoans(requests, authentication.getName()));
         } catch (IllegalArgumentException e) {
             logger.warn("Bulk loan validation error: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -99,13 +100,11 @@ public class LoanController {
     }
 
     @GetMapping("/mijn/historiek")
-    public List<LoanDto> getMyLoanHistory(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSubHeader) {
-        String userSub = userSubHeader != null ? userSubHeader.trim() : "";
-        if (userSub.isEmpty()) {
+    public List<LoanDto> getMyLoanHistory(Authentication authentication) {
+        if (authentication == null) {
             return List.of();
         }
-        return loanService.getLoanHistoryForUser(userSub);
+        return loanService.getLoanHistoryForUser(authentication.getName());
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")

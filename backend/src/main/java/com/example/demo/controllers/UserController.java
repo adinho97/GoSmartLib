@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,12 +33,8 @@ public class UserController {
     }
 
     @GetMapping("/me/klas")
-    public ResponseEntity<Map<String, Object>> getCurrentUserKlas(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String sub = (userSub != null && !userSub.isBlank())
-                ? userSub
-                : (authentication != null ? authentication.getName() : null);
+    public ResponseEntity<Map<String, Object>> getCurrentUserKlas(Authentication authentication) {
+        String sub = authentication != null ? authentication.getName() : null;
 
         AppUser user = sub == null ? null : appUserRepository.findBySub(sub).orElse(null);
         Map<String, Object> response = new HashMap<>();

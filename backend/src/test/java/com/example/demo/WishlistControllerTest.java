@@ -5,7 +5,6 @@ import com.example.demo.dto.WishlistDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Wishlist;
-import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.WishlistRepository;
@@ -67,7 +66,7 @@ class WishlistControllerTest {
         when(bookCopyRepository.countByBook_Id(11L)).thenReturn(3L);
         when(wishlistRepository.save(wishlist)).thenReturn(wishlist);
 
-        ResponseEntity<?> response = wishlistController.updateWishlist(5L, dto, "test-sub");
+        ResponseEntity<?> response = wishlistController.updateWishlist(5L, dto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertInstanceOf(WishlistDto.class, response.getBody());
@@ -99,23 +98,11 @@ class WishlistControllerTest {
 
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
-                () -> wishlistController.updateWishlist(7L, dto, "test-sub"));
+                () -> wishlistController.updateWishlist(7L, dto));
 
         assertEquals("Cannot enable notifications for available book", ex.getMessage());
         verify(wishlistRepository, never()).save(wishlist);
     }
 
-    @Test
-    void updateWishlist_ShouldThrowApiException_WhenUserSubMissing() {
-        WishlistDto dto = new WishlistDto();
-        dto.setNotificationEnabled(true);
 
-        ApiException ex = assertThrows(
-                ApiException.class,
-                () -> wishlistController.updateWishlist(1L, dto, ""));
-
-        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatus());
-        assertEquals("UNAUTHORIZED", ex.getCode());
-        verifyNoInteractions(wishlistRepository, bookCopyRepository);
-    }
 }

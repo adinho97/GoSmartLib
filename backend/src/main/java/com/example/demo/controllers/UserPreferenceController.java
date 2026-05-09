@@ -4,6 +4,7 @@ import com.example.demo.entities.UserPreference;
 import com.example.demo.repositories.UserPreferenceRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -21,12 +22,11 @@ public class UserPreferenceController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Boolean>> getUserPreferences(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        if (userSub == null || userSub.isEmpty()) {
+    public ResponseEntity<Map<String, Boolean>> getUserPreferences(Authentication authentication) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
+        String userSub = authentication.getName();
         try {
             List<UserPreference> preferences = userPreferenceRepository.findByUserSub(userSub);
             Map<String, Boolean> result = new HashMap<>();
@@ -41,12 +41,12 @@ public class UserPreferenceController {
 
     @PatchMapping
     public ResponseEntity<Void> savePreference(
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
+            Authentication authentication,
             @RequestBody PreferenceRequest request) {
-        if (userSub == null || userSub.isEmpty()) {
+        if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
+        String userSub = authentication.getName();
         if (request.getKey() == null || request.getValue() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
