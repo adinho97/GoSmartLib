@@ -72,6 +72,17 @@ public class SecurityConfig {
             .filter(origin -> !origin.isEmpty())
             .collect(Collectors.toList());
 
+        if (origins.isEmpty()) {
+            throw new IllegalStateException("app.cors.allowed-origins must not be empty");
+        }
+        for (String origin : origins) {
+            if (!origin.startsWith("http://") && !origin.startsWith("https://")) {
+                throw new IllegalStateException(
+                    "app.cors.allowed-origins contains an invalid origin (must include scheme): " + origin
+                );
+            }
+        }
+
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
