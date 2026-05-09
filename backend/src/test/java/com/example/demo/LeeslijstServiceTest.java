@@ -203,15 +203,12 @@ class LeeslijstServiceTest {
         request.setKlasIds(List.of(4L));
 
         when(leeslijstRepository.findById(50L)).thenReturn(Optional.of(list));
+        when(userRepository.findBySub("teacher-sub")).thenReturn(Optional.of(teacher));
         when(bookRepository.findAllById(List.of(2L))).thenReturn(List.of(book2));
         when(klasRepository.findAllById(List.of(4L))).thenReturn(List.of(klas2));
         when(leeslijstRepository.save(any(Leeslijst.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Leeslijst result = leeslijstService.updateLeeslijst(
-                50L,
-                request,
-                "teacher-sub",
-                "leerkracht");
+        Leeslijst result = leeslijstService.updateLeeslijst(50L, request, "teacher-sub");
 
         assertEquals("New", result.getTitel());
         assertEquals("Updated", result.getDescription());
@@ -228,11 +225,19 @@ class LeeslijstServiceTest {
 
     @Test
     void deleteLeeslijst_shouldDeleteWhenBibbeheerder() {
+        AppUser bibbeheerder = new AppUser();
+        bibbeheerder.setId(20L);
+        bibbeheerder.setSub("bib-sub");
+        bibbeheerder.setRole("bibbeheerder");
+        bibbeheerder.setSchool(school);
+
         Leeslijst list = new Leeslijst("To delete", school, teacher);
         list.setId(60L);
-        when(leeslijstRepository.findById(60L)).thenReturn(Optional.of(list));
 
-        leeslijstService.deleteLeeslijst(60L, "any-sub", "bibbeheerder");
+        when(leeslijstRepository.findById(60L)).thenReturn(Optional.of(list));
+        when(userRepository.findBySub("bib-sub")).thenReturn(Optional.of(bibbeheerder));
+
+        leeslijstService.deleteLeeslijst(60L, "bib-sub");
 
         verify(leeslijstRepository).delete(list);
     }
@@ -247,27 +252,66 @@ class LeeslijstServiceTest {
 
         Leeslijst list = new Leeslijst("To delete", school, otherUser);
         list.setId(61L);
+
         when(leeslijstRepository.findById(61L)).thenReturn(Optional.of(list));
+        when(userRepository.findBySub("teacher-sub")).thenReturn(Optional.of(teacher));
 
         SecurityException ex = assertThrows(
                 SecurityException.class,
-                () -> leeslijstService.deleteLeeslijst(61L, "teacher-sub", "leerkracht"));
+                () -> leeslijstService.deleteLeeslijst(61L, "teacher-sub"));
 
         assertEquals("Teachers can only delete their own leeslijsten", ex.getMessage());
         verify(leeslijstRepository, never()).delete(any());
     }
 
     @Test
-    void deleteLeeslijst_shouldRejectMissingRole() {
+    void deleteLeeslijst_shouldRejectUnauthorizedRole() {
+        AppUser student = new AppUser();
+        student.setId(30L);
+        student.setSub("student-sub");
+        student.setRole("leerling");
+        student.setSchool(school);
+
         Leeslijst list = new Leeslijst("To delete", school, teacher);
         list.setId(62L);
+
         when(leeslijstRepository.findById(62L)).thenReturn(Optional.of(list));
+        when(userRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
 
         SecurityException ex = assertThrows(
                 SecurityException.class,
-                () -> leeslijstService.deleteLeeslijst(62L, "teacher-sub", ""));
+                () -> leeslijstService.deleteLeeslijst(62L, "student-sub"));
 
-        assertEquals("Missing role", ex.getMessage());
+        assertEquals("Not allowed to delete leeslijsten", ex.getMessage());
         verify(leeslijstRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteLeeslijst_shouldThrowWhenUserNotFound() {
+        Leeslijst list = new Leeslijst("To delete", school, teacher);
+        list.setId(63L);
+
+        when(leeslijstRepository.findById(63L)).thenReturn(Optional.of(list));
+        when(userRepository.findBySub("unknown-sub")).thenReturn(Optional.empty());
+
+        assertThrows(
+                SecurityException.class,
+                () -> leeslijstService.deleteLeeslijst(63L, "unknown-sub"));
+
+        verify(leeslijstRepository, never()).delete(any());
+    }
+
+    @Test
+    void createLeeslijst_shouldUseSubAsNameWhenUserNameBlank() {
+        CreateLeeslijstRequest request = new CreateLeeslijstRequest();
+        request.setTitel("Lijst");
+
+        when(userRepository.findBySub("teacher-sub")).thenReturn(Optional.of(teacher));
+        when(leeslijstRepository.save(any(Leeslijst.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Leeslijst result = leeslijstService.createLeeslijst(request, "teacher-sub", "  ");
+
+        assertNotNull(result);
+        assertEquals("teacher-sub", result.getCreatedByName());
     }
 }
