@@ -31,6 +31,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import reactor.core.publisher.Mono;
@@ -47,8 +49,6 @@ import java.util.stream.Stream;
 @RequestMapping("/api/boeken")
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
-    private static final String LIBRARIAN_ROLE = "bibbeheerder";
-    private static final String STUDENT_ROLE = "leerling";
     private static final SecureRandom GO_NUMBER_RANDOM = new SecureRandom();
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
@@ -74,36 +74,34 @@ public class BookController {
     @GetMapping
     public List<BookDto> getAll(
             @RequestParam(required = false) Long schoolId,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
         List<Book> books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
         return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
     }
 
-            @GetMapping("/paged")
-            public ResponseEntity<PagedBookResponse> getPaged(
-                @RequestParam(required = false) Long schoolId,
-                @RequestParam(defaultValue = "0") int page,
-                    @RequestParam(defaultValue = "5") int size,
-                    @RequestParam(required = false) String query,
-                    @RequestHeader(value = "X-User-Role", required = false) String userRole,
-                    @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-            int safePage = Math.max(page, 0);
-            int safeSize = Math.max(size, 1);
-                String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
-                Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+    @GetMapping("/paged")
+    public ResponseEntity<PagedBookResponse> getPaged(
+            @RequestParam(required = false) Long schoolId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String query,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(size, 1);
+        String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
 
-                Page<Book> books = repo.searchPaged(
-                    effectiveSchoolId,
-                    normalizedQuery,
-                    PageRequest.of(safePage, safeSize));
+        Page<Book> books = repo.searchPaged(
+                effectiveSchoolId,
+                normalizedQuery,
+                PageRequest.of(safePage, safeSize));
 
-            List<BookDto> items = books.stream()
+        List<BookDto> items = books.stream()
                 .map(BookMapper::toDto)
                 .collect(Collectors.toList());
-            return ResponseEntity.ok(new PagedBookResponse(items, books.getTotalElements()));
-            }
+        return ResponseEntity.ok(new PagedBookResponse(items, books.getTotalElements()));
+    }
 
     @GetMapping("/stats")
     public List<BookDto> getStatsOrderedByPopularity() {
@@ -114,9 +112,8 @@ public class BookController {
     @GetMapping("/{id}")
     public ResponseEntity<BookDto> getBook(@PathVariable @NonNull Long id,
             @RequestParam(required = false) Long schoolId,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
         return (effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId))
                 .map(BookMapper::toDto)
                 .map(ResponseEntity::ok)
@@ -167,10 +164,9 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> getByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         try {
-            Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+            Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
             return bookService.findByIsbn(isbn, effectiveSchoolId)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
@@ -182,13 +178,12 @@ public class BookController {
     @GetMapping("/go/{goNumber}")
     public ResponseEntity<BookDto> getByGoNumber(@PathVariable @NonNull String goNumber,
             @RequestParam(required = false) Long schoolId,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         String trimmedGoNumber = goNumber.trim().toUpperCase(Locale.ROOT);
         if (!StringUtils.hasText(trimmedGoNumber)) {
             return ResponseEntity.badRequest().build();
         }
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userRole, userSub);
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, userSub);
         return (effectiveSchoolId == null
                 ? repo.findByGoNumber(trimmedGoNumber)
                 : repo.findByGoNumberAndSchool_Id(trimmedGoNumber, effectiveSchoolId))
@@ -246,7 +241,7 @@ public class BookController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
-        Long librarianSchoolId = resolveEffectiveSchoolId(null, null, userSub);
+        Long librarianSchoolId = resolveEffectiveSchoolId(null, userSub);
         boolean exists = librarianSchoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, librarianSchoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
@@ -363,22 +358,21 @@ public class BookController {
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
         if (!repo.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(id, userRole, userSub)) {
+        if (!isBookAccessibleToLeerling(id, userSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
+        String normalizedUserSub = resolveUserSub(userSub, userName);
 
         List<ReviewDto> reviews = reviewRepository.findByBook_IdOrderByCreatedAtDesc(id)
                 .stream()
-                .map(review -> toReviewDto(review, userRole, normalizedUserSub))
+                .map(review -> toReviewDto(review, normalizedUserSub))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(reviews);
@@ -386,10 +380,9 @@ public class BookController {
 
     @GetMapping("/reviews/mijn/aantal")
     public ResponseEntity<Map<String, Long>> getMyReviewCount(
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
-        String reviewerUserSub = resolveReviewUserKey(userSub, userName, userRole);
+        String reviewerUserSub = resolveUserSub(userSub, userName);
         if (!StringUtils.hasText(reviewerUserSub)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -404,7 +397,6 @@ public class BookController {
 
     @PostMapping("/{id}/reviews")
     public ResponseEntity<ReviewDto> createReview(@PathVariable @NonNull Long id,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody CreateReviewRequest request) {
@@ -413,7 +405,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(id, userRole, userSub)) {
+        if (!isBookAccessibleToLeerling(id, userSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -424,7 +416,7 @@ public class BookController {
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
         boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
-        String reviewerUserSub = resolveReviewUserKey(userSub, userName, userRole);
+        String reviewerUserSub = resolveUserSub(userSub, userName);
         Long reviewerUserId = isAnonymous ? null : resolveReviewerUserId(userSub, userName);
         review.setAnonymous(isAnonymous);
         review.setReviewerUserName(isAnonymous ? "Anoniem" : normalizeUserName(userName));
@@ -433,7 +425,7 @@ public class BookController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        if (reviewerUserSub != null && reviewRepository.existsByBook_IdAndReviewerUserSub(id, reviewerUserSub)) {
+        if (reviewRepository.existsByBook_IdAndReviewerUserSub(id, reviewerUserSub)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
@@ -450,14 +442,12 @@ public class BookController {
         }
 
         Review saved = reviewRepository.save(review);
-        String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(toReviewDto(saved, userRole, normalizedUserSub));
+                .body(toReviewDto(saved, reviewerUserSub));
     }
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @PathVariable @NonNull Long reviewId) {
@@ -465,7 +455,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(bookId, userRole, userSub)) {
+        if (!isBookAccessibleToLeerling(bookId, userSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -474,8 +464,8 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
-        if (!canManageReview(review, userRole, normalizedUserSub)) {
+        String normalizedUserSub = resolveUserSub(userSub, userName);
+        if (!canManageReview(review, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -486,7 +476,6 @@ public class BookController {
     @PutMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<ReviewDto> updateReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody UpdateReviewRequest request) {
@@ -494,7 +483,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(bookId, userRole, userSub)) {
+        if (!isBookAccessibleToLeerling(bookId, userSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -503,8 +492,8 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveReviewUserKey(userSub, userName, userRole);
-        if (!canManageReview(review, userRole, normalizedUserSub)) {
+        String normalizedUserSub = resolveUserSub(userSub, userName);
+        if (!canManageReview(review, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -514,17 +503,17 @@ public class BookController {
         review.setComment(trimmedComment);
 
         Review savedReview = reviewRepository.save(review);
-        return ResponseEntity.ok(toReviewDto(savedReview, userRole, normalizedUserSub));
+        return ResponseEntity.ok(toReviewDto(savedReview, normalizedUserSub));
     }
 
-    private ReviewDto toReviewDto(Review review, String userRole, String normalizedUserSub) {
+    private ReviewDto toReviewDto(Review review, String normalizedUserSub) {
         ReviewDto dto = new ReviewDto();
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
         dto.setReviewerUserId(review.getReviewerUserId());
         dto.setReviewerUserName(resolveReviewerUserName(review));
-        dto.setCanManage(canManageReview(review, userRole, normalizedUserSub));
+        dto.setCanManage(canManageReview(review, normalizedUserSub));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
     }
@@ -594,26 +583,12 @@ public class BookController {
         return normalizeUserName(userName);
     }
 
-    private String resolveReviewUserKey(String userSub, String userName, String userRole) {
-        String resolvedUserSub = resolveUserSub(userSub, userName);
-        if (StringUtils.hasText(resolvedUserSub)) {
-            return resolvedUserSub;
-        }
-
-        if (StringUtils.hasText(userRole)) {
-            return "role:" + userRole.trim().toLowerCase(Locale.ROOT);
-        }
-
-        return null;
-    }
-
     private Long resolveReviewerUserId(String userSub, String userName) {
         if (StringUtils.hasText(userSub)) {
             String trimmed = userSub.trim();
             try {
                 return Long.parseLong(trimmed);
             } catch (NumberFormatException ignored) {
-                // If it's not a numeric ID, try to resolve by sub into AppUser ID
                 return appUserRepository.findBySub(trimmed)
                         .map(AppUser::getId)
                         .orElse(null);
@@ -635,7 +610,6 @@ public class BookController {
             try {
                 return Long.parseLong(trimmed);
             } catch (NumberFormatException ignored) {
-                // If it's not a numeric ID, try to resolve by sub into AppUser ID
                 return appUserRepository.findBySub(trimmed)
                         .map(AppUser::getId)
                         .orElse(null);
@@ -648,8 +622,8 @@ public class BookController {
         return StringUtils.hasText(lestip);
     }
 
-    private boolean canManageReview(Review review, String userRole, String normalizedUserSub) {
-        if (isLibrarian(userRole)) {
+    private boolean canManageReview(Review review, String normalizedUserSub) {
+        if (isLibrarianOrAdmin()) {
             return true;
         }
 
@@ -665,11 +639,26 @@ public class BookController {
         return false;
     }
 
-    private boolean isLibrarian(String userRole) {
-        return LIBRARIAN_ROLE.equalsIgnoreCase(userRole);
+    private boolean isLibrarianOrAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_BIBBEHEERDER".equalsIgnoreCase(a.getAuthority())
+                        || "ROLE_SUPER_ADMIN".equalsIgnoreCase(a.getAuthority()));
     }
 
-    private Long resolveEffectiveSchoolId(Long requestedSchoolId, String userRole, String userSub) {
+    private boolean isStudentRole() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_LEERLING".equalsIgnoreCase(a.getAuthority()));
+    }
+
+    private Long resolveEffectiveSchoolId(Long requestedSchoolId, String userSub) {
         if (requestedSchoolId != null) {
             return requestedSchoolId;
         }
@@ -678,21 +667,21 @@ public class BookController {
         }
         return appUserRepository.findBySub(userSub.trim())
                 .filter(user -> user.getSchool() != null)
-            .map(user -> Objects.requireNonNull(user.getSchool().getId(), "schoolId is required"))
+                .map(user -> Objects.requireNonNull(user.getSchool().getId(), "schoolId is required"))
                 .orElse(null);
     }
 
-    private boolean isBookAccessibleToLeerling(Long bookId, String userRole, String userSub) {
-        if (!STUDENT_ROLE.equalsIgnoreCase(userRole)) {
+    private boolean isBookAccessibleToLeerling(Long bookId, String userSub) {
+        if (!isStudentRole()) {
             return true;
         }
-        Long schoolId = resolveEffectiveSchoolId(null, userRole, userSub);
+        Long schoolId = resolveEffectiveSchoolId(null, userSub);
         if (schoolId == null) {
             return true;
         }
-        Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
-        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
-        return repo.existsByIdAndSchool_Id(resolvedBookId, resolvedSchoolId);
+        return repo.existsByIdAndSchool_Id(
+                Objects.requireNonNull(bookId, "bookId is required"),
+                Objects.requireNonNull(schoolId, "schoolId is required"));
     }
 
     private void assignGoNumberIfNeeded(Book book) {
