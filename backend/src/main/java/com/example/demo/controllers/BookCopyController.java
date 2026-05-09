@@ -11,6 +11,7 @@ import com.example.demo.repositories.LoanRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -22,7 +23,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/exemplaren")
 public class BookCopyController {
 
-    private static final List<String> LOAN_ROLES = List.of("leerkracht", "bibbeheerder");
     private final BookCopyRepository copyRepo;
     private final BookRepository bookRepo;
     private final LoanRepository loanRepository;
@@ -31,11 +31,6 @@ public class BookCopyController {
         this.copyRepo = copyRepo;
         this.bookRepo = bookRepo;
         this.loanRepository = loanRepository;
-    }
-
-    private boolean canLoan(String userRole) {
-        return userRole != null && LOAN_ROLES.stream()
-                .anyMatch(r -> r.equalsIgnoreCase(userRole));
     }
 
     @GetMapping("/boek/{bookId}/summary")
@@ -63,13 +58,9 @@ public class BookCopyController {
         return ResponseEntity.ok(dtos);
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/boek/{bookId}")
-    public ResponseEntity<CopyDto> addCopy(
-            @PathVariable Long bookId,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
-        if (!canLoan(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    public ResponseEntity<CopyDto> addCopy(@PathVariable Long bookId) {
         Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
         Book book = bookRepo.findById(resolvedBookId).orElse(null);
         if (book == null)
@@ -88,15 +79,11 @@ public class BookCopyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<CopyDto> updateCopyState(
             @PathVariable Long id,
-            @RequestBody UpdateCopyStateRequest request,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
-        if (!canLoan(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
+            @RequestBody UpdateCopyStateRequest request) {
         Long resolvedId = Objects.requireNonNull(id, "id is required");
         BookCopy copy = copyRepo.findById(resolvedId).orElse(null);
         if (copy == null) {
@@ -126,15 +113,10 @@ public class BookCopyController {
         return ResponseEntity.ok(dto);
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @Transactional
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCopy(
-            @PathVariable Long id,
-            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
-        if (!canLoan(userRole)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
+    public ResponseEntity<Void> deleteCopy(@PathVariable Long id) {
         Long resolvedId = Objects.requireNonNull(id, "id is required");
         BookCopy copy = copyRepo.findById(resolvedId).orElse(null);
         if (copy == null)

@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -20,6 +21,7 @@ public class StatisticsController {
      * GET /api/statistics
      * Fetches library statistics. Can be filtered by a specific school.
      */
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping
     public ResponseEntity<StatisticsDTO> getStatistics(
             @RequestParam(required = false) Long schoolId) {

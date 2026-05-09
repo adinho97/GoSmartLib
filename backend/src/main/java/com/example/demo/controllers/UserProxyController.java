@@ -4,6 +4,7 @@ import com.example.demo.config.AuthService;
 import com.example.demo.config.SmartschoolUserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -19,6 +20,7 @@ public class UserProxyController {
         this.authService = authService;
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/{sub}/profile")
     public Mono<SmartschoolUserInfo> getUserProfile(@PathVariable String sub) {
         logger.info("Fetching profile for user: {}", sub);

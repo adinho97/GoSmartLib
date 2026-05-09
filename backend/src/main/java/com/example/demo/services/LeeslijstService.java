@@ -205,16 +205,15 @@ public class LeeslijstService {
         return dto;
     }
 
-    public void deleteLeeslijst(Long id, String userSub, String userRole) {
+    public void deleteLeeslijst(Long id, String userSub) {
         Long resolvedId = Objects.requireNonNull(id, "leeslijstId is required");
         Leeslijst leeslijst = leeslijstRepository.findById(resolvedId)
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
 
-        if (userRole == null || userRole.isBlank()) {
-            throw new SecurityException("Missing role");
-        }
+        AppUser user = userRepository.findBySub(userSub)
+                .orElseThrow(() -> new SecurityException("User not found"));
+        String normalizedRole = user.getRole() == null ? "" : user.getRole().trim().toLowerCase();
 
-        String normalizedRole = userRole.trim().toLowerCase();
         if ("leerkracht".equals(normalizedRole)) {
             if (leeslijst.getCreatedBy() == null || leeslijst.getCreatedBy().getSub() == null
                     || !leeslijst.getCreatedBy().getSub().equals(userSub)) {
@@ -227,16 +226,15 @@ public class LeeslijstService {
         leeslijstRepository.delete(leeslijst);
     }
 
-    public Leeslijst updateLeeslijst(Long id, CreateLeeslijstRequest request, String userSub, String userRole) {
+    public Leeslijst updateLeeslijst(Long id, CreateLeeslijstRequest request, String userSub) {
         Long resolvedId = Objects.requireNonNull(id, "leeslijstId is required");
         Leeslijst leeslijst = leeslijstRepository.findById(resolvedId)
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst not found"));
 
-        if (userRole == null || userRole.isBlank()) {
-            throw new SecurityException("Missing role");
-        }
+        AppUser user = userRepository.findBySub(userSub)
+                .orElseThrow(() -> new SecurityException("User not found"));
+        String normalizedRole = user.getRole() == null ? "" : user.getRole().trim().toLowerCase();
 
-        String normalizedRole = userRole.trim().toLowerCase();
         if ("leerkracht".equals(normalizedRole)) {
             if (leeslijst.getCreatedBy() == null || leeslijst.getCreatedBy().getSub() == null
                     || !leeslijst.getCreatedBy().getSub().equals(userSub)) {

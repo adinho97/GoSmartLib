@@ -1,4 +1,5 @@
 package com.example.demo.config;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -22,6 +23,7 @@ public class HighlightedBookController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/{bookId}/toggle")
     @Transactional
     public boolean toggleHighlight(@PathVariable Long bookId, @RequestParam Long schoolId) {
