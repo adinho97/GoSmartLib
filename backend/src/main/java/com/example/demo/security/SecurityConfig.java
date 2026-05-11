@@ -93,7 +93,12 @@ public class SecurityConfig {
             "Content-Type",
             "Accept",
             "Origin",
-            "X-Requested-With"
+            "X-Requested-With",
+            "X-User-Sub",
+            "X-User-Role",
+            "X-User-Name",
+            "Cache-Control",
+            "Pragma"
         ));
         configuration.setAllowCredentials(true);
 

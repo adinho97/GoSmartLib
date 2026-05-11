@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -105,15 +107,21 @@ public class LeaderboardService {
         if (response.getUserClassRank() != null) allEntries.add(response.getUserClassRank());
         if (response.getUserSchoolRank() != null) allEntries.add(response.getUserSchoolRank());
 
-        Flux.fromIterable(allEntries)
-                .flatMap(entry -> authService.getUserInfoBySub(entry.getDisplayName())
-                        .map(info -> {
-                            entry.setDisplayName(formatDisplayName(info));
-                            return entry;
-                        })
-                        .onErrorReturn(entry))
+        // Resolve each unique sub once to avoid concurrent refresh-token rotation races
+        Map<String, String> resolved = new HashMap<>();
+        Flux.fromIterable(allEntries.stream()
+                        .map(LeaderboardEntryDTO::getDisplayName)
+                        .distinct()
+                        .collect(Collectors.toList()))
+                .flatMap(sub -> authService.getUserInfoBySub(sub)
+                        .map(info -> Map.entry(sub, formatDisplayName(info)))
+                        .onErrorReturn(Map.entry(sub, sub)))
                 .collectList()
-                .block();
+                .block()
+                .forEach(e -> resolved.put(e.getKey(), e.getValue()));
+
+        allEntries.forEach(entry -> entry.setDisplayName(
+                resolved.getOrDefault(entry.getDisplayName(), entry.getDisplayName())));
     }
 
     private String formatDisplayName(SmartschoolUserInfo info) {
