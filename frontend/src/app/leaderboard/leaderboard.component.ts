@@ -1,9 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
-import { LeaderboardService } from "../services/leaderboard.service"; // Assuming a service for data fetching
-import { formatUserInfoDisplayName } from "../utils/name-utils";
-import axios from "axios";
-import { AuthContextService } from "../services/auth-context.service";
+import { LeaderboardService } from "../services/leaderboard.service";
 
 // Define interfaces for better type safety and clarity
 export interface LeaderboardEntry {
@@ -36,7 +33,6 @@ export class LeaderboardComponent implements OnInit {
   constructor(
     private router: Router,
     private leaderboardService: LeaderboardService,
-    private authContext: AuthContextService, // Inject AuthContextService
   ) {}
 
   ngOnInit(): void {
@@ -56,9 +52,8 @@ export class LeaderboardComponent implements OnInit {
     this.leaderboardService
       .getLeaderboardData(this.selectedKlasId ?? undefined)
       .subscribe({
-        next: async (data: LeaderboardData) => {
+        next: (data: LeaderboardData) => {
           this.leaderboardData = data;
-          await this.resolveNames();
           this.isLoading = false;
         },
         error: (err) => {
@@ -68,45 +63,6 @@ export class LeaderboardComponent implements OnInit {
           this.isLoading = false;
         },
       });
-  }
-
-  private async resolveNames(): Promise<void> {
-    if (!this.leaderboardData) return;
-
-    const resolveEntry = async (entry: LeaderboardEntry) => {
-      entry.displayName = await this.getDisplayNameForSub(entry.displayName);
-    };
-
-    const promises = [
-      ...(this.leaderboardData.topClassReaders || []).map(resolveEntry),
-      ...(this.leaderboardData.topSchoolReaders || []).map(resolveEntry),
-    ];
-
-    if (this.leaderboardData.userClassRank)
-      promises.push(resolveEntry(this.leaderboardData.userClassRank));
-    if (this.leaderboardData.userSchoolRank)
-      promises.push(resolveEntry(this.leaderboardData.userSchoolRank));
-
-    await Promise.all(promises);
-  }
-
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    try {
-      const token = this.authContext.getEffectiveBearerToken();
-      const profile = await axios.get(
-        `/api/users/${encodeURIComponent(sub)}/profile`,
-        {
-          headers: {
-            // Assuming X-User-Sub is also needed for profile lookups
-            "X-User-Sub": this.authContext.getEffectiveSub(),
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        },
-      );
-      return profile.data ? formatUserInfoDisplayName(profile.data, sub) : sub; // Check if profile.data is not null
-    } catch {
-      return sub;
-    }
   }
 
   /**

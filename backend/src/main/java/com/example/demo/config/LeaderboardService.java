@@ -6,6 +6,7 @@ import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.KlasRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +19,14 @@ public class LeaderboardService {
     private final LoanRepository loanRepository;
     private final AppUserRepository userRepository;
     private final KlasRepository klasRepository;
+    private final AuthService authService;
 
     public LeaderboardService(LoanRepository loanRepository, AppUserRepository userRepository,
-            KlasRepository klasRepository) {
+            KlasRepository klasRepository, AuthService authService) {
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
         this.klasRepository = klasRepository;
+        this.authService = authService;
     }
 
     /**
@@ -92,7 +95,39 @@ public class LeaderboardService {
                 .collect(Collectors.toList());
         response.setAvailableClasses(availableClasses);
 
+        resolveDisplayNames(response);
+
         return response;
+    }
+
+    private void resolveDisplayNames(LeaderboardResponseDTO response) {
+        List<LeaderboardEntryDTO> allEntries = new ArrayList<>();
+        if (response.getTopClassReaders() != null) allEntries.addAll(response.getTopClassReaders());
+        if (response.getTopSchoolReaders() != null) allEntries.addAll(response.getTopSchoolReaders());
+        if (response.getUserClassRank() != null) allEntries.add(response.getUserClassRank());
+        if (response.getUserSchoolRank() != null) allEntries.add(response.getUserSchoolRank());
+
+        Flux.fromIterable(allEntries)
+                .flatMap(entry -> authService.getUserInfoBySub(entry.getDisplayName())
+                        .map(info -> {
+                            entry.setDisplayName(formatDisplayName(info));
+                            return entry;
+                        })
+                        .onErrorReturn(entry))
+                .collectList()
+                .block();
+    }
+
+    private String formatDisplayName(SmartschoolUserInfo info) {
+        String given = info.getGivenName();
+        String family = info.getFamilyName();
+        if (given != null && !given.isBlank() && family != null && !family.isBlank()) {
+            return given + " " + family;
+        }
+        if (given != null && !given.isBlank()) return given;
+        if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
+        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
+        return info.getSub() != null ? info.getSub() : "Onbekende lezer";
     }
 
     private List<LeaderboardEntryDTO> convertToDTO(List<Object[]> results, String currentUserSub) {
