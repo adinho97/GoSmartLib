@@ -14,6 +14,8 @@ import com.example.demo.dto.StatisticsService;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.SuperAdminRepository;
 
+import org.springframework.security.test.context.support.WithMockUser;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,6 +41,7 @@ class StatisticsControllerTest {
     private AppUserRepository appUserRepository;
 
     @Test
+    @WithMockUser(roles = "LEERKRACHT")
     void getStatistics_WithoutSchoolId_CallsGlobalStats() throws Exception {
         // Arrange
         when(statisticsService.getGlobalStatistics()).thenReturn(new StatisticsDTO());
@@ -51,6 +54,7 @@ class StatisticsControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "LEERKRACHT")
     void getStatistics_WithSchoolId_CallsSchoolStats() throws Exception {
         // Arrange
         Long schoolId = 1L;
@@ -65,6 +69,7 @@ class StatisticsControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "LEERKRACHT")
     void getStatistics_InvalidSchoolId_ReturnsBadRequest() throws Exception {
         // Act & Assert
         mockMvc.perform(get("/api/statistics")

@@ -9,6 +9,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -82,6 +83,20 @@ public class GlobalExceptionHandler {
                                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                                 request.getRequestURI(),
                                 "BUSINESS_RULE_VIOLATION");
+                return ResponseEntity.badRequest().body(body);
+        }
+
+        @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+        public ResponseEntity<ErrorResponse> handleTypeMismatch(
+                        MethodArgumentTypeMismatchException ex,
+                        HttpServletRequest request) {
+                String message = "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'";
+                ErrorResponse body = ErrorResponse.of(
+                                message,
+                                HttpStatus.BAD_REQUEST.value(),
+                                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                                request.getRequestURI(),
+                                "BAD_REQUEST");
                 return ResponseEntity.badRequest().body(body);
         }
 
