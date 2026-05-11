@@ -699,14 +699,25 @@ public class BookController {
 
             String reviewerSub = review.getReviewerUserSub();
             if (!StringUtils.hasText(reviewerSub)) {
-                if (review.getReviewerUserId() != null) {
-                    return String.valueOf(review.getReviewerUserId());
-                }
                 return "Gebruiker";
             }
 
-            // Always return sub as fallback for now - Smartschool calls were blocking
-            return reviewerSub.trim();
+            // Look up user by sub to get first and last name
+            return appUserRepository.findBySub(reviewerSub.trim())
+                    .map(user -> {
+                        String firstName = user.getFirstName();
+                        String lastName = user.getLastName();
+                        
+                        if (StringUtils.hasText(firstName) && StringUtils.hasText(lastName)) {
+                            return firstName + " " + lastName;
+                        } else if (StringUtils.hasText(firstName)) {
+                            return firstName;
+                        } else if (StringUtils.hasText(lastName)) {
+                            return lastName;
+                        }
+                        return "Gebruiker";
+                    })
+                    .orElse("Gebruiker");
         } catch (Exception e) {
             logger.warn("Error resolving reviewer name, returning generic fallback", e);
             return "Gebruiker";
