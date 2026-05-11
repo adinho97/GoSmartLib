@@ -95,12 +95,10 @@ public class LeaderboardService {
                 .collect(Collectors.toList());
         response.setAvailableClasses(availableClasses);
 
-        resolveDisplayNames(response);
-
         return response;
     }
 
-    private void resolveDisplayNames(LeaderboardResponseDTO response) {
+    public void resolveDisplayNames(LeaderboardResponseDTO response) {
         List<LeaderboardEntryDTO> allEntries = new ArrayList<>();
         if (response.getTopClassReaders() != null) allEntries.addAll(response.getTopClassReaders());
         if (response.getTopSchoolReaders() != null) allEntries.addAll(response.getTopSchoolReaders());
