@@ -30,6 +30,9 @@ export class AdminSchoolDetailComponent implements OnInit {
   users: AdminUserListItem[] = [];
   klassen: KlasListItem[] = [];
 
+  // Modal for class users
+  selectedKlasForPopup: KlasListItem | null = null;
+
   isLoadingDetail = true;
   isLoadingUsers = true;
   isLoadingKlassen = true;
@@ -265,6 +268,19 @@ export class AdminSchoolDetailComponent implements OnInit {
         this.togglingUserId = null;
       },
     });
+  }
+
+  openKlasUsersPopup(klas: KlasListItem): void {
+    this.selectedKlasForPopup = klas;
+  }
+
+  closeKlasPopup(): void {
+    this.selectedKlasForPopup = null;
+  }
+
+  get usersInSelectedKlas(): AdminUserListItem[] {
+    if (!this.selectedKlasForPopup) return [];
+    return this.users.filter(u => u.klasNaam === this.selectedKlasForPopup?.naam);
   }
 
   // User filtering
