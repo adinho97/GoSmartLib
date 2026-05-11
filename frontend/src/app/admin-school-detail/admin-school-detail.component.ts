@@ -4,6 +4,7 @@ import { HttpClient } from "@angular/common/http";
 import { forkJoin } from "rxjs";
 import axios from "axios";
 import { AdminSchoolService } from "../services/admin-school.service";
+import { AuthContextService } from "../services/auth-context.service";
 import {
   AdminUserListItem,
   KlasListItem,
@@ -81,8 +82,16 @@ export class AdminSchoolDetailComponent implements OnInit {
   private enrichUserNames(users: AdminUserListItem[]): void {
     users.forEach(async (user) => {
       if (!user.sub) return;
+      // Retrieve the authentication token and user sub from AuthContextService
+      const token = this.authContext.getEffectiveBearerToken();
+      const userSub = this.authContext.getEffectiveSub();
       try {
-        const profile = await axios.get(`/api/users/${encodeURIComponent(user.sub)}/profile`);
+        const profile = await axios.get(`/api/users/${encodeURIComponent(user.sub)}/profile`, {
+          headers: {
+            "X-User-Sub": userSub,
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
         this.userDisplayNames[user.sub] = formatUserInfoDisplayName(profile.data, user.sub);
       } catch {
         // leave blank — sub is already shown in its own column
@@ -117,6 +126,7 @@ export class AdminSchoolDetailComponent implements OnInit {
     private readonly router: Router,
     private readonly http: HttpClient,
     private readonly adminSchoolService: AdminSchoolService,
+    private readonly authContext: AuthContextService, // Inject AuthContextService
   ) {}
 
   ngOnInit(): void {
