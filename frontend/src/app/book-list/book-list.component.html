@@ -241,6 +241,14 @@
                     <p class="book-meta">
                       <strong>Taal:</strong> {{ book.taal || "Onbekend" }}
                     </p>
+                    <p class="book-meta">
+                      <strong>Leesniveau:</strong>
+                      {{ book.leesniveau || "Onbekend" }}
+                    </p>
+                    <p class="book-meta">
+                      <strong>Beschrijving:</strong>
+                      {{ book.beschrijving ? (book.beschrijving | slice:0:25) + (book.beschrijving.length > 25 ? '...' : '') : "Geen beschrijving beschikbaar." }}
+                    </p>
                   </div>
                 </div>
 
