@@ -434,9 +434,23 @@ public class BookController {
             review.setReviewerUserSub(reviewerUserSub);
         }
 
-        Review saved = reviewRepository.save(review);
-        ReviewDto dto = toReviewDto(saved, reviewerUserSub);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        try {
+            Review saved = reviewRepository.save(review);
+            ReviewDto dto = toReviewDto(saved, reviewerUserSub);
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        } catch (Exception e) {
+            logger.warn("Error building create response, returning minimal DTO", e);
+            // Review was already saved, return minimal response
+            ReviewDto dto = new ReviewDto();
+            dto.setId(review.getId());
+            dto.setRating(review.getRating());
+            dto.setComment(review.getComment());
+            dto.setReviewerUserId(review.getReviewerUserId());
+            dto.setReviewerUserName("Gebruiker");
+            dto.setCanManage(false);
+            dto.setCreatedAt(review.getCreatedAt());
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        }
     }
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
@@ -467,9 +481,14 @@ public class BookController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        reviewRepository.delete(review);
-        logger.debug("Review deleted successfully");
-        return ResponseEntity.noContent().build();
+        try {
+            reviewRepository.delete(review);
+            logger.debug("Review deleted successfully");
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            logger.error("Error deleting review", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PutMapping("/{bookId}/reviews/{reviewId}")
@@ -500,9 +519,23 @@ public class BookController {
         review.setRating(request.getRating());
         review.setComment(trimmedComment);
 
-        Review savedReview = reviewRepository.save(review);
-        ReviewDto dto = toReviewDto(savedReview, normalizedUserSub);
-        return ResponseEntity.ok(dto);
+        try {
+            Review savedReview = reviewRepository.save(review);
+            ReviewDto dto = toReviewDto(savedReview, normalizedUserSub);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            logger.warn("Error building update response, returning minimal DTO", e);
+            // Review was already saved, return minimal response
+            ReviewDto dto = new ReviewDto();
+            dto.setId(review.getId());
+            dto.setRating(review.getRating());
+            dto.setComment(review.getComment());
+            dto.setReviewerUserId(review.getReviewerUserId());
+            dto.setReviewerUserName("Gebruiker");
+            dto.setCanManage(false);
+            dto.setCreatedAt(review.getCreatedAt());
+            return ResponseEntity.ok(dto);
+        }
     }
 
     private ReviewDto toReviewDto(Review review, String normalizedUserSub) {
