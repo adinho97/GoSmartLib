@@ -92,7 +92,65 @@ public class ReviewModerationService {
     }
 
     private static String normalizeToken(String token) {
-        return token.replaceAll("[^\\p{L}\\p{Nd}]", "");
+        // First map common Unicode confusables (homoglyphs) to ASCII equivalents
+        String mapped = normalizeConfusables(token);
+
+        // Then remove any remaining non-letters/digits
+        return mapped.replaceAll("[^\\p{L}\\p{Nd}]", "");
+    }
+
+    private static String normalizeConfusables(String s) {
+        if (s == null || s.isEmpty()) return s;
+        StringBuilder sb = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            Character mapped = CONFUSABLES.get(c);
+            if (mapped != null) {
+                sb.append(mapped.charValue());
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    // Minimal confusables map: extend as needed. Covers common Cyrillic/Armenian/Greek lookalikes.
+    private static final java.util.Map<Character, Character> CONFUSABLES = buildConfusables();
+
+    private static java.util.Map<Character, Character> buildConfusables() {
+        java.util.Map<Character, Character> m = new java.util.HashMap<>();
+
+        // Cyrillic -> Latin
+        m.put('\u0430', 'a'); // а
+        m.put('\u0410', 'a'); // А
+        m.put('\u0441', 'c'); // с -> c
+        m.put('\u0421', 'c'); // С
+        m.put('\u0456', 'i'); // і -> i
+        m.put('\u0406', 'i'); // І
+        m.put('\u0435', 'e'); // е
+        m.put('\u0415', 'e'); // Е
+        m.put('\u043E', 'o'); // О
+        m.put('\u043E', 'o'); // о
+        m.put('\u0440', 'p'); // р -> p
+        m.put('\u0445', 'x'); // х -> x
+        m.put('\u043A', 'k'); // к -> k
+
+        // Greek -> Latin
+        m.put('\u03B1', 'a'); // α
+        m.put('\u03BF', 'o'); // ο
+        m.put('\u03C1', 'p'); // ρ
+
+        // Armenian common homoglyphs (covering examples like 'ս')
+        m.put('\u057D', 'u'); // ս -> map to 'u' (handles some obfuscations visually similar to 'u')
+        m.put('\u0561', 'a'); // ա -> a
+
+        // Fullwidth forms and some symbols
+        m.put('\uFF21', 'a'); // fullwidth A -> treat as ascii after normalization; adding few examples
+
+        // Common lookalike letters often used in obfuscation
+        m.put('\u24D0', 'a'); // ⓐ -> a
+
+        return java.util.Collections.unmodifiableMap(m);
     }
 
     private static boolean isCensoredToken(String compactToken, boolean hadObfuscationCharacters) {
