@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.hibernate.annotations.Formula;
+
 
 import java.time.LocalDateTime;
 
@@ -32,8 +32,6 @@ public class Review {
     @Column(nullable = true)
     private String reviewerUserSub;
 
-    @Formula("coalesce(review_user_name, review_name)")
-    private String reviewerUserName;
 
     @Column(nullable = true)
     private Boolean anonymous;
@@ -92,9 +90,6 @@ public class Review {
         this.reviewerUserSub = reviewerUserSub;
     }
 
-    public String getReviewerUserName() {
-        return reviewerUserName;
-    }
 
     public Boolean getAnonymous() {
         return anonymous;
