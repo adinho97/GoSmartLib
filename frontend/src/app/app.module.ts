@@ -51,6 +51,7 @@ import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
 import { ColorblindToggleComponent } from "./colorblind-toggle/colorblind-toggle.component";
 import { DarkModeToggleComponent } from "./dark-mode-toggle/dark-mode-toggle.component";
+import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -87,6 +88,7 @@ registerLocaleData(localeNl, "nl");
     MijnTakenComponent,
     BoekTerugbrengenComponent,
     StatistiekenComponent,
+    AdminGenreComponent
   ],
   imports: [
     BrowserModule,
