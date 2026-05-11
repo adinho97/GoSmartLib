@@ -5,11 +5,13 @@ import com.example.demo.controllers.LoanController;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.SuperAdminRepository;
+import com.example.demo.security.SecurityConfig;
 import com.example.demo.services.LoanService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(LoanController.class)
+@Import(SecurityConfig.class)
 @TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 class LoanControllerTest {
 
