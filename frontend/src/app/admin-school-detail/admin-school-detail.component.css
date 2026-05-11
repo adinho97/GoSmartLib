@@ -787,6 +787,18 @@
 .lib-icon-condition {
   background-color: #7c3aed;
 }
+.lib-icon-return {
+  background-color: #e11d48;
+}
+.lib-icon-list {
+  background-color: #10b981;
+}
+.lib-icon-faq {
+  background-color: #f59e0b;
+}
+.lib-icon-stats {
+  background-color: #3b82f6;
+}
 
 .lib-card-text {
   display: flex;
