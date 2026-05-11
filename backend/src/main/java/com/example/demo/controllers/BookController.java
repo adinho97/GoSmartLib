@@ -435,23 +435,8 @@ public class BookController {
         }
 
         Review saved = reviewRepository.save(review);
-        
-        try {
-            ReviewDto dto = toReviewDto(saved, reviewerUserSub);
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-        } catch (Exception e) {
-            logger.warn("Error creating review DTO, returning minimal response", e);
-            // Review was already saved, so return minimal response
-            ReviewDto dto = new ReviewDto();
-            dto.setId(saved.getId());
-            dto.setRating(saved.getRating());
-            dto.setComment(saved.getComment());
-            dto.setReviewerUserId(saved.getReviewerUserId());
-            dto.setReviewerUserName(Boolean.TRUE.equals(saved.getAnonymous()) ? "Anoniem" : "Gebruiker");
-            dto.setCanManage(!Boolean.TRUE.equals(saved.getAnonymous()));
-            dto.setCreatedAt(saved.getCreatedAt());
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-        }
+        ReviewDto dto = toReviewDto(saved, reviewerUserSub);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
@@ -516,23 +501,8 @@ public class BookController {
         review.setComment(trimmedComment);
 
         Review savedReview = reviewRepository.save(review);
-        
-        try {
-            ReviewDto dto = toReviewDto(savedReview, normalizedUserSub);
-            return ResponseEntity.ok(dto);
-        } catch (Exception e) {
-            logger.warn("Error updating review DTO, returning minimal response", e);
-            // Review was already saved, so return minimal response
-            ReviewDto dto = new ReviewDto();
-            dto.setId(savedReview.getId());
-            dto.setRating(savedReview.getRating());
-            dto.setComment(savedReview.getComment());
-            dto.setReviewerUserId(savedReview.getReviewerUserId());
-            dto.setReviewerUserName(Boolean.TRUE.equals(savedReview.getAnonymous()) ? "Anoniem" : "Gebruiker");
-            dto.setCanManage(!Boolean.TRUE.equals(savedReview.getAnonymous()));
-            dto.setCreatedAt(savedReview.getCreatedAt());
-            return ResponseEntity.ok(dto);
-        }
+        ReviewDto dto = toReviewDto(savedReview, normalizedUserSub);
+        return ResponseEntity.ok(dto);
     }
 
     private ReviewDto toReviewDto(Review review, String normalizedUserSub) {
@@ -728,66 +698,18 @@ public class BookController {
             }
 
             String reviewerSub = review.getReviewerUserSub();
-            if (!StringUtils.hasText(reviewerSub) && review.getReviewerUserId() == null) {
-                return "Anoniem";
+            if (!StringUtils.hasText(reviewerSub)) {
+                if (review.getReviewerUserId() != null) {
+                    return String.valueOf(review.getReviewerUserId());
+                }
+                return "Gebruiker";
             }
 
-            // Primary path: resolve name directly from stored Smartschool sub.
-            if (StringUtils.hasText(reviewerSub)) {
-                return resolveDisplayNameForSub(reviewerSub.trim());
-            }
-
-            // Fallback: try to get sub from user ID
-            if (review.getReviewerUserId() != null) {
-                return appUserRepository.findById(review.getReviewerUserId())
-                        .map(AppUser::getSub)
-                        .map(this::resolveDisplayNameForSub)
-                        .orElse(String.valueOf(review.getReviewerUserId()));
-            }
-
-            return "Gebruiker";
+            // Always return sub as fallback for now - Smartschool calls were blocking
+            return reviewerSub.trim();
         } catch (Exception e) {
-            logger.warn("Error resolving reviewer name, returning fallback", e);
-            // Return safe fallback instead of throwing
-            String sub = review.getReviewerUserSub();
-            if (StringUtils.hasText(sub)) {
-                return sub.trim();
-            }
-            if (review.getReviewerUserId() != null) {
-                return String.valueOf(review.getReviewerUserId());
-            }
+            logger.warn("Error resolving reviewer name, returning generic fallback", e);
             return "Gebruiker";
-        }
-    }
-
-    private String resolveDisplayNameForSub(String sub) {
-        if (!StringUtils.hasText(sub)) {
-            return "Anoniem";
-        }
-
-        try {
-            String trimmedSub = sub.trim();
-            return authService.getUserInfoBySub(trimmedSub)
-                    .onErrorResume(err -> {
-                        logger.debug("Error fetching user info for sub {}, returning sub as fallback", trimmedSub, err);
-                        return Mono.empty();
-                    })
-                    .blockOptional()
-                    .map(userInfo -> {
-                        var fullName = userInfo.getFullName();
-                        if (fullName != null && !fullName.isBlank()) {
-                            return fullName;
-                        }
-
-                        var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
-                                .filter(part -> part != null && !part.isBlank())
-                                .collect(Collectors.joining(" ")).trim();
-                        return candidate.isEmpty() ? userInfo.getSub() : candidate;
-                    })
-                    .orElse(trimmedSub);
-        } catch (Exception e) {
-            logger.debug("Exception resolving display name for sub {}, returning sub", sub, e);
-            return sub.trim();
         }
     }
 }
