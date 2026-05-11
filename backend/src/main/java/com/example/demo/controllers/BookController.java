@@ -443,25 +443,32 @@ public class BookController {
     public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
             Authentication authentication) {
+        logger.debug("Delete review request - bookId: {}, reviewId: {}, authenticated: {}, principal: {}",
+                bookId, reviewId, authentication != null, authentication != null ? authentication.getName() : null);
+
         if (!repo.existsById(bookId)) {
             return ResponseEntity.notFound().build();
         }
 
         if (!isBookAccessibleToLeerling(bookId, authentication)) {
+            logger.debug("Book not accessible to user for review deletion");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         Review review = reviewRepository.findById(reviewId).orElse(null);
         if (review == null || review.getBook() == null || !bookId.equals(review.getBook().getId())) {
+            logger.debug("Review not found or doesn't belong to book");
             return ResponseEntity.notFound().build();
         }
 
         String normalizedUserSub = authentication != null ? authentication.getName() : null;
         if (!canManageReview(review, normalizedUserSub)) {
+            logger.debug("User cannot manage this review");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         reviewRepository.delete(review);
+        logger.debug("Review deleted successfully");
         return ResponseEntity.noContent().build();
     }
 
@@ -590,16 +597,23 @@ public class BookController {
             return true;
         }
 
+        logger.debug("canManageReview - reviewerUserSub: {}, normalizedUserSub: {}, reviewerUserId: {}",
+                review.getReviewerUserSub(), normalizedUserSub, review.getReviewerUserId());
+
         if (StringUtils.hasText(review.getReviewerUserSub()) && StringUtils.hasText(normalizedUserSub)) {
-            return isSameUser(review.getReviewerUserSub(), normalizedUserSub);
+            boolean sameUser = isSameUser(review.getReviewerUserSub(), normalizedUserSub);
+            logger.debug("Checking sub comparison: {} == {} -> {}", review.getReviewerUserSub(), normalizedUserSub, sameUser);
+            return sameUser;
         }
 
         if (review.getReviewerUserId() != null && normalizedUserSub != null) {
             Long currentUserId = resolveCurrentUserId(normalizedUserSub);
-            return currentUserId != null && currentUserId.equals(review.getReviewerUserId());
+            boolean idMatch = currentUserId != null && currentUserId.equals(review.getReviewerUserId());
+            logger.debug("Checking ID comparison: {} == {} -> {}", currentUserId, review.getReviewerUserId(), idMatch);
+            return idMatch;
         }
 
-
+        logger.debug("canManageReview returning false - no matching conditions");
         return false;
     }
 
