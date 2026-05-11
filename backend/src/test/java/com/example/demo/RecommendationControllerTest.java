@@ -1,13 +1,19 @@
 package com.example.demo;
 
+import com.example.demo.config.JwtTokenProvider;
+import com.example.demo.controllers.RecommendationController;
 import com.example.demo.dto.RecommendedBook;
+import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.SuperAdminRepository;
 import com.example.demo.services.RecommendationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -18,8 +24,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(RecommendationController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 @DisplayName("RecommendationController Tests")
 class RecommendationControllerTest {
 
@@ -28,6 +35,15 @@ class RecommendationControllerTest {
 
     @MockBean
     private RecommendationService recommendationService;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private SuperAdminRepository superAdminRepository;
+
+    @MockBean
+    private AppUserRepository appUserRepository;
 
     private static final String ENDPOINT = "/api/aanbevelingen";
 
@@ -39,6 +55,7 @@ class RecommendationControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user123")
     @DisplayName("should return recommendations with default limit 10")
     void testGetRecommendationsSuccess() throws Exception {
         List<RecommendedBook> mockRecommendations = List.of(
@@ -59,6 +76,7 @@ class RecommendationControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user123")
     @DisplayName("should pass custom limit and excludeRead parameters")
     void testGetRecommendationsWithCustomParams() throws Exception {
         List<RecommendedBook> mockRecommendations = List.of(
@@ -85,6 +103,7 @@ class RecommendationControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user123")
     @DisplayName("should get recommendations filtered by strategy")
     void testGetByStrategySuccess() throws Exception {
         List<RecommendedBook> mockRecommendations = List.of(
@@ -107,6 +126,7 @@ class RecommendationControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user123")
     @DisplayName("should get grouped recommendations by strategy")
     void testGetGroupedRecommendationsSuccess() throws Exception {
         Map<String, List<RecommendedBook>> grouped = Map.of(
