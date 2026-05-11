@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
+import { AdminGenreService, Genre } from "../services/admin-genre.service";
 
 export enum Language {
   Nederlands = "Nederlands",
@@ -13,8 +14,16 @@ export enum Language {
   Portugees = "Portugees",
   Latijn = "Latijn",
 }
-
 export const LEESNIVEAUS = ["A", "B", "C", "D"] as const;
+
+// Didactiek blijft hard-coded en apart
+const DIDACTIC_SUBGENRES = [
+  "Wiskunde", "Taal", "Geschiedenis", "Kleuteronderwijs",
+  "Lager onderwijs", "Secundair onderwijs", "Volwasseneneducatie",
+  "Geheugen", "Begrip", "Denkprocessen", "Samenwerking",
+  "Interactie", "Dialoog", "Online leren", "E-learning platforms",
+  "Educatieve apps", "Creativiteit", "Zelfexpressie", "Ervaringsgericht leren",
+];
 
 @Component({
   selector: "app-add-book",
@@ -25,57 +34,19 @@ export const LEESNIVEAUS = ["A", "B", "C", "D"] as const;
 export class AddBookComponent implements OnInit {
   readonly languages = Object.values(Language);
   readonly leesniveaus = LEESNIVEAUS;
-  readonly genres = [
-    "Fictie algemeen",
-    "Literaire roman",
-    "Spanning / thriller",
-    "Detective / misdaad",
-    "Fantasy",
-    "Sciencefiction",
-    "Dystopie",
-    "Historische roman",
-    "Romantiek",
-    "Coming-of-age",
-    "Avontuur",
-    "Oorlog & conflict",
-    "Horror",
-    "Humor",
-    "Graphic novel / strip",
-    "Poëzie",
-    "Non-fictie algemeen",
-  ];
-  readonly nonFictionSubgenres = [
-    "Biografie / autobiografie",
-    "Wetenschap & technologie",
-    "Filosofie",
-    "Maatschappij & politiek",
-    "Psychologie",
-    "Geschiedenis",
-    "Kunst & cultuur",
-  ];
-  readonly didacticSubgenres = [
-    "Wiskunde",
-    "Taal",
-    "Geschiedenis",
-    "Kleuteronderwijs",
-    "Lager onderwijs",
-    "Secundair onderwijs",
-    "Volwasseneneducatie",
-    "Geheugen",
-    "Begrip",
-    "Denkprocessen",
-    "Samenwerking",
-    "Interactie",
-    "Dialoog",
-    "Online leren",
-    "E-learning platforms",
-    "Educatieve apps",
-    "Creativiteit",
-    "Zelfexpressie",
-    "Ervaringsgericht leren",
-  ];
-  selectedSubgenres: Set<string> = new Set();
+  readonly didacticSubgenres = DIDACTIC_SUBGENRES;
+
+  // Dynamische genres van de API (excl. Didactiek)
+  genres: Genre[] = [];
+
+  // Geselecteerde genre + subgenre voor normale boeken
+  selectedGenreId: number | null = null;
+  selectedSubgenreId: number | null = null;
+
+  // Didactiek
+  isDidactic = false;
   selectedDidacticSubgenre = "";
+
   selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
   coverPreviewUrl: string | null = null;
@@ -85,69 +56,76 @@ export class AddBookComponent implements OnInit {
   isSubmitted = false;
   submitMessage = "";
   submitState: "success" | "error" | "" = "";
-  isDidactic = false;
   aantalExemplaren: number = 1;
 
   book = {
-    titel: "",
-    auteur: "",
-    isbn: "",
-    goNumber: "",
-    cover: "",
-    beschrijving: "",
-    genre: "",
-    uitgaveDatum: "",
-    paginas: null as number | null,
-    taal: "" as Language | "",
-    uitgeverij: "",
-    leesniveau: "",
+    titel: "", auteur: "", isbn: "", goNumber: "", cover: "",
+    beschrijving: "", genre: "", uitgaveDatum: "",
+    paginas: null as number | null, taal: "" as Language | "",
+    uitgeverij: "", leesniveau: "",
   };
 
   constructor(
     private bookService: BookService,
     private schoolService: SchoolService,
+    private genreService: AdminGenreService,
   ) {}
 
   async ngOnInit() {
     await this.schoolService.selectUserDefaultSchool();
     this.selectedSchoolId = this.schoolService.getSelectedSchoolId();
+    this.loadGenres();
   }
 
-  toggleDidactic(state: boolean) {
+  loadGenres(): void {
+    this.genreService.getAll().subscribe({
+      next: (genres) => { this.genres = genres; },
+      error: () => {},
+    });
+  }
+
+  get selectedGenre(): Genre | null {
+    return this.genres.find(g => g.id === this.selectedGenreId) ?? null;
+  }
+
+  get hasSubgenres(): boolean {
+    return (this.selectedGenre?.subgenres.length ?? 0) > 0;
+  }
+
+  onGenreChange(): void {
+    this.selectedSubgenreId = null;
+  }
+
+  toggleDidactic(state: boolean): void {
     this.isDidactic = state;
-    this.book.genre = state ? "Didactiek" : "";
-    this.selectedSubgenres.clear();
+    this.selectedGenreId = null;
+    this.selectedSubgenreId = null;
     this.selectedDidacticSubgenre = "";
   }
 
-  onGenreChange() {
-    if (this.book.genre !== "Non-fictie algemeen") {
-      this.selectedSubgenres.clear();
+  /** Berekent de genre-string om op te slaan */
+  private buildGenreString(): string {
+    if (this.isDidactic) {
+      return this.selectedDidacticSubgenre
+        ? `Didactiek - ${this.selectedDidacticSubgenre}`
+        : "Didactiek";
     }
-  }
-
-  toggleSubgenre(subgenre: string) {
-    if (this.selectedSubgenres.has(subgenre)) {
-      this.selectedSubgenres.delete(subgenre);
-    } else {
-      this.selectedSubgenres.add(subgenre);
+    if (!this.selectedGenreId) return "";
+    const genre = this.selectedGenre;
+    if (!genre) return "";
+    if (this.selectedSubgenreId) {
+      const sub = genre.subgenres.find(s => s.id === this.selectedSubgenreId);
+      return sub ? `${genre.naam} - ${sub.naam}` : genre.naam;
     }
-  }
-
-  isSubgenreSelected(subgenre: string): boolean {
-    return this.selectedSubgenres.has(subgenre);
+    return genre.naam;
   }
 
   onCoverSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] || null;
-    if (this.coverPreviewUrl) {
-      URL.revokeObjectURL(this.coverPreviewUrl);
-    }
+    if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
     this.selectedCoverFile = file;
-    if (file) {
-      this.coverPreviewUrl = URL.createObjectURL(file);
-    }
+    if (file) this.coverPreviewUrl = URL.createObjectURL(file);
   }
 
   private toBase64(file: File): Promise<string> {
@@ -164,45 +142,25 @@ export class AddBookComponent implements OnInit {
     this.submitMessage = "";
     this.isSubmitted = true;
     if (bookForm.invalid) return;
-
     if (this.selectedSchoolId === null) {
       this.submitState = "error";
       this.submitMessage = "Kies een school.";
       return;
     }
-
     this.isSaving = true;
     try {
       const coverData = this.selectedCoverFile
         ? await this.toBase64(this.selectedCoverFile)
         : this.book.cover;
 
-      // Format genre with subgenres if non-fiction or didactic
-      let genreToSave = this.book.genre;
-      if (
-        this.book.genre === "Non-fictie algemeen" &&
-        this.selectedSubgenres.size > 0
-      ) {
-        const subgenresArray = Array.from(this.selectedSubgenres).sort();
-        genreToSave = `Non-fictie algemeen - ${subgenresArray.join(", ")}`;
-      }
-      if (this.book.genre === "Didactiek" && this.selectedDidacticSubgenre) {
-        genreToSave = `Didactiek - ${this.selectedDidacticSubgenre}`;
-      }
-
       await this.bookService.addBook(
-        {
-          ...this.book,
-          cover: coverData,
-          genre: genreToSave,
-        },
+        { ...this.book, cover: coverData, genre: this.buildGenreString() },
         this.selectedSchoolId,
       );
-
       this.resetForm(bookForm);
       this.submitState = "success";
-      this.submitMessage = `Boek succesvol toegevoegd aan de bibliotheek.`;
-    } catch (error) {
+      this.submitMessage = "Boek succesvol toegevoegd aan de bibliotheek.";
+    } catch {
       this.submitState = "error";
       this.submitMessage = "Fout bij opslaan. Controleer de verbinding.";
     } finally {
@@ -212,77 +170,76 @@ export class AddBookComponent implements OnInit {
 
   async loadBookFromGoNumber(): Promise<void> {
     const trimmed = this.goNumberLookup.trim().toUpperCase();
-    if (!trimmed) {
-      this.submitState = "error";
-      this.submitMessage = "Voer een GO-nummer in.";
-      return;
-    }
-
+    if (!trimmed) { this.submitState = "error"; this.submitMessage = "Voer een GO-nummer in."; return; }
     this.isLookupLoading = true;
-    this.submitState = "";
-    this.submitMessage = "";
-
+    this.submitState = ""; this.submitMessage = "";
     try {
       const book = await this.bookService.fetchBookByGoNumber(trimmed);
       this.book = {
-        titel: book.titel || "",
-        auteur: book.auteur || "",
-        isbn: book.isbn || "",
-        goNumber: book.goNumber || trimmed,
-        cover: book.cover || "",
-        beschrijving: book.beschrijving || "",
-        genre: book.genre || "",
-        uitgaveDatum: book.uitgaveDatum || "",
-        paginas: book.paginas ?? null,
-        taal: book.taal || "",
-        uitgeverij: book.uitgeverij || "",
-        leesniveau: book.leesniveau || "",
+        titel: book.titel || "", auteur: book.auteur || "",
+        isbn: book.isbn || "", goNumber: book.goNumber || trimmed,
+        cover: book.cover || "", beschrijving: book.beschrijving || "",
+        genre: book.genre || "", uitgaveDatum: book.uitgaveDatum || "",
+        paginas: book.paginas ?? null, taal: book.taal || "",
+        uitgeverij: book.uitgeverij || "", leesniveau: book.leesniveau || "",
       };
-
-      this.isDidactic = this.book.genre === "Didactiek";
-      this.selectedSubgenres.clear();
-      this.selectedDidacticSubgenre = "";
-
-      if (this.coverPreviewUrl) {
-        URL.revokeObjectURL(this.coverPreviewUrl);
-      }
+      this.restoreGenreFromString(book.genre || "");
+      if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
       this.coverPreviewUrl = this.book.cover || null;
       this.selectedCoverFile = null;
-
       this.submitState = "success";
       this.submitMessage = `Boekgegevens geladen voor ${trimmed}.`;
     } catch (error: any) {
-      if (error?.response?.status === 404) {
-        this.submitState = "error";
-        this.submitMessage = "Geen boek gevonden met dit GO-nummer.";
-      } else {
-        this.submitState = "error";
-        this.submitMessage = "Fout bij het ophalen van het boek.";
-      }
+      this.submitState = "error";
+      this.submitMessage = error?.response?.status === 404
+        ? "Geen boek gevonden met dit GO-nummer."
+        : "Fout bij het ophalen van het boek.";
     } finally {
       this.isLookupLoading = false;
     }
   }
 
+  private restoreGenreFromString(genreStr: string): void {
+    this.selectedGenreId = null;
+    this.selectedSubgenreId = null;
+    this.isDidactic = false;
+    this.selectedDidacticSubgenre = "";
+
+    if (!genreStr) return;
+    const lower = genreStr.toLowerCase();
+
+    if (lower.startsWith("didactiek")) {
+      this.isDidactic = true;
+      const parts = genreStr.split(" - ");
+      if (parts.length > 1) this.selectedDidacticSubgenre = parts.slice(1).join(" - ").trim();
+      return;
+    }
+
+    // Zoek match in dynamische genres
+    for (const genre of this.genres) {
+      if (lower.startsWith(genre.naam.toLowerCase())) {
+        this.selectedGenreId = genre.id;
+        const remainder = genreStr.substring(genre.naam.length).replace(/^\s*-\s*/, "").trim();
+        if (remainder) {
+          const sub = genre.subgenres.find(s => s.naam.toLowerCase() === remainder.toLowerCase());
+          if (sub) this.selectedSubgenreId = sub.id;
+        }
+        return;
+      }
+    }
+  }
+
   private resetForm(bookForm: NgForm) {
     this.book = {
-      titel: "",
-      auteur: "",
-      isbn: "",
-      goNumber: "",
-      cover: "",
-      beschrijving: "",
-      genre: "",
-      uitgaveDatum: "",
-      paginas: null,
-      taal: "",
-      uitgeverij: "",
-      leesniveau: "",
+      titel: "", auteur: "", isbn: "", goNumber: "", cover: "",
+      beschrijving: "", genre: "", uitgaveDatum: "", paginas: null,
+      taal: "", uitgeverij: "", leesniveau: "",
     };
     this.isDidactic = false;
-    this.aantalExemplaren = 1;
-    this.selectedSubgenres.clear();
+    this.selectedGenreId = null;
+    this.selectedSubgenreId = null;
     this.selectedDidacticSubgenre = "";
+    this.aantalExemplaren = 1;
     this.selectedCoverFile = null;
     this.goNumberLookup = "";
     if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);

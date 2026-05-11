@@ -24,7 +24,10 @@
   border-radius: 10px;
   color: #374151;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .btn-back-icon:hover {
@@ -87,9 +90,18 @@
   border-radius: 20px;
 }
 
-.status-active { background: #dcfce7; color: #166534; }
-.status-inactive { background: #f1f5f9; color: #64748b; }
-.status-pending { background: #fef9c3; color: #854d0e; }
+.status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.status-pending {
+  background: #fef9c3;
+  color: #854d0e;
+}
 
 .btn-status-toggle {
   border: 1px solid #d1d5db;
@@ -382,7 +394,9 @@
   padding: 4px 10px;
   border-radius: 5px;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
   white-space: nowrap;
 }
 
@@ -395,7 +409,7 @@
   background: white;
   color: #871f42;
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .role-select {
@@ -536,8 +550,14 @@
   border-radius: 20px;
 }
 
-.badge-active { background: #dcfce7; color: #166534; }
-.badge-inactive { background: #f1f5f9; color: #64748b; }
+.badge-active {
+  background: #dcfce7;
+  color: #166534;
+}
+.badge-inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 /* User action button */
 .btn-user-action {
@@ -597,6 +617,88 @@
   margin: 0;
 }
 
+/* Modal Styles */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.clickable-row:hover {
+  background-color: #f8fafc;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+
+.btn-close-modal:hover {
+  color: #871f42;
+}
+
+.modal-body {
+  padding: 12px 24px 24px;
+  overflow-y: auto;
+}
+
 /* Bibliotheek stats */
 .lib-stats-row {
   display: grid;
@@ -632,7 +734,7 @@
 /* Bibliotheek navigation cards */
 .lib-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
 
@@ -646,7 +748,9 @@
   padding: 16px;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .lib-card:hover {
@@ -665,12 +769,36 @@
   justify-content: center;
 }
 
-.lib-icon-catalog   { background-color: #6366f1; }
-.lib-icon-add       { background-color: #0284c7; }
-.lib-icon-loan      { background-color: #871f42; }
-.lib-icon-active    { background-color: #059669; }
-.lib-icon-history   { background-color: #d97706; }
-.lib-icon-condition { background-color: #7c3aed; }
+.lib-icon-catalog {
+  background-color: #6366f1;
+}
+.lib-icon-add {
+  background-color: #0284c7;
+}
+.lib-icon-loan {
+  background-color: #871f42;
+}
+.lib-icon-active {
+  background-color: #059669;
+}
+.lib-icon-history {
+  background-color: #d97706;
+}
+.lib-icon-condition {
+  background-color: #7c3aed;
+}
+.lib-icon-return {
+  background-color: #e11d48;
+}
+.lib-icon-list {
+  background-color: #10b981;
+}
+.lib-icon-faq {
+  background-color: #f59e0b;
+}
+.lib-icon-stats {
+  background-color: #3b82f6;
+}
 
 .lib-card-text {
   display: flex;

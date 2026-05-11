@@ -442,7 +442,6 @@ public class BookController {
         String reviewerUserSub = resolveUserSub(authentication, subHeader, roleHeader);
         Long reviewerUserId = isAnonymous ? null : resolveCurrentUserId(reviewerUserSub);
         review.setAnonymous(isAnonymous);
-        review.setReviewerUserName(isAnonymous ? "Anoniem" : normalizeUserName(userName));
 
         if (reviewerUserSub == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -491,6 +490,7 @@ public class BookController {
 
         Review review = reviewRepository.findById(reviewId).orElse(null);
         if (review == null || review.getBook() == null || !bookId.equals(review.getBook().getId())) {
+            logger.debug("Review not found or doesn't belong to book");
             return ResponseEntity.notFound().build();
         }
 
@@ -499,6 +499,7 @@ public class BookController {
         }
 
         reviewRepository.delete(review);
+        logger.debug("Review deleted successfully");
         return ResponseEntity.noContent().build();
     }
 
@@ -669,15 +670,28 @@ public class BookController {
             return true;
         }
 
+        logger.debug("canManageReview - reviewerUserSub: {}, normalizedUserSub: {}, reviewerUserId: {}",
+                review.getReviewerUserSub(), normalizedUserSub, review.getReviewerUserId());
+
+        boolean subMatch = false;
         if (StringUtils.hasText(review.getReviewerUserSub()) && StringUtils.hasText(normalizedUserSub)) {
-            return isSameUser(review.getReviewerUserSub(), normalizedUserSub);
+            subMatch = isSameUser(review.getReviewerUserSub(), normalizedUserSub);
+            logger.debug("Checking sub comparison: {} == {} -> {}", review.getReviewerUserSub(), normalizedUserSub,
+                    subMatch);
         }
 
+        boolean idMatch = false;
         if (review.getReviewerUserId() != null && normalizedUserSub != null) {
             Long currentUserId = resolveCurrentUserId(normalizedUserSub);
-            return currentUserId != null && currentUserId.equals(review.getReviewerUserId());
+            idMatch = currentUserId != null && currentUserId.equals(review.getReviewerUserId());
+            logger.debug("Checking ID comparison: {} == {} -> {}", currentUserId, review.getReviewerUserId(), idMatch);
         }
 
+        if (subMatch || idMatch) {
+            return true;
+        }
+
+        logger.debug("canManageReview returning false - no matching conditions");
         return false;
     }
 
@@ -794,59 +808,24 @@ public class BookController {
     }
 
     private String resolveReviewerUserName(Review review) {
-        if (Boolean.TRUE.equals(review.getAnonymous())) {
-            return "Anoniem";
-        }
-
-        if (StringUtils.hasText(review.getReviewerUserName())) {
-            return review.getReviewerUserName().trim();
-        }
-
-        if (review.getReviewerUserId() == null && !StringUtils.hasText(review.getReviewerUserSub())) {
-            return "Anoniem";
-        }
-
-        if (review.getReviewerUserId() == null && StringUtils.hasText(review.getReviewerUserSub())) {
-            try {
-                return resolveDisplayNameForSub(review.getReviewerUserSub().trim());
-            } catch (Exception e) {
-                return review.getReviewerUserSub().trim();
+        try {
+            if (Boolean.TRUE.equals(review.getAnonymous())) {
+                return "Anoniem";
             }
-        }
 
-        try {
-            return appUserRepository.findById(review.getReviewerUserId())
-                    .map(AppUser::getSub)
-                    .map(this::resolveDisplayNameForSub)
-                    .orElse(String.valueOf(review.getReviewerUserId()));
+            String reviewerSub = review.getReviewerUserSub();
+            if (!StringUtils.hasText(reviewerSub)) {
+                if (review.getReviewerUserId() != null) {
+                    return String.valueOf(review.getReviewerUserId());
+                }
+                return "Gebruiker";
+            }
+
+            // Always return sub as fallback for now - Smartschool calls were blocking
+            return reviewerSub.trim();
         } catch (Exception e) {
-            return String.valueOf(review.getReviewerUserId());
-        }
-    }
-
-    private String resolveDisplayNameForSub(String sub) {
-        if (!StringUtils.hasText(sub)) {
-            return "Anoniem";
-        }
-
-        try {
-            return authService.getUserInfoBySub(sub.trim())
-                    .onErrorResume(err -> Mono.empty())
-                    .blockOptional()
-                    .map(userInfo -> {
-                        var fullName = userInfo.getFullName();
-                        if (fullName != null && !fullName.isBlank()) {
-                            return fullName;
-                        }
-
-                        var candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
-                                .filter(part -> part != null && !part.isBlank())
-                                .collect(Collectors.joining(" ")).trim();
-                        return candidate.isEmpty() ? userInfo.getSub() : candidate;
-                    })
-                    .orElse(sub.trim());
-        } catch (Exception e) {
-            return sub.trim();
+            logger.warn("Error resolving reviewer name, returning generic fallback", e);
+            return "Gebruiker";
         }
     }
 }

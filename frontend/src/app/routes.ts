@@ -38,6 +38,7 @@ import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
 import { SchoolStatisticsComponent } from "./school-statistics/school-statistics.component";
 import { LeaderboardComponent } from "./leaderboard/leaderboard.component";
+import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -106,6 +107,11 @@ export const appRoutes: Routes = [
     component: AddIsbnComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
+  },
+  {
+    path: "admin/genres",
+    component: AdminGenreComponent,
+    canActivate: [AdminGuard],
   },
   {
     path: "add-general",
@@ -238,7 +244,7 @@ export const appRoutes: Routes = [
     component: LeaderboardComponent,
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
-  }
+  },
 ];
 
 @NgModule({

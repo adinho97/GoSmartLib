@@ -83,6 +83,11 @@ public class AuthService {
         }
 
         public Mono<AuthLoginResponse> processSmartschoolCallback(String code) {
+                logger.info("Processing Smartschool callback with code length: {}", code != null ? code.length() : 0);
+                if (code == null || code.isBlank()) {
+                        logger.error("Received empty or null code in processSmartschoolCallback");
+                        return Mono.error(new IllegalArgumentException("Authorization code is required"));
+                }
                 return getAccessToken(code)
                                 .flatMap(tokenResponse -> getUserInfo(tokenResponse, null))
                                 .flatMap(this::saveUserAndBuildResponse);
@@ -310,6 +315,10 @@ public class AuthService {
 
                 String tokenUrl = smartschoolProperties.getApiBaseUrl() + "/OAuth/index/token";
                 logger.info("Requesting access token from: {}", tokenUrl);
+                logger.debug("OAuth request parameters - grant_type: authorization_code, client_id: {}, redirect_uri: {}, code length: {}",
+                                smartschoolProperties.getClientId(),
+                                smartschoolProperties.getRedirectUri(),
+                                code != null ? code.length() : 0);
 
                 return this.webClient.post()
                                 .uri(tokenUrl)

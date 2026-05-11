@@ -1,0 +1,132 @@
+<div class="genre-page">
+  <div class="page-header">
+    <div>
+      <h1>Genres beheren</h1>
+      <p class="subtitle">Globale genrelijst voor alle scholen (excl. Didactiek)</p>
+    </div>
+  </div>
+
+  @if (error) {
+    <p class="error-message">{{ error }}</p>
+  }
+  @if (successMessage) {
+    <p class="success-message">{{ successMessage }}</p>
+  }
+
+  <!-- Nieuw top-level genre -->
+  <div class="card">
+    <h2>Nieuw genre toevoegen</h2>
+    <div class="add-row">
+      <input
+        type="text"
+        class="genre-input"
+        [(ngModel)]="newNaam"
+        placeholder="Naam genre..."
+        (keyup.enter)="create()"
+        maxlength="100"
+      />
+      <button class="btn-add" (click)="create()" [disabled]="!newNaam.trim()">
+        Toevoegen
+      </button>
+    </div>
+  </div>
+
+  <!-- Lijst -->
+  <div class="card">
+    <h2>Genres <span class="count-badge">{{ genres.length }}</span></h2>
+
+    @if (isLoading) {
+      <p class="loading-text">Genres laden...</p>
+    }
+
+    @if (!isLoading && genres.length === 0) {
+      <p class="empty-text">Nog geen genres aangemaakt.</p>
+    }
+
+    <ul class="genre-list">
+      @for (genre of genres; track genre.id) {
+        <li class="genre-item">
+
+          <!-- Top-level bewerkregel -->
+          @if (editingId === genre.id) {
+            <div class="edit-row">
+              <input
+                type="text"
+                class="genre-input edit-input"
+                [(ngModel)]="editNaam"
+                (keyup.enter)="saveEdit(genre.id)"
+                (keyup.escape)="cancelAllEdits()"
+                maxlength="100"
+              />
+              <div class="item-actions">
+                <button class="btn-save" (click)="saveEdit(genre.id)">Opslaan</button>
+                <button class="btn-cancel" (click)="cancelAllEdits()">Annuleren</button>
+              </div>
+            </div>
+          } @else {
+            <div class="genre-header-row">
+              <span class="genre-naam">{{ genre.naam }}</span>
+              <div class="item-actions">
+                <button class="btn-sub" (click)="startAddSubgenre(genre.id)">+ Subgenre</button>
+                <button class="btn-edit" (click)="startEdit(genre)">Bewerken</button>
+                <button class="btn-delete" (click)="delete(genre.id)">Verwijderen</button>
+              </div>
+            </div>
+          }
+
+          <!-- Subgenres -->
+          @if (genre.subgenres.length > 0 || addingSubgenreForId === genre.id) {
+            <ul class="subgenre-list">
+              @for (sub of genre.subgenres; track sub.id) {
+                <li class="subgenre-item">
+                  @if (editingSubgenreId === sub.id && editingSubgenreParentId === genre.id) {
+                    <div class="edit-row">
+                      <input
+                        type="text"
+                        class="genre-input edit-input"
+                        [(ngModel)]="editSubgenreNaam"
+                        (keyup.enter)="saveSubgenreEdit(genre.id, sub.id)"
+                        (keyup.escape)="cancelAllEdits()"
+                        maxlength="100"
+                      />
+                      <div class="item-actions">
+                        <button class="btn-save" (click)="saveSubgenreEdit(genre.id, sub.id)">Opslaan</button>
+                        <button class="btn-cancel" (click)="cancelAllEdits()">Annuleren</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <span class="subgenre-naam">{{ sub.naam }}</span>
+                    <div class="item-actions">
+                      <button class="btn-edit" (click)="startEditSubgenre(genre.id, sub.id, sub.naam)">Bewerken</button>
+                      <button class="btn-delete" (click)="deleteSubgenre(genre.id, sub.id)">Verwijderen</button>
+                    </div>
+                  }
+                </li>
+              }
+
+              <!-- Nieuw subgenre invoerveld -->
+              @if (addingSubgenreForId === genre.id) {
+                <li class="subgenre-item subgenre-add-row">
+                  <input
+                    type="text"
+                    class="genre-input edit-input"
+                    [(ngModel)]="newSubgenreNaam"
+                    placeholder="Naam subgenre..."
+                    (keyup.enter)="createSubgenre(genre.id)"
+                    (keyup.escape)="cancelAllEdits()"
+                    maxlength="100"
+                  />
+                  <div class="item-actions">
+                    <button class="btn-save" (click)="createSubgenre(genre.id)" [disabled]="!newSubgenreNaam.trim()">Toevoegen</button>
+                    <button class="btn-cancel" (click)="cancelAllEdits()">Annuleren</button>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+
+        </li>
+      }
+    </ul>
+  </div>
+</div>
