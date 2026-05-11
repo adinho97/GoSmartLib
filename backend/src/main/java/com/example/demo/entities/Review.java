@@ -32,9 +32,6 @@ public class Review {
     private String reviewerUserSub;
 
     @Column(nullable = true)
-    private String reviewerUserName;
-
-    @Column(nullable = true)
     private Boolean anonymous;
 
     @Column(nullable = false)
@@ -89,14 +86,6 @@ public class Review {
 
     public void setReviewerUserSub(String reviewerUserSub) {
         this.reviewerUserSub = reviewerUserSub;
-    }
-
-    public String getReviewerUserName() {
-        return reviewerUserName;
-    }
-
-    public void setReviewerUserName(String reviewerUserName) {
-        this.reviewerUserName = reviewerUserName;
     }
 
     public Boolean getAnonymous() {
