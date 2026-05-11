@@ -370,20 +370,22 @@ public class BookController {
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable @NonNull Long id,
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
         if (!repo.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(id, authentication)) {
+        if (!isBookAccessibleToLeerling(id, authentication, roleHeader, subHeader)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        String normalizedUserSub = authentication != null ? authentication.getName() : null;
+        String normalizedUserSub = resolveUserSub(authentication, subHeader, roleHeader);
 
         List<ReviewDto> reviews = reviewRepository.findByBook_IdOrderByCreatedAtDesc(id)
                 .stream()
-                .map(review -> toReviewDto(review, normalizedUserSub))
+                .map(review -> toReviewDto(review, normalizedUserSub, roleHeader))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(reviews);
@@ -407,6 +409,8 @@ public class BookController {
     @PostMapping("/{id}/reviews")
     public ResponseEntity<ReviewDto> createReview(@PathVariable @NonNull Long id,
             Authentication authentication,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody CreateReviewRequest request) {
         Book book = repo.findById(id).orElse(null);
@@ -414,7 +418,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(id, authentication)) {
+        if (!isBookAccessibleToLeerling(id, authentication, roleHeader, subHeader)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -425,7 +429,7 @@ public class BookController {
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
         boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
-        String reviewerUserSub = authentication != null ? authentication.getName() : null;
+        String reviewerUserSub = resolveUserSub(authentication, subHeader, roleHeader);
         Long reviewerUserId = isAnonymous ? null : resolveCurrentUserId(reviewerUserSub);
         review.setAnonymous(isAnonymous);
         review.setReviewerUserName(isAnonymous ? "Anoniem" : normalizeUserName(userName));
@@ -452,18 +456,26 @@ public class BookController {
 
         Review saved = reviewRepository.save(review);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(toReviewDto(saved, reviewerUserSub));
+            .body(toReviewDto(saved, reviewerUserSub, roleHeader));
     }
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+        String normalizedUserSub = resolveUserSub(authentication, subHeader, roleHeader);
+        boolean isLibrarian = isLibrarianOrAdmin(authentication, roleHeader);
+        if (!isLibrarian && normalizedUserSub == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         if (!repo.existsById(bookId)) {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(bookId, authentication)) {
+        if (!isBookAccessibleToLeerling(bookId, authentication, roleHeader, subHeader)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -472,8 +484,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = authentication != null ? authentication.getName() : null;
-        if (!canManageReview(review, normalizedUserSub)) {
+        if (!canManageReview(review, normalizedUserSub, roleHeader)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -485,12 +496,20 @@ public class BookController {
     public ResponseEntity<ReviewDto> updateReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
             Authentication authentication,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
             @Valid @RequestBody UpdateReviewRequest request) {
+        String normalizedUserSub = resolveUserSub(authentication, subHeader, roleHeader);
+        boolean isLibrarian = isLibrarianOrAdmin(authentication, roleHeader);
+        if (!isLibrarian && normalizedUserSub == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         if (!repo.existsById(bookId)) {
             return ResponseEntity.notFound().build();
         }
 
-        if (!isBookAccessibleToLeerling(bookId, authentication)) {
+        if (!isBookAccessibleToLeerling(bookId, authentication, roleHeader, subHeader)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -499,8 +518,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = authentication != null ? authentication.getName() : null;
-        if (!canManageReview(review, normalizedUserSub)) {
+        if (!canManageReview(review, normalizedUserSub, roleHeader)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -510,17 +528,17 @@ public class BookController {
         review.setComment(trimmedComment);
 
         Review savedReview = reviewRepository.save(review);
-        return ResponseEntity.ok(toReviewDto(savedReview, normalizedUserSub));
+        return ResponseEntity.ok(toReviewDto(savedReview, normalizedUserSub, roleHeader));
     }
 
-    private ReviewDto toReviewDto(Review review, String normalizedUserSub) {
+    private ReviewDto toReviewDto(Review review, String normalizedUserSub, String roleHeader) {
         ReviewDto dto = new ReviewDto();
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
         dto.setReviewerUserId(review.getReviewerUserId());
         dto.setReviewerUserName(resolveReviewerUserName(review));
-        dto.setCanManage(canManageReview(review, normalizedUserSub));
+        dto.setCanManage(canManageReview(review, normalizedUserSub, roleHeader));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
     }
@@ -636,8 +654,8 @@ public class BookController {
         return trimmed.isEmpty() ? null : trimmed.toLowerCase(Locale.ROOT);
     }
 
-    private boolean canManageReview(Review review, String normalizedUserSub) {
-        if (isLibrarianOrAdmin()) {
+    private boolean canManageReview(Review review, String normalizedUserSub, String roleHeader) {
+        if (isLibrarianOrAdmin(SecurityContextHolder.getContext().getAuthentication(), roleHeader)) {
             return true;
         }
 
@@ -653,23 +671,33 @@ public class BookController {
         return false;
     }
 
-    private boolean isLibrarianOrAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            return false;
+    private boolean isLibrarianOrAdmin(Authentication authentication, String roleHeader) {
+        if (authentication != null && authentication.getAuthorities() != null) {
+            boolean matches = authentication.getAuthorities().stream()
+                    .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
+                    .anyMatch(authority ->
+                            "ROLE_BIBBEHEERDER".equalsIgnoreCase(authority)
+                                    || "ROLE_SUPER_ADMIN".equalsIgnoreCase(authority));
+            if (matches) {
+                return true;
+            }
         }
-        return auth.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_BIBBEHEERDER".equalsIgnoreCase(a.getAuthority())
-                        || "ROLE_SUPER_ADMIN".equalsIgnoreCase(a.getAuthority()));
+
+        String normalizedRole = normalizeRole(roleHeader);
+        return "bibbeheerder".equals(normalizedRole) || "super_admin".equals(normalizedRole);
     }
 
-    private boolean isStudentRole() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            return false;
+    private boolean isStudentRole(Authentication authentication, String roleHeader) {
+        if (authentication != null && authentication.getAuthorities() != null) {
+            boolean matches = authentication.getAuthorities().stream()
+                    .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
+                    .anyMatch(authority -> "ROLE_LEERLING".equalsIgnoreCase(authority));
+            if (matches) {
+                return true;
+            }
         }
-        return auth.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_LEERLING".equalsIgnoreCase(a.getAuthority()));
+
+        return "leerling".equals(normalizeRole(roleHeader));
     }
 
     private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication) {
@@ -689,17 +717,51 @@ public class BookController {
                 .orElse(null);
     }
 
-    private boolean isBookAccessibleToLeerling(Long bookId, Authentication authentication) {
-        if (!isStudentRole()) {
+    private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication, String subHeader) {
+        if (requestedSchoolId != null) {
+            return requestedSchoolId;
+        }
+
+        String sub = resolveUserSub(authentication, subHeader, null);
+        if (!StringUtils.hasText(sub)) {
+            return null;
+        }
+
+        return appUserRepository.findBySub(sub.trim())
+                .filter(user -> user.getSchool() != null)
+                .map(user -> Objects.requireNonNull(user.getSchool().getId(), "schoolId is required"))
+                .orElse(null);
+    }
+
+    private boolean isBookAccessibleToLeerling(Long bookId, Authentication authentication, String roleHeader,
+            String subHeader) {
+        if (!isStudentRole(authentication, roleHeader)) {
             return true;
         }
-        Long schoolId = resolveEffectiveSchoolId(null, authentication);
+        Long schoolId = resolveEffectiveSchoolId(null, authentication, subHeader);
         if (schoolId == null) {
             return true;
         }
         return repo.existsByIdAndSchool_Id(
                 Objects.requireNonNull(bookId, "bookId is required"),
                 Objects.requireNonNull(schoolId, "schoolId is required"));
+    }
+
+    private String resolveUserSub(Authentication authentication, String subHeader, String roleHeader) {
+        if (authentication != null && StringUtils.hasText(authentication.getName())) {
+            return authentication.getName().trim();
+        }
+
+        if (StringUtils.hasText(subHeader)) {
+            return subHeader.trim();
+        }
+
+        String normalizedRole = normalizeRole(roleHeader);
+        if (StringUtils.hasText(normalizedRole)) {
+            return "role:" + normalizedRole;
+        }
+
+        return null;
     }
 
     private void assignGoNumberIfNeeded(Book book) {
