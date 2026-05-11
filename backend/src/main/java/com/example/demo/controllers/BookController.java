@@ -74,8 +74,9 @@ public class BookController {
     @GetMapping
     public List<BookDto> getAll(
             @RequestParam(required = false) Long schoolId,
-            Authentication authentication) {
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
         List<Book> books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
         return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
     }
@@ -86,11 +87,12 @@ public class BookController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(required = false) String query,
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.max(size, 1);
         String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
 
         Page<Book> books = repo.searchPaged(
                 effectiveSchoolId,
@@ -112,8 +114,9 @@ public class BookController {
     @GetMapping("/{id}")
     public ResponseEntity<BookDto> getBook(@PathVariable @NonNull Long id,
             @RequestParam(required = false) Long schoolId,
-            Authentication authentication) {
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
         return (effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId))
                 .map(BookMapper::toDto)
                 .map(ResponseEntity::ok)
@@ -240,8 +243,14 @@ public class BookController {
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable @NonNull Long id,
-            Authentication authentication) {
-        Long librarianSchoolId = resolveEffectiveSchoolId(null, authentication);
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+        if (!isLibrarianOrAdmin(authentication, roleHeader)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Long librarianSchoolId = resolveEffectiveSchoolId(null, authentication, subHeader);
         boolean exists = librarianSchoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, librarianSchoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
