@@ -109,6 +109,23 @@ public class ReviewModerationService {
             return true;
         }
 
+        // Check if any censored word is hidden within the token as a substring
+        if (containsCensoredWordAsSubstring(compactToken)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean containsCensoredWordAsSubstring(String token) {
+        // Check if any censored word appears as a substring in the token
+        // But only flag if the word is at least 3 characters to reduce false positives
+        for (String censoredWord : CENSORED_WORDS) {
+            // Only check words that are reasonably long to avoid false positives with common substrings
+            if (censoredWord.length() >= 3 && token.contains(censoredWord)) {
+                return true;
+            }
+        }
         return false;
     }
 
