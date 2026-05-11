@@ -392,6 +392,7 @@ public class BookController {
     @PostMapping("/{id}/reviews")
     public ResponseEntity<ReviewDto> createReview(@PathVariable @NonNull Long id,
             Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody CreateReviewRequest request) {
         Book book = repo.findById(id).orElse(null);
@@ -410,7 +411,7 @@ public class BookController {
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
         boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
-        String reviewerUserSub = authentication != null ? authentication.getName() : null;
+        String reviewerUserSub = resolveRequestUserSub(authentication, userSub);
         Long reviewerUserId = isAnonymous ? null : resolveCurrentUserId(reviewerUserSub);
         review.setAnonymous(isAnonymous);
 
@@ -456,7 +457,8 @@ public class BookController {
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
         logger.debug("Delete review request - bookId: {}, reviewId: {}, authenticated: {}, principal: {}",
                 bookId, reviewId, authentication != null, authentication != null ? authentication.getName() : null);
 
@@ -475,7 +477,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = authentication != null ? authentication.getName() : null;
+        String normalizedUserSub = resolveRequestUserSub(authentication, userSub);
         if (!canManageReview(review, normalizedUserSub)) {
             logger.debug("User cannot manage this review");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -495,6 +497,7 @@ public class BookController {
     public ResponseEntity<ReviewDto> updateReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
             Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @Valid @RequestBody UpdateReviewRequest request) {
         if (!repo.existsById(bookId)) {
             return ResponseEntity.notFound().build();
@@ -509,7 +512,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = authentication != null ? authentication.getName() : null;
+        String normalizedUserSub = resolveRequestUserSub(authentication, userSub);
         if (!canManageReview(review, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -618,6 +621,16 @@ public class BookController {
                         .map(AppUser::getId)
                         .orElse(null);
             }
+        }
+        return null;
+    }
+
+    private String resolveRequestUserSub(Authentication authentication, String userSub) {
+        if (StringUtils.hasText(userSub)) {
+            return userSub.trim();
+        }
+        if (authentication != null && StringUtils.hasText(authentication.getName())) {
+            return authentication.getName().trim();
         }
         return null;
     }
