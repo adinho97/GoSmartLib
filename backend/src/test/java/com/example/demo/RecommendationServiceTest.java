@@ -86,8 +86,8 @@ class RecommendationServiceTest {
                 new RecommendedBook(3L, "B3", "A", "G", 80.0, "R1"));
         List<RecommendedBook> strategy2Results = new ArrayList<>();
 
-        when(strategy1.recommend("user123", 20, true)).thenReturn(strategy1Results);
-        when(strategy2.recommend("user123", 20, true)).thenReturn(strategy2Results);
+        when(strategy1.recommend("user123", 4, true)).thenReturn(strategy1Results);
+        when(strategy2.recommend("user123", 4, true)).thenReturn(strategy2Results);
 
         List<RecommendedBook> result = recommendationService.getRecommendations("user123", 2, true);
 
@@ -104,7 +104,6 @@ class RecommendationServiceTest {
         RecommendedBook book2 = new RecommendedBook(2L, "B2", "A", "G", 90.0, "R2");
 
         when(strategy1.recommend("user123", 20, true)).thenReturn(List.of(book1));
-        when(strategy2.recommend("user123", 20, true)).thenReturn(List.of(book2));
 
         List<RecommendedBook> result = recommendationService.getRecommendationsByStrategy(
                 "user123",
