@@ -288,22 +288,32 @@ public class BookController {
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> getLestip(@PathVariable @NonNull Long id,
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+        if (!hasAnyLestipRole(authentication, roleHeader)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
             return ResponseEntity.notFound().build();
         }
 
-        String currentUserSub = authentication != null ? authentication.getName() : null;
-        return ResponseEntity.ok(toLestipDto(book, currentUserSub));
+        String normalizedUserName = normalizeUserName(userName);
+        return ResponseEntity.ok(toLestipDto(book, normalizedUserName));
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> updateLestip(@PathVariable @NonNull Long id,
             Authentication authentication,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
+            @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody UpdateLestipRequest request) {
-        String normalizedUserSub = authentication != null ? authentication.getName() : null;
+        if (!hasAnyLestipRole(authentication, roleHeader)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        String normalizedUserName = normalizeUserName(userName);
 
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
@@ -320,17 +330,22 @@ public class BookController {
         }
 
         book.setLestip(normalizedLestip);
-        book.setLestipAuteur(normalizedUserSub);
+        book.setLestipAuteur(normalizedUserName);
 
         Book savedBook = repo.save(book);
-        return ResponseEntity.ok(toLestipDto(savedBook, normalizedUserSub));
+        return ResponseEntity.ok(toLestipDto(savedBook, normalizedUserName));
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}/lestip")
     public ResponseEntity<Void> deleteLestip(@PathVariable @NonNull Long id,
-            Authentication authentication) {
-        String normalizedUserSub = authentication != null ? authentication.getName() : null;
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
+        if (!hasAnyLestipRole(authentication, roleHeader)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        String normalizedUserName = normalizeUserName(userName);
 
         Book book = repo.findById(id).orElse(null);
         if (book == null) {
@@ -343,7 +358,7 @@ public class BookController {
 
         String lestipAuteur = book.getLestipAuteur();
         boolean hasStoredAuteur = StringUtils.hasText(lestipAuteur);
-        if (hasStoredAuteur && (normalizedUserSub == null || !isSameUser(normalizedUserSub, lestipAuteur))) {
+        if (hasStoredAuteur && (normalizedUserName == null || !isSameUser(normalizedUserName, lestipAuteur))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -510,7 +525,7 @@ public class BookController {
         return dto;
     }
 
-    private LestipDto toLestipDto(Book book, String currentUserSub) {
+    private LestipDto toLestipDto(Book book, String currentUserName) {
         LestipDto dto = new LestipDto();
         String lestipText = book.getLestip();
         String lestipAuteur = book.getLestipAuteur();
@@ -518,8 +533,8 @@ public class BookController {
         dto.setLestip(lestipText == null ? "" : lestipText);
         dto.setAuteurNaam(lestipAuteur == null ? "" : lestipAuteur);
         boolean magVerwijderen = hasLestip(lestipText)
-                && (!StringUtils.hasText(lestipAuteur)
-                        || (currentUserSub != null && isSameUser(currentUserSub, lestipAuteur)));
+            && (!StringUtils.hasText(lestipAuteur)
+                || (currentUserName != null && isSameUser(currentUserName, lestipAuteur)));
         dto.setMagVerwijderen(magVerwijderen);
         return dto;
     }
@@ -584,6 +599,41 @@ public class BookController {
 
     private boolean hasLestip(String lestip) {
         return StringUtils.hasText(lestip);
+    }
+
+    private boolean hasAnyLestipRole(Authentication authentication, String roleHeader) {
+        if (authentication != null && authentication.getAuthorities() != null) {
+            boolean matches = authentication.getAuthorities().stream()
+                    .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
+                    .anyMatch(authority ->
+                            "ROLE_LEERKRACHT".equalsIgnoreCase(authority)
+                                    || "ROLE_BIBBEHEERDER".equalsIgnoreCase(authority)
+                                    || "ROLE_SUPER_ADMIN".equalsIgnoreCase(authority));
+            if (matches) {
+                return true;
+            }
+        }
+
+        String normalizedRole = normalizeRole(roleHeader);
+        return "leerkracht".equals(normalizedRole)
+                || "bibbeheerder".equals(normalizedRole)
+                || "super_admin".equals(normalizedRole);
+    }
+
+    private String normalizeRole(String role) {
+        if (!StringUtils.hasText(role)) {
+            return null;
+        }
+
+        String trimmed = role.trim();
+        if (trimmed.regionMatches(true, 0, "ROLE_", 0, 5)) {
+            trimmed = trimmed.substring(5);
+        } else if (trimmed.regionMatches(true, 0, "ROLE:", 0, 5)) {
+            trimmed = trimmed.substring(5);
+        }
+
+        trimmed = trimmed.trim();
+        return trimmed.isEmpty() ? null : trimmed.toLowerCase(Locale.ROOT);
     }
 
     private boolean canManageReview(Review review, String normalizedUserSub) {
