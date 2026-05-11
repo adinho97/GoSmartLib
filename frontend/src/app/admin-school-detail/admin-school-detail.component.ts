@@ -2,17 +2,14 @@ import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { forkJoin, from } from "rxjs";
-import axios from "axios";
 import { AdminSchoolService } from "../services/admin-school.service";
 import { BookService } from "../services/book.service";
-import { AuthContextService } from "../services/auth-context.service";
 import {
   AdminUserListItem,
   KlasListItem,
   SchoolDetail,
   SchoolStatus,
 } from "../models/admin-school";
-import { formatUserInfoDisplayName } from "../utils/name-utils";
 
 interface NominatimResult {
   lat: string;
@@ -79,33 +76,6 @@ export class AdminSchoolDetailComponent implements OnInit {
   isTogglingStatus = false;
   statusError = "";
 
-  // Display names — fetched live from Smartschool, never stored
-  userDisplayNames: Record<string, string> = {};
-
-  getDisplayName(sub: string): string {
-    return this.userDisplayNames[sub] ?? "";
-  }
-
-  private enrichUserNames(users: AdminUserListItem[]): void {
-    users.forEach(async (user) => {
-      if (!user.sub) return;
-      // Retrieve the authentication token and user sub from AuthContextService
-      const token = this.authContext.getEffectiveBearerToken();
-      const userSub = this.authContext.getEffectiveSub();
-      try {
-        const profile = await axios.get(`/api/users/${encodeURIComponent(user.sub)}/profile`, {
-          headers: {
-            "X-User-Sub": userSub,
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        });
-        this.userDisplayNames[user.sub] = formatUserInfoDisplayName(profile.data, user.sub);
-      } catch {
-        // leave blank — sub is already shown in its own column
-      }
-    });
-  }
-
   // User actions
   togglingUserId: number | null = null;
   promotingUserId: number | null = null;
@@ -134,7 +104,6 @@ export class AdminSchoolDetailComponent implements OnInit {
     private readonly http: HttpClient,
     private readonly adminSchoolService: AdminSchoolService,
     private readonly bookService: BookService,
-    private readonly authContext: AuthContextService, // Inject AuthContextService
   ) {}
 
   ngOnInit(): void {
@@ -160,7 +129,6 @@ export class AdminSchoolDetailComponent implements OnInit {
         this.users = users;
         this.klassen = klassen;
         this.leeslijsten = leeslijsten;
-        this.enrichUserNames(users);
         this.resetForm();
         this.isLoadingDetail = false;
         this.isLoadingUsers = false;
@@ -269,7 +237,7 @@ export class AdminSchoolDetailComponent implements OnInit {
 
     this.adminSchoolService.setUserRole(this.schoolId, user.id, newRole).subscribe({
       next: (updated) => {
-        this.users = this.users.map((u) => (u.id === updated.id ? updated : u));
+        this.users = this.users.map((u) => u.id === updated.id ? { ...updated, displayName: u.displayName } : u);
         this.promotingUserId = null;
       },
       error: (err) => {
@@ -286,7 +254,7 @@ export class AdminSchoolDetailComponent implements OnInit {
 
     this.adminSchoolService.toggleUserActive(this.schoolId, user.id).subscribe({
       next: (updated) => {
-        this.users = this.users.map((u) => (u.id === updated.id ? updated : u));
+        this.users = this.users.map((u) => u.id === updated.id ? { ...updated, displayName: u.displayName } : u);
         this.togglingUserId = null;
       },
       error: (err) => {
@@ -314,7 +282,7 @@ export class AdminSchoolDetailComponent implements OnInit {
   get filteredUsersInKlas(): AdminUserListItem[] {
     const q = this.klasPopupFilter.trim().toLowerCase();
     return this.usersInSelectedKlas.filter(u => {
-      const displayName = (this.userDisplayNames[u.sub] ?? "").toLowerCase();
+      const displayName = (u.displayName ?? "").toLowerCase();
       return !q || displayName.includes(q) || u.sub.toLowerCase().includes(q);
     });
   }
@@ -347,7 +315,7 @@ export class AdminSchoolDetailComponent implements OnInit {
     const k = this.klasFilter;
     const a = this.activeFilter;
     return this.users.filter((u) => {
-      const displayName = (this.userDisplayNames[u.sub] ?? "").toLowerCase();
+      const displayName = (u.displayName ?? "").toLowerCase();
       const matchesText =
         !q ||
         displayName.includes(q) ||

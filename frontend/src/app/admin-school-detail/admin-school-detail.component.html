@@ -173,7 +173,7 @@
             <tbody>
               @for (user of pagedUsers; track user.id) {
                 <tr [class.row-inactive]="!user.active">
-                  <td class="cell-name">{{ getDisplayName(user.sub) || '—' }}</td>
+                  <td class="cell-name">{{ user.displayName || '—' }}</td>
                   <td class="cell-sub">{{ user.sub || '—' }}</td>
                   <td>{{ roleLabel(user.role) }}</td>
                   <td>{{ user.klasNaam || '—' }}</td>
@@ -347,7 +347,7 @@
                 <tbody>
                   @for (user of pagedUsersInKlas; track user.id) {
                     <tr [class.row-inactive]="!user.active">
-                      <td class="cell-name">{{ getDisplayName(user.sub) || '—' }}</td>
+                      <td class="cell-name">{{ user.displayName || '—' }}</td>
                       <td>{{ roleLabel(user.role) }}</td>
                       <td>
                         <span class="user-status-badge" [class.badge-active]="user.active" [class.badge-inactive]="!user.active">
