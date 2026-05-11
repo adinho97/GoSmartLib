@@ -1,6 +1,6 @@
 package com.example.demo.services;
 
-import main.java.com.example.demo.servicesin.genre.GenreRequest;
+import com.example.demo.servicesin.genre.GenreRequest;
 import com.example.demo.dto.admin.genre.GenreResponse;
 import com.example.demo.dto.admin.genre.GenreSubgenreResponse;
 import com.example.demo.entities.Genre;
