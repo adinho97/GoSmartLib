@@ -55,12 +55,24 @@ export class LoginComponent implements OnInit {
 
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: async (userInfo) => {
-        const rawFirstName = userInfo.actualUserName || userInfo.actualUserFirstName || userInfo.givenName || userInfo.given_name || userInfo.name || userInfo.firstName || userInfo.firstname || "";
-        const rawLastName = userInfo.actualUserSurname || userInfo.actualUserLastName || userInfo.familyName || userInfo.family_name || userInfo.lastName || userInfo.lastname || userInfo.surname || "";
-        
-        const { firstName, lastName } = inferNameParts(rawFirstName, rawLastName, [userInfo.fullname, userInfo.fullName, userInfo.userName, userInfo.username, userInfo.name]);
-        
-        const finalFullName = composeFullName(firstName, lastName) || userInfo.fullname || "Gebruiker";
+        let rawFirstName: string = (userInfo.actualUserFirstName || userInfo.givenName || userInfo.given_name || "").trim();
+        let rawLastName: string = (userInfo.actualUserSurname || userInfo.actualUserLastName || userInfo.familyName || userInfo.family_name || "").trim();
+        const displayName = (userInfo.username || "").trim();
+
+        // Smartschool sometimes stores the surname in given_name with the full name in
+        // "LastName FirstName" order. Detect this when givenName matches the first word
+        // of the display name but familyName is absent.
+        if (rawFirstName && !rawLastName && displayName) {
+          const parts = displayName.split(/\s+/);
+          if (parts.length >= 2 && parts[0].toLowerCase() === rawFirstName.toLowerCase()) {
+            rawLastName = parts[0];
+            rawFirstName = parts.slice(1).join(" ");
+          }
+        }
+
+        const { firstName, lastName } = inferNameParts(rawFirstName, rawLastName, [userInfo.fullname, userInfo.fullName, userInfo.userName, displayName]);
+
+        const finalFullName = composeFullName(firstName, lastName) || displayName || "Gebruiker";
 
         localStorage.setItem("userName", finalFullName);
         if (firstName) localStorage.setItem("firstName", firstName);
