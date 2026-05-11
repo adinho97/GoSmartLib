@@ -21,7 +21,7 @@ public class Review {
     private Integer rating;
 
     @NotBlank
-    @Size(max = 1000)
+    @Size(max = 1000, message = "Je review mag maximaal 1000 tekens bevatten.")
     @Column(nullable = false, length = 1000)
     private String comment;
 
