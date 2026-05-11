@@ -45,6 +45,14 @@ public class ReviewModerationService {
                         "REVIEW_CONTAINS_CENSORED_WORD");
             }
         }
+
+        String compactComment = normalizeToken(normalized);
+        if (!compactComment.isEmpty() && isCensoredToken(compactComment, !compactComment.equals(normalized))) {
+            throw new ApiException(
+                    "Je review bevat een niet-toegestaan woord en kan niet worden geplaatst.",
+                    HttpStatus.BAD_REQUEST,
+                    "REVIEW_CONTAINS_CENSORED_WORD");
+        }
     }
 
     private static Set<String> loadCensoredWords() {
@@ -104,9 +112,17 @@ public class ReviewModerationService {
 
     private static String normalizeConfusables(String s) {
         if (s == null || s.isEmpty()) return s;
-        StringBuilder sb = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
+        String expanded = s
+                .replace("11", "ll")
+                .replace("||", "ll");
+
+        if (expanded.isEmpty()) {
+            return expanded;
+        }
+
+        StringBuilder sb = new StringBuilder(expanded.length());
+        for (int i = 0; i < expanded.length(); i++) {
+            char c = expanded.charAt(i);
             Character mapped = CONFUSABLES.get(c);
             if (mapped != null) {
                 sb.append(mapped.charValue());
@@ -150,6 +166,20 @@ public class ReviewModerationService {
         // Common lookalike letters often used in obfuscation
         m.put('\u24D0', 'a'); // ⓐ -> a
 
+        // Common leetspeak substitutions
+        m.put('1', 'i');
+        m.put('3', 'e');
+        m.put('4', 'a');
+        m.put('5', 's');
+        m.put('7', 't');
+        m.put('8', 'b');
+        m.put('0', 'o');
+        m.put('@', 'u');
+        m.put('#', 'u');
+        m.put('$', 's');
+        m.put('!', 'i');
+        m.put('|', 'l');
+
         return java.util.Collections.unmodifiableMap(m);
     }
 
@@ -177,10 +207,9 @@ public class ReviewModerationService {
 
     private static boolean containsCensoredWordAsSubstring(String token) {
         // Check if any censored word appears as a substring in the token
-        // But only flag if the word is at least 3 characters to reduce false positives
+        // But only flag if the word is reasonably long to reduce false positives
         for (String censoredWord : CENSORED_WORDS) {
-            // Only check words that are reasonably long to avoid false positives with common substrings
-            if (censoredWord.length() >= 3 && token.contains(censoredWord)) {
+            if (censoredWord.length() >= 5 && token.contains(censoredWord)) {
                 return true;
             }
         }
