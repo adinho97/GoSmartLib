@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/class-reading-list")
+@SuppressWarnings("null")
 public class ClassReadingListItemController {
 
     private final ClassReadingListItemRepository repository;

@@ -101,7 +101,6 @@ class RecommendationServiceTest {
         when(strategy2.getName()).thenReturn("GenreBasedStrategy");
 
         RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", "G", 100.0, "R1");
-        RecommendedBook book2 = new RecommendedBook(2L, "B2", "A", "G", 90.0, "R2");
 
         when(strategy1.recommend("user123", 20, true)).thenReturn(List.of(book1));
 

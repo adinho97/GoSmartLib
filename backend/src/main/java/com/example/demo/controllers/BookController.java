@@ -47,6 +47,7 @@ import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/boeken")
+@SuppressWarnings("null")
 public class BookController {
     private static final Logger logger = LoggerFactory.getLogger(BookController.class);
     private static final SecureRandom GO_NUMBER_RANDOM = new SecureRandom();
