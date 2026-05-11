@@ -16,6 +16,9 @@ import java.util.Set;
 public class ReviewModerationService {
 
     private static final String CENSORED_WORDS_RESOURCE = "censored-words.json";
+    // Initialize confusables before loading censored words because the loader
+    // normalizes words through this map.
+    private static final java.util.Map<Character, Character> CONFUSABLES = buildConfusables();
     private static final Set<String> CENSORED_WORDS = loadCensoredWords();
     private static final Set<String> CENSORED_WORDS_WITH_ONE_MISSING_CHAR = buildOneMissingCharVariants(CENSORED_WORDS);
 
@@ -113,9 +116,6 @@ public class ReviewModerationService {
         }
         return sb.toString();
     }
-
-    // Minimal confusables map: extend as needed. Covers common Cyrillic/Armenian/Greek lookalikes.
-    private static final java.util.Map<Character, Character> CONFUSABLES = buildConfusables();
 
     private static java.util.Map<Character, Character> buildConfusables() {
         java.util.Map<Character, Character> m = new java.util.HashMap<>();

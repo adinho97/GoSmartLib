@@ -599,6 +599,15 @@ public class BookController {
             return currentUserId != null && currentUserId.equals(review.getReviewerUserId());
         }
 
+        if (StringUtils.hasText(review.getReviewerUserName()) && normalizedUserSub != null) {
+            try {
+                String currentDisplayName = resolveDisplayNameForSub(normalizedUserSub);
+                return isSameUser(review.getReviewerUserName(), currentDisplayName);
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+
         return false;
     }
 
