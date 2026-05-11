@@ -85,7 +85,7 @@ public class RecommendationService {
     // Useful for clients to know what strategies are active.
     public List<String> getAvailableStrategies() {
         return strategies.stream()
-                .map(s -> s.getClass().getSimpleName())
+                .map(s -> s.getName())
                 .collect(Collectors.toList());
     }
 }

@@ -147,6 +147,7 @@ class RecommendationControllerTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("should return available strategies")
     void testGetAvailableStrategies() throws Exception {
         List<String> strategies = List.of(
