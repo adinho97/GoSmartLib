@@ -44,6 +44,7 @@ import java.util.Objects;
 import java.security.SecureRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 @RestController
 @RequestMapping("/api/boeken")
 public class BookController {
@@ -148,6 +149,7 @@ public class BookController {
             assignGoNumberIfNeeded(entity);
             Book saved = repo.save(entity);
             logger.info("Book saved with id: {}", saved.getId());
+
             BookDto result = repo.findById(saved.getId())
                     .map(BookMapper::toDto)
                     .orElse(BookMapper.toDto(saved));
@@ -189,6 +191,7 @@ public class BookController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @GetMapping("/preview/{isbn}")
     public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
         BookDto dto;
@@ -356,6 +359,7 @@ public class BookController {
         if (!repo.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
+
         if (!isBookAccessibleToLeerling(id, authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -376,6 +380,7 @@ public class BookController {
         if (!StringUtils.hasText(reviewerUserSub)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         Long reviewerUserId = resolveCurrentUserId(reviewerUserSub);
         long count = reviewerUserId == null
                 ? reviewRepository.countByReviewerUserSub(reviewerUserSub)
@@ -543,6 +548,7 @@ public class BookController {
         if (!StringUtils.hasText(userName)) {
             return null;
         }
+
         String trimmedUserName = userName.trim();
         if (trimmedUserName.isEmpty()) {
             return null;
@@ -626,6 +632,7 @@ public class BookController {
                 .anyMatch(a -> "ROLE_BIBBEHEERDER".equalsIgnoreCase(a.getAuthority())
                         || "ROLE_SUPER_ADMIN".equalsIgnoreCase(a.getAuthority()));
     }
+
     private boolean isStudentRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
@@ -700,22 +707,6 @@ public class BookController {
 
             // Always return sub as fallback for now - Smartschool calls were blocking
             return reviewerSub.trim();
-            // Look up user by sub to get first and last name
-            return appUserRepository.findBySub(reviewerSub.trim())
-                    .map(user -> {
-                        String firstName = user.getFirstName();
-                        String lastName = user.getLastName();
-                        
-                        if (StringUtils.hasText(firstName) && StringUtils.hasText(lastName)) {
-                            return firstName + " " + lastName;
-                        } else if (StringUtils.hasText(firstName)) {
-                            return firstName;
-                        } else if (StringUtils.hasText(lastName)) {
-                            return lastName;
-                        }
-                        return "Gebruiker";
-                    })
-                    .orElse("Gebruiker");
         } catch (Exception e) {
             logger.warn("Error resolving reviewer name, returning generic fallback", e);
             return "Gebruiker";
