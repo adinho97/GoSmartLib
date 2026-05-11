@@ -631,17 +631,22 @@ public class BookController {
         logger.debug("canManageReview - reviewerUserSub: {}, normalizedUserSub: {}, reviewerUserId: {}",
                 review.getReviewerUserSub(), normalizedUserSub, review.getReviewerUserId());
 
+        boolean subMatch = false;
         if (StringUtils.hasText(review.getReviewerUserSub()) && StringUtils.hasText(normalizedUserSub)) {
-            boolean sameUser = isSameUser(review.getReviewerUserSub(), normalizedUserSub);
-            logger.debug("Checking sub comparison: {} == {} -> {}", review.getReviewerUserSub(), normalizedUserSub, sameUser);
-            return sameUser;
+            subMatch = isSameUser(review.getReviewerUserSub(), normalizedUserSub);
+            logger.debug("Checking sub comparison: {} == {} -> {}", review.getReviewerUserSub(), normalizedUserSub,
+                    subMatch);
         }
 
+        boolean idMatch = false;
         if (review.getReviewerUserId() != null && normalizedUserSub != null) {
             Long currentUserId = resolveCurrentUserId(normalizedUserSub);
-            boolean idMatch = currentUserId != null && currentUserId.equals(review.getReviewerUserId());
+            idMatch = currentUserId != null && currentUserId.equals(review.getReviewerUserId());
             logger.debug("Checking ID comparison: {} == {} -> {}", currentUserId, review.getReviewerUserId(), idMatch);
-            return idMatch;
+        }
+
+        if (subMatch || idMatch) {
+            return true;
         }
 
         logger.debug("canManageReview returning false - no matching conditions");
@@ -721,15 +726,17 @@ public class BookController {
             return "Anoniem";
         }
 
-        if (review.getReviewerUserId() == null && !StringUtils.hasText(review.getReviewerUserSub())) {
+        String reviewerSub = review.getReviewerUserSub();
+        if (!StringUtils.hasText(reviewerSub) && review.getReviewerUserId() == null) {
             return "Anoniem";
         }
 
-        if (review.getReviewerUserId() == null && StringUtils.hasText(review.getReviewerUserSub())) {
+        // Primary path: resolve name directly from stored Smartschool sub.
+        if (StringUtils.hasText(reviewerSub)) {
             try {
-                return resolveDisplayNameForSub(review.getReviewerUserSub().trim());
+                return resolveDisplayNameForSub(reviewerSub.trim());
             } catch (Exception e) {
-                return review.getReviewerUserSub().trim();
+                return reviewerSub.trim();
             }
         }
 
