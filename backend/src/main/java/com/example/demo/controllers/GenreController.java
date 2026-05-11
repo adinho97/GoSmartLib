@@ -1,4 +1,3 @@
-// src/main/java/com/example/demo/controllers/GenreController.java
 package com.example.demo.controllers;
 
 import com.example.demo.dto.admin.genre.GenreRequest;
@@ -28,17 +27,41 @@ public class GenreController {
 
     @PostMapping
     public ResponseEntity<GenreResponse> create(@Valid @RequestBody GenreRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(genreService.create(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(genreService.createTopLevel(request));
     }
 
     @PutMapping("/{id}")
     public GenreResponse update(@PathVariable Long id, @Valid @RequestBody GenreRequest request) {
-        return genreService.update(id, request);
+        return genreService.updateTopLevel(id, request);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         genreService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{parentId}/subgenres")
+    public ResponseEntity<GenreResponse> createSubgenre(
+            @PathVariable Long parentId,
+            @Valid @RequestBody GenreRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(genreService.createSubgenre(parentId, request));
+    }
+
+    @PutMapping("/{parentId}/subgenres/{subId}")
+    public GenreResponse updateSubgenre(
+            @PathVariable Long parentId,
+            @PathVariable Long subId,
+            @Valid @RequestBody GenreRequest request) {
+        return genreService.updateSubgenre(parentId, subId, request);
+    }
+
+    @DeleteMapping("/{parentId}/subgenres/{subId}")
+    public ResponseEntity<Void> deleteSubgenre(
+            @PathVariable Long parentId,
+            @PathVariable Long subId) {
+        genreService.delete(subId);
         return ResponseEntity.noContent().build();
     }
 }
