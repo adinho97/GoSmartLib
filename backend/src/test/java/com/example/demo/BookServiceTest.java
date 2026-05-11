@@ -226,6 +226,8 @@ class BookServiceTest {
                         makeBookDto()));
         when(importCoreService.importByNormalizedIsbn("0000000000000", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.NOT_FOUND, null));
+        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
+                .thenReturn(Optional.empty());
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(existingBook));
 
