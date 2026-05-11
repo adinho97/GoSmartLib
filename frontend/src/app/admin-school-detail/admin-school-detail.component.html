@@ -284,7 +284,7 @@
             </thead>
             <tbody>
               @for (klas of pagedKlassen; track klas.id) {
-                <tr>
+                <tr class="clickable-row" (click)="openKlasUsersPopup(klas)" title="Klik om leerlingen in deze klas te bekijken">
                   <td><strong>{{ klas.naam }}</strong></td>
                   <td class="cell-groupid">{{ klas.groupId }}</td>
                 </tr>
@@ -304,4 +304,54 @@
     </div>
   }
 
+  <!-- Modal for Class Users -->
+  @if (selectedKlasForPopup) {
+    <div class="modal-overlay" (click)="closeKlasPopup()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            Gebruikers in {{ selectedKlasForPopup.naam }}
+            <span class="count-badge">{{ usersInSelectedKlas.length }}</span>
+          </h2>
+          <button type="button" class="btn-close-modal" (click)="closeKlasPopup()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          @if (usersInSelectedKlas.length === 0) {
+            <p class="empty-text">Geen gebruikers gevonden in deze klas.</p>
+          } @else {
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Naam</th>
+                    <th>Rol</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (user of usersInSelectedKlas; track user.id) {
+                    <tr [class.row-inactive]="!user.active">
+                      <td class="cell-name">{{ getDisplayName(user.sub) || '—' }}</td>
+                      <td>{{ roleLabel(user.role) }}</td>
+                      <td>
+                        <span class="user-status-badge" [class.badge-active]="user.active" [class.badge-inactive]="!user.active">
+                          {{ user.active ? 'Actief' : 'Inactief' }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>
