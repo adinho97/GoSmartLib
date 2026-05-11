@@ -31,7 +31,7 @@ class SuperAdminBootstrapTest {
         when(superAdminRepository.count()).thenReturn(0L);
         when(setupTokenRepository.countByUsedAtIsNullAndExpiresAtAfter(any(LocalDateTime.class))).thenReturn(0L);
         when(setupTokenRepository.save(any(SuperAdminSetupToken.class)))
-            .thenAnswer(inv -> inv.getArgument(0));
+                .thenAnswer(inv -> inv.getArgument(0));
 
         SuperAdminBootstrap bootstrap = new SuperAdminBootstrap(superAdminRepository, setupTokenRepository);
         bootstrap.run();

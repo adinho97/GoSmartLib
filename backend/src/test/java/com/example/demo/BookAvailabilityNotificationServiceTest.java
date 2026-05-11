@@ -21,7 +21,6 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,7 +79,7 @@ class BookAvailabilityNotificationServiceTest {
         verify(messageService, times(1)).sendMessage(eq("access-token"), any(SmartschoolMessageRequest.class));
 
         ArgumentCaptor<Wishlist> savedWishlist = ArgumentCaptor.forClass(Wishlist.class);
-        verify(wishlistRepository, times(1)).save(Objects.requireNonNull(savedWishlist.capture()));
+        verify(wishlistRepository, times(1)).save(savedWishlist.capture());
 
         assertFalse(savedWishlist.getValue().isNotificationEnabled());
         assertNotNull(savedWishlist.getValue().getLastNotifiedAt());
