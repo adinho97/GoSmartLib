@@ -44,7 +44,6 @@ import java.util.Objects;
 import java.security.SecureRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 @RestController
 @RequestMapping("/api/boeken")
 public class BookController {
@@ -149,7 +148,6 @@ public class BookController {
             assignGoNumberIfNeeded(entity);
             Book saved = repo.save(entity);
             logger.info("Book saved with id: {}", saved.getId());
-
             BookDto result = repo.findById(saved.getId())
                     .map(BookMapper::toDto)
                     .orElse(BookMapper.toDto(saved));
@@ -191,7 +189,6 @@ public class BookController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
     @GetMapping("/preview/{isbn}")
     public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
         BookDto dto;
@@ -359,7 +356,6 @@ public class BookController {
         if (!repo.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-
         if (!isBookAccessibleToLeerling(id, authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -380,7 +376,6 @@ public class BookController {
         if (!StringUtils.hasText(reviewerUserSub)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
         Long reviewerUserId = resolveCurrentUserId(reviewerUserSub);
         long count = reviewerUserId == null
                 ? reviewRepository.countByReviewerUserSub(reviewerUserSub)
@@ -392,7 +387,6 @@ public class BookController {
     @PostMapping("/{id}/reviews")
     public ResponseEntity<ReviewDto> createReview(@PathVariable @NonNull Long id,
             Authentication authentication,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @RequestHeader(value = "X-User-Name", required = false) String userName,
             @Valid @RequestBody CreateReviewRequest request) {
         Book book = repo.findById(id).orElse(null);
@@ -411,7 +405,7 @@ public class BookController {
         reviewModerationService.validateReviewComment(trimmedComment);
         review.setComment(trimmedComment);
         boolean isAnonymous = Boolean.TRUE.equals(request.getAnonymous());
-        String reviewerUserSub = resolveRequestUserSub(authentication, userSub);
+        String reviewerUserSub = authentication != null ? authentication.getName() : null;
         Long reviewerUserId = isAnonymous ? null : resolveCurrentUserId(reviewerUserSub);
         review.setAnonymous(isAnonymous);
 
@@ -435,30 +429,15 @@ public class BookController {
             review.setReviewerUserSub(reviewerUserSub);
         }
 
-        try {
-            Review saved = reviewRepository.save(review);
-            ReviewDto dto = toReviewDto(saved, reviewerUserSub);
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-        } catch (Exception e) {
-            logger.warn("Error building create response, returning minimal DTO", e);
-            // Review was already saved, return minimal response
-            ReviewDto dto = new ReviewDto();
-            dto.setId(review.getId());
-            dto.setRating(review.getRating());
-            dto.setComment(review.getComment());
-            dto.setReviewerUserId(review.getReviewerUserId());
-            dto.setReviewerUserName("Gebruiker");
-            dto.setCanManage(false);
-            dto.setCreatedAt(review.getCreatedAt());
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-        }
+        Review saved = reviewRepository.save(review);
+        ReviewDto dto = toReviewDto(saved, reviewerUserSub);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
-            Authentication authentication,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+            Authentication authentication) {
         logger.debug("Delete review request - bookId: {}, reviewId: {}, authenticated: {}, principal: {}",
                 bookId, reviewId, authentication != null, authentication != null ? authentication.getName() : null);
 
@@ -477,27 +456,21 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveRequestUserSub(authentication, userSub);
+        String normalizedUserSub = authentication != null ? authentication.getName() : null;
         if (!canManageReview(review, normalizedUserSub)) {
             logger.debug("User cannot manage this review");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        try {
-            reviewRepository.delete(review);
-            logger.debug("Review deleted successfully");
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            logger.error("Error deleting review", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        reviewRepository.delete(review);
+        logger.debug("Review deleted successfully");
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{bookId}/reviews/{reviewId}")
     public ResponseEntity<ReviewDto> updateReview(@PathVariable @NonNull Long bookId,
             @PathVariable @NonNull Long reviewId,
             Authentication authentication,
-            @RequestHeader(value = "X-User-Sub", required = false) String userSub,
             @Valid @RequestBody UpdateReviewRequest request) {
         if (!repo.existsById(bookId)) {
             return ResponseEntity.notFound().build();
@@ -512,7 +485,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        String normalizedUserSub = resolveRequestUserSub(authentication, userSub);
+        String normalizedUserSub = authentication != null ? authentication.getName() : null;
         if (!canManageReview(review, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -522,23 +495,9 @@ public class BookController {
         review.setRating(request.getRating());
         review.setComment(trimmedComment);
 
-        try {
-            Review savedReview = reviewRepository.save(review);
-            ReviewDto dto = toReviewDto(savedReview, normalizedUserSub);
-            return ResponseEntity.ok(dto);
-        } catch (Exception e) {
-            logger.warn("Error building update response, returning minimal DTO", e);
-            // Review was already saved, return minimal response
-            ReviewDto dto = new ReviewDto();
-            dto.setId(review.getId());
-            dto.setRating(review.getRating());
-            dto.setComment(review.getComment());
-            dto.setReviewerUserId(review.getReviewerUserId());
-            dto.setReviewerUserName("Gebruiker");
-            dto.setCanManage(false);
-            dto.setCreatedAt(review.getCreatedAt());
-            return ResponseEntity.ok(dto);
-        }
+        Review savedReview = reviewRepository.save(review);
+        ReviewDto dto = toReviewDto(savedReview, normalizedUserSub);
+        return ResponseEntity.ok(dto);
     }
 
     private ReviewDto toReviewDto(Review review, String normalizedUserSub) {
@@ -584,7 +543,6 @@ public class BookController {
         if (!StringUtils.hasText(userName)) {
             return null;
         }
-
         String trimmedUserName = userName.trim();
         if (trimmedUserName.isEmpty()) {
             return null;
@@ -621,16 +579,6 @@ public class BookController {
                         .map(AppUser::getId)
                         .orElse(null);
             }
-        }
-        return null;
-    }
-
-    private String resolveRequestUserSub(Authentication authentication, String userSub) {
-        if (StringUtils.hasText(userSub)) {
-            return userSub.trim();
-        }
-        if (authentication != null && StringUtils.hasText(authentication.getName())) {
-            return authentication.getName().trim();
         }
         return null;
     }
@@ -678,7 +626,6 @@ public class BookController {
                 .anyMatch(a -> "ROLE_BIBBEHEERDER".equalsIgnoreCase(a.getAuthority())
                         || "ROLE_SUPER_ADMIN".equalsIgnoreCase(a.getAuthority()));
     }
-
     private boolean isStudentRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
@@ -745,28 +692,33 @@ public class BookController {
 
             String reviewerSub = review.getReviewerUserSub();
             if (!StringUtils.hasText(reviewerSub)) {
+                if (review.getReviewerUserId() != null) {
+                    return String.valueOf(review.getReviewerUserId());
+                }
                 return "Gebruiker";
             }
 
-            // Use same logic as profile endpoint to get user info from Smartschool
-            return authService.getUserInfoBySub(reviewerSub.trim())
-                    .blockOptional()
-                    .map(userInfo -> {
-                        String fullName = userInfo.getFullName();
-                        if (fullName != null && !fullName.isBlank()) {
-                            return fullName;
+            // Always return sub as fallback for now - Smartschool calls were blocking
+            return reviewerSub.trim();
+            // Look up user by sub to get first and last name
+            return appUserRepository.findBySub(reviewerSub.trim())
+                    .map(user -> {
+                        String firstName = user.getFirstName();
+                        String lastName = user.getLastName();
+                        
+                        if (StringUtils.hasText(firstName) && StringUtils.hasText(lastName)) {
+                            return firstName + " " + lastName;
+                        } else if (StringUtils.hasText(firstName)) {
+                            return firstName;
+                        } else if (StringUtils.hasText(lastName)) {
+                            return lastName;
                         }
-                        // Fallback to givenName + familyName
-                        String candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
-                                .filter(part -> part != null && !part.isBlank())
-                                .collect(Collectors.joining(" ")).trim();
-                        return candidate.isEmpty() ? userInfo.getSub() : candidate;
+                        return "Gebruiker";
                     })
-                    .orElse(reviewerSub.trim());
+                    .orElse("Gebruiker");
         } catch (Exception e) {
-            logger.warn("Error resolving reviewer name from Smartschool, returning sub as fallback", e);
-            String reviewerSub = review.getReviewerUserSub();
-            return StringUtils.hasText(reviewerSub) ? reviewerSub.trim() : "Gebruiker";
+            logger.warn("Error resolving reviewer name, returning generic fallback", e);
+            return "Gebruiker";
         }
     }
 }
