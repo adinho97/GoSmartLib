@@ -237,7 +237,6 @@ class TrendingStrategyTest {
         Loan systemLoan = createLoan(500L, schoolCopy, "other-user");
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
         when(loanRepository.findAll()).thenReturn(List.of(systemLoan));
         when(bookRepository.findAllBySchool_Id(7L)).thenReturn(List.of(schoolBook));
 
@@ -259,7 +258,6 @@ class TrendingStrategyTest {
         Loan systemLoan = createLoan(600L, sysCopy, "other-user");
 
         when(appUserRepository.findBySub("user123")).thenReturn(Optional.of(testUser));
-        when(loanRepository.findByUserSubAndReturnedAtIsNotNull("user123")).thenReturn(new ArrayList<>());
         when(loanRepository.findAll()).thenReturn(List.of(systemLoan));
         when(bookRepository.findAll()).thenReturn(List.of(sysBook));
 
