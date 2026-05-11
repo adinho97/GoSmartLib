@@ -435,8 +435,23 @@ public class BookController {
         }
 
         Review saved = reviewRepository.save(review);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(toReviewDto(saved, reviewerUserSub));
+        
+        try {
+            ReviewDto dto = toReviewDto(saved, reviewerUserSub);
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        } catch (Exception e) {
+            logger.warn("Error creating review DTO, returning minimal response", e);
+            // Review was already saved, so return minimal response
+            ReviewDto dto = new ReviewDto();
+            dto.setId(saved.getId());
+            dto.setRating(saved.getRating());
+            dto.setComment(saved.getComment());
+            dto.setReviewerUserId(saved.getReviewerUserId());
+            dto.setReviewerUserName(Boolean.TRUE.equals(saved.getAnonymous()) ? "Anoniem" : "Gebruiker");
+            dto.setCanManage(!Boolean.TRUE.equals(saved.getAnonymous()));
+            dto.setCreatedAt(saved.getCreatedAt());
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        }
     }
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
@@ -501,7 +516,23 @@ public class BookController {
         review.setComment(trimmedComment);
 
         Review savedReview = reviewRepository.save(review);
-        return ResponseEntity.ok(toReviewDto(savedReview, normalizedUserSub));
+        
+        try {
+            ReviewDto dto = toReviewDto(savedReview, normalizedUserSub);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            logger.warn("Error updating review DTO, returning minimal response", e);
+            // Review was already saved, so return minimal response
+            ReviewDto dto = new ReviewDto();
+            dto.setId(savedReview.getId());
+            dto.setRating(savedReview.getRating());
+            dto.setComment(savedReview.getComment());
+            dto.setReviewerUserId(savedReview.getReviewerUserId());
+            dto.setReviewerUserName(Boolean.TRUE.equals(savedReview.getAnonymous()) ? "Anoniem" : "Gebruiker");
+            dto.setCanManage(!Boolean.TRUE.equals(savedReview.getAnonymous()));
+            dto.setCreatedAt(savedReview.getCreatedAt());
+            return ResponseEntity.ok(dto);
+        }
     }
 
     private ReviewDto toReviewDto(Review review, String normalizedUserSub) {
