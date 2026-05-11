@@ -32,6 +32,9 @@ export class AdminSchoolDetailComponent implements OnInit {
 
   // Modal for class users
   selectedKlasForPopup: KlasListItem | null = null;
+  klasPopupFilter = "";
+  klasPopupPage = 1;
+  readonly klasPopupPageSize = 5;
 
   isLoadingDetail = true;
   isLoadingUsers = true;
@@ -272,6 +275,8 @@ export class AdminSchoolDetailComponent implements OnInit {
 
   openKlasUsersPopup(klas: KlasListItem): void {
     this.selectedKlasForPopup = klas;
+    this.klasPopupFilter = "";
+    this.klasPopupPage = 1;
   }
 
   closeKlasPopup(): void {
@@ -281,6 +286,35 @@ export class AdminSchoolDetailComponent implements OnInit {
   get usersInSelectedKlas(): AdminUserListItem[] {
     if (!this.selectedKlasForPopup) return [];
     return this.users.filter(u => u.klasNaam === this.selectedKlasForPopup?.naam);
+  }
+
+  get filteredUsersInKlas(): AdminUserListItem[] {
+    const q = this.klasPopupFilter.trim().toLowerCase();
+    return this.usersInSelectedKlas.filter(u => {
+      const displayName = (this.userDisplayNames[u.sub] ?? "").toLowerCase();
+      return !q || displayName.includes(q) || u.sub.toLowerCase().includes(q);
+    });
+  }
+
+  get klasPopupTotalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredUsersInKlas.length / this.klasPopupPageSize));
+  }
+
+  get pagedUsersInKlas(): AdminUserListItem[] {
+    const start = (this.klasPopupPage - 1) * this.klasPopupPageSize;
+    return this.filteredUsersInKlas.slice(start, start + this.klasPopupPageSize);
+  }
+
+  onKlasPopupFilterChange(): void {
+    this.klasPopupPage = 1;
+  }
+
+  prevKlasPopupPage(): void {
+    if (this.klasPopupPage > 1) this.klasPopupPage--;
+  }
+
+  nextKlasPopupPage(): void {
+    if (this.klasPopupPage < this.klasPopupTotalPages) this.klasPopupPage++;
   }
 
   // User filtering

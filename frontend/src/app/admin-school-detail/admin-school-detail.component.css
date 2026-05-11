@@ -672,6 +672,12 @@
   gap: 10px;
 }
 
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .btn-close-modal {
   background: none;
   border: none;
