@@ -722,31 +722,41 @@ public class BookController {
     }
 
     private String resolveReviewerUserName(Review review) {
-        if (Boolean.TRUE.equals(review.getAnonymous())) {
-            return "Anoniem";
-        }
-
-        String reviewerSub = review.getReviewerUserSub();
-        if (!StringUtils.hasText(reviewerSub) && review.getReviewerUserId() == null) {
-            return "Anoniem";
-        }
-
-        // Primary path: resolve name directly from stored Smartschool sub.
-        if (StringUtils.hasText(reviewerSub)) {
-            try {
-                return resolveDisplayNameForSub(reviewerSub.trim());
-            } catch (Exception e) {
-                return reviewerSub.trim();
-            }
-        }
-
         try {
-            return appUserRepository.findById(review.getReviewerUserId())
-                    .map(AppUser::getSub)
-                    .map(this::resolveDisplayNameForSub)
-                    .orElse(String.valueOf(review.getReviewerUserId()));
+            if (Boolean.TRUE.equals(review.getAnonymous())) {
+                return "Anoniem";
+            }
+
+            String reviewerSub = review.getReviewerUserSub();
+            if (!StringUtils.hasText(reviewerSub) && review.getReviewerUserId() == null) {
+                return "Anoniem";
+            }
+
+            // Primary path: resolve name directly from stored Smartschool sub.
+            if (StringUtils.hasText(reviewerSub)) {
+                return resolveDisplayNameForSub(reviewerSub.trim());
+            }
+
+            // Fallback: try to get sub from user ID
+            if (review.getReviewerUserId() != null) {
+                return appUserRepository.findById(review.getReviewerUserId())
+                        .map(AppUser::getSub)
+                        .map(this::resolveDisplayNameForSub)
+                        .orElse(String.valueOf(review.getReviewerUserId()));
+            }
+
+            return "Gebruiker";
         } catch (Exception e) {
-            return String.valueOf(review.getReviewerUserId());
+            logger.warn("Error resolving reviewer name, returning fallback", e);
+            // Return safe fallback instead of throwing
+            String sub = review.getReviewerUserSub();
+            if (StringUtils.hasText(sub)) {
+                return sub.trim();
+            }
+            if (review.getReviewerUserId() != null) {
+                return String.valueOf(review.getReviewerUserId());
+            }
+            return "Gebruiker";
         }
     }
 
@@ -756,8 +766,12 @@ public class BookController {
         }
 
         try {
-            return authService.getUserInfoBySub(sub.trim())
-                    .onErrorResume(err -> Mono.empty())
+            String trimmedSub = sub.trim();
+            return authService.getUserInfoBySub(trimmedSub)
+                    .onErrorResume(err -> {
+                        logger.debug("Error fetching user info for sub {}, returning sub as fallback", trimmedSub, err);
+                        return Mono.empty();
+                    })
                     .blockOptional()
                     .map(userInfo -> {
                         var fullName = userInfo.getFullName();
@@ -770,8 +784,9 @@ public class BookController {
                                 .collect(Collectors.joining(" ")).trim();
                         return candidate.isEmpty() ? userInfo.getSub() : candidate;
                     })
-                    .orElse(sub.trim());
+                    .orElse(trimmedSub);
         } catch (Exception e) {
+            logger.debug("Exception resolving display name for sub {}, returning sub", sub, e);
             return sub.trim();
         }
     }
