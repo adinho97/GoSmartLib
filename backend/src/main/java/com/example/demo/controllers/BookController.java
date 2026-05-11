@@ -702,25 +702,25 @@ public class BookController {
                 return "Gebruiker";
             }
 
-            // Look up user by sub to get first and last name
-            return appUserRepository.findBySub(reviewerSub.trim())
-                    .map(user -> {
-                        String firstName = user.getFirstName();
-                        String lastName = user.getLastName();
-                        
-                        if (StringUtils.hasText(firstName) && StringUtils.hasText(lastName)) {
-                            return firstName + " " + lastName;
-                        } else if (StringUtils.hasText(firstName)) {
-                            return firstName;
-                        } else if (StringUtils.hasText(lastName)) {
-                            return lastName;
+            // Use same logic as profile endpoint to get user info from Smartschool
+            return authService.getUserInfoBySub(reviewerSub.trim())
+                    .blockOptional()
+                    .map(userInfo -> {
+                        String fullName = userInfo.getFullName();
+                        if (fullName != null && !fullName.isBlank()) {
+                            return fullName;
                         }
-                        return "Gebruiker";
+                        // Fallback to givenName + familyName
+                        String candidate = Stream.of(userInfo.getGivenName(), userInfo.getFamilyName())
+                                .filter(part -> part != null && !part.isBlank())
+                                .collect(Collectors.joining(" ")).trim();
+                        return candidate.isEmpty() ? userInfo.getSub() : candidate;
                     })
-                    .orElse("Gebruiker");
+                    .orElse(reviewerSub.trim());
         } catch (Exception e) {
-            logger.warn("Error resolving reviewer name, returning generic fallback", e);
-            return "Gebruiker";
+            logger.warn("Error resolving reviewer name from Smartschool, returning sub as fallback", e);
+            String reviewerSub = review.getReviewerUserSub();
+            return StringUtils.hasText(reviewerSub) ? reviewerSub.trim() : "Gebruiker";
         }
     }
 }
