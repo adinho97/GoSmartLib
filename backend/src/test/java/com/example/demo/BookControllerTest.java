@@ -958,6 +958,36 @@ class BookControllerTest {
         }
 
         @Test
+        void createReviewShouldReturnBadRequestForTooLongComment() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                StringBuilder longComment = new StringBuilder();
+                for (int i = 0; i < 1001; i++) {
+                        longComment.append('a');
+                }
+
+                String json = """
+                                {
+                                  "rating": 5,
+                                  "comment": "%s"
+                                }
+                                """.formatted(longComment);
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.message", Matchers.containsString("maximaal 1000 tekens")))
+                                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+                verify(reviewRepository, never()).save(any(Review.class));
+                verify(reviewModerationService, never()).validateReviewComment(anyString());
+        }
+
+        @Test
         void deleteReviewShouldReturnForbiddenForNonLibrarian() throws Exception {
                 mockMvc.perform(delete("/api/boeken/1/reviews/2"))
                                 .andExpect(status().isForbidden());

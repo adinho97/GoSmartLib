@@ -12,7 +12,7 @@ public class UpdateReviewRequest {
     private Integer rating;
 
     @NotBlank
-    @Size(max = 1000)
+    @Size(max = 1000, message = "Je review mag maximaal 1000 tekens bevatten.")
     private String comment;
 
     public Integer getRating() {

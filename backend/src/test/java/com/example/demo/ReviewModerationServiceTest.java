@@ -231,6 +231,16 @@ class ReviewModerationServiceTest {
     }
 
     @Test
+    void validateReviewCommentShouldThrowExceptionForHomoglyphUnicodeObfuscation() {
+        // Example with Armenian/Cyrillic/other homoglyphs that look like 'f','u','c','k'
+        // The sequence below uses characters visually similar to 'f', 'u', 'c', 'k'
+        String obfuscated = "fսсk";
+        assertThrows(ApiException.class, () ->
+            reviewModerationService.validateReviewComment(obfuscated)
+        );
+    }
+
+    @Test
     void validateReviewCommentShouldThrowExceptionForCompoundCensoredWords() {
         // Test compound words formed by concatenating censored words
         assertThrows(ApiException.class, () ->
