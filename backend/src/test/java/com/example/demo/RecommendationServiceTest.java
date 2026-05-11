@@ -97,8 +97,8 @@ class RecommendationServiceTest {
     @Test
     @DisplayName("should filter by strategy name in getRecommendationsByStrategy")
     void testGetRecommendationsByStrategyName() {
-        when(strategy1.getClass().getSimpleName()).thenReturn("TrendingStrategy");
-        when(strategy2.getClass().getSimpleName()).thenReturn("GenreBasedStrategy");
+        when(strategy1.getName()).thenReturn("TrendingStrategy");
+        when(strategy2.getName()).thenReturn("GenreBasedStrategy");
 
         RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", "G", 100.0, "R1");
         RecommendedBook book2 = new RecommendedBook(2L, "B2", "A", "G", 90.0, "R2");
@@ -118,8 +118,8 @@ class RecommendationServiceTest {
     @Test
     @DisplayName("should return grouped recommendations by strategy")
     void testGetRecommendationsByStrategyGrouped() {
-        when(strategy1.getClass().getSimpleName()).thenReturn("TrendingStrategy");
-        when(strategy2.getClass().getSimpleName()).thenReturn("GenreBasedStrategy");
+        when(strategy1.getName()).thenReturn("TrendingStrategy");
+        when(strategy2.getName()).thenReturn("GenreBasedStrategy");
 
         RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", "G", 100.0, "R1");
         RecommendedBook book2 = new RecommendedBook(2L, "B2", "A", "G", 90.0, "R2");
@@ -142,8 +142,8 @@ class RecommendationServiceTest {
     @Test
     @DisplayName("should return list of available strategies")
     void testGetAvailableStrategies() {
-        when(strategy1.getClass().getSimpleName()).thenReturn("TrendingStrategy");
-        when(strategy2.getClass().getSimpleName()).thenReturn("GenreBasedStrategy");
+        when(strategy1.getName()).thenReturn("TrendingStrategy");
+        when(strategy2.getName()).thenReturn("GenreBasedStrategy");
 
         List<String> result = recommendationService.getAvailableStrategies();
 

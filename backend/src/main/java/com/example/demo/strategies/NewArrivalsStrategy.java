@@ -42,6 +42,11 @@ public class NewArrivalsStrategy implements RecommendationStrategy {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public String getName() {
+        return "NewArrivalsStrategy";
+    }
+
     private List<Book> getBooksForUser(String userId) {
         if (userId == null || userId.isBlank()) {
             return bookRepository.findAll();

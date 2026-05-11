@@ -9,7 +9,6 @@ import com.example.demo.services.RecommendationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -25,7 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(RecommendationController.class)
-@AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 @DisplayName("RecommendationController Tests")
 class RecommendationControllerTest {
