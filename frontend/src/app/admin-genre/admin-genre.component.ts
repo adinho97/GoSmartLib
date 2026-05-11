@@ -1,4 +1,3 @@
-// src/app/admin-genre/admin-genre.component.ts
 import { Component, OnInit } from '@angular/core';
 import { AdminGenreService, Genre } from '../services/admin-genre.service';
 
@@ -15,8 +14,16 @@ export class AdminGenreComponent implements OnInit {
   successMessage = '';
 
   newNaam = '';
+
   editingId: number | null = null;
   editNaam = '';
+
+  addingSubgenreForId: number | null = null;
+  newSubgenreNaam = '';
+
+  editingSubgenreParentId: number | null = null;
+  editingSubgenreId: number | null = null;
+  editSubgenreNaam = '';
 
   constructor(private genreService: AdminGenreService) {}
 
@@ -32,6 +39,7 @@ export class AdminGenreComponent implements OnInit {
     });
   }
 
+
   create(): void {
     const naam = this.newNaam.trim();
     if (!naam) return;
@@ -46,13 +54,9 @@ export class AdminGenreComponent implements OnInit {
   }
 
   startEdit(genre: Genre): void {
+    this.cancelAllEdits();
     this.editingId = genre.id;
     this.editNaam = genre.naam;
-  }
-
-  cancelEdit(): void {
-    this.editingId = null;
-    this.editNaam = '';
   }
 
   saveEdit(id: number): void {
@@ -62,7 +66,7 @@ export class AdminGenreComponent implements OnInit {
       next: (updated) => {
         const idx = this.genres.findIndex(g => g.id === id);
         if (idx !== -1) this.genres[idx] = updated;
-        this.cancelEdit();
+        this.cancelAllEdits();
         this.showSuccess('Genre bijgewerkt.');
       },
       error: (e) => { this.error = e?.error?.message || 'Opslaan mislukt.'; },
@@ -70,7 +74,7 @@ export class AdminGenreComponent implements OnInit {
   }
 
   delete(id: number): void {
-    if (!confirm('Genre verwijderen?')) return;
+    if (!confirm('Genre en alle subgenres verwijderen?')) return;
     this.genreService.delete(id).subscribe({
       next: () => {
         this.genres = this.genres.filter(g => g.id !== id);
@@ -78,6 +82,73 @@ export class AdminGenreComponent implements OnInit {
       },
       error: () => { this.error = 'Verwijderen mislukt.'; },
     });
+  }
+
+
+  startAddSubgenre(genreId: number): void {
+    this.cancelAllEdits();
+    this.addingSubgenreForId = genreId;
+    this.newSubgenreNaam = '';
+  }
+
+  createSubgenre(parentId: number): void {
+    const naam = this.newSubgenreNaam.trim();
+    if (!naam) return;
+    this.genreService.createSubgenre(parentId, naam).subscribe({
+      next: (updated) => {
+        const idx = this.genres.findIndex(g => g.id === parentId);
+        if (idx !== -1) this.genres[idx] = updated;
+        this.cancelAllEdits();
+        this.showSuccess('Subgenre toegevoegd.');
+      },
+      error: (e) => { this.error = e?.error?.message || 'Toevoegen mislukt.'; },
+    });
+  }
+
+  startEditSubgenre(parentId: number, subId: number, naam: string): void {
+    this.cancelAllEdits();
+    this.editingSubgenreParentId = parentId;
+    this.editingSubgenreId = subId;
+    this.editSubgenreNaam = naam;
+  }
+
+  saveSubgenreEdit(parentId: number, subId: number): void {
+    const naam = this.editSubgenreNaam.trim();
+    if (!naam) return;
+    this.genreService.updateSubgenre(parentId, subId, naam).subscribe({
+      next: (updated) => {
+        const idx = this.genres.findIndex(g => g.id === parentId);
+        if (idx !== -1) this.genres[idx] = updated;
+        this.cancelAllEdits();
+        this.showSuccess('Subgenre bijgewerkt.');
+      },
+      error: (e) => { this.error = e?.error?.message || 'Opslaan mislukt.'; },
+    });
+  }
+
+  deleteSubgenre(parentId: number, subId: number): void {
+    if (!confirm('Subgenre verwijderen?')) return;
+    this.genreService.deleteSubgenre(parentId, subId).subscribe({
+      next: () => {
+        const idx = this.genres.findIndex(g => g.id === parentId);
+        if (idx !== -1) {
+          this.genres[idx].subgenres = this.genres[idx].subgenres.filter(s => s.id !== subId);
+        }
+        this.showSuccess('Subgenre verwijderd.');
+      },
+      error: () => { this.error = 'Verwijderen mislukt.'; },
+    });
+  }
+
+
+  cancelAllEdits(): void {
+    this.editingId = null;
+    this.editNaam = '';
+    this.addingSubgenreForId = null;
+    this.newSubgenreNaam = '';
+    this.editingSubgenreParentId = null;
+    this.editingSubgenreId = null;
+    this.editSubgenreNaam = '';
   }
 
   private showSuccess(msg: string): void {
