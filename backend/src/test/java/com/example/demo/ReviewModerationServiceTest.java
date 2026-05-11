@@ -285,4 +285,36 @@ class ReviewModerationServiceTest {
             reviewModerationService.validateReviewComment("fuck@ass#hole")
         );
     }
+
+    @Test
+    void validateReviewCommentShouldThrowExceptionForCensoredWordHiddenInLargerWord() {
+        // Censored words hidden within larger words with padding
+        assertThrows(ApiException.class, () ->
+            reviewModerationService.validateReviewComment("wateenkankerboek")  // "kanker" is hidden in the middle
+        );
+
+        assertThrows(ApiException.class, () ->
+            reviewModerationService.validateReviewComment("Dit is watkankerwerk")  // "kanker" in the middle
+        );
+
+        assertThrows(ApiException.class, () ->
+            reviewModerationService.validateReviewComment("bookfuckinggreat")  // "fuck" hidden
+        );
+    }
+
+    @Test
+    void validateReviewCommentShouldThrowExceptionForCensoredWordAsSubstring() {
+        // Censored words as substrings in larger words
+        assertThrows(ApiException.class, () ->
+            reviewModerationService.validateReviewComment("bitchfight")  // "bitch" is a substring
+        );
+
+        assertThrows(ApiException.class, () ->
+            reviewModerationService.validateReviewComment("assholeism")  // "asshole" is a substring
+        );
+
+        assertThrows(ApiException.class, () ->
+            reviewModerationService.validateReviewComment("fucked")  // "fuck" is a substring
+        );
+    }
 }
