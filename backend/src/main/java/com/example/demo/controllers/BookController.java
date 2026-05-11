@@ -35,7 +35,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import com.example.demo.config.SmartschoolUserInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -398,6 +400,8 @@ public class BookController {
                 .map(review -> toReviewDto(review, normalizedUserSub, roleHeader))
                 .collect(Collectors.toList());
 
+        resolveReviewerNamesInPlace(reviews);
+
         return ResponseEntity.ok(reviews);
     }
 
@@ -464,8 +468,11 @@ public class BookController {
         }
 
         Review saved = reviewRepository.save(review);
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(toReviewDto(saved, reviewerUserSub, roleHeader));
+        ReviewDto dto = toReviewDto(saved, reviewerUserSub, roleHeader);
+        if (!isAnonymous) {
+            resolveReviewerNamesInPlace(List.of(dto));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @DeleteMapping("/{bookId}/reviews/{reviewId}")
@@ -808,24 +815,43 @@ public class BookController {
     }
 
     private String resolveReviewerUserName(Review review) {
-        try {
-            if (Boolean.TRUE.equals(review.getAnonymous())) {
-                return "Anoniem";
+        if (Boolean.TRUE.equals(review.getAnonymous())) {
+            return "Anoniem";
+        }
+        String reviewerSub = review.getReviewerUserSub();
+        if (!StringUtils.hasText(reviewerSub)) {
+            if (review.getReviewerUserId() != null) {
+                return String.valueOf(review.getReviewerUserId());
             }
-
-            String reviewerSub = review.getReviewerUserSub();
-            if (!StringUtils.hasText(reviewerSub)) {
-                if (review.getReviewerUserId() != null) {
-                    return String.valueOf(review.getReviewerUserId());
-                }
-                return "Gebruiker";
-            }
-
-            // Always return sub as fallback for now - Smartschool calls were blocking
-            return reviewerSub.trim();
-        } catch (Exception e) {
-            logger.warn("Error resolving reviewer name, returning generic fallback", e);
             return "Gebruiker";
         }
+        return reviewerSub.trim();
+    }
+
+    private void resolveReviewerNamesInPlace(List<ReviewDto> reviews) {
+        List<ReviewDto> nonAnon = reviews.stream()
+                .filter(dto -> !"Anoniem".equals(dto.getReviewerUserName()))
+                .collect(Collectors.toList());
+        if (nonAnon.isEmpty()) return;
+
+        Flux.fromIterable(nonAnon)
+                .flatMap(dto -> authService.getUserInfoBySub(dto.getReviewerUserName())
+                        .map(info -> {
+                            dto.setReviewerUserName(formatDisplayName(info));
+                            return dto;
+                        })
+                        .onErrorReturn(dto))
+                .collectList()
+                .block();
+    }
+
+    private String formatDisplayName(SmartschoolUserInfo info) {
+        String given = info.getGivenName();
+        String family = info.getFamilyName();
+        if (given != null && !given.isBlank() && family != null && !family.isBlank()) return given + " " + family;
+        if (given != null && !given.isBlank()) return given;
+        if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
+        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
+        return info.getSub() != null ? info.getSub() : "Gebruiker";
     }
 }
