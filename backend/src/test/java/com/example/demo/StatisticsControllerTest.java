@@ -4,11 +4,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.dto.StatisticsController;
 import com.example.demo.dto.StatisticsDTO;
 import com.example.demo.dto.StatisticsService;
+import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.SuperAdminRepository;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(StatisticsController.class)
+@TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 class StatisticsControllerTest {
 
     @Autowired
@@ -23,6 +28,15 @@ class StatisticsControllerTest {
 
     @MockBean
     private StatisticsService statisticsService;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private SuperAdminRepository superAdminRepository;
+
+    @MockBean
+    private AppUserRepository appUserRepository;
 
     @Test
     void getStatistics_WithoutSchoolId_CallsGlobalStats() throws Exception {

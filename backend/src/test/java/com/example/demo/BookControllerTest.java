@@ -8,9 +8,11 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
+import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.ReviewRepository;
+import com.example.demo.repositories.SuperAdminRepository;
 import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.BookService;
 import com.example.demo.services.SchoolService;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -54,6 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(BookController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 @SuppressWarnings("null")
 class BookControllerTest {
 
@@ -65,6 +69,12 @@ class BookControllerTest {
 
         @MockBean
         private AppUserRepository appUserRepository;
+
+        @MockBean
+        private JwtTokenProvider jwtTokenProvider;
+
+        @MockBean
+        private SuperAdminRepository superAdminRepository;
 
         @MockBean
         private AuthService authService;
