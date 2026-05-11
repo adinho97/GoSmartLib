@@ -1,9 +1,10 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
-import { forkJoin } from "rxjs";
+import { forkJoin, from } from "rxjs";
 import axios from "axios";
 import { AdminSchoolService } from "../services/admin-school.service";
+import { BookService } from "../services/book.service";
 import { AuthContextService } from "../services/auth-context.service";
 import {
   AdminUserListItem,
@@ -30,6 +31,7 @@ export class AdminSchoolDetailComponent implements OnInit {
   detail: SchoolDetail | null = null;
   users: AdminUserListItem[] = [];
   klassen: KlasListItem[] = [];
+  leeslijsten: any[] = [];
 
   // Modal for class users
   selectedKlasForPopup: KlasListItem | null = null;
@@ -40,15 +42,20 @@ export class AdminSchoolDetailComponent implements OnInit {
   isLoadingDetail = true;
   isLoadingUsers = true;
   isLoadingKlassen = true;
+  isLoadingLeeslijsten = true;
   loadError = "";
 
   readonly libraryCards = [
-    { label: "Boekencatalogus",    sub: "Boeken bekijken & beheren",       route: "/books",             icon: "catalog"    },
-    { label: "Boek toevoegen",     sub: "Boek aan catalogus toevoegen",     route: "/add-general",       icon: "add"        },
-    { label: "Boek uitlenen",      sub: "Uitlening registreren",            route: "/uitleen",           icon: "loan"       },
-    { label: "Actieve uitleningen",sub: "Lopende uitleningen bekijken",     route: "/uitleen-overzicht", icon: "active"     },
-    { label: "Uitleenhistoriek",   sub: "Alle voorbije uitleningen",        route: "/uitleen-catalogus", icon: "history"    },
-    { label: "Conditieoverzicht",  sub: "Staat van de collectie",           route: "/uitleen-conditie",  icon: "condition"  },
+    { label: "Boekencatalogus",    sub: "Boeken bekijken & beheren",       route: "/books",               icon: "catalog"   },
+    { label: "Boek toevoegen",     sub: "Boek aan catalogus toevoegen",     route: "/add-general",         icon: "add"       },
+    { label: "Boek uitlenen",      sub: "Uitlening registreren",            route: "/uitleen",             icon: "loan"      },
+    { label: "Boek terugbrengen",  sub: "Boek inname registreren",          route: "/boek-terugbrengen",   icon: "return"    },
+    { label: "Actieve uitleningen",sub: "Lopende uitleningen bekijken",     route: "/uitleen-overzicht",   icon: "active"    },
+    { label: "Uitleenhistoriek",   sub: "Alle voorbije uitleningen",        route: "/uitleen-catalogus",   icon: "history"   },
+    { label: "Conditieoverzicht",  sub: "Staat van de collectie",           route: "/uitleen-conditie",    icon: "condition" },
+    { label: "Klasleeslijsten",    sub: "Leeslijsten beheren",              route: "/klasleeslijst-beheer",icon: "list"      },
+    { label: "FAQ & Inhoud",       sub: "Inhoud & veelgestelde vragen",     route: "/faq-beheer",          icon: "faq"       },
+    { label: "Schoolstatistieken", sub: "School-brede cijfers",             route: "/statistieken/school", icon: "stats"     },
   ];
 
   // Info edit form
@@ -126,6 +133,7 @@ export class AdminSchoolDetailComponent implements OnInit {
     private readonly router: Router,
     private readonly http: HttpClient,
     private readonly adminSchoolService: AdminSchoolService,
+    private readonly bookService: BookService,
     private readonly authContext: AuthContextService, // Inject AuthContextService
   ) {}
 
@@ -138,28 +146,33 @@ export class AdminSchoolDetailComponent implements OnInit {
     this.isLoadingDetail = true;
     this.isLoadingUsers = true;
     this.isLoadingKlassen = true;
+    this.isLoadingLeeslijsten = true;
     this.loadError = "";
 
     forkJoin({
       detail: this.adminSchoolService.getSchoolDetail(this.schoolId),
       users: this.adminSchoolService.getSchoolUsers(this.schoolId),
       klassen: this.adminSchoolService.getSchoolKlassen(this.schoolId),
+      leeslijsten: from(this.bookService.getLeeslisten(this.schoolId)),
     }).subscribe({
-      next: ({ detail, users, klassen }) => {
+      next: ({ detail, users, klassen, leeslijsten }) => {
         this.detail = detail;
         this.users = users;
         this.klassen = klassen;
+        this.leeslijsten = leeslijsten;
         this.enrichUserNames(users);
         this.resetForm();
         this.isLoadingDetail = false;
         this.isLoadingUsers = false;
         this.isLoadingKlassen = false;
+        this.isLoadingLeeslijsten = false;
       },
       error: (err) => {
         this.loadError = err?.error?.message || "Gegevens laden mislukt.";
         this.isLoadingDetail = false;
         this.isLoadingUsers = false;
         this.isLoadingKlassen = false;
+        this.isLoadingLeeslijsten = false;
       },
     });
   }
