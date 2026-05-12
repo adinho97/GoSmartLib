@@ -69,12 +69,11 @@ public class AuthService {
                                         logger.debug("Refreshing access token for user: {}", sub);
                                         return refreshAccessToken(user.getSmartschoolRefreshToken(), user.getPlatform())
                                                         .flatMap(tokenResponse -> {
-                                                                user.setAccessToken(tokenResponse.getAccessToken());
                                                                 if (tokenResponse.getRefreshToken() != null) {
                                                                         user.setSmartschoolRefreshToken(tokenResponse
                                                                                         .getRefreshToken());
+                                                                        appUserRepository.save(user);
                                                                 }
-                                                                appUserRepository.save(user);
                                                                 logger.info("Token refreshed successfully for user: {}",
                                                                                 sub);
                                                                 return getUserInfo(tokenResponse, user.getPlatform());
