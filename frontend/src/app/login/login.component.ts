@@ -55,8 +55,9 @@ export class LoginComponent implements OnInit {
 
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: async (userInfo) => {
-        let rawFirstName: string = (userInfo.actualUserFirstName || userInfo.givenName || userInfo.given_name || "").trim();
-        let rawLastName: string = (userInfo.actualUserSurname || userInfo.actualUserLastName || userInfo.familyName || userInfo.family_name || "").trim();
+        // Smartschool maps given_name → surname and family_name → first name (inverted from OIDC spec)
+        let rawFirstName: string = (userInfo.actualUserFirstName || userInfo.familyName || userInfo.family_name || "").trim();
+        let rawLastName: string = (userInfo.actualUserSurname || userInfo.actualUserLastName || userInfo.givenName || userInfo.given_name || "").trim();
         const displayName = (userInfo.username || "").trim();
 
         // Smartschool sometimes stores the surname in given_name with the full name in
