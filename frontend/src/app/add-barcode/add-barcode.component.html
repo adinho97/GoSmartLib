@@ -161,14 +161,18 @@
           </button>
 
           <div class="pagination-pages">
-            @for (page of scannedBooksPageNumbers; track page) {
-              <button
-                class="pagination-page"
-                [class.active]="page === currentScannedBooksPage"
-                (click)="goToScannedBooksPage(page)"
-              >
-                {{ page }}
-              </button>
+            @for (page of scannedBooksPageNumbers; track $index) {
+              @if (page === "...") {
+                <span class="page-ellipsis">...</span>
+              } @else {
+                <button
+                  class="pagination-page"
+                  [class.active]="page === currentScannedBooksPage"
+                  (click)="goToScannedBooksPage(page)"
+                >
+                  {{ page }}
+                </button>
+              }
             }
           </div>
 
