@@ -5,6 +5,8 @@ import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
 import { UiToastService } from "../services/ui-toast.service";
 
+type PaginationItem = number | "...";
+
 type BookItem = {
   id?: number;
   titel: string;
@@ -427,8 +429,46 @@ export class BookListComponent implements OnInit {
   get totalPages(): number {
     return Math.ceil(this.filteredBooks.length / this.pageSize);
   }
-  get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+
+  get pageNumbers(): PaginationItem[] {
+    return this.buildVisiblePages(this.totalPages, this.currentPage);
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
   get pagedBooks(): BookItem[] {
     const start = (this.currentPage - 1) * this.pageSize;
@@ -635,10 +675,15 @@ export class BookListComponent implements OnInit {
     if (!bookId) return;
 
     try {
-      const isNowInList = await this.bookService.toggleClassReadingListItem(bookId);
+      const isNowInList =
+        await this.bookService.toggleClassReadingListItem(bookId);
       if (isNowInList) this.classReadingListItemIds.add(bookId);
       else this.classReadingListItemIds.delete(bookId);
-      this.uiToastService.success(isNowInList ? "Toegevoegd aan Klasleeslijst." : "Verwijderd uit Klasleeslijst.");
+      this.uiToastService.success(
+        isNowInList
+          ? "Toegevoegd aan Klasleeslijst."
+          : "Verwijderd uit Klasleeslijst.",
+      );
     } catch {
       this.uiToastService.error("Fout bij bijwerken Klasleeslijst.");
     }

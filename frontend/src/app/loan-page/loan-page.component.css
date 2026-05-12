@@ -204,6 +204,10 @@
   transition: all 0.2s;
   margin: 0;
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 .page-nav-btn {

@@ -1,16 +1,24 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
-import { BarcodeService } from '../services/barcode.service';
-import { BookService } from '../services/book.service';
-import { SchoolService } from '../services/school.service';
-import { LoanService } from '../services/loan.service';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
+import { BarcodeService } from "../services/barcode.service";
+import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
+import { LoanService } from "../services/loan.service";
+
+type PaginationItem = number | "...";
 
 export interface ScannedBookResult {
   isbn: string;
   titre: string;
-  status: 'ADDED' | 'ALREADY_EXISTS' | 'NOT_FOUND' | 'ERROR';
+  status: "ADDED" | "ALREADY_EXISTS" | "NOT_FOUND" | "ERROR";
   message: string;
   copiesTotalCount?: number;
   copiesAdded?: number;
@@ -25,27 +33,27 @@ export interface PendingBarcodeBook {
 }
 
 @Component({
-  selector: 'app-add-barcode',
+  selector: "app-add-barcode",
   standalone: true,
-  imports: [CommonModule,FormsModule],
-  templateUrl: './add-barcode.component.html',
-  styleUrl: './add-barcode.component.css',
+  imports: [CommonModule, FormsModule],
+  templateUrl: "./add-barcode.component.html",
+  styleUrl: "./add-barcode.component.css",
 })
 export class AddBarcodeComponent implements OnInit, OnDestroy {
-  @ViewChild('scanContainer') scanContainer!: ElementRef;
-  @ViewChild('cameraVideo') cameraVideo?: ElementRef<HTMLVideoElement>;
+  @ViewChild("scanContainer") scanContainer!: ElementRef;
+  @ViewChild("cameraVideo") cameraVideo?: ElementRef<HTMLVideoElement>;
 
   selectedSchoolId: number | null = null;
   scanMode = false;
   cameraMode = false;
-  isProcessing = false; 
+  isProcessing = false;
   isCameraDecoding = false;
   scannedBooks: ScannedBookResult[] = [];
-  lastScannedIsbn = '';
-  cameraErrorMessage = '';
-  errorMessage = '';
-  successMessage = '';
-  
+  lastScannedIsbn = "";
+  cameraErrorMessage = "";
+  errorMessage = "";
+  successMessage = "";
+
   // Modal state
   showBarcodeModal = false;
   pendingScannedBook: PendingBarcodeBook | null = null;
@@ -53,10 +61,10 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   isConfirmingBarcode = false;
 
   readonly statusColors: Record<string, string> = {
-    ADDED: '#4caf50',
-    ALREADY_EXISTS: '#ff9800',
-    NOT_FOUND: '#f44336',
-    ERROR: '#f44336',
+    ADDED: "#4caf50",
+    ALREADY_EXISTS: "#ff9800",
+    NOT_FOUND: "#f44336",
+    ERROR: "#f44336",
   };
 
   private scanSubscription: any;
@@ -83,21 +91,20 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     await this.loadUserSchool();
 
     if (this.scanContainer) {
-      this.barcodeService.setupHiddenInput(
-        this.scanContainer.nativeElement
-      );
+      this.barcodeService.setupHiddenInput(this.scanContainer.nativeElement);
 
-      this.scanSubscription = this.barcodeService.getScans().subscribe((barcode) => {
-        this.lastScannedIsbn = barcode;
+      this.scanSubscription = this.barcodeService
+        .getScans()
+        .subscribe((barcode) => {
+          this.lastScannedIsbn = barcode;
 
-        // Keep a brief delay so the scanned ISBN is visible before processing.
-        setTimeout(() => {
-          void this.processScan(barcode);
-        }, 200);
-      });
+          // Keep a brief delay so the scanned ISBN is visible before processing.
+          setTimeout(() => {
+            void this.processScan(barcode);
+          }, 200);
+        });
     }
   }
-
 
   ngOnDestroy() {
     this.deactivateCameraMode();
@@ -121,7 +128,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     }
 
     this.scanMode = true;
-    this.errorMessage = '';
+    this.errorMessage = "";
     this.barcodeService.activateScanMode();
   }
 
@@ -136,14 +143,14 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     }
 
     this.cameraMode = true;
-    this.cameraErrorMessage = '';
+    this.cameraErrorMessage = "";
 
     await this.waitForViewRender();
     await this.startCameraDecoding();
   }
 
   async retryCameraMode() {
-    this.cameraErrorMessage = '';
+    this.cameraErrorMessage = "";
     await this.waitForViewRender();
     await this.startCameraDecoding();
   }
@@ -151,25 +158,25 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   deactivateCameraMode() {
     this.stopCameraDecoding();
     this.cameraMode = false;
-    this.cameraErrorMessage = '';
+    this.cameraErrorMessage = "";
   }
 
   private async startCameraDecoding() {
     const videoElement = this.cameraVideo?.nativeElement;
     if (!videoElement) {
-      this.cameraErrorMessage = 'Camera-element niet gevonden.';
+      this.cameraErrorMessage = "Camera-element niet gevonden.";
       return;
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
       this.cameraErrorMessage =
-        'Deze browser ondersteunt geen camera-scanning. Gebruik een recente browser (Safari/Chrome/Edge).';
+        "Deze browser ondersteunt geen camera-scanning. Gebruik een recente browser (Safari/Chrome/Edge).";
       return;
     }
 
     if (!window.isSecureContext) {
       this.cameraErrorMessage =
-        'Camera-scanning werkt alleen op HTTPS of localhost.';
+        "Camera-scanning werkt alleen op HTTPS of localhost.";
       return;
     }
 
@@ -203,26 +210,29 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
 
       this.isCameraDecoding = true;
     } catch (err: any) {
-      let errorMessage = 'Kan camera niet starten. Controleer toestemming en probeer opnieuw.';
+      let errorMessage =
+        "Kan camera niet starten. Controleer toestemming en probeer opnieuw.";
 
-      if (err?.name === 'NotAllowedError') {
+      if (err?.name === "NotAllowedError") {
         errorMessage = this.isIosSafari
-          ? 'Camera-toestemming geweigerd. Open iOS Instellingen > Safari > Camera en sta toegang toe, herlaad daarna de pagina.'
-          : 'Camera-toestemming geweigerd. Zet deze in instellingen aan.';
-      } else if (err?.name === 'NotFoundError') {
-        errorMessage = 'Geen camera gevonden op dit apparaat.';
-      } else if (err?.name === 'TrackStartError' || err?.name === 'NotReadableError') {
-        errorMessage = 'Camera wordt al door een ander programma gebruikt.';
-      } else if (err?.name === 'AbortError') {
+          ? "Camera-toestemming geweigerd. Open iOS Instellingen > Safari > Camera en sta toegang toe, herlaad daarna de pagina."
+          : "Camera-toestemming geweigerd. Zet deze in instellingen aan.";
+      } else if (err?.name === "NotFoundError") {
+        errorMessage = "Geen camera gevonden op dit apparaat.";
+      } else if (
+        err?.name === "TrackStartError" ||
+        err?.name === "NotReadableError"
+      ) {
+        errorMessage = "Camera wordt al door een ander programma gebruikt.";
+      } else if (err?.name === "AbortError") {
         errorMessage =
-          'Camera-start onderbroken. Probeer opnieuw en controleer browserrechten.';
+          "Camera-start onderbroken. Probeer opnieuw en controleer browserrechten.";
       }
 
       this.cameraErrorMessage = errorMessage;
       this.isCameraDecoding = false;
     }
   }
-
 
   private waitForViewRender(): Promise<void> {
     return new Promise((resolve) => {
@@ -261,11 +271,48 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     );
   }
 
-  get scannedBooksPageNumbers(): number[] {
-    return Array.from(
-      { length: this.totalScannedBooksPages },
-      (_, index) => index + 1,
+  get scannedBooksPageNumbers(): PaginationItem[] {
+    return this.buildVisiblePages(
+      this.totalScannedBooksPages,
+      this.currentScannedBooksPage,
     );
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   goToScannedBooksPage(page: number) {
@@ -297,7 +344,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   async processScan(barcode: string) {
     if (this.isProcessing) return;
     this.isProcessing = true;
-    this.errorMessage = '';
+    this.errorMessage = "";
 
     try {
       // Fetch book from database first (library), then from OpenLibrary if not found
@@ -306,7 +353,8 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
         this.selectedSchoolId ?? undefined,
       );
 
-      let book = libraryBook || (await this.bookService.fetchBookByIsbn(barcode));
+      let book =
+        libraryBook || (await this.bookService.fetchBookByIsbn(barcode));
       const isAlreadyInLibrary = libraryBook !== null;
 
       // Get copy count if book exists in library
@@ -326,22 +374,22 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
       this.pendingCopiesCount = 1;
       this.showBarcodeModal = true;
     } catch (err: any) {
-      let status: ScannedBookResult['status'] = 'ERROR';
-      let message = 'Er ging iets mis';
+      let status: ScannedBookResult["status"] = "ERROR";
+      let message = "Er ging iets mis";
 
       if (err?.response?.status === 400) {
-        status = 'ERROR';
-        message = 'Ongeldig ISBN-formaat';
+        status = "ERROR";
+        message = "Ongeldig ISBN-formaat";
       } else if (err?.response?.status === 404) {
-        status = 'NOT_FOUND';
-        message = 'Boek niet gevonden';
+        status = "NOT_FOUND";
+        message = "Boek niet gevonden";
       } else {
         message = err?.response?.data?.message || message;
       }
 
       this.scannedBooks.unshift({
         isbn: barcode,
-        titre: '',
+        titre: "",
         status: status,
         message: message,
         timestamp: new Date(),
@@ -357,12 +405,12 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   async confirmBarcodeAdd() {
     if (!this.pendingScannedBook || this.isConfirmingBarcode) return;
     if (this.pendingCopiesCount < 1) {
-      this.errorMessage = 'Voer een geldig aantal exemplaren in.';
+      this.errorMessage = "Voer een geldig aantal exemplaren in.";
       return;
     }
 
     this.isConfirmingBarcode = true;
-    this.errorMessage = '';
+    this.errorMessage = "";
 
     try {
       const barcode = this.pendingScannedBook.isbn;
@@ -396,21 +444,21 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
         // Add result to list
         this.scannedBooks.unshift({
           isbn: barcode,
-          titre: this.pendingScannedBook.book?.titel || 'Onbekend',
-          status: 'ADDED',
-          message: `${isAlreadyInLibrary ? 'Gescand en' : 'Toegevoegd met'} ${this.pendingCopiesCount} exemplaar(en). Totaal in bibliotheek: ${totalCopies} exemplaar(en)`,
+          titre: this.pendingScannedBook.book?.titel || "Onbekend",
+          status: "ADDED",
+          message: `${isAlreadyInLibrary ? "Gescand en" : "Toegevoegd met"} ${this.pendingCopiesCount} exemplaar(en). Totaal in bibliotheek: ${totalCopies} exemplaar(en)`,
           copiesTotalCount: totalCopies,
           copiesAdded: this.pendingCopiesCount,
           timestamp: new Date(),
         });
         this.resetToFirstScannedBooksPage();
 
-        this.successMessage = `✓ ${this.pendingScannedBook.book?.titel || 'Boek'} verwerkt`;
+        this.successMessage = `✓ ${this.pendingScannedBook.book?.titel || "Boek"} verwerkt`;
       }
 
       this.closeBarcodeModal();
     } catch (err: any) {
-      this.errorMessage = 'Er ging iets mis bij het verwerken van het boek.';
+      this.errorMessage = "Er ging iets mis bij het verwerken van het boek.";
     } finally {
       this.isConfirmingBarcode = false;
     }
@@ -429,9 +477,9 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   clearSession() {
     this.scannedBooks = [];
     this.currentScannedBooksPage = 1;
-    this.lastScannedIsbn = '';
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.lastScannedIsbn = "";
+    this.errorMessage = "";
+    this.successMessage = "";
     this.closeBarcodeModal();
     this.deactivateScanMode();
     this.deactivateCameraMode();
@@ -445,6 +493,6 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   }
 
   getStatusColor(status: string): string {
-    return this.statusColors[status] || '#666';
+    return this.statusColors[status] || "#666";
   }
 }
