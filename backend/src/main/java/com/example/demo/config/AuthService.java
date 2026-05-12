@@ -108,13 +108,26 @@ public class AuthService {
 
         public Mono<Boolean> validateToken(String accessToken) {
                 String accessTokenValue = Objects.requireNonNull(accessToken, "accessToken");
+                
+                // First, check if token exists in our database (AppUser.access_token)
+                // This allows validation even if Smartschool API is unreachable
+                java.util.Optional<AppUser> userOpt = appUserRepository.findByAccessToken(accessTokenValue);
+                if (userOpt.isPresent()) {
+                        AppUser user = userOpt.get();
+                        if (user.isActive()) {
+                                logger.debug("Token validation successful (found in database)");
+                                return Mono.just(true);
+                        }
+                }
+                
+                // If not in database or user is inactive, validate against Smartschool API
                 return this.webClient.get()
                                 .uri(smartschoolProperties.getApiBaseUrl() + "/Api/V1/userinfo")
                                 .headers(headers -> headers.setBearerAuth(accessTokenValue))
                                 .retrieve()
                                 .toBodilessEntity()
                                 .then(Mono.just(true))
-                                .doOnSuccess(v -> logger.info("Token validation successful"))
+                                .doOnSuccess(v -> logger.info("Token validation successful (from Smartschool API)"))
                                 .onErrorResume(error -> {
                                         logger.debug("Token validation failed: {}", error.getMessage());
                                         return Mono.just(false);
