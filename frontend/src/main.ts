@@ -9,7 +9,7 @@ axios.interceptors.request.use((config) => {
   // SUPER_ADMIN users use JWT token; regular users use Smartschool OAuth token
   let token: string | null = null;
   const roleLower = userRole?.toLowerCase() || "";
-  
+
   if (roleLower === "super_admin") {
     // SUPER_ADMIN must use JWT token
     token = localStorage.getItem("admin_jwt_token");
@@ -18,8 +18,17 @@ axios.interceptors.request.use((config) => {
     token = localStorage.getItem("smartschoolToken");
   } else {
     // No role found, try both token types (fallback for missing role)
-    token = localStorage.getItem("admin_jwt_token") || localStorage.getItem("smartschoolToken");
+    token =
+      localStorage.getItem("admin_jwt_token") ||
+      localStorage.getItem("smartschoolToken");
   }
 
+  if (token && config.headers) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  return config;
+});
+
+platformBrowserDynamic()
   .bootstrapModule(AppModule)
   .catch((err) => console.error(err));
