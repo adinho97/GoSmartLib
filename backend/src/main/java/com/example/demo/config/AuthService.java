@@ -93,16 +93,18 @@ public class AuthService {
         }
 
         public Mono<Void> logout(String accessToken) {
-                return revokeSmartschoolToken(accessToken)
-                                .doOnSuccess(v -> logger.info("User logged out and token revoked successfully"))
-                                .doOnError(error -> logger.error("Error during logout, but proceeding anyway", error))
-                                .onErrorResume(error -> Mono.empty())
-                                .then(Mono.fromRunnable(() ->
-                                        appUserRepository.findByAccessToken(accessToken).ifPresent(user -> {
-                                                user.setAccessToken(null);
-                                                appUserRepository.save(user);
-                                        })
-                                ));
+                // Intentionally skip Smartschool token revocation: revoking the access token
+                // also invalidates the refresh token, which breaks server-side name resolution
+                // (leaderboard, reviews, admin board) for users who are logged out.
+                // Session termination is handled by clearing the DB token; the frontend
+                // discards localStorage. The Smartschool access token expires on its own.
+                return Mono.fromRunnable(() ->
+                        appUserRepository.findByAccessToken(accessToken).ifPresent(user -> {
+                                user.setAccessToken(null);
+                                appUserRepository.save(user);
+                                logger.info("User logged out, DB token cleared for sub: {}", user.getSub());
+                        })
+                );
         }
 
         public Mono<Boolean> validateToken(String accessToken) {
