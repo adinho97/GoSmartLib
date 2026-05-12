@@ -25,9 +25,11 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(SmartschoolAuthenticationFilter.class);
 
     private final AppUserRepository appUserRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public SmartschoolAuthenticationFilter(AppUserRepository appUserRepository) {
+    public SmartschoolAuthenticationFilter(AppUserRepository appUserRepository, JwtTokenProvider jwtTokenProvider) {
         this.appUserRepository = appUserRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Override
@@ -42,29 +44,53 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
         String token = extractToken(request);
         if (token != null) {
             try {
+                // First, try to find user by access token (Smartschool OAuth token)
                 Optional<AppUser> userOpt = appUserRepository.findByAccessToken(token);
                 if (userOpt.isPresent()) {
                     AppUser user = userOpt.get();
                     if (user.isActive()) {
-                        String authority = "ROLE_" + user.getRole().toUpperCase();
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(
-                                        user.getSub(),
-                                        null,
-                                        Collections.singletonList(new SimpleGrantedAuthority(authority))
-                                );
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        logger.debug("Smartschool token authenticated for user: {}", user.getSub());
+                        setAuthentication(user);
+                        logger.debug("Smartschool access token authenticated for user: {}", user.getSub());
                     } else {
                         logger.debug("Smartschool token matched inactive user: {}", user.getSub());
                     }
+                } else {
+                    // If not found as access token, try to validate as JWT (for Smartschool users with JWT tokens)
+                    if (jwtTokenProvider.validateToken(token)) {
+                        String sub = jwtTokenProvider.getUsernameFromToken(token);
+                        Optional<AppUser> jwtUserOpt = appUserRepository.findBySub(sub);
+                        if (jwtUserOpt.isPresent()) {
+                            AppUser user = jwtUserOpt.get();
+                            if (user.isActive()) {
+                                setAuthentication(user);
+                                logger.debug("JWT token authenticated for Smartschool user: {}", sub);
+                            } else {
+                                logger.debug("JWT token matched inactive user: {}", sub);
+                            }
+                        } else {
+                            logger.debug("JWT token sub {} not found in app_users", sub);
+                        }
+                    } else {
+                        logger.debug("Token validation failed - not a valid Smartschool access token or JWT");
+                    }
                 }
             } catch (Exception ex) {
-                logger.debug("Could not authenticate Smartschool token", ex);
+                logger.debug("Could not authenticate token: {}", ex.getMessage());
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void setAuthentication(AppUser user) {
+        String authority = "ROLE_" + user.getRole().toUpperCase();
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        user.getSub(),
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority(authority))
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private String extractToken(HttpServletRequest request) {
