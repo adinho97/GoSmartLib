@@ -80,7 +80,12 @@ public class BookController {
             Authentication authentication,
             @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
-        List<Book> books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
+        List<Book> books;
+        if (isStudentRole(authentication, null) && effectiveSchoolId != null) {
+            books = repo.findNonDidacticBySchool_Id(effectiveSchoolId);
+        } else {
+            books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
+        }
         return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
     }
 
@@ -112,9 +117,11 @@ public class BookController {
         String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
 
+        boolean excludeDidactic = isStudentRole(authentication, null);
         Page<Book> books = repo.searchPaged(
                 effectiveSchoolId,
                 normalizedQuery,
+                excludeDidactic,
                 PageRequest.of(safePage, safeSize));
 
         List<BookDto> items = books.stream()
@@ -135,10 +142,14 @@ public class BookController {
             Authentication authentication,
             @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
-        return (effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId))
-                .map(BookMapper::toDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        var bookOpt = effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId);
+        if (bookOpt.isEmpty()) return ResponseEntity.notFound().build();
+        Book book = bookOpt.get();
+        if (isStudentRole(authentication, null) && book.getGenre() != null
+                && book.getGenre().toLowerCase(Locale.ROOT).startsWith("didactiek")) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(BookMapper.toDto(book));
     }
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
