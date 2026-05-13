@@ -9,6 +9,7 @@ type Tab =
   | "geleend"
   | "verlanglijst"
   | "klasleeslijst"
+  | "didactisch"
   | "kijker"
   | "historiek";
 
@@ -16,6 +17,7 @@ const VALID_TABS: Tab[] = [
   "geleend",
   "verlanglijst",
   "klasleeslijst",
+  "didactisch",
   "kijker",
   "historiek",
 ];
@@ -43,6 +45,7 @@ export class MijnLijstenComponent implements OnInit {
   wishlistItems: any[] = [];
   classReadingBooks: RecommendedBook[] = [];
   leeslisten: Leeslijst[] = [];
+  didacticBooks: RecommendedBook[] = [];
   highlightedBooks: RecommendedBook[] = [];
   loanHistory: Loan[] = [];
 
@@ -50,6 +53,7 @@ export class MijnLijstenComponent implements OnInit {
   wishlistLoading = true;
   classReadingLoading = true;
   leeslistenLoading = true;
+  didacticLoading = true;
   highlightedLoading = true;
   historyLoading = true;
 
@@ -97,6 +101,7 @@ export class MijnLijstenComponent implements OnInit {
       this.loadLoans(),
       this.loadWishlist(),
       this.loadClassReading(),
+      this.loadDidacticCollection(),
       this.loadHighlighted(),
       this.loadHistory(),
     ]);
@@ -234,6 +239,35 @@ export class MijnLijstenComponent implements OnInit {
       this.highlightedBooks = [];
     } finally {
       this.highlightedLoading = false;
+    }
+  }
+
+  private async loadDidacticCollection(): Promise<void> {
+    this.didacticLoading = true;
+    try {
+      const allBooks = await this.bookService.getBooks();
+      this.didacticBooks = (allBooks || [])
+        .filter((book: any) =>
+          (book?.genre || "").toLowerCase().includes("didactiek"),
+        )
+        .map(
+          (book: any) =>
+            ({
+              bookId: book.id,
+              titel: book.titel,
+              auteur: book.auteur,
+              cover: book.cover || "",
+              genre: book.genre,
+              paginas: book.paginas,
+              taal: book.taal,
+              score: 0,
+              reason: "",
+            }) as RecommendedBook,
+        );
+    } catch {
+      this.didacticBooks = [];
+    } finally {
+      this.didacticLoading = false;
     }
   }
 
