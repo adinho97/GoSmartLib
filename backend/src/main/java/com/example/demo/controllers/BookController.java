@@ -84,6 +84,21 @@ public class BookController {
         return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/didactisch")
+    public List<BookDto> getDidacticCollection(
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
+        List<Book> books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
+        return books.stream()
+                .filter(book -> StringUtils.hasText(book.getGenre()))
+                .filter(book -> book.getGenre().toLowerCase(Locale.ROOT).contains("didactiek"))
+                .map(BookMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
     @GetMapping("/paged")
     public ResponseEntity<PagedBookResponse> getPaged(
             @RequestParam(required = false) Long schoolId,

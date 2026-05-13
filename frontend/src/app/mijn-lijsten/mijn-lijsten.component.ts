@@ -262,25 +262,21 @@ export class MijnLijstenComponent implements OnInit {
   private async loadDidacticCollection(): Promise<void> {
     this.didacticLoading = true;
     try {
-      const allBooks = await this.bookService.getBooks();
-      this.didacticBooks = (allBooks || [])
-        .filter((book: any) =>
-          (book?.genre || "").toLowerCase().includes("didactiek"),
-        )
-        .map(
-          (book: any) =>
-            ({
-              bookId: book.id,
-              titel: book.titel,
-              auteur: book.auteur,
-              cover: book.cover || "",
-              genre: book.genre,
-              paginas: book.paginas,
-              taal: book.taal,
-              score: 0,
-              reason: "",
-            }) as RecommendedBook,
-        );
+      const books = await this.bookService.getDidacticBooks();
+      this.didacticBooks = (books || []).map(
+        (book: any) =>
+          ({
+            bookId: book.id,
+            titel: book.titel,
+            auteur: book.auteur,
+            cover: book.cover || "",
+            genre: book.genre,
+            paginas: book.paginas,
+            taal: book.taal,
+            score: 0,
+            reason: "",
+          }) as RecommendedBook,
+      );
     } catch {
       this.didacticBooks = [];
     } finally {
