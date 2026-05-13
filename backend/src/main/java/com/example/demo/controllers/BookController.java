@@ -849,7 +849,7 @@ public class BookController {
             if (review.getReviewerUserId() != null) {
                 return String.valueOf(review.getReviewerUserId());
             }
-            return "Gebruiker";
+            return "Anoniem";
         }
         return reviewerSub.trim();
     }
@@ -861,12 +861,16 @@ public class BookController {
         if (nonAnon.isEmpty()) return;
 
         Flux.fromIterable(nonAnon)
-                .flatMap(dto -> authService.getUserInfoBySub(dto.getReviewerUserName())
-                        .map(info -> {
-                            dto.setReviewerUserName(formatDisplayName(info));
-                            return dto;
-                        })
-                        .onErrorReturn(dto))
+                .flatMap(dto -> {
+                    Mono<SmartschoolUserInfo> userMono = authService.getUserInfoBySub(dto.getReviewerUserName());
+                    if (userMono == null) return Mono.just(dto);
+                    return userMono
+                            .map(info -> {
+                                dto.setReviewerUserName(formatDisplayName(info));
+                                return dto;
+                            })
+                            .onErrorReturn(dto);
+                })
                 .collectList()
                 .block();
     }
