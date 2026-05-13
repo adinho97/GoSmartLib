@@ -5,6 +5,7 @@ import com.example.demo.entities.Klas;
 import com.example.demo.entities.School;
 import com.example.demo.entities.SchoolStatus;
 import com.example.demo.exception.ApiException;
+import com.example.demo.exception.RevokedTokenException;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.SchoolRepository;
@@ -26,12 +27,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 @Service
 public class AuthService {
 
         private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
+        /**
+         * Deduplicates concurrent token-refresh HTTP calls for the same user.
+         * Key: user sub. Value: cached in-flight Mono (shared by all concurrent callers).
+         * Entry is removed once the Mono terminates (success or error), so the next
+         * request always starts fresh rather than hitting a stale cached failure.
+         */
+        private final ConcurrentHashMap<String, Mono<SmartschoolTokenResponse>> refreshCache = new ConcurrentHashMap<>();
 
         private final WebClient webClient;
         private final SmartschoolProperties smartschoolProperties;
@@ -62,22 +72,44 @@ public class AuthService {
                                         logger.info("User found. ID: {}, has refresh token: {}",
                                                         user.getId(), user.getSmartschoolRefreshToken() != null);
                                         if (user.getSmartschoolRefreshToken() == null) {
-                                                logger.error("No refresh token available for user: {}", sub);
-                                                return Mono.error(new RuntimeException(
+                                                logger.warn("No refresh token in DB for user: {} — user must re-login", sub);
+                                                return Mono.error(new RevokedTokenException(
                                                                 "No refresh token available for user: " + sub));
                                         }
                                         logger.debug("Refreshing access token for user: {}", sub);
-                                        return refreshAccessToken(user.getSmartschoolRefreshToken(), user.getPlatform())
-                                                        .flatMap(tokenResponse -> {
-                                                                if (tokenResponse.getRefreshToken() != null) {
-                                                                        user.setSmartschoolRefreshToken(tokenResponse
-                                                                                        .getRefreshToken());
-                                                                        appUserRepository.save(user);
-                                                                }
-                                                                logger.info("Token refreshed successfully for user: {}",
-                                                                                sub);
-                                                                return getUserInfo(tokenResponse, user.getPlatform());
-                                                        });
+
+                                        // Deduplicate: if a refresh is already in-flight for this sub,
+                                        // reuse the same Mono instead of making a second HTTP call to Smartschool.
+                                        Mono<SmartschoolTokenResponse> sharedRefresh = refreshCache.computeIfAbsent(sub,
+                                                        key -> refreshAccessToken(user.getSmartschoolRefreshToken(),
+                                                                        user.getPlatform())
+                                                                        .flatMap(tokenResponse -> {
+                                                                                if (tokenResponse
+                                                                                                .getRefreshToken() != null) {
+                                                                                        user.setSmartschoolRefreshToken(
+                                                                                                        tokenResponse.getRefreshToken());
+                                                                                        appUserRepository.save(user);
+                                                                                        logger.debug("Updated refresh token in DB for user: {}", sub);
+                                                                                }
+                                                                                logger.info("Token refreshed successfully for user: {}", sub);
+                                                                                return Mono.just(tokenResponse);
+                                                                        })
+                                                                        .onErrorMap(RevokedTokenException.class, e -> {
+                                                                                // 401 from Smartschool: token is permanently dead.
+                                                                                // Clear both tokens so the filter stops authenticating
+                                                                                // this user and so we don't retry on the next run.
+                                                                                logger.warn("Refresh token permanently revoked for user: {}. "
+                                                                                                + "Clearing DB tokens — user must re-login via OAuth.", sub);
+                                                                                user.setSmartschoolRefreshToken(null);
+                                                                                user.setAccessToken(null);
+                                                                                appUserRepository.save(user);
+                                                                                return e;
+                                                                        })
+                                                                        .doFinally(signal -> refreshCache.remove(sub))
+                                                                        .cache());
+
+                                        return sharedRefresh.flatMap(
+                                                        tokenResponse -> getUserInfo(tokenResponse, user.getPlatform()));
                                 });
         }
 
@@ -137,19 +169,6 @@ public class AuthService {
                                         logger.debug("Token validation failed: {}", error.getMessage());
                                         return Mono.just(false);
                                 });
-        }
-
-        private Mono<Void> revokeSmartschoolToken(String accessToken) {
-                String revokeUrl = smartschoolProperties.getApiBaseUrl() + "/Api/V1/revoke";
-                logger.info("Revoking access token at: {}", revokeUrl);
-
-                return this.webClient.post()
-                                .uri(revokeUrl + "?access_token=" + accessToken)
-                                .retrieve()
-                                .toBodilessEntity()
-                                .doOnSuccess(response -> logger.info("Token revoked successfully"))
-                                .doOnError(error -> logger.warn("Failed to revoke token: {}", error.getMessage()))
-                                .then(); // Return empty Mono<Void>
         }
 
         private Mono<AuthLoginResponse> saveUserAndBuildResponse(SmartschoolUserInfo userInfo) {
@@ -419,12 +438,20 @@ public class AuthService {
                                                 return response.bodyToMono(String.class)
                                                                 .defaultIfEmpty("[no body]")
                                                                 .flatMap(body -> {
+                                                                        // HTTP 401 means the refresh token is permanently
+                                                                        // invalid (revoked, expired, or unknown). Throw a
+                                                                        // RevokedTokenException so callers know not to retry
+                                                                        // and to clear the stored token from DB.
+                                                                        if (response.statusCode() == HttpStatus.UNAUTHORIZED) {
+                                                                                logger.warn(
+                                                                                                "Refresh token rejected with 401 (revoked/invalid). Body: {}",
+                                                                                                body);
+                                                                                return Mono.error(new RevokedTokenException(
+                                                                                                "Refresh token rejected by Smartschool (401). Body: " + body));
+                                                                        }
                                                                         logger.error(
-                                                                                        "Non-2xx response from Smartschool token endpoint (refresh). Status: {}, Headers: {}, Body: {}",
-                                                                                        response.statusCode(),
-                                                                                        response.headers()
-                                                                                                        .asHttpHeaders(),
-                                                                                        body);
+                                                                                        "Non-2xx response from Smartschool token endpoint (refresh). Status: {}, Body: {}",
+                                                                                        response.statusCode(), body);
                                                                         return Mono.error(new RuntimeException(
                                                                                         "Error from Smartschool token endpoint (refresh). Status: "
                                                                                                         + response.statusCode()));
@@ -436,11 +463,8 @@ public class AuthService {
                                                 return response.bodyToMono(String.class)
                                                                 .flatMap(body -> {
                                                                         logger.error(
-                                                                                        "Smartschool returned HTML on a 2xx response (refresh). Status: {}, Headers: {}, Body: {}",
-                                                                                        response.statusCode(),
-                                                                                        response.headers()
-                                                                                                        .asHttpHeaders(),
-                                                                                        body);
+                                                                                        "Smartschool returned HTML on a 2xx response (refresh). Status: {}, Body: {}",
+                                                                                        response.statusCode(), body);
                                                                         return Mono.error(new RuntimeException(
                                                                                         "Smartschool returned HTML at token endpoint (refresh): "
                                                                                                         + body));
@@ -450,8 +474,13 @@ public class AuthService {
                                                         .doOnSuccess(token -> logger
                                                                         .info("Successfully retrieved new access token using refresh token."));
                                 })
-                                .doOnError(error -> logger.error(
-                                                "Failed to retrieve new access token using refresh token.", error));
+                                .doOnError(error -> {
+                                        if (error instanceof RevokedTokenException) {
+                                                logger.warn("Refresh token permanently invalid — not retrying.");
+                                        } else {
+                                                logger.error("Failed to retrieve new access token using refresh token.", error);
+                                        }
+                                });
         }
 
         private Mono<SmartschoolUserInfo> enrichUserRoleFromGroupInfo(
