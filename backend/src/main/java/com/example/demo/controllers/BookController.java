@@ -78,10 +78,11 @@ public class BookController {
     public List<BookDto> getAll(
             @RequestParam(required = false) Long schoolId,
             Authentication authentication,
-            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader) {
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
         List<Book> books;
-        if (isStudentRole(authentication, null) && effectiveSchoolId != null) {
+        if (isStudentRole(authentication, roleHeader) && effectiveSchoolId != null) {
             books = repo.findNonDidacticBySchool_Id(effectiveSchoolId);
         } else {
             books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
@@ -111,13 +112,14 @@ public class BookController {
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(required = false) String query,
             Authentication authentication,
-            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.max(size, 1);
         String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
 
-        boolean excludeDidactic = isStudentRole(authentication, null);
+        boolean excludeDidactic = isStudentRole(authentication, roleHeader);
         Page<Book> books = repo.searchPaged(
                 effectiveSchoolId,
                 normalizedQuery,
@@ -140,12 +142,13 @@ public class BookController {
     public ResponseEntity<BookDto> getBook(@PathVariable @NonNull Long id,
             @RequestParam(required = false) Long schoolId,
             Authentication authentication,
-            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader) {
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
         var bookOpt = effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId);
         if (bookOpt.isEmpty()) return ResponseEntity.notFound().build();
         Book book = bookOpt.get();
-        if (isStudentRole(authentication, null) && book.getGenre() != null
+        if (isStudentRole(authentication, roleHeader) && book.getGenre() != null
                 && book.getGenre().toLowerCase(Locale.ROOT).startsWith("didactiek")) {
             return ResponseEntity.notFound().build();
         }
