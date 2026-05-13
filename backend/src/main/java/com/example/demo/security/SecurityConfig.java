@@ -5,7 +5,6 @@ import com.example.demo.config.SmartschoolAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -50,16 +49,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // Public endpoints
+                        // Public endpoints - no authentication required
                         .requestMatchers("/api/auth/smartschool-login").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/validate-token").permitAll()
                         .requestMatchers("/api/admin/login").permitAll()
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/api/admin/genres").authenticated()
-
                         .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/uitleningen/all-active").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
                         .requestMatchers("/api/uitleningen/inspectie/conditie").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")

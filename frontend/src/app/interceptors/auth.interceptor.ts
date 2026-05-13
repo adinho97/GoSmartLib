@@ -13,19 +13,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // SUPER_ADMIN users use JWT token; regular users use Smartschool OAuth token
   let token: string | null = null;
-  const roleLower = userRole?.toLowerCase() || "";
-
-  if (roleLower === "super_admin") {
-    // SUPER_ADMIN must use JWT token
+  if (userRole === "SUPER_ADMIN" || userRole === "super_admin") {
     token = localStorage.getItem("admin_jwt_token");
-  } else if (roleLower) {
-    // Regular users use Smartschool OAuth token
-    token = localStorage.getItem("smartschoolToken");
   } else {
-    // No role found, try both token types (fallback for missing role)
-    token =
-      localStorage.getItem("admin_jwt_token") ||
-      localStorage.getItem("smartschoolToken");
+    token = localStorage.getItem("smartschoolToken");
   }
 
   if (!token) {
