@@ -44,10 +44,7 @@
           (ngModelChange)="onGenreChange()"
         >
           <option value="">Alle genres</option>
-          @if (selectedGenre === "Didactiek") {
-            <option value="Didactiek">Didactiek</option>
-          }
-          @for (genre of genres; track genre) {
+          @for (genre of availableGenres; track genre) {
             <option [value]="genre">
               {{ genre }}
             </option>
