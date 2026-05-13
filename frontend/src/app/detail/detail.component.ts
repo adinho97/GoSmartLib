@@ -40,6 +40,8 @@ export class DetailComponent implements OnInit, OnDestroy {
   readonly userRole = localStorage.getItem("role");
   readonly isLibrarian = this.userRole === "bibbeheerder";
   readonly isTeacher = this.userRole === "leerkracht";
+  readonly isTeacherOrLibrarian =
+    this.isLibrarian || this.userRole === "leerkracht";
   private readonly roleLikeValues = new Set([
     "leerling",
     "leerkracht",
@@ -160,7 +162,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       // Load reviews
       this.loadReviews(this.currentBookId);
 
-      if (this.isTeacher) {
+      if (this.isTeacherOrLibrarian) {
         this.loadLestip(this.currentBookId);
       }
 
@@ -993,7 +995,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   async saveLestip(): Promise<void> {
-    if (!this.isTeacher || this.currentBookId === null) {
+    if (!this.isTeacherOrLibrarian || this.currentBookId === null) {
       return;
     }
 
@@ -1038,7 +1040,7 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   async removeLestip(): Promise<void> {
     if (
-      !this.isTeacher ||
+      !this.isTeacherOrLibrarian ||
       !this.magLestipVerwijderen ||
       this.currentBookId === null
     ) {
