@@ -187,6 +187,13 @@ export class BookService {
     return res.data;
   }
 
+  async getDidacticBooks(schoolId?: number) {
+    const res = await axios.get(
+      this.withSchoolId(`${this.apiUrl}/didactisch`, schoolId),
+    );
+    return res.data;
+  }
+
   async getBooksPage(
     page: number,
     size: number,

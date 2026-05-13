@@ -9,6 +9,7 @@ type Tab =
   | "geleend"
   | "verlanglijst"
   | "klasleeslijst"
+  | "didactisch"
   | "kijker"
   | "historiek";
 
@@ -16,6 +17,7 @@ const VALID_TABS: Tab[] = [
   "geleend",
   "verlanglijst",
   "klasleeslijst",
+  "didactisch",
   "kijker",
   "historiek",
 ];
@@ -43,6 +45,7 @@ export class MijnLijstenComponent implements OnInit {
   wishlistItems: any[] = [];
   classReadingBooks: RecommendedBook[] = [];
   leeslisten: Leeslijst[] = [];
+  didacticBooks: RecommendedBook[] = [];
   highlightedBooks: RecommendedBook[] = [];
   loanHistory: Loan[] = [];
 
@@ -50,6 +53,7 @@ export class MijnLijstenComponent implements OnInit {
   wishlistLoading = true;
   classReadingLoading = true;
   leeslistenLoading = true;
+  didacticLoading = true;
   highlightedLoading = true;
   historyLoading = true;
 
@@ -76,6 +80,14 @@ export class MijnLijstenComponent implements OnInit {
     return this.hasRole("leerkracht") || this.hasRole("bibbeheerder");
   }
 
+  get canViewDidacticCollection(): boolean {
+    return (
+      this.hasRole("leerkracht") ||
+      this.hasRole("bibbeheerder") ||
+      this.hasRole("super_admin")
+    );
+  }
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -89,14 +101,24 @@ export class MijnLijstenComponent implements OnInit {
     if (VALID_TABS.includes(fragment)) {
       this.activeTab = fragment;
     }
+    if (this.activeTab === "didactisch" && !this.canViewDidacticCollection) {
+      this.activeTab = "geleend";
+    }
     this.loadAll();
   }
 
   private async loadAll(): Promise<void> {
+    if (!this.canViewDidacticCollection) {
+      this.didacticBooks = [];
+      this.didacticLoading = false;
+    }
     await Promise.all([
       this.loadLoans(),
       this.loadWishlist(),
       this.loadClassReading(),
+      this.canViewDidacticCollection
+        ? this.loadDidacticCollection()
+        : Promise.resolve(),
       this.loadHighlighted(),
       this.loadHistory(),
     ]);
@@ -234,6 +256,31 @@ export class MijnLijstenComponent implements OnInit {
       this.highlightedBooks = [];
     } finally {
       this.highlightedLoading = false;
+    }
+  }
+
+  private async loadDidacticCollection(): Promise<void> {
+    this.didacticLoading = true;
+    try {
+      const books = await this.bookService.getDidacticBooks();
+      this.didacticBooks = (books || []).map(
+        (book: any) =>
+          ({
+            bookId: book.id,
+            titel: book.titel,
+            auteur: book.auteur,
+            cover: book.cover || "",
+            genre: book.genre,
+            paginas: book.paginas,
+            taal: book.taal,
+            score: 0,
+            reason: "",
+          }) as RecommendedBook,
+      );
+    } catch {
+      this.didacticBooks = [];
+    } finally {
+      this.didacticLoading = false;
     }
   }
 

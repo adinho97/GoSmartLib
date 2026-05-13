@@ -44,6 +44,20 @@
         leeslisten.length
       }}</span>
     </button>
+    @if (canViewDidacticCollection) {
+      <button
+        class="tab"
+        [class.active]="activeTab === 'didactisch'"
+        role="tab"
+        [attr.aria-selected]="activeTab === 'didactisch'"
+        (click)="selectTab('didactisch')"
+      >
+        Didactische collectie
+        <span class="tab-count" [class.active]="activeTab === 'didactisch'">{{
+          didacticBooks.length
+        }}</span>
+      </button>
+    }
     <button
       class="tab"
       [class.active]="activeTab === 'kijker'"
@@ -101,6 +115,44 @@
           Toon meer
           <span class="show-more-count"
             >({{ loans.length - visibleCount }} meer)</span
+          >
+        </button>
+      }
+    }
+  }
+
+  <!-- ── Didactische collectie ── -->
+  @if (canViewDidacticCollection && activeTab === "didactisch") {
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Didactische collectie</h2>
+        <p class="section-desc">
+          Alle boeken uit de catalogus met genre Didactiek.
+        </p>
+      </div>
+    </div>
+    @if (didacticLoading) {
+      <div class="loader-row">
+        <div class="spinner"></div>
+        <p>Laden…</p>
+      </div>
+    } @else if (didacticBooks.length === 0) {
+      <p class="empty-msg">Er zijn momenteel geen didactische boeken.</p>
+    } @else {
+      <div class="book-grid didactic-grid">
+        @for (book of didacticBooks.slice(0, visibleCount); track book.bookId) {
+          <app-recommendation-card
+            [book]="book"
+            [profileVariant]="'dashboard'"
+            (viewDetails)="goToDetail(book.bookId)"
+          ></app-recommendation-card>
+        }
+      </div>
+      @if (didacticBooks.length > visibleCount) {
+        <button class="show-more-btn" (click)="showMore()">
+          Toon meer
+          <span class="show-more-count"
+            >({{ didacticBooks.length - visibleCount }} meer)</span
           >
         </button>
       }
