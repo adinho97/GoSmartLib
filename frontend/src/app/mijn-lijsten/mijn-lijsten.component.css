@@ -123,18 +123,22 @@
   align-items: start;
 }
 
-.didactic-grid app-recommendation-card {
-  border-radius: 22px;
+.didactic-grid app-recommendation-card ::ng-deep .book-card {
+  border-color: rgba(230, 126, 34, 0.55);
   box-shadow:
-    0 0 0 2px rgba(255, 161, 42, 0.25),
-    0 10px 24px rgba(255, 140, 0, 0.18);
-  transition: box-shadow 0.2s ease;
+    0 0 0 2px rgba(255, 161, 42, 0.18),
+    0 8px 20px rgba(230, 126, 34, 0.14);
+  transition:
+    transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.didactic-grid app-recommendation-card:hover {
+.didactic-grid app-recommendation-card ::ng-deep .book-card:hover {
+  border-color: rgba(230, 126, 34, 0.95);
   box-shadow:
-    0 0 0 2px rgba(255, 161, 42, 0.4),
-    0 14px 30px rgba(255, 140, 0, 0.25);
+    0 0 0 2px rgba(255, 161, 42, 0.35),
+    0 14px 30px rgba(230, 126, 34, 0.22);
 }
 
 /* Loader */
@@ -265,6 +269,7 @@
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -293,6 +298,7 @@
   margin: 0;
   line-height: 1.5;
   display: -webkit-box;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
