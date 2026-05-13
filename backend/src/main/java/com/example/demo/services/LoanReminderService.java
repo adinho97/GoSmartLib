@@ -168,7 +168,7 @@ public class LoanReminderService {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
                   <div style="background-color: #8b1a1a; padding: 24px 32px;">
                     <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
-                      ⚠️ Bibliotheek — Boek te laat
+                      Bibliotheek — Boek te laat
                     </h1>
                   </div>
                   <div style="padding: 28px 32px;">

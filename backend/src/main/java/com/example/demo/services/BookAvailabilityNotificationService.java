@@ -66,9 +66,8 @@ public class BookAvailabilityNotificationService {
                     SmartschoolMessageRequest request = new SmartschoolMessageRequest();
                     request.setPlatformUrl(userInfo.getPlatform() != null ? userInfo.getPlatform()
                             : smartschoolProperties.getApiBaseUrl());
-                        request.setSubject("Boek beschikbaar: " + wishlist.getBook().getTitel());
-                        request.setBody(String.format(
-                            "Beste %s,\n\nBoek beschikbaar: %s\n\nHet door jou opgegeven boek is nu beschikbaar in de bibliotheek.\n\nWees er snel bij om het op te halen.\n\nMet vriendelijke groeten,\nDe bibliotheek.",
+                    request.setSubject("Boek beschikbaar: " + wishlist.getBook().getTitel());
+                    request.setBody(buildAvailabilityHtml(
                             userInfo.getName() != null ? userInfo.getName() : "Lezer",
                             wishlist.getBook().getTitel()));
 
@@ -84,5 +83,53 @@ public class BookAvailabilityNotificationService {
                 .doOnError(error -> logger.error("Failed to send notification to user: {} for book: {}",
                         wishlist.getUser().getId(), wishlist.getBook().getTitel(), error))
                 .onErrorResume(e -> Mono.empty()); // Don't fail entire batch if one user fails
+    }
+
+    // ── HTML builders ──────────────────────────────────────────────────────────
+
+    private String buildAvailabilityHtml(String name, String title) {
+        return String.format("""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                  <div style="background-color: #1a3a5c; padding: 24px 32px;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
+                       Bibliotheek — Boek beschikbaar
+                    </h1>
+                  </div>
+                  <div style="padding: 28px 32px;">
+                    <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong>,</p>
+                    <p style="margin: 0 0 24px; font-size: 15px; color: #333;">
+                      Goed nieuws! Het boek dat u op uw verlanglijst had staan, is nu beschikbaar in de bibliotheek.
+                    </p>
+                    <table style="width: 100%%; border-collapse: collapse; margin-bottom: 24px; font-family: Arial, sans-serif;">
+                      <thead>
+                        <tr style="background-color: #1a3a5c; color: #fff;">
+                          <th style="padding: 10px 12px; text-align: left; font-size: 13px;">Titel</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style="background-color: #f9f9f9;">
+                          <td style="padding: 8px 12px; font-size: 14px; color: #222;">%s</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div style="background-color: #e8f5e9; border-left: 4px solid #2e7d32; padding: 14px 18px; border-radius: 3px; margin-bottom: 24px;">
+                      <p style="margin: 0; font-size: 14px; color: #1b5e20;"><strong>Status:</strong> Nu beschikbaar!</p>
+                      <p style="margin: 6px 0 0; font-size: 13px; color: #388e3c;">Wees er snel bij om het boek op te halen.</p>
+                    </div>
+                    <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
+                  </div>
+                  <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
+                    <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">Dit is een automatisch gegenereerd bericht — gelieve niet te antwoorden.</p>
+                  </div>
+                </div>
+                """, escapeHtml(name), escapeHtml(title));
+    }
+
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;")
+                   .replace("\"", "&quot;");
     }
 }
