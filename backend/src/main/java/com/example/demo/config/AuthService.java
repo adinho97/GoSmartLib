@@ -120,8 +120,12 @@ public class AuthService {
                         return Mono.error(new IllegalArgumentException("Authorization code is required"));
                 }
                 return getAccessToken(code)
-                                .flatMap(tokenResponse -> getUserInfo(tokenResponse, null))
-                                .flatMap(this::saveUserAndBuildResponse);
+                                .doOnSuccess(token -> logger.info("Successfully obtained access token from SmartSchool"))
+                                .doOnError(error -> logger.error("Failed to get access token from SmartSchool: {}", error.getMessage(), error))
+                                .flatMap(tokenResponse -> getUserInfo(tokenResponse, null)
+                                                .doOnError(error -> logger.error("Failed to get user info from SmartSchool: {}", error.getMessage(), error)))
+                                .flatMap(this::saveUserAndBuildResponse)
+                                .doOnError(error -> logger.error("Failed to save user and build response: {}", error.getMessage(), error));
         }
 
         public Mono<Void> logout(String accessToken) {
@@ -394,7 +398,8 @@ public class AuthService {
                                                         .doOnSuccess(token -> logger
                                                                         .info("Successfully retrieved access token"));
                                 })
-                                .doOnError(error -> logger.error("Failed to retrieve access token", error));
+                                .doOnError(error -> logger.error("Failed to retrieve access token from {}: {} ({})", 
+                                        tokenUrl, error.getMessage(), error.getClass().getSimpleName(), error));
         }
 
         public Mono<SmartschoolTokenResponse> refreshAccessToken(String refreshToken) {
