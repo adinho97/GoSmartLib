@@ -31,7 +31,6 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -88,7 +87,7 @@ class SchoolAdminServiceTest {
         verify(validationService).assertSubdomainAvailable("myschool");
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
+        verify(schoolRepository).save(captor.capture());
         School persisted = captor.getValue();
         assertEquals("myschool", persisted.getSubdomein());
         assertEquals("https://myschool.smartschool.be", persisted.getSmartschoolUrl());
@@ -115,7 +114,7 @@ class SchoolAdminServiceTest {
         service.addSchool(request);
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
+        verify(schoolRepository).save(captor.capture());
         assertEquals("Trimmed Name", captor.getValue().getNaam());
         assertEquals("Trimmed Adres", captor.getValue().getAdres());
     }
@@ -135,7 +134,7 @@ class SchoolAdminServiceTest {
         service.addSchool(request);
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
+        verify(schoolRepository).save(captor.capture());
         assertNull(captor.getValue().getNaam());
         assertNull(captor.getValue().getAdres());
     }
@@ -233,7 +232,7 @@ class SchoolAdminServiceTest {
         SchoolDetailResponse result = service.updateSchoolInfo(1L, request);
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
+        verify(schoolRepository).save(captor.capture());
         School saved = captor.getValue();
         assertEquals("Nieuw Naam", saved.getNaam());
         assertEquals("Nieuw Adres", saved.getAdres());
@@ -258,7 +257,7 @@ class SchoolAdminServiceTest {
         service.updateSchoolInfo(1L, request);
 
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
+        verify(schoolRepository).save(captor.capture());
         assertNull(captor.getValue().getNaam());
     }
 
@@ -287,7 +286,7 @@ class SchoolAdminServiceTest {
 
         verify(validationService).validateUpdatableStatus(SchoolStatus.ACTIVE);
         ArgumentCaptor<School> captor = ArgumentCaptor.forClass(School.class);
-        verify(schoolRepository).save(Objects.requireNonNull(captor.capture()));
+        verify(schoolRepository).save(captor.capture());
         assertEquals(SchoolStatus.ACTIVE, captor.getValue().getStatus());
         assertNotNull(result);
     }

@@ -291,6 +291,10 @@ export class LoanHistoryCatalogComponent implements OnInit {
     return Array.from({ length: this.totalBooksPages }, (_, i) => i + 1);
   }
 
+  get visibleBooksPages(): PaginationItem[] {
+    return this.buildVisiblePages(this.totalBooksPages, this.currentBooksPage);
+  }
+
   get pagedBooks(): BookStat[] {
     const start = (this.currentBooksPage - 1) * this.booksPageSize;
     return this.filteredBooks.slice(start, start + this.booksPageSize);
@@ -298,5 +302,13 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   goToBooksPage(page: number) {
     this.currentBooksPage = page;
+  }
+
+  goToPreviousBooksPage() {
+    this.goToBooksPage(this.currentBooksPage - 1);
+  }
+
+  goToNextBooksPage() {
+    this.goToBooksPage(this.currentBooksPage + 1);
   }
 }

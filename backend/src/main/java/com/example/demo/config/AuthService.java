@@ -69,12 +69,11 @@ public class AuthService {
                                         logger.debug("Refreshing access token for user: {}", sub);
                                         return refreshAccessToken(user.getSmartschoolRefreshToken(), user.getPlatform())
                                                         .flatMap(tokenResponse -> {
-                                                                user.setAccessToken(tokenResponse.getAccessToken());
                                                                 if (tokenResponse.getRefreshToken() != null) {
                                                                         user.setSmartschoolRefreshToken(tokenResponse
                                                                                         .getRefreshToken());
+                                                                        appUserRepository.save(user);
                                                                 }
-                                                                appUserRepository.save(user);
                                                                 logger.info("Token refreshed successfully for user: {}",
                                                                                 sub);
                                                                 return getUserInfo(tokenResponse, user.getPlatform());
@@ -89,32 +88,51 @@ public class AuthService {
                         return Mono.error(new IllegalArgumentException("Authorization code is required"));
                 }
                 return getAccessToken(code)
-                                .flatMap(tokenResponse -> getUserInfo(tokenResponse, null))
-                                .flatMap(this::saveUserAndBuildResponse);
+                                .doOnSuccess(token -> logger.info("Successfully obtained access token from SmartSchool"))
+                                .doOnError(error -> logger.error("Failed to get access token from SmartSchool: {}", error.getMessage(), error))
+                                .flatMap(tokenResponse -> getUserInfo(tokenResponse, null)
+                                                .doOnError(error -> logger.error("Failed to get user info from SmartSchool: {}", error.getMessage(), error)))
+                                .flatMap(this::saveUserAndBuildResponse)
+                                .doOnError(error -> logger.error("Failed to save user and build response: {}", error.getMessage(), error));
         }
 
         public Mono<Void> logout(String accessToken) {
-                return revokeSmartschoolToken(accessToken)
-                                .doOnSuccess(v -> logger.info("User logged out and token revoked successfully"))
-                                .doOnError(error -> logger.error("Error during logout, but proceeding anyway", error))
-                                .onErrorResume(error -> Mono.empty())
-                                .then(Mono.fromRunnable(() ->
-                                        appUserRepository.findByAccessToken(accessToken).ifPresent(user -> {
-                                                user.setAccessToken(null);
-                                                appUserRepository.save(user);
-                                        })
-                                ));
+                // Intentionally skip Smartschool token revocation: revoking the access token
+                // also invalidates the refresh token, which breaks server-side name resolution
+                // (leaderboard, reviews, admin board) for users who are logged out.
+                // Session termination is handled by clearing the DB token; the frontend
+                // discards localStorage. The Smartschool access token expires on its own.
+                return Mono.fromRunnable(() ->
+                        appUserRepository.findByAccessToken(accessToken).ifPresent(user -> {
+                                user.setAccessToken(null);
+                                appUserRepository.save(user);
+                                logger.info("User logged out, DB token cleared for sub: {}", user.getSub());
+                        })
+                );
         }
 
         public Mono<Boolean> validateToken(String accessToken) {
                 String accessTokenValue = Objects.requireNonNull(accessToken, "accessToken");
+                
+                // First, check if token exists in our database (AppUser.access_token)
+                // This allows validation even if Smartschool API is unreachable
+                java.util.Optional<AppUser> userOpt = appUserRepository.findByAccessToken(accessTokenValue);
+                if (userOpt.isPresent()) {
+                        AppUser user = userOpt.get();
+                        if (user.isActive()) {
+                                logger.debug("Token validation successful (found in database)");
+                                return Mono.just(true);
+                        }
+                }
+                
+                // If not in database or user is inactive, validate against Smartschool API
                 return this.webClient.get()
                                 .uri(smartschoolProperties.getApiBaseUrl() + "/Api/V1/userinfo")
                                 .headers(headers -> headers.setBearerAuth(accessTokenValue))
                                 .retrieve()
                                 .toBodilessEntity()
                                 .then(Mono.just(true))
-                                .doOnSuccess(v -> logger.info("Token validation successful"))
+                                .doOnSuccess(v -> logger.info("Token validation successful (from Smartschool API)"))
                                 .onErrorResume(error -> {
                                         logger.debug("Token validation failed: {}", error.getMessage());
                                         return Mono.just(false);
@@ -361,7 +379,8 @@ public class AuthService {
                                                         .doOnSuccess(token -> logger
                                                                         .info("Successfully retrieved access token"));
                                 })
-                                .doOnError(error -> logger.error("Failed to retrieve access token", error));
+                                .doOnError(error -> logger.error("Failed to retrieve access token from {}: {} ({})", 
+                                        tokenUrl, error.getMessage(), error.getClass().getSimpleName(), error));
         }
 
         public Mono<SmartschoolTokenResponse> refreshAccessToken(String refreshToken) {

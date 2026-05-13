@@ -1,9 +1,17 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, NgZone } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  NgZone,
+} from "@angular/core";
 import { Router } from "@angular/router";
 import * as L from "leaflet";
 import { AdminSchoolService } from "../services/admin-school.service";
 import { SchoolService } from "../services/school.service";
 import { AdminSchoolDashboardItem, SchoolStatus } from "../models/admin-school";
+
+type PaginationItem = number | "...";
 
 @Component({
   selector: "app-admin-dashboard",
@@ -11,7 +19,9 @@ import { AdminSchoolDashboardItem, SchoolStatus } from "../models/admin-school";
   styleUrls: ["./admin-dashboard.component.css"],
   standalone: false,
 })
-export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
+export class AdminDashboardComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   isLoadingSchools = false;
   schoolError = "";
   schools: AdminSchoolDashboardItem[] = [];
@@ -113,14 +123,20 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  get activeCount():  number { return this.schools.filter(s => s.status === "ACTIVE").length; }
-  get inactiveCount(): number { return this.schools.filter(s => s.status === "INACTIVE").length; }
-  get pendingCount():  number { return this.schools.filter(s => s.status === "PENDING").length; }
+  get activeCount(): number {
+    return this.schools.filter((s) => s.status === "ACTIVE").length;
+  }
+  get inactiveCount(): number {
+    return this.schools.filter((s) => s.status === "INACTIVE").length;
+  }
+  get pendingCount(): number {
+    return this.schools.filter((s) => s.status === "PENDING").length;
+  }
 
   get filteredSchools(): AdminSchoolDashboardItem[] {
     const q = this.searchQuery.trim().toLowerCase();
-    return this.schools.filter(s => {
-      const matchName   = !q || (s.naam ?? s.subdomain).toLowerCase().includes(q);
+    return this.schools.filter((s) => {
+      const matchName = !q || (s.naam ?? s.subdomain).toLowerCase().includes(q);
       const matchStatus = !this.statusFilter || s.status === this.statusFilter;
       return matchName && matchStatus;
     });
@@ -128,6 +144,47 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.filteredSchools.length / this.pageSize));
+  }
+
+  get visiblePages(): PaginationItem[] {
+    return this.buildVisiblePages(this.totalPages, this.currentPage);
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   get pagedSchools(): AdminSchoolDashboardItem[] {
@@ -139,8 +196,18 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
     this.currentPage = 1;
   }
 
-  prevPage(): void { if (this.currentPage > 1) this.currentPage--; }
-  nextPage(): void { if (this.currentPage < this.totalPages) this.currentPage++; }
+  prevPage(): void {
+    if (this.currentPage > 1) this.currentPage--;
+  }
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+
+  goToPage(page: number | string): void {
+    if (typeof page === "number" && page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
 
   toggleMap(): void {
     this.mapExpanded = !this.mapExpanded;
@@ -166,7 +233,8 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
         this.isLoadingSchools = false;
       },
       error: (error) => {
-        this.schoolError = error?.error?.message || "Scholen laden is mislukt. Probeer opnieuw.";
+        this.schoolError =
+          error?.error?.message || "Scholen laden is mislukt. Probeer opnieuw.";
         this.isLoadingSchools = false;
       },
     });
@@ -174,9 +242,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit, OnDestroy
 
   statusLabel(status: SchoolStatus): string {
     switch (status) {
-      case "ACTIVE": return "Actief";
-      case "INACTIVE": return "Inactief";
-      case "PENDING": return "In afwachting";
+      case "ACTIVE":
+        return "Actief";
+      case "INACTIVE":
+        return "Inactief";
+      case "PENDING":
+        return "In afwachting";
     }
   }
 }

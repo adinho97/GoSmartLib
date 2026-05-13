@@ -1,5 +1,7 @@
 package com.example.demo.controllers;
 
+import com.example.demo.config.AuthService;
+import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.dto.admin.school.CreateSchoolRequest;
 import com.example.demo.dto.admin.school.CreateSchoolResponse;
 import com.example.demo.dto.admin.school.KlasListItem;
@@ -20,15 +22,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/api/admin/schools")
 public class AdminSchoolController {
 
     private final SchoolAdminService schoolAdminService;
+    private final AuthService authService;
 
-    public AdminSchoolController(SchoolAdminService schoolAdminService) {
+    public AdminSchoolController(SchoolAdminService schoolAdminService, AuthService authService) {
         this.schoolAdminService = schoolAdminService;
+        this.authService = authService;
     }
 
     @PostMapping
@@ -66,7 +71,33 @@ public class AdminSchoolController {
     @GetMapping("/{id}/users")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public List<AdminUserListItem> getSchoolUsers(@PathVariable Long id) {
-        return schoolAdminService.getSchoolUsers(id);
+        List<AdminUserListItem> users = schoolAdminService.getSchoolUsers(id);
+        resolveDisplayNames(users);
+        return users;
+    }
+
+    private void resolveDisplayNames(List<AdminUserListItem> users) {
+        Flux.fromIterable(users)
+                .filter(u -> u.getSub() != null && !u.getSub().isBlank())
+                .flatMap(u -> authService.getUserInfoBySub(u.getSub())
+                        .map(info -> {
+                            u.setDisplayName(formatDisplayName(info));
+                            return u;
+                        })
+                        .onErrorReturn(u))
+                .collectList()
+                .block();
+    }
+
+    private String formatDisplayName(SmartschoolUserInfo info) {
+        String given = info.getGivenName();
+        String family = info.getFamilyName();
+        if (given != null && !given.isBlank() && family != null && !family.isBlank()) return family + " " + given;
+        if (family != null && !family.isBlank()) return family;
+        if (given != null && !given.isBlank()) return given;
+        if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
+        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
+        return info.getSub();
     }
 
     @PatchMapping("/{id}/users/{userId}/active")

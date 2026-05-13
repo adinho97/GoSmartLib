@@ -113,7 +113,7 @@ class SuperAdminAuthServiceTest {
         service.changeSuperAdminPassword(5L, "OldPass1", "NewPass1A");
 
         ArgumentCaptor<SuperAdmin> captor = ArgumentCaptor.forClass(SuperAdmin.class);
-        verify(superAdminRepository).save(Objects.requireNonNull(captor.capture()));
+        verify(superAdminRepository).save(captor.capture());
         SuperAdmin saved = captor.getValue();
 
         assertEquals(1L, saved.getTokenVersion());

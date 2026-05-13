@@ -4,6 +4,7 @@ public class AdminUserListItem {
 
     private Long id;
     private String sub;
+    private String displayName;
     private String role;
     private String klasNaam;
     private boolean active;
@@ -13,6 +14,9 @@ public class AdminUserListItem {
 
     public String getSub() { return sub; }
     public void setSub(String sub) { this.sub = sub; }
+
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }

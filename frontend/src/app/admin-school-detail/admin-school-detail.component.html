@@ -1,5 +1,4 @@
 <div class="detail-page">
-
   @if (loadError) {
     <div class="alert-error">{{ loadError }}</div>
   }
@@ -11,10 +10,26 @@
   @if (!isLoadingDetail && detail) {
     <!-- Page title row -->
     <div class="page-title-row">
-      <button type="button" class="btn-back-icon" (click)="goBack()" title="Terug naar dashboard" aria-label="Terug naar dashboard">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M19 12H5"/>
-          <polyline points="12 19 5 12 12 5"/>
+      <button
+        type="button"
+        class="btn-back-icon"
+        (click)="goBack()"
+        title="Terug naar dashboard"
+        aria-label="Terug naar dashboard"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M19 12H5" />
+          <polyline points="12 19 5 12 12 5" />
         </svg>
       </button>
       <div class="page-title-block">
@@ -25,14 +40,14 @@
         <span class="status-badge status-{{ detail.status.toLowerCase() }}">
           {{ statusLabel(detail.status) }}
         </span>
-        @if (detail.status !== 'PENDING') {
+        @if (detail.status !== "PENDING") {
           <button
             type="button"
             class="btn-status-toggle"
             (click)="toggleStatus()"
             [disabled]="isTogglingStatus"
           >
-            {{ detail.status === 'INACTIVE' ? 'Activeren' : 'Deactiveren' }}
+            {{ detail.status === "INACTIVE" ? "Activeren" : "Deactiveren" }}
           </button>
         }
       </div>
@@ -43,18 +58,37 @@
 
     <!-- Info card (collapsible) -->
     <div class="card">
-      <button type="button" class="card-toggle-header" (click)="toggleInfo()" [attr.aria-expanded]="infoExpanded">
+      <button
+        type="button"
+        class="card-toggle-header"
+        (click)="toggleInfo()"
+        [attr.aria-expanded]="infoExpanded"
+      >
         <div class="card-toggle-left">
           <h2 class="card-title">Schoolinformatie</h2>
           @if (!infoExpanded) {
             <p class="card-toggle-summary">
               {{ editNaam || detail.subdomain }}
-              @if (editAdres) { · {{ editAdres }} }
+              @if (editAdres) {
+                · {{ editAdres }}
+              }
             </p>
           }
         </div>
-        <svg class="card-toggle-chevron" [class.rotated]="infoExpanded" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="6 9 12 15 18 9"/>
+        <svg
+          class="card-toggle-chevron"
+          [class.rotated]="infoExpanded"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
 
@@ -62,7 +96,12 @@
         <div class="card-collapse-inner">
           <div class="form-grid">
             <label class="form-label">Schoolnaam</label>
-            <input type="text" class="form-input" [(ngModel)]="editNaam" placeholder="Naam van de school" />
+            <input
+              type="text"
+              class="form-input"
+              [(ngModel)]="editNaam"
+              placeholder="Naam van de school"
+            />
 
             <label class="form-label">Subdomein</label>
             <span class="form-readonly">{{ detail.smartschoolUrl }}</span>
@@ -82,7 +121,7 @@
                 (click)="geocodeAddress()"
                 [disabled]="isGeocoding || !editAdres.trim()"
               >
-                {{ isGeocoding ? '...' : 'Opzoeken' }}
+                {{ isGeocoding ? "..." : "Opzoeken" }}
               </button>
             </div>
 
@@ -96,18 +135,37 @@
                 @if (geocodedDisplay) {
                   <p class="coords-display">{{ geocodedDisplay }}</p>
                 }
-                <p class="coords-values">{{ editLat | number:'1.5-5' }}, {{ editLng | number:'1.5-5' }}</p>
+                <p class="coords-values">
+                  {{ editLat | number: "1.5-5" }},
+                  {{ editLng | number: "1.5-5" }}
+                </p>
               </div>
             }
           </div>
 
-          @if (saveError) { <p class="inline-error">{{ saveError }}</p> }
-          @if (saveSuccess) { <p class="inline-success">Opgeslagen.</p> }
+          @if (saveError) {
+            <p class="inline-error">{{ saveError }}</p>
+          }
+          @if (saveSuccess) {
+            <p class="inline-success">Opgeslagen.</p>
+          }
 
           <div class="form-actions">
-            <button type="button" class="btn-secondary" (click)="resetForm()" [disabled]="isSaving">Annuleren</button>
-            <button type="button" class="btn-primary" (click)="saveInfo()" [disabled]="isSaving">
-              {{ isSaving ? 'Opslaan...' : 'Opslaan' }}
+            <button
+              type="button"
+              class="btn-secondary"
+              (click)="resetForm()"
+              [disabled]="isSaving"
+            >
+              Annuleren
+            </button>
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="saveInfo()"
+              [disabled]="isSaving"
+            >
+              {{ isSaving ? "Opslaan..." : "Opslaan" }}
             </button>
           </div>
         </div>
@@ -119,16 +177,29 @@
       <div class="card-header-row">
         <h2 class="card-title">
           Gebruikers
-          <span class="count-badge">{{ filteredUsers.length }}{{ filteredUsers.length !== users.length ? ' / ' + users.length : '' }}</span>
+          <span class="count-badge"
+            >{{ filteredUsers.length
+            }}{{
+              filteredUsers.length !== users.length ? " / " + users.length : ""
+            }}</span
+          >
         </h2>
         <div class="filter-row">
-          <select class="role-select" [(ngModel)]="roleFilter" (ngModelChange)="onUserFilterChange()">
+          <select
+            class="role-select"
+            [(ngModel)]="roleFilter"
+            (ngModelChange)="onUserFilterChange()"
+          >
             <option value="">Alle rollen</option>
             <option value="leerling">Leerling</option>
             <option value="leerkracht">Leerkracht</option>
             <option value="bibbeheerder">Bibbeheerder</option>
           </select>
-          <select class="role-select" [(ngModel)]="klasFilter" (ngModelChange)="onUserFilterChange()">
+          <select
+            class="role-select"
+            [(ngModel)]="klasFilter"
+            (ngModelChange)="onUserFilterChange()"
+          >
             <option value="">Alle klassen</option>
             @for (klas of klassen; track klas.id) {
               <option [value]="klas.naam">{{ klas.naam }}</option>
@@ -142,9 +213,30 @@
             placeholder="Zoeken..."
           />
           <div class="active-filter-pills">
-            <button type="button" class="pill" [class.pill-active]="activeFilter === ''"       (click)="setActiveFilter('')">Alle</button>
-            <button type="button" class="pill" [class.pill-active]="activeFilter === 'active'"  (click)="setActiveFilter('active')">Actief</button>
-            <button type="button" class="pill" [class.pill-active]="activeFilter === 'inactive'"(click)="setActiveFilter('inactive')">Inactief</button>
+            <button
+              type="button"
+              class="pill"
+              [class.pill-active]="activeFilter === ''"
+              (click)="setActiveFilter('')"
+            >
+              Alle
+            </button>
+            <button
+              type="button"
+              class="pill"
+              [class.pill-active]="activeFilter === 'active'"
+              (click)="setActiveFilter('active')"
+            >
+              Actief
+            </button>
+            <button
+              type="button"
+              class="pill"
+              [class.pill-active]="activeFilter === 'inactive'"
+              (click)="setActiveFilter('inactive')"
+            >
+              Inactief
+            </button>
           </div>
         </div>
       </div>
@@ -173,17 +265,23 @@
             <tbody>
               @for (user of pagedUsers; track user.id) {
                 <tr [class.row-inactive]="!user.active">
-                  <td class="cell-name">{{ getDisplayName(user.sub) || '—' }}</td>
-                  <td class="cell-sub">{{ user.sub || '—' }}</td>
+                  <td class="cell-name">{{ user.displayName || "—" }}</td>
+                  <td class="cell-sub">{{ user.sub || "—" }}</td>
                   <td>{{ roleLabel(user.role) }}</td>
-                  <td>{{ user.klasNaam || '—' }}</td>
+                  <td>{{ user.klasNaam || "—" }}</td>
                   <td>
-                    <span class="user-status-badge" [class.badge-active]="user.active" [class.badge-inactive]="!user.active">
-                      {{ user.active ? 'Actief' : 'Inactief' }}
+                    <span
+                      class="user-status-badge"
+                      [class.badge-active]="user.active"
+                      [class.badge-inactive]="!user.active"
+                    >
+                      {{ user.active ? "Actief" : "Inactief" }}
                     </span>
                   </td>
                   <td class="cell-action">
-                    @if (user.role === 'leerkracht' || user.role === 'bibbeheerder') {
+                    @if (
+                      user.role === "leerkracht" || user.role === "bibbeheerder"
+                    ) {
                       <button
                         type="button"
                         class="btn-user-action btn-promote"
@@ -191,7 +289,13 @@
                         (click)="toggleUserRole(user)"
                         [disabled]="promotingUserId === user.id"
                       >
-                        {{ promotingUserId === user.id ? '...' : (user.role === 'leerkracht' ? 'Maak bibbeheerder' : 'Maak leerkracht') }}
+                        {{
+                          promotingUserId === user.id
+                            ? "..."
+                            : user.role === "leerkracht"
+                              ? "Maak bibbeheerder"
+                              : "Maak leerkracht"
+                        }}
                       </button>
                     }
                     <button
@@ -202,7 +306,13 @@
                       (click)="toggleUserActive(user)"
                       [disabled]="togglingUserId === user.id"
                     >
-                      {{ togglingUserId === user.id ? '...' : (user.active ? 'Deactiveren' : 'Activeren') }}
+                      {{
+                        togglingUserId === user.id
+                          ? "..."
+                          : user.active
+                            ? "Deactiveren"
+                            : "Activeren"
+                      }}
                     </button>
                   </td>
                 </tr>
@@ -218,9 +328,38 @@
 
         @if (userTotalPages > 1) {
           <div class="pagination">
-            <button type="button" class="btn-page" (click)="prevUserPage()" [disabled]="userPage === 1">‹</button>
-            <span class="page-info">{{ userPage }} / {{ userTotalPages }}</span>
-            <button type="button" class="btn-page" (click)="nextUserPage()" [disabled]="userPage === userTotalPages">›</button>
+            <button
+              type="button"
+              class="btn-page"
+              [disabled]="userPage === 1"
+              (click)="prevUserPage()"
+              title="Vorige"
+            >
+              ‹
+            </button>
+            @for (page of visibleUserPages; track $index) {
+              @if (page === "...") {
+                <span class="page-ellipsis">...</span>
+              } @else {
+                <button
+                  type="button"
+                  class="btn-page"
+                  [class.active]="page === userPage"
+                  (click)="goToUserPage(page)"
+                >
+                  {{ page }}
+                </button>
+              }
+            }
+            <button
+              type="button"
+              class="btn-page"
+              [disabled]="userPage === userTotalPages"
+              (click)="nextUserPage()"
+              title="Volgende"
+            >
+              ›
+            </button>
           </div>
         }
       }
@@ -251,7 +390,11 @@
 
       <div class="lib-cards-grid">
         @for (card of libraryCards; track card.route) {
-          <button type="button" class="lib-card" (click)="navigateToLibrary(card.route)">
+          <button
+            type="button"
+            class="lib-card"
+            (click)="navigateToLibrary(card.route)"
+          >
             <span class="lib-card-icon lib-icon-{{ card.icon }}"></span>
             <div class="lib-card-text">
               <span class="lib-card-title">{{ card.label }}</span>
@@ -272,7 +415,10 @@
       @if (isLoadingKlassen) {
         <p class="loading-text">Klassen laden...</p>
       } @else if (klassen.length === 0) {
-        <p class="empty-text">Nog geen klassen. Ze worden automatisch aangemaakt bij de eerste login via Smartschool.</p>
+        <p class="empty-text">
+          Nog geen klassen. Ze worden automatisch aangemaakt bij de eerste login
+          via Smartschool.
+        </p>
       } @else {
         <div class="table-wrap">
           <table class="data-table">
@@ -284,8 +430,14 @@
             </thead>
             <tbody>
               @for (klas of pagedKlassen; track klas.id) {
-                <tr class="clickable-row" (click)="openKlasUsersPopup(klas)" title="Klik om leerlingen in deze klas te bekijken">
-                  <td><strong>{{ klas.naam }}</strong></td>
+                <tr
+                  class="clickable-row"
+                  (click)="openKlasUsersPopup(klas)"
+                  title="Klik om leerlingen in deze klas te bekijken"
+                >
+                  <td>
+                    <strong>{{ klas.naam }}</strong>
+                  </td>
                   <td class="cell-groupid">{{ klas.groupId }}</td>
                 </tr>
               }
@@ -295,9 +447,38 @@
 
         @if (klasTotalPages > 1) {
           <div class="pagination">
-            <button type="button" class="btn-page" (click)="prevKlasPage()" [disabled]="klasPage === 1">‹</button>
-            <span class="page-info">{{ klasPage }} / {{ klasTotalPages }}</span>
-            <button type="button" class="btn-page" (click)="nextKlasPage()" [disabled]="klasPage === klasTotalPages">›</button>
+            <button
+              type="button"
+              class="btn-page"
+              [disabled]="klasPage === 1"
+              (click)="prevKlasPage()"
+              title="Vorige"
+            >
+              ‹
+            </button>
+            @for (page of visibleKlasPages; track $index) {
+              @if (page === "...") {
+                <span class="page-ellipsis">...</span>
+              } @else {
+                <button
+                  type="button"
+                  class="btn-page"
+                  [class.active]="page === klasPage"
+                  (click)="goToKlasPage(page)"
+                >
+                  {{ page }}
+                </button>
+              }
+            }
+            <button
+              type="button"
+              class="btn-page"
+              [disabled]="klasPage === klasTotalPages"
+              (click)="nextKlasPage()"
+              title="Volgende"
+            >
+              ›
+            </button>
           </div>
         }
       }
@@ -321,8 +502,21 @@
               (ngModelChange)="onKlasPopupFilterChange()"
               placeholder="Zoeken in klas..."
             />
-            <button type="button" class="btn-close-modal" (click)="closeKlasPopup()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <button
+              type="button"
+              class="btn-close-modal"
+              (click)="closeKlasPopup()"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -347,11 +541,15 @@
                 <tbody>
                   @for (user of pagedUsersInKlas; track user.id) {
                     <tr [class.row-inactive]="!user.active">
-                      <td class="cell-name">{{ getDisplayName(user.sub) || '—' }}</td>
+                      <td class="cell-name">{{ user.displayName || "—" }}</td>
                       <td>{{ roleLabel(user.role) }}</td>
                       <td>
-                        <span class="user-status-badge" [class.badge-active]="user.active" [class.badge-inactive]="!user.active">
-                          {{ user.active ? 'Actief' : 'Inactief' }}
+                        <span
+                          class="user-status-badge"
+                          [class.badge-active]="user.active"
+                          [class.badge-inactive]="!user.active"
+                        >
+                          {{ user.active ? "Actief" : "Inactief" }}
                         </span>
                       </td>
                       <td class="cell-action">
@@ -363,7 +561,13 @@
                           (click)="toggleUserActive(user)"
                           [disabled]="togglingUserId === user.id"
                         >
-                          {{ togglingUserId === user.id ? '...' : (user.active ? 'Deactiveren' : 'Activeren') }}
+                          {{
+                            togglingUserId === user.id
+                              ? "..."
+                              : user.active
+                                ? "Deactiveren"
+                                : "Activeren"
+                          }}
                         </button>
                       </td>
                     </tr>
@@ -374,9 +578,38 @@
 
             @if (klasPopupTotalPages > 1) {
               <div class="pagination">
-                <button type="button" class="btn-page" (click)="prevKlasPopupPage()" [disabled]="klasPopupPage === 1">‹</button>
-                <span class="page-info">{{ klasPopupPage }} / {{ klasPopupTotalPages }}</span>
-                <button type="button" class="btn-page" (click)="nextKlasPopupPage()" [disabled]="klasPopupPage === klasPopupTotalPages">›</button>
+                <button
+                  type="button"
+                  class="btn-page"
+                  [disabled]="klasPopupPage === 1"
+                  (click)="prevKlasPopupPage()"
+                  title="Vorige"
+                >
+                  ‹
+                </button>
+                @for (page of visibleKlasPopupPages; track $index) {
+                  @if (page === "...") {
+                    <span class="page-ellipsis">...</span>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn-page"
+                      [class.active]="page === klasPopupPage"
+                      (click)="goToKlasPopupPage(page)"
+                    >
+                      {{ page }}
+                    </button>
+                  }
+                }
+                <button
+                  type="button"
+                  class="btn-page"
+                  [disabled]="klasPopupPage === klasPopupTotalPages"
+                  (click)="nextKlasPopupPage()"
+                  title="Volgende"
+                >
+                  ›
+                </button>
               </div>
             }
           }

@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,13 +31,13 @@ class SuperAdminBootstrapTest {
         when(superAdminRepository.count()).thenReturn(0L);
         when(setupTokenRepository.countByUsedAtIsNullAndExpiresAtAfter(any(LocalDateTime.class))).thenReturn(0L);
         when(setupTokenRepository.save(any(SuperAdminSetupToken.class)))
-            .thenAnswer(inv -> inv.getArgument(0));
+                .thenAnswer(inv -> inv.getArgument(0));
 
         SuperAdminBootstrap bootstrap = new SuperAdminBootstrap(superAdminRepository, setupTokenRepository);
         bootstrap.run();
 
         ArgumentCaptor<SuperAdminSetupToken> captor = ArgumentCaptor.forClass(SuperAdminSetupToken.class);
-        verify(setupTokenRepository).save(Objects.requireNonNull(captor.capture()));
+        verify(setupTokenRepository).save(captor.capture());
         SuperAdminSetupToken saved = captor.getValue();
 
         assertNotNull(saved.getTokenHash());

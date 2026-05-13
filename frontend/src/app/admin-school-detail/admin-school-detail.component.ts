@@ -2,17 +2,16 @@ import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { forkJoin, from } from "rxjs";
-import axios from "axios";
 import { AdminSchoolService } from "../services/admin-school.service";
 import { BookService } from "../services/book.service";
-import { AuthContextService } from "../services/auth-context.service";
 import {
   AdminUserListItem,
   KlasListItem,
   SchoolDetail,
   SchoolStatus,
 } from "../models/admin-school";
-import { formatUserInfoDisplayName } from "../utils/name-utils";
+
+type PaginationItem = number | "...";
 
 interface NominatimResult {
   lat: string;
@@ -46,16 +45,66 @@ export class AdminSchoolDetailComponent implements OnInit {
   loadError = "";
 
   readonly libraryCards = [
-    { label: "Boekencatalogus",    sub: "Boeken bekijken & beheren",       route: "/books",               icon: "catalog"   },
-    { label: "Boek toevoegen",     sub: "Boek aan catalogus toevoegen",     route: "/add-general",         icon: "add"       },
-    { label: "Boek uitlenen",      sub: "Uitlening registreren",            route: "/uitleen",             icon: "loan"      },
-    { label: "Boek terugbrengen",  sub: "Boek inname registreren",          route: "/boek-terugbrengen",   icon: "return"    },
-    { label: "Actieve uitleningen",sub: "Lopende uitleningen bekijken",     route: "/uitleen-overzicht",   icon: "active"    },
-    { label: "Uitleenhistoriek",   sub: "Alle voorbije uitleningen",        route: "/uitleen-catalogus",   icon: "history"   },
-    { label: "Conditieoverzicht",  sub: "Staat van de collectie",           route: "/uitleen-conditie",    icon: "condition" },
-    { label: "Klasleeslijsten",    sub: "Leeslijsten beheren",              route: "/klasleeslijst-beheer",icon: "list"      },
-    { label: "FAQ & Inhoud",       sub: "Inhoud & veelgestelde vragen",     route: "/faq-beheer",          icon: "faq"       },
-    { label: "Schoolstatistieken", sub: "School-brede cijfers",             route: "/statistieken/school", icon: "stats"     },
+    {
+      label: "Boekencatalogus",
+      sub: "Boeken bekijken & beheren",
+      route: "/books",
+      icon: "catalog",
+    },
+    {
+      label: "Boek toevoegen",
+      sub: "Boek aan catalogus toevoegen",
+      route: "/add-general",
+      icon: "add",
+    },
+    {
+      label: "Boek uitlenen",
+      sub: "Uitlening registreren",
+      route: "/uitleen",
+      icon: "loan",
+    },
+    {
+      label: "Boek terugbrengen",
+      sub: "Boek inname registreren",
+      route: "/boek-terugbrengen",
+      icon: "return",
+    },
+    {
+      label: "Actieve uitleningen",
+      sub: "Lopende uitleningen bekijken",
+      route: "/uitleen-overzicht",
+      icon: "active",
+    },
+    {
+      label: "Uitleenhistoriek",
+      sub: "Alle voorbije uitleningen",
+      route: "/uitleen-catalogus",
+      icon: "history",
+    },
+    {
+      label: "Conditieoverzicht",
+      sub: "Staat van de collectie",
+      route: "/uitleen-conditie",
+      icon: "condition",
+    },
+    {
+      label: "Klasleeslijsten",
+      sub: "Leeslijsten beheren",
+      route: "/klasleeslijst-beheer",
+      icon: "list",
+    },
+    {
+      label: "FAQ & Inhoud",
+      sub: "Inhoud & veelgestelde vragen",
+      route: "/faq-beheer",
+      icon: "faq",
+    },
+    {
+      label: "Schoolstatistieken",
+      sub: "School-brede cijfers",
+      route: "/statistieken/school",
+      icon: "stats",
+    },
   ];
 
   // Info edit form
@@ -78,33 +127,6 @@ export class AdminSchoolDetailComponent implements OnInit {
   // Status toggle
   isTogglingStatus = false;
   statusError = "";
-
-  // Display names — fetched live from Smartschool, never stored
-  userDisplayNames: Record<string, string> = {};
-
-  getDisplayName(sub: string): string {
-    return this.userDisplayNames[sub] ?? "";
-  }
-
-  private enrichUserNames(users: AdminUserListItem[]): void {
-    users.forEach(async (user) => {
-      if (!user.sub) return;
-      // Retrieve the authentication token and user sub from AuthContextService
-      const token = this.authContext.getEffectiveBearerToken();
-      const userSub = this.authContext.getEffectiveSub();
-      try {
-        const profile = await axios.get(`/api/users/${encodeURIComponent(user.sub)}/profile`, {
-          headers: {
-            "X-User-Sub": userSub,
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        });
-        this.userDisplayNames[user.sub] = formatUserInfoDisplayName(profile.data, user.sub);
-      } catch {
-        // leave blank — sub is already shown in its own column
-      }
-    });
-  }
 
   // User actions
   togglingUserId: number | null = null;
@@ -134,7 +156,6 @@ export class AdminSchoolDetailComponent implements OnInit {
     private readonly http: HttpClient,
     private readonly adminSchoolService: AdminSchoolService,
     private readonly bookService: BookService,
-    private readonly authContext: AuthContextService, // Inject AuthContextService
   ) {}
 
   ngOnInit(): void {
@@ -223,23 +244,25 @@ export class AdminSchoolDetailComponent implements OnInit {
     this.saveError = "";
     this.saveSuccess = false;
 
-    this.adminSchoolService.updateSchoolInfo(this.schoolId, {
-      naam: this.editNaam.trim() || null,
-      adres: this.editAdres.trim() || null,
-      latitude: this.editLat,
-      longitude: this.editLng,
-    }).subscribe({
-      next: (updated) => {
-        this.detail = updated;
-        this.isSaving = false;
-        this.saveSuccess = true;
-        setTimeout(() => (this.saveSuccess = false), 3000);
-      },
-      error: (err) => {
-        this.saveError = err?.error?.message || "Opslaan mislukt.";
-        this.isSaving = false;
-      },
-    });
+    this.adminSchoolService
+      .updateSchoolInfo(this.schoolId, {
+        naam: this.editNaam.trim() || null,
+        adres: this.editAdres.trim() || null,
+        latitude: this.editLat,
+        longitude: this.editLng,
+      })
+      .subscribe({
+        next: (updated) => {
+          this.detail = updated;
+          this.isSaving = false;
+          this.saveSuccess = true;
+          setTimeout(() => (this.saveSuccess = false), 3000);
+        },
+        error: (err) => {
+          this.saveError = err?.error?.message || "Opslaan mislukt.";
+          this.isSaving = false;
+        },
+      });
   }
 
   toggleStatus(): void {
@@ -267,16 +290,22 @@ export class AdminSchoolDetailComponent implements OnInit {
     this.userActionError = "";
     const newRole = user.role === "leerkracht" ? "bibbeheerder" : "leerkracht";
 
-    this.adminSchoolService.setUserRole(this.schoolId, user.id, newRole).subscribe({
-      next: (updated) => {
-        this.users = this.users.map((u) => (u.id === updated.id ? updated : u));
-        this.promotingUserId = null;
-      },
-      error: (err) => {
-        this.userActionError = err?.error?.message || "Rol wijzigen mislukt.";
-        this.promotingUserId = null;
-      },
-    });
+    this.adminSchoolService
+      .setUserRole(this.schoolId, user.id, newRole)
+      .subscribe({
+        next: (updated) => {
+          this.users = this.users.map((u) =>
+            u.id === updated.id
+              ? { ...updated, displayName: u.displayName }
+              : u,
+          );
+          this.promotingUserId = null;
+        },
+        error: (err) => {
+          this.userActionError = err?.error?.message || "Rol wijzigen mislukt.";
+          this.promotingUserId = null;
+        },
+      });
   }
 
   toggleUserActive(user: AdminUserListItem): void {
@@ -286,7 +315,9 @@ export class AdminSchoolDetailComponent implements OnInit {
 
     this.adminSchoolService.toggleUserActive(this.schoolId, user.id).subscribe({
       next: (updated) => {
-        this.users = this.users.map((u) => (u.id === updated.id ? updated : u));
+        this.users = this.users.map((u) =>
+          u.id === updated.id ? { ...updated, displayName: u.displayName } : u,
+        );
         this.togglingUserId = null;
       },
       error: (err) => {
@@ -308,24 +339,36 @@ export class AdminSchoolDetailComponent implements OnInit {
 
   get usersInSelectedKlas(): AdminUserListItem[] {
     if (!this.selectedKlasForPopup) return [];
-    return this.users.filter(u => u.klasNaam === this.selectedKlasForPopup?.naam);
+    return this.users.filter(
+      (u) => u.klasNaam === this.selectedKlasForPopup?.naam,
+    );
   }
 
   get filteredUsersInKlas(): AdminUserListItem[] {
     const q = this.klasPopupFilter.trim().toLowerCase();
-    return this.usersInSelectedKlas.filter(u => {
-      const displayName = (this.userDisplayNames[u.sub] ?? "").toLowerCase();
+    return this.usersInSelectedKlas.filter((u) => {
+      const displayName = (u.displayName ?? "").toLowerCase();
       return !q || displayName.includes(q) || u.sub.toLowerCase().includes(q);
     });
   }
 
   get klasPopupTotalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredUsersInKlas.length / this.klasPopupPageSize));
+    return Math.max(
+      1,
+      Math.ceil(this.filteredUsersInKlas.length / this.klasPopupPageSize),
+    );
+  }
+
+  get visibleKlasPopupPages(): PaginationItem[] {
+    return this.buildVisiblePages(this.klasPopupTotalPages, this.klasPopupPage);
   }
 
   get pagedUsersInKlas(): AdminUserListItem[] {
     const start = (this.klasPopupPage - 1) * this.klasPopupPageSize;
-    return this.filteredUsersInKlas.slice(start, start + this.klasPopupPageSize);
+    return this.filteredUsersInKlas.slice(
+      start,
+      start + this.klasPopupPageSize,
+    );
   }
 
   onKlasPopupFilterChange(): void {
@@ -340,6 +383,28 @@ export class AdminSchoolDetailComponent implements OnInit {
     if (this.klasPopupPage < this.klasPopupTotalPages) this.klasPopupPage++;
   }
 
+  goToUserPage(page: number | string): void {
+    if (typeof page === "number" && page >= 1 && page <= this.userTotalPages) {
+      this.userPage = page;
+    }
+  }
+
+  goToKlasPage(page: number | string): void {
+    if (typeof page === "number" && page >= 1 && page <= this.klasTotalPages) {
+      this.klasPage = page;
+    }
+  }
+
+  goToKlasPopupPage(page: number | string): void {
+    if (
+      typeof page === "number" &&
+      page >= 1 &&
+      page <= this.klasPopupTotalPages
+    ) {
+      this.klasPopupPage = page;
+    }
+  }
+
   // User filtering
   get filteredUsers(): AdminUserListItem[] {
     const q = this.userFilter.trim().toLowerCase();
@@ -347,13 +412,11 @@ export class AdminSchoolDetailComponent implements OnInit {
     const k = this.klasFilter;
     const a = this.activeFilter;
     return this.users.filter((u) => {
-      const displayName = (this.userDisplayNames[u.sub] ?? "").toLowerCase();
+      const displayName = (u.displayName ?? "").toLowerCase();
       const matchesText =
-        !q ||
-        displayName.includes(q) ||
-        u.klasNaam?.toLowerCase().includes(q);
-      const matchesRole   = !r || u.role === r;
-      const matchesKlas   = !k || u.klasNaam === k;
+        !q || displayName.includes(q) || u.klasNaam?.toLowerCase().includes(q);
+      const matchesRole = !r || u.role === r;
+      const matchesKlas = !k || u.klasNaam === k;
       const matchesActive = !a || (a === "active" ? u.active : !u.active);
       return matchesText && matchesRole && matchesKlas && matchesActive;
     });
@@ -365,7 +428,14 @@ export class AdminSchoolDetailComponent implements OnInit {
 
   // User pagination
   get userTotalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredUsers.length / this.userPageSize));
+    return Math.max(
+      1,
+      Math.ceil(this.filteredUsers.length / this.userPageSize),
+    );
+  }
+
+  get visibleUserPages(): PaginationItem[] {
+    return this.buildVisiblePages(this.userTotalPages, this.userPage);
   }
 
   get pagedUsers(): AdminUserListItem[] {
@@ -386,6 +456,10 @@ export class AdminSchoolDetailComponent implements OnInit {
     return Math.max(1, Math.ceil(this.klassen.length / this.klasPageSize));
   }
 
+  get visibleKlasPages(): PaginationItem[] {
+    return this.buildVisiblePages(this.klasTotalPages, this.klasPage);
+  }
+
   get pagedKlassen(): KlasListItem[] {
     const start = (this.klasPage - 1) * this.klasPageSize;
     return this.klassen.slice(start, start + this.klasPageSize);
@@ -401,18 +475,62 @@ export class AdminSchoolDetailComponent implements OnInit {
 
   roleLabel(role: string): string {
     switch (role) {
-      case "leerling": return "Leerling";
-      case "leerkracht": return "Leerkracht";
-      case "bibbeheerder": return "Bibbeheerder";
-      default: return role;
+      case "leerling":
+        return "Leerling";
+      case "leerkracht":
+        return "Leerkracht";
+      case "bibbeheerder":
+        return "Bibbeheerder";
+      default:
+        return role;
     }
+  }
+
+  private buildVisiblePages(
+    totalPages: number,
+    currentPage: number,
+  ): PaginationItem[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set<number>([
+      1,
+      2,
+      totalPages - 1,
+      totalPages,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+    ]);
+
+    const pages = Array.from(candidates)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+
+    const result: PaginationItem[] = [];
+    for (let index = 0; index < pages.length; index++) {
+      const page = pages[index];
+      if (index > 0) {
+        const previousPage = pages[index - 1];
+        if (page - previousPage > 1) {
+          result.push("...");
+        }
+      }
+      result.push(page);
+    }
+
+    return result;
   }
 
   statusLabel(status: SchoolStatus): string {
     switch (status) {
-      case "ACTIVE": return "Actief";
-      case "INACTIVE": return "Inactief";
-      case "PENDING": return "In afwachting";
+      case "ACTIVE":
+        return "Actief";
+      case "INACTIVE":
+        return "Inactief";
+      case "PENDING":
+        return "In afwachting";
     }
   }
 
@@ -420,7 +538,10 @@ export class AdminSchoolDetailComponent implements OnInit {
     if (this.detail) {
       localStorage.setItem("selectedSchoolId", String(this.detail.id));
       localStorage.setItem("adminLibrarySchoolId", String(this.detail.id));
-      localStorage.setItem("adminLibrarySchoolName", this.detail.naam || this.detail.subdomain);
+      localStorage.setItem(
+        "adminLibrarySchoolName",
+        this.detail.naam || this.detail.subdomain,
+      );
     }
     this.router.navigate([route]);
   }
