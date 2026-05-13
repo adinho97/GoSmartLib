@@ -80,6 +80,14 @@ export class MijnLijstenComponent implements OnInit {
     return this.hasRole("leerkracht") || this.hasRole("bibbeheerder");
   }
 
+  get canViewDidacticCollection(): boolean {
+    return (
+      this.hasRole("leerkracht") ||
+      this.hasRole("bibbeheerder") ||
+      this.hasRole("super_admin")
+    );
+  }
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -93,15 +101,24 @@ export class MijnLijstenComponent implements OnInit {
     if (VALID_TABS.includes(fragment)) {
       this.activeTab = fragment;
     }
+    if (this.activeTab === "didactisch" && !this.canViewDidacticCollection) {
+      this.activeTab = "geleend";
+    }
     this.loadAll();
   }
 
   private async loadAll(): Promise<void> {
+    if (!this.canViewDidacticCollection) {
+      this.didacticBooks = [];
+      this.didacticLoading = false;
+    }
     await Promise.all([
       this.loadLoans(),
       this.loadWishlist(),
       this.loadClassReading(),
-      this.loadDidacticCollection(),
+      this.canViewDidacticCollection
+        ? this.loadDidacticCollection()
+        : Promise.resolve(),
       this.loadHighlighted(),
       this.loadHistory(),
     ]);
