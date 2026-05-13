@@ -181,7 +181,6 @@ export class AdminSchoolDetailComponent implements OnInit {
         this.users = users;
         this.klassen = klassen;
         this.leeslijsten = Array.isArray(leeslijsten) ? leeslijsten : (leeslijsten as any).data || [];
-        this.enrichUserNames(users);
         this.resetForm();
         this.isLoadingDetail = false;
         this.isLoadingUsers = false;
