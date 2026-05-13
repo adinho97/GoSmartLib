@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.dto.BookDto;
 import com.example.demo.controllers.BookController;
 import com.example.demo.config.AuthService;
+import com.example.demo.config.ConnectionPoolMonitor;
 import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
@@ -90,6 +91,9 @@ class BookControllerTest {
 
         @MockBean
         private ReviewModerationService reviewModerationService;
+
+        @MockBean
+        private ConnectionPoolMonitor connectionPoolMonitor;
 
         @Test
         void getAllShouldReturnBooks() throws Exception {
