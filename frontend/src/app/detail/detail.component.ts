@@ -953,7 +953,9 @@ export class DetailComponent implements OnInit, OnDestroy {
       );
 
       this.reviews = this.reviews.map((review) =>
-        review.id === reviewId ? updatedReview : review,
+        review.id === reviewId
+          ? { ...updatedReview, reviewerUserName: review.reviewerUserName }
+          : review,
       );
       this.cancelReviewEdit();
       this.reviewSuccess = "Review bijgewerkt.";

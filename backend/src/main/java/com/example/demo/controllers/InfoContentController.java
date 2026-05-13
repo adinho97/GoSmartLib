@@ -14,6 +14,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/info-content")
+@SuppressWarnings("null")
 public class InfoContentController {
 
     private final InfoContentRepository infoContentRepository;

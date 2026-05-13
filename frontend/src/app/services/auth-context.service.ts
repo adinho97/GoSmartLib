@@ -7,22 +7,30 @@ export class AuthContextService {
   }
 
   getEffectiveBearerToken(): string {
-    return (
-      localStorage.getItem("admin_jwt_token") ||
-      localStorage.getItem("smartschoolToken") ||
-      ""
-    );
+    // Get user role from localStorage
+    const userRole = localStorage.getItem("role");
+    const roleLower = userRole?.toLowerCase() || "";
+
+    // SUPER_ADMIN users use JWT token; regular users use Smartschool OAuth token
+    if (roleLower === "super_admin") {
+      return localStorage.getItem("admin_jwt_token") || "";
+    } else if (roleLower) {
+      return localStorage.getItem("smartschoolToken") || "";
+    } else {
+      // No role found, try both token types (fallback)
+      return (
+        localStorage.getItem("admin_jwt_token") ||
+        localStorage.getItem("smartschoolToken") ||
+        ""
+      );
+    }
   }
 
   getEffectiveRole(): string {
-    return this.isAdminMode()
-      ? "bibbeheerder"
-      : localStorage.getItem("role") || "";
+    return localStorage.getItem("role") || "";
   }
 
   getEffectiveSub(): string {
-    return this.isAdminMode()
-      ? "admin"
-      : localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    return localStorage.getItem("sub") || localStorage.getItem("userId") || "";
   }
 }

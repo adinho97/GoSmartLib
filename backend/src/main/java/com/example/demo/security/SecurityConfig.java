@@ -61,7 +61,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/admin/genres").authenticated()
 
                         .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
-
+                        .requestMatchers("/api/uitleningen/all-active").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
+                        .requestMatchers("/api/uitleningen/inspectie/conditie").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -96,7 +97,12 @@ public class SecurityConfig {
             "Content-Type",
             "Accept",
             "Origin",
-            "X-Requested-With"
+            "X-Requested-With",
+            "X-User-Sub",
+            "X-User-Role",
+            "X-User-Name",
+            "Cache-Control",
+            "Pragma"
         ));
         configuration.setAllowCredentials(true);
 

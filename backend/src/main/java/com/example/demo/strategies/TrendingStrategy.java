@@ -156,4 +156,9 @@ public class TrendingStrategy implements RecommendationStrategy {
                 .limit(limit)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public String getName() {
+        return "TrendingStrategy";
+    }
 }

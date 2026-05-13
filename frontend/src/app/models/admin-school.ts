@@ -53,6 +53,7 @@ export interface UpdateSchoolInfoRequest {
 export interface AdminUserListItem {
   id: number;
   sub: string;
+  displayName: string | null;
   role: string;
   klasNaam: string | null;
   active: boolean;

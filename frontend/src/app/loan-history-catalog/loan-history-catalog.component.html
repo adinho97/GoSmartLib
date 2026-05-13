@@ -243,16 +243,52 @@
 
           @if (totalBooksPages > 1) {
             <div class="books-pagination">
-              @for (page of booksPageNumbers; track page) {
-                <button
-                  type="button"
-                  class="page-btn"
-                  [class.active]="page === currentBooksPage"
-                  (click)="goToBooksPage(page)"
-                >
-                  {{ page }}
-                </button>
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentBooksPage === 1"
+                (click)="goToBooksPage(1)"
+              >
+                &lt;&lt;
+              </button>
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentBooksPage === 1"
+                (click)="goToPreviousBooksPage()"
+              >
+                &lt;
+              </button>
+              @for (page of visibleBooksPages; track $index) {
+                @if (page === "...") {
+                  <span class="page-ellipsis">...</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="page-btn"
+                    [class.active]="page === currentBooksPage"
+                    (click)="goToBooksPage(page)"
+                  >
+                    {{ page }}
+                  </button>
+                }
               }
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentBooksPage === totalBooksPages"
+                (click)="goToNextBooksPage()"
+              >
+                &gt;
+              </button>
+              <button
+                type="button"
+                class="page-btn page-nav-btn"
+                [disabled]="currentBooksPage === totalBooksPages"
+                (click)="goToBooksPage(totalBooksPages)"
+              >
+                &gt;&gt;
+              </button>
             </div>
           }
         </div>

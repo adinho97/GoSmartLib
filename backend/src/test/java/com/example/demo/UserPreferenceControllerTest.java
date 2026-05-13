@@ -27,6 +27,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserPreferenceController Tests")
+@SuppressWarnings("null")
 class UserPreferenceControllerTest {
 
     @Mock

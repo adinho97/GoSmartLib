@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class LeeslijstService {
     private final LeeslijstRepository leeslijstRepository;
     private final BookRepository bookRepository;
