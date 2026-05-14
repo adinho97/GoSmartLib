@@ -124,13 +124,14 @@ export class BookListComponent implements OnInit {
   readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
   readonly isLibrarian = this.userRole.includes("bibbeheerder");
   readonly isTeacher = this.userRole.includes("leerkracht");
-  readonly isTeacherOrLibrarian =
-    this.isTeacher || this.isLibrarian;
-    this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
+  readonly isTeacherOrLibrarian = this.isTeacher || this.isLibrarian;
 
   get availableGenres(): string[] {
-    if (this.isTeacherOrLibrarian) return this.genres;
-    return this.genres.filter((g) => g !== "Didactiek");
+    if (this.isTeacherOrLibrarian) {
+      return this.genres;
+    }
+    // Hidden didactic collection for students/regular users
+    return this.genres.filter((g) => g.toLowerCase() !== "didactiek");
   }
   readonly pageSize = 16;
   schools: School[] = [];
