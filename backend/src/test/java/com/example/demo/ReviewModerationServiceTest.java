@@ -98,7 +98,7 @@ class ReviewModerationServiceTest {
         );
 
         assertThrows(ApiException.class, () ->
-            reviewModerationService.validateReviewComment("b*llsht")  // combination of obfuscation
+            reviewModerationService.validateReviewComment("b*llshit")  // one char replaced with obfuscation
         );
     }
 

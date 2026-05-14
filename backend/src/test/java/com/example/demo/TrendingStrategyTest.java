@@ -229,6 +229,7 @@ class TrendingStrategyTest {
         School school = new School();
         school.setId(7L);
         testUser.setSchool(school);
+        testUser.setRole("leerkracht");
 
         Book schoolBook = createBook(20L, "Trending School Book", "Author", "Fantasy");
         BookCopy schoolCopy = createBookCopy(20L, schoolBook);
