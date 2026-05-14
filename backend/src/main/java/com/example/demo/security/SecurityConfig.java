@@ -2,6 +2,7 @@ package com.example.demo.security;
 
 import com.example.demo.config.JwtAuthenticationFilter;
 import com.example.demo.config.SmartschoolAuthenticationFilter;
+import com.example.demo.config.CustomAccessDeniedHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,11 +31,14 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final SmartschoolAuthenticationFilter smartschoolAuthenticationFilter;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                          SmartschoolAuthenticationFilter smartschoolAuthenticationFilter) {
+            SmartschoolAuthenticationFilter smartschoolAuthenticationFilter,
+            CustomAccessDeniedHandler customAccessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.smartschoolAuthenticationFilter = smartschoolAuthenticationFilter;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
     }
 
     @Bean
@@ -48,19 +52,23 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exc -> exc
+                        .accessDeniedHandler(customAccessDeniedHandler))
                 .authorizeHttpRequests(authz -> authz
                         // Public endpoints - no authentication required
                         .requestMatchers("/api/auth/smartschool-login").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/validate-token").permitAll()
+                        .requestMatchers("/api/auth/refresh-token").authenticated() // Can be called by authenticated
+                                                                                    // users
                         .requestMatchers("/api/admin/login").permitAll()
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/uitleningen/all-active").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
-                        .requestMatchers("/api/uitleningen/inspectie/conditie").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers("/api/uitleningen/inspectie/conditie")
+                        .hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(smartschoolAuthenticationFilter, JwtAuthenticationFilter.class);
 
@@ -70,9 +78,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         List<String> origins = Arrays.stream(allowedOrigins.split(","))
-            .map(String::trim)
-            .filter(origin -> !origin.isEmpty())
-            .collect(Collectors.toList());
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .collect(Collectors.toList());
 
         if (origins.isEmpty()) {
             throw new IllegalStateException("app.cors.allowed-origins must not be empty");
@@ -80,8 +88,7 @@ public class SecurityConfig {
         for (String origin : origins) {
             if (!origin.startsWith("http://") && !origin.startsWith("https://")) {
                 throw new IllegalStateException(
-                    "app.cors.allowed-origins contains an invalid origin (must include scheme): " + origin
-                );
+                        "app.cors.allowed-origins contains an invalid origin (must include scheme): " + origin);
             }
         }
 
@@ -89,17 +96,16 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-            "X-User-Sub",
-            "X-User-Role",
-            "X-User-Name",
-            "Cache-Control",
-            "Pragma"
-        ));
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With",
+                "X-User-Sub",
+                "X-User-Role",
+                "X-User-Name",
+                "Cache-Control",
+                "Pragma"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

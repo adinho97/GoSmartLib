@@ -37,7 +37,8 @@ public class AuthService {
 
         /**
          * Deduplicates concurrent token-refresh HTTP calls for the same user.
-         * Key: user sub. Value: cached in-flight Mono (shared by all concurrent callers).
+         * Key: user sub. Value: cached in-flight Mono (shared by all concurrent
+         * callers).
          * Entry is removed once the Mono terminates (success or error), so the next
          * request always starts fresh rather than hitting a stale cached failure.
          */
@@ -72,7 +73,8 @@ public class AuthService {
                                         logger.info("User found. ID: {}, has refresh token: {}",
                                                         user.getId(), user.getSmartschoolRefreshToken() != null);
                                         if (user.getSmartschoolRefreshToken() == null) {
-                                                logger.warn("No refresh token in DB for user: {} — user must re-login", sub);
+                                                logger.warn("No refresh token in DB for user: {} — user must re-login",
+                                                                sub);
                                                 return Mono.error(new RevokedTokenException(
                                                                 "No refresh token available for user: " + sub));
                                         }
@@ -89,36 +91,95 @@ public class AuthService {
                                                                                         user.setSmartschoolRefreshToken(
                                                                                                         tokenResponse.getRefreshToken());
                                                                                         appUserRepository.save(user);
-                                                                                        logger.debug("Updated refresh token in DB for user: {}", sub);
+                                                                                        logger.debug("Updated refresh token in DB for user: {}",
+                                                                                                        sub);
                                                                                 }
-                                                                                logger.info("Token refreshed successfully for user: {}", sub);
+                                                                                logger.info("Token refreshed successfully for user: {}",
+                                                                                                sub);
                                                                                 return Mono.just(tokenResponse);
                                                                         })
                                                                         .onErrorMap(RevokedTokenException.class, e -> {
-                                                                                // 401 from Smartschool: token is permanently dead.
-                                                                                // Reload user from DB before clearing — the captured entity
-                                                                                // may be stale if the user re-logged in concurrently.
-                                                                                // Only clear tokens if the refresh token in DB still matches
-                                                                                // the one that was rejected, to avoid overwriting a fresh login.
-                                                                                String rejectedToken = user.getSmartschoolRefreshToken();
-                                                                                appUserRepository.findBySub(sub).ifPresent(freshUser -> {
-                                                                                        if (Objects.equals(freshUser.getSmartschoolRefreshToken(), rejectedToken)) {
-                                                                                                logger.warn("Refresh token permanently revoked for user: {}. "
-                                                                                                                + "Clearing DB tokens — user must re-login via OAuth.", sub);
-                                                                                                freshUser.setSmartschoolRefreshToken(null);
-                                                                                                freshUser.setAccessToken(null);
-                                                                                                appUserRepository.save(freshUser);
-                                                                                        } else {
-                                                                                                logger.info("Skipping token clear for user: {} — refresh token changed (user re-logged in).", sub);
-                                                                                        }
-                                                                                });
+                                                                                // 401 from Smartschool: token is
+                                                                                // permanently dead.
+                                                                                // Reload user from DB before clearing —
+                                                                                // the captured entity
+                                                                                // may be stale if the user re-logged in
+                                                                                // concurrently.
+                                                                                // Only clear tokens if the refresh
+                                                                                // token in DB still matches
+                                                                                // the one that was rejected, to avoid
+                                                                                // overwriting a fresh login.
+                                                                                String rejectedToken = user
+                                                                                                .getSmartschoolRefreshToken();
+                                                                                appUserRepository.findBySub(sub)
+                                                                                                .ifPresent(freshUser -> {
+                                                                                                        if (Objects.equals(
+                                                                                                                        freshUser.getSmartschoolRefreshToken(),
+                                                                                                                        rejectedToken)) {
+                                                                                                                logger.warn("Refresh token permanently revoked for user: {}. "
+                                                                                                                                + "Clearing refresh token — user will be logged out on next token expiration.",
+                                                                                                                                sub);
+                                                                                                                // IMPORTANT:
+                                                                                                                // Only
+                                                                                                                // clear
+                                                                                                                // refresh
+                                                                                                                // token,
+                                                                                                                // NOT
+                                                                                                                // access
+                                                                                                                // token.
+                                                                                                                // If we
+                                                                                                                // clear
+                                                                                                                // accessToken,
+                                                                                                                // the
+                                                                                                                // auth
+                                                                                                                // filter
+                                                                                                                // can't
+                                                                                                                // find
+                                                                                                                // the
+                                                                                                                // user
+                                                                                                                // anymore
+                                                                                                                // and
+                                                                                                                // subsequent
+                                                                                                                // requests
+                                                                                                                // fail
+                                                                                                                // with
+                                                                                                                // 403
+                                                                                                                // instead
+                                                                                                                // of
+                                                                                                                // proper
+                                                                                                                // 401.
+                                                                                                                // Keep
+                                                                                                                // accessToken
+                                                                                                                // valid
+                                                                                                                // until
+                                                                                                                // it
+                                                                                                                // naturally
+                                                                                                                // expires
+                                                                                                                // (a
+                                                                                                                // few
+                                                                                                                // seconds/minutes),
+                                                                                                                // allowing
+                                                                                                                // current
+                                                                                                                // requests
+                                                                                                                // to
+                                                                                                                // complete.
+                                                                                                                freshUser.setSmartschoolRefreshToken(
+                                                                                                                                null);
+                                                                                                                appUserRepository
+                                                                                                                                .save(freshUser);
+                                                                                                        } else {
+                                                                                                                logger.info("Skipping token clear for user: {} — refresh token changed (user re-logged in).",
+                                                                                                                                sub);
+                                                                                                        }
+                                                                                                });
                                                                                 return e;
                                                                         })
                                                                         .doFinally(signal -> refreshCache.remove(sub))
                                                                         .cache());
 
                                         return sharedRefresh.flatMap(
-                                                        tokenResponse -> getUserInfo(tokenResponse, user.getPlatform()));
+                                                        tokenResponse -> getUserInfo(tokenResponse,
+                                                                        user.getPlatform()));
                                 });
         }
 
@@ -129,25 +190,34 @@ public class AuthService {
                         return Mono.error(new IllegalArgumentException("Authorization code is required"));
                 }
                 return getAccessToken(code)
-                                .doOnSuccess(token -> logger.info("Successfully obtained access token from SmartSchool"))
-                                .doOnError(error -> logger.error("Failed to get access token from SmartSchool: {}", error.getMessage(), error))
+                                .doOnSuccess(token -> logger
+                                                .info("Successfully obtained access token from SmartSchool"))
+                                .doOnError(error -> logger.error("Failed to get access token from SmartSchool: {}",
+                                                error.getMessage(), error))
                                 .flatMap(tokenResponse -> getUserInfo(tokenResponse, null)
-                                                .doOnError(error -> logger.error("Failed to get user info from SmartSchool: {}", error.getMessage(), error)))
+                                                .doOnError(error -> logger.error(
+                                                                "Failed to get user info from SmartSchool: {}",
+                                                                error.getMessage(), error)))
                                 .flatMap(this::saveUserAndBuildResponse)
-                                .doOnError(error -> logger.error("Failed to save user and build response: {}", error.getMessage(), error));
+                                .doOnError(error -> logger.error("Failed to save user and build response: {}",
+                                                error.getMessage(), error));
         }
 
         public Mono<Void> logout(String accessToken) {
+                if (accessToken == null || accessToken.isBlank()) {
+                        logger.warn("Logout called with empty accessToken");
+                        return Mono.empty();
+                }
+
+                // Step 1: Try to revoke at Smartschool, but don't fail if it errors
                 return revokeSmartschoolToken(accessToken)
-                                .doOnSuccess(v -> logger.info("User logged out and token revoked successfully"))
-                                .doOnError(error -> logger.error("Error during logout, but proceeding anyway", error))
+                                .doOnSuccess(v -> logger.info("Token revoked successfully at Smartschool"))
+                                .doOnError(error -> logger.warn(
+                                                "Failed to revoke at Smartschool (continuing without DB cleanup): {}",
+                                                error.getMessage()))
                                 .onErrorResume(error -> Mono.empty())
-                                .then(Mono.fromRunnable(() ->
-                                        appUserRepository.findByAccessToken(accessToken).ifPresent(user -> {
-                                                user.setAccessToken(null);
-                                                appUserRepository.save(user);
-                                        })
-                                ));
+                                // Step 2: Do not clear tokens in the DB during logout
+                                .then();
         }
 
         public Mono<Boolean> validateToken(String accessToken) {
@@ -258,7 +328,8 @@ public class AuthService {
                                 });
         }
 
-        private School resolveSchoolForLogin(Optional<AppUser> existingUserOpt, String normalizedPlatform, String subdomain) {
+        private School resolveSchoolForLogin(Optional<AppUser> existingUserOpt, String normalizedPlatform,
+                        String subdomain) {
                 Optional<School> schoolOpt = schoolRepository.findBySubdomeinIgnoreCase(subdomain);
                 if (schoolOpt.isPresent()) {
                         return schoolOpt.get();
@@ -405,8 +476,8 @@ public class AuthService {
                                                         .doOnSuccess(token -> logger
                                                                         .info("Successfully retrieved access token"));
                                 })
-                                .doOnError(error -> logger.error("Failed to retrieve access token from {}: {} ({})", 
-                                        tokenUrl, error.getMessage(), error.getClass().getSimpleName(), error));
+                                .doOnError(error -> logger.error("Failed to retrieve access token from {}: {} ({})",
+                                                tokenUrl, error.getMessage(), error.getClass().getSimpleName(), error));
         }
 
         public Mono<SmartschoolTokenResponse> refreshAccessToken(String refreshToken) {
@@ -449,8 +520,10 @@ public class AuthService {
                                                                                 logger.warn(
                                                                                                 "Refresh token rejected with 401 (revoked/invalid). Body: {}",
                                                                                                 body);
-                                                                                return Mono.error(new RevokedTokenException(
-                                                                                                "Refresh token rejected by Smartschool (401). Body: " + body));
+                                                                                return Mono.error(
+                                                                                                new RevokedTokenException(
+                                                                                                                "Refresh token rejected by Smartschool (401). Body: "
+                                                                                                                                + body));
                                                                         }
                                                                         logger.error(
                                                                                         "Non-2xx response from Smartschool token endpoint (refresh). Status: {}, Body: {}",
