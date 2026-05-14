@@ -96,13 +96,22 @@ public class AuthService {
                                                                         })
                                                                         .onErrorMap(RevokedTokenException.class, e -> {
                                                                                 // 401 from Smartschool: token is permanently dead.
-                                                                                // Clear both tokens so the filter stops authenticating
-                                                                                // this user and so we don't retry on the next run.
-                                                                                logger.warn("Refresh token permanently revoked for user: {}. "
-                                                                                                + "Clearing DB tokens — user must re-login via OAuth.", sub);
-                                                                                user.setSmartschoolRefreshToken(null);
-                                                                                user.setAccessToken(null);
-                                                                                appUserRepository.save(user);
+                                                                                // Reload user from DB before clearing — the captured entity
+                                                                                // may be stale if the user re-logged in concurrently.
+                                                                                // Only clear tokens if the refresh token in DB still matches
+                                                                                // the one that was rejected, to avoid overwriting a fresh login.
+                                                                                String rejectedToken = user.getSmartschoolRefreshToken();
+                                                                                appUserRepository.findBySub(sub).ifPresent(freshUser -> {
+                                                                                        if (Objects.equals(freshUser.getSmartschoolRefreshToken(), rejectedToken)) {
+                                                                                                logger.warn("Refresh token permanently revoked for user: {}. "
+                                                                                                                + "Clearing DB tokens — user must re-login via OAuth.", sub);
+                                                                                                freshUser.setSmartschoolRefreshToken(null);
+                                                                                                freshUser.setAccessToken(null);
+                                                                                                appUserRepository.save(freshUser);
+                                                                                        } else {
+                                                                                                logger.info("Skipping token clear for user: {} — refresh token changed (user re-logged in).", sub);
+                                                                                        }
+                                                                                });
                                                                                 return e;
                                                                         })
                                                                         .doFinally(signal -> refreshCache.remove(sub))

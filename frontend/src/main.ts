@@ -20,6 +20,34 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isAuthEndpoint = error.config?.url?.includes("/api/auth/");
+    const isAdminUser =
+      localStorage.getItem("role") === "SUPER_ADMIN" ||
+      localStorage.getItem("role") === "super_admin";
+
+    // Token permanently revoked by Smartschool — clear session and force re-login
+    if (
+      error.response?.status === 401 &&
+      error.response?.data?.code === "TOKEN_REVOKED" &&
+      !isAuthEndpoint &&
+      !isAdminUser
+    ) {
+      localStorage.removeItem("smartschoolToken");
+      localStorage.removeItem("role");
+      localStorage.removeItem("sub");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("smartschoolPlatform");
+      window.location.href = "/";
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 platformBrowserDynamic()
   .bootstrapModule(AppModule)
   .catch((err) => console.error(err));

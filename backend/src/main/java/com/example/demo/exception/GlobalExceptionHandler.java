@@ -1,5 +1,6 @@
 package com.example.demo.exception;
 
+import com.example.demo.exception.RevokedTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,19 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+        @ExceptionHandler(RevokedTokenException.class)
+        public ResponseEntity<ErrorResponse> handleRevokedToken(
+                        RevokedTokenException ex,
+                        HttpServletRequest request) {
+                ErrorResponse body = ErrorResponse.of(
+                                "Sessie verlopen. Gelieve opnieuw in te loggen.",
+                                HttpStatus.UNAUTHORIZED.value(),
+                                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                                request.getRequestURI(),
+                                "TOKEN_REVOKED");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+        }
 
         @ExceptionHandler(RateLimitExceededException.class)
         public ResponseEntity<ErrorResponse> handleRateLimitExceeded(
