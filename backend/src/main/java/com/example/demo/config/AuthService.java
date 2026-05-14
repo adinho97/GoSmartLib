@@ -306,7 +306,9 @@ public class AuthService {
                                         Klas primaryKlas = upsertKlasData(resolvedSchool, groupInfo.getGroups());
 
                                         targetUser.setRole(roleToPersist);
-                                        targetUser.setSmartschoolRefreshToken(userInfo.getRefreshToken());
+                                        if (userInfo.getRefreshToken() != null) {
+                                                targetUser.setSmartschoolRefreshToken(userInfo.getRefreshToken());
+                                        }
                                         targetUser.setAccessToken(userInfo.getAccessToken());
                                         targetUser.setPlatform(platformForUser);
                                         targetUser.setSchool(resolvedSchool);
