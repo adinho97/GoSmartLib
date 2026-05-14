@@ -31,6 +31,12 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomAccessDeniedHandler.class);
 
+    private final ObjectMapper objectMapper;
+
+    public CustomAccessDeniedHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException, ServletException {
@@ -78,7 +84,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         errorResponse.put("timestamp", Instant.now());
         errorResponse.put("code", errorCode);
 
-        ObjectMapper objectMapper = new ObjectMapper();
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }

@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.config.ConnectionPoolMonitor;
+import com.example.demo.config.CustomAccessDeniedHandler;
 import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.controllers.BibbeheerderController;
 import com.example.demo.dto.admin.user.AdminUserListItem;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BibbeheerderController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, CustomAccessDeniedHandler.class})
 @TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 class BibbeheerderControllerTest {
 
