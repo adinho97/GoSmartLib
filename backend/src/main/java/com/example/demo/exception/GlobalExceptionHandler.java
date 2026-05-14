@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -43,6 +44,19 @@ public class GlobalExceptionHandler {
                                 request.getRequestURI(),
                                 ex.getCode());
                 return ResponseEntity.status(ex.getStatus().value()).body(body);
+        }
+
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<ErrorResponse> handleAccessDenied(
+                        AccessDeniedException ex,
+                        HttpServletRequest request) {
+                ErrorResponse body = ErrorResponse.of(
+                                "Toegang geweigerd",
+                                HttpStatus.FORBIDDEN.value(),
+                                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                                request.getRequestURI(),
+                                "ACCESS_DENIED");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
         }
 
         @ExceptionHandler(ApiException.class)
