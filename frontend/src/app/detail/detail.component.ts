@@ -896,6 +896,10 @@ export class DetailComponent implements OnInit, OnDestroy {
     return !!review.canManage;
   }
 
+  canEditReview(review: Review): boolean {
+    return !!review.canEdit;
+  }
+
   isReviewExpanded(reviewId: number): boolean {
     return this.expandedReviewIds.has(reviewId);
   }
