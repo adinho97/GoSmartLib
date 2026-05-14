@@ -547,8 +547,7 @@ public class BookController {
             @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
             @Valid @RequestBody UpdateReviewRequest request) {
         String normalizedUserSub = resolveUserSub(authentication, subHeader, roleHeader);
-        boolean isLibrarian = isLibrarianOrAdmin(authentication, roleHeader);
-        if (!isLibrarian && normalizedUserSub == null) {
+        if (normalizedUserSub == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -565,7 +564,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!canManageReview(review, normalizedUserSub, roleHeader)) {
+        if (!canAuthorEditReview(review, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -586,6 +585,7 @@ public class BookController {
         dto.setReviewerUserId(review.getReviewerUserId());
         dto.setReviewerUserName(resolveReviewerUserName(review));
         dto.setCanManage(canManageReview(review, normalizedUserSub, roleHeader));
+        dto.setCanEdit(canAuthorEditReview(review, normalizedUserSub));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
     }
@@ -699,6 +699,20 @@ public class BookController {
 
         trimmed = trimmed.trim();
         return trimmed.isEmpty() ? null : trimmed.toLowerCase(Locale.ROOT);
+    }
+
+    private boolean canAuthorEditReview(Review review, String normalizedUserSub) {
+        boolean subMatch = StringUtils.hasText(review.getReviewerUserSub())
+                && StringUtils.hasText(normalizedUserSub)
+                && isSameUser(review.getReviewerUserSub(), normalizedUserSub);
+
+        boolean idMatch = false;
+        if (!subMatch && review.getReviewerUserId() != null && normalizedUserSub != null) {
+            Long currentUserId = resolveCurrentUserId(normalizedUserSub);
+            idMatch = currentUserId != null && currentUserId.equals(review.getReviewerUserId());
+        }
+
+        return subMatch || idMatch;
     }
 
     private boolean canManageReview(Review review, String normalizedUserSub, String roleHeader) {
