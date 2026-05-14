@@ -1,0 +1,248 @@
+/* ── Page layout ── */
+.tp-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+.tp-back {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--ink-2);
+  text-decoration: none;
+  margin-bottom: var(--s-3);
+}
+
+.tp-back:hover {
+  color: var(--brand);
+}
+
+.tp-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tp-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin: 0;
+}
+
+.tp-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.tp-subtitle {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+/* ── State messages ── */
+.tp-state-msg {
+  font-size: 14px;
+  color: var(--ink-2);
+  padding: var(--s-5);
+  text-align: center;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+}
+
+.tp-error {
+  color: var(--danger, #c0392b);
+}
+
+/* ── Teacher list ── */
+.tp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tp-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 14px var(--s-5);
+}
+
+.tp-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tp-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-item-klas {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.tp-promote-btn {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand);
+  background: transparent;
+  border: 1.5px solid var(--brand);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tp-promote-btn:hover {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* ── Confirmation modal ── */
+.tp-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.tp-modal {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  width: min(92vw, 400px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.tp-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+
+.tp-modal-head h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.tp-modal-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tp-modal-close:hover {
+  background: var(--surface-2);
+}
+
+.tp-modal-body {
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.tp-modal-name {
+  font-size: 15px;
+  color: var(--ink);
+  margin: 0;
+}
+
+.tp-modal-warning {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tp-modal-error {
+  font-size: 13px;
+  color: var(--danger, #c0392b);
+  margin: 0;
+}
+
+.tp-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--line);
+}
+
+.tp-ghost-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.tp-ghost-btn:hover {
+  border-color: var(--ink-2);
+  color: var(--ink);
+}
+
+.tp-confirm-btn {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand);
+  border: none;
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.tp-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tp-confirm-btn:not(:disabled):hover {
+  opacity: 0.88;
+}
