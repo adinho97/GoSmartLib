@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.example.demo.config.ConnectionPoolMonitor;
 import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.controllers.RecommendationController;
 import com.example.demo.dto.RecommendedBook;
@@ -42,6 +43,9 @@ class RecommendationControllerTest {
 
     @MockBean
     private AppUserRepository appUserRepository;
+
+    @MockBean
+    private ConnectionPoolMonitor connectionPoolMonitor;
 
     private static final String ENDPOINT = "/api/aanbevelingen";
 

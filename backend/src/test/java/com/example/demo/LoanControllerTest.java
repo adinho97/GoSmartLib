@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.example.demo.config.ConnectionPoolMonitor;
 import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.controllers.LoanController;
 import com.example.demo.dto.LoanDto;
@@ -43,6 +44,9 @@ class LoanControllerTest {
 
     @MockBean
     private AppUserRepository appUserRepository;
+
+    @MockBean
+    private ConnectionPoolMonitor connectionPoolMonitor;
 
     @Test
     @WithMockUser(roles = "BIBBEHEERDER")

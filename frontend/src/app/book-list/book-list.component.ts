@@ -133,7 +133,6 @@ export class BookListComponent implements OnInit {
     // Hidden didactic collection for students/regular users
     return this.genres.filter((g) => g.toLowerCase() !== "didactiek");
   }
-
   readonly pageSize = 16;
   schools: School[] = [];
   selectedSchoolId: number | null = null;
@@ -225,6 +224,7 @@ export class BookListComponent implements OnInit {
     }
 
     if (genre.toLowerCase() === "didactiek") {
+      if (!this.isTeacherOrLibrarian) return;
       this.selectedGenre = "Didactiek";
       this.clearGenreSubgenres();
       this.applyFilters();
@@ -309,6 +309,14 @@ export class BookListComponent implements OnInit {
           : this.maxPages;
     } catch {
       localStorage.removeItem(this.FILTER_STORAGE_KEY);
+      return;
+    }
+
+    if (!this.isTeacherOrLibrarian && this.selectedGenre === "Didactiek") {
+      this.selectedGenre = "";
+      this.selectedDidacticSubgenre = "";
+      this.appliedGenre = "";
+      this.appliedDidacticSubgenre = "";
     }
   }
 

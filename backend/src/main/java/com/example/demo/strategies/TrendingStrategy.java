@@ -27,10 +27,12 @@ public class TrendingStrategy implements RecommendationStrategy {
     }
 
     private List<Book> getBooksForUser(AppUser user) {
-        if (user.getSchool() != null) {
-            return bookRepository.findAllBySchool_Id(user.getSchool().getId());
+        if (user.getSchool() == null) return bookRepository.findAll();
+        Long schoolId = user.getSchool().getId();
+        if ("leerling".equalsIgnoreCase(user.getRole())) {
+            return bookRepository.findNonDidacticBySchool_Id(schoolId);
         }
-        return bookRepository.findAll();
+        return bookRepository.findAllBySchool_Id(schoolId);
     }
 
     @Override
