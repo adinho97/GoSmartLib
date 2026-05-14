@@ -121,11 +121,11 @@ export class BookListComponent implements OnInit {
   books: BookItem[] = [];
   isLoading = true;
   error = "";
-  readonly userRole = localStorage.getItem("role");
-  readonly isLibrarian = this.userRole === "bibbeheerder";
-  readonly isTeacher = this.userRole === "leerkracht";
+  readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
+  readonly isLibrarian = this.userRole.includes("bibbeheerder");
+  readonly isTeacher = this.userRole.includes("leerkracht");
   readonly isTeacherOrLibrarian =
-    this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
+    this.isTeacher || this.isLibrarian;
   readonly pageSize = 16;
   schools: School[] = [];
   selectedSchoolId: number | null = null;
@@ -344,7 +344,7 @@ export class BookListComponent implements OnInit {
           sensitivity: "base",
         }),
       );
-      if (this.isTeacher) {
+      if (this.isTeacherOrLibrarian) {
         await this.loadLestipsForTeacher();
       }
       this.currentPage = 1;

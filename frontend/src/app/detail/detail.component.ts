@@ -37,11 +37,10 @@ export class DetailComponent implements OnInit, OnDestroy {
   isInClassReadingList = false; // New property for Klasleeslijst
 
   // Role-based logic
-  readonly userRole = localStorage.getItem("role");
-  readonly isLibrarian = this.userRole === "bibbeheerder";
-  readonly isTeacher = this.userRole === "leerkracht";
-  readonly isTeacherOrLibrarian =
-    this.isLibrarian || this.userRole === "leerkracht";
+  readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
+  readonly isLibrarian = this.userRole.includes("bibbeheerder");
+  readonly isTeacher = this.userRole.includes("leerkracht");
+  readonly isTeacherOrLibrarian = this.isLibrarian || this.isTeacher;
   private readonly roleLikeValues = new Set([
     "leerling",
     "leerkracht",
