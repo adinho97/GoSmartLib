@@ -28,18 +28,20 @@
   @if (pages.length > 1) {
     <div class="carousel-nav">
       <button class="carousel-arrow" type="button" (click)="goPrev()" aria-label="Vorige">&#8249;</button>
-      <span class="carousel-label">{{ currentPage?.label }}</span>
-      <div class="carousel-dots" role="tablist">
-        @for (p of pages; track p.id; let i = $index) {
-          <button
-            type="button"
-            class="carousel-dot"
-            [class.active]="i === currentIndex"
-            (click)="goToIndex(i)"
-            [attr.aria-label]="'Pagina ' + (i + 1)"
-            [attr.aria-selected]="i === currentIndex"
-          ></button>
-        }
+      <div class="carousel-nav-center">
+        <span class="carousel-label">{{ currentPage?.label }}</span>
+        <div class="carousel-dots" role="tablist">
+          @for (p of pages; track p.id; let i = $index) {
+            <button
+              type="button"
+              class="carousel-dot"
+              [class.active]="i === currentIndex"
+              (click)="goToIndex(i)"
+              [attr.aria-label]="'Pagina ' + (i + 1)"
+              [attr.aria-selected]="i === currentIndex"
+            ></button>
+          }
+        </div>
       </div>
       <button class="carousel-arrow" type="button" (click)="goNext()" aria-label="Volgende">&#8250;</button>
     </div>
@@ -57,6 +59,11 @@
     <div class="hero-head-right">
       @if (page.infoTitle) {
         <app-info-button [title]="page.infoTitle" [description]="page.infoBody || ''"></app-info-button>
+      }
+      @if (page.headerCta) {
+        <button class="hero-header-cta" type="button" (click)="handleHeaderCta(page)">
+          {{ page.headerCta.label }}
+        </button>
       }
       @if (page.linkLabel) {
         <a
@@ -87,10 +94,10 @@
     <div class="spot-stage">
       <div
         class="spot-cover-wrap"
-        (click)="handlePrimaryCta(page)"
+        (click)="handleCoverClick(page)"
         role="button"
-        [attr.tabindex]="page.primaryCta ? 0 : null"
-        (keydown.enter)="handlePrimaryCta(page)"
+        [attr.tabindex]="page.book.id ? 0 : null"
+        (keydown.enter)="handleCoverClick(page)"
       >
         @if (page.badge) {
           <span
@@ -121,18 +128,6 @@
       }
     </div>
 
-    <div class="spot-cta">
-      @if (page.primaryCta) {
-        <button class="btn-primary" type="button" (click)="handlePrimaryCta(page)">
-          {{ page.primaryCta.label }}
-        </button>
-      }
-      @if (page.secondaryCta) {
-        <button class="btn-secondary" type="button" (click)="handleSecondaryCta(page)">
-          {{ page.secondaryCta.label }}
-        </button>
-      }
-    </div>
   }
 
 </ng-template>

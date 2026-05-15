@@ -34,6 +34,7 @@ export interface CarouselPageDef {
   };
   primaryCta?: { label: string; bookId?: number; fragment?: string };
   secondaryCta?: { label: string; bookId?: number; fragment?: string };
+  headerCta?: { label: string; bookId?: number; fragment?: string };
   empty?: boolean;
   emptyMessage?: string;
   emptyCta?: { label: string; route: string };
@@ -137,14 +138,9 @@ export class CarouselTileComponent implements OnInit, OnDestroy, OnChanges {
     this.flipTo(i, i > this.currentIndex ? 'next' : 'prev');
   }
 
-  handlePrimaryCta(page: CarouselPageDef) {
-    if (!page.primaryCta) return;
-    if (page.primaryCta.bookId) {
-      this.router.navigate(['/detail', page.primaryCta.bookId]);
-    } else if (page.primaryCta.fragment) {
-      this.router.navigate(['/mijn-lijsten'], {
-        fragment: page.primaryCta.fragment,
-      });
+  handleCoverClick(page: CarouselPageDef) {
+    if (page.book.id) {
+      this.router.navigate(['/detail', page.book.id]);
     }
   }
 
@@ -154,14 +150,12 @@ export class CarouselTileComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  handleSecondaryCta(page: CarouselPageDef) {
-    if (!page.secondaryCta) return;
-    if (page.secondaryCta.bookId) {
-      this.router.navigate(['/detail', page.secondaryCta.bookId]);
-    } else if (page.secondaryCta.fragment) {
-      this.router.navigate(['/mijn-lijsten'], {
-        fragment: page.secondaryCta.fragment,
-      });
+  handleHeaderCta(page: CarouselPageDef) {
+    if (!page.headerCta) return;
+    if (page.headerCta.bookId) {
+      this.router.navigate(['/detail', page.headerCta.bookId]);
+    } else if (page.headerCta.fragment) {
+      this.router.navigate(['/mijn-lijsten'], { fragment: page.headerCta.fragment });
     }
   }
 

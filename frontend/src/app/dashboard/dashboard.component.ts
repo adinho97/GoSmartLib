@@ -327,7 +327,7 @@ export class DashboardComponent implements OnInit {
           eyebrow: 'Verder lezen',
           pulse: true,
           infoTitle: 'Verder lezen',
-          infoBody: 'Het boek dat je nu in huis hebt. Hier zie je wanneer je het moet inleveren — klik "Verleng" als je meer tijd nodig hebt.',
+          infoBody: 'Het boek dat je nu in huis hebt. Hier zie je wanneer je het moet inleveren.',
           linkLabel: `Geleend (${this.myLoans.length}) →`,
           linkFragment: 'geleend',
           book: {
@@ -341,8 +341,6 @@ export class DashboardComponent implements OnInit {
             label: `Inleveren ${this.formatDueDate(this.firstLoan.dueDate)} · ${dl}d`,
             tone: dl <= 3 ? 'urgent' : dl <= 7 ? 'warn' : '',
           },
-          primaryCta: { label: 'Bekijk boek', bookId: this.firstLoan.bookId },
-          secondaryCta: { label: 'Verleng', bookId: this.firstLoan.bookId },
         });
       } else if (!this.loansLoading) {
         pages.push({
@@ -351,7 +349,7 @@ export class DashboardComponent implements OnInit {
           eyebrow: 'Verder lezen',
           pulse: true,
           infoTitle: 'Verder lezen',
-          infoBody: 'Het boek dat je nu in huis hebt. Hier zie je wanneer je het moet inleveren — klik "Verleng" als je meer tijd nodig hebt.',
+          infoBody: 'Het boek dat je nu in huis hebt. Hier zie je wanneer je het moet inleveren.',
           linkLabel: `Geleend (${this.myLoans.length}) →`,
           linkFragment: 'geleend',
           book: { id: 0, title: '', author: '' },
@@ -382,8 +380,7 @@ export class DashboardComponent implements OnInit {
         badge: returned.returnedAt
           ? { calendar: true, label: `Ingeleverd ${this.formatReturnedDate(returned.returnedAt)}` }
           : undefined,
-        primaryCta: { label: 'Schrijf review', bookId: returned.bookId },
-        secondaryCta: { label: 'Bekijk boek', bookId: returned.bookId },
+        headerCta: { label: 'Schrijf review', bookId: returned.bookId },
       });
     }
 
@@ -403,17 +400,16 @@ export class DashboardComponent implements OnInit {
           eyebrow: '★ In de kijker',
           eyebrowColor: '#b86a17',
           infoTitle: 'In de kijker',
-          infoBody: 'Boeken die je bibliothecaris extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+          infoBody: 'Boeken die je bibbeheerder extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
           linkLabel: `Alles (${this.highlightedBooks.length}) →`,
           linkFragment: 'kijker',
           book: {
             id: book.bookId,
             title: book.titel,
-            author: book.auteur,
+            author: '',
             cover: book.cover ?? undefined,
           },
           badge: { label: book.genre || 'Uitgelicht' },
-          primaryCta: { label: 'Bekijk boek', bookId: book.bookId },
         });
       } else if (!this.highlightedLoading) {
         pages.push({
@@ -422,7 +418,7 @@ export class DashboardComponent implements OnInit {
           eyebrow: '★ In de kijker',
           eyebrowColor: '#b86a17',
           infoTitle: 'In de kijker',
-          infoBody: 'Boeken die je bibliothecaris extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+          infoBody: 'Boeken die je bibbeheerder extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
           linkLabel: `Alles (${this.highlightedBooks.length}) →`,
           linkFragment: 'kijker',
           book: { id: 0, title: '', author: '' },
@@ -439,11 +435,11 @@ export class DashboardComponent implements OnInit {
         eyebrow: '◆ Boek van de maand',
         eyebrowColor: '#d4537e',
         infoTitle: 'Boek van de maand',
-        infoBody: 'Elke maand kiest een leerkracht of de bibliothecaris één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+        infoBody: 'Elke maand kiest een leerkracht of de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
         book: { id: 0, title: '', author: '' },
         badge: { label: this.getCurrentMonthLabel() },
         empty: true,
-        emptyMessage: 'Nog niet ingesteld door de bibliothecaris.',
+        emptyMessage: 'Nog niet ingesteld door de bibbeheerder.',
       });
     }
 
@@ -457,7 +453,7 @@ export class DashboardComponent implements OnInit {
         infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
         book: { id: 0, title: '', author: '' },
         empty: true,
-        emptyMessage: 'Nog niet ingesteld door de bibliothecaris.',
+        emptyMessage: 'Nog niet ingesteld door de bibbeheerder.',
       });
     }
 
