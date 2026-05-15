@@ -53,6 +53,7 @@ import { ColorblindToggleComponent } from "./colorblind-toggle/colorblind-toggle
 import { DarkModeToggleComponent } from "./dark-mode-toggle/dark-mode-toggle.component";
 import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
 import { TeacherPromotionComponent } from "./teacher-promotion/teacher-promotion.component";
+import { CarouselTileComponent } from "./dashboard/carousel-tile.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -108,7 +109,8 @@ registerLocaleData(localeNl, "nl");
     FunBadgesComponent,
     InfoButtonComponent,
     ColorblindToggleComponent,
-    DarkModeToggleComponent
+    DarkModeToggleComponent,
+    CarouselTileComponent,
 ],
   providers: [provideHttpClient(withInterceptors([authInterceptor])), { provide: LOCALE_ID, useValue: "nl" }],
   bootstrap: [AppComponent],

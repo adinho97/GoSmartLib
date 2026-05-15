@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, HostListener, ViewChild, ElementRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
@@ -10,6 +10,60 @@ import { HttpClient } from "@angular/common/http";
 import { UserPreferencesService } from "../services/user-preferences.service";
 import { SchoolService } from "../services/school.service";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
+import { CarouselPageDef } from "./carousel-tile.component";
+
+export interface DashboardConfig {
+  tiles: string[];
+  pages: Record<string, string[]>;
+}
+
+interface TileDef {
+  id: string;
+  label: string;
+  dot: string;
+  carousel: boolean;
+  pages?: { id: string; label: string }[];
+}
+
+const TILES: TileDef[] = [
+  {
+    id: 'mijn-boeken',
+    label: 'Mijn boeken',
+    dot: 'var(--brand)',
+    carousel: true,
+    pages: [
+      { id: 'verder-lezen', label: 'Verder lezen' },
+      { id: 'laatst-ingeleverd', label: 'Laatst ingeleverd' },
+    ],
+  },
+  {
+    id: 'bibliotheek',
+    label: 'Bibliotheek',
+    dot: '#b86a17',
+    carousel: true,
+    pages: [
+      { id: 'in-de-kijker', label: 'In de kijker' },
+      { id: 'boek-vd-maand', label: 'Boek van de maand' },
+      { id: 'themaboek', label: 'Themaboek' },
+    ],
+  },
+  {
+    id: 'snelkoppelingen',
+    label: 'Snelkoppelingen',
+    dot: 'var(--ink-3)',
+    carousel: false,
+  },
+];
+
+const DEFAULT_CONFIG: DashboardConfig = {
+  tiles: ['mijn-boeken', 'bibliotheek', 'snelkoppelingen'],
+  pages: {
+    'mijn-boeken': ['verder-lezen', 'laatst-ingeleverd'],
+    'bibliotheek': ['in-de-kijker', 'boek-vd-maand', 'themaboek'],
+  },
+};
+
+const CONFIG_KEY = 'gosmartlib.dashboard.config.v2';
 
 @Component({
   selector: "app-dashboard",
@@ -25,17 +79,33 @@ export class DashboardComponent implements OnInit {
   classReadingListBooks: RecommendedBook[] = [];
   highlightedBooks: RecommendedBook[] = [];
   myLoans: Loan[] = [];
+  loanHistory: Loan[] = [];
 
   loansLoading = true;
   recommendationsLoading = true;
   highlightedLoading = false;
   wishlistCount = 0;
 
+  // Tile config
+  readonly TILES = TILES;
+  readonly DEFAULT_CONFIG = DEFAULT_CONFIG;
+  config: DashboardConfig = this.loadConfig();
+
+  // Config popover state
+  configOpen = false;
+  dragId: string | null = null;
+  dragOverId: string | null = null;
+  @ViewChild('configWrap') configWrapRef?: ElementRef<HTMLElement>;
+
   private readonly RECOMMENDATION_LIMIT = 25;
   today = new Date().toISOString().split("T")[0];
 
   get firstLoan(): Loan | null {
     return this.myLoans[0] ?? null;
+  }
+
+  get lastReturnedLoan(): Loan | null {
+    return this.loanHistory[0] ?? null;
   }
 
   get currentFirstName(): string {
@@ -72,11 +142,14 @@ export class DashboardComponent implements OnInit {
       lastName || null,
       nameCandidates,
     );
-    return composeFullName(inferredFirst, inferredLast)
-      || firstName || lastName
-      || localStorage.getItem("userName")
-      || localStorage.getItem("fullname")
-      || "";
+    return (
+      composeFullName(inferredFirst, inferredLast) ||
+      firstName ||
+      lastName ||
+      localStorage.getItem("userName") ||
+      localStorage.getItem("fullname") ||
+      ""
+    );
   }
 
   get currentUserSub(): string {
@@ -110,9 +183,292 @@ export class DashboardComponent implements OnInit {
     });
 
     this.fetchMyLoans();
+    this.fetchLoanHistory();
     this.fetchHighlightedBooks();
     this.fetchWishlistCount();
   }
+
+  // ── Config management ──
+
+  private loadConfig(): DashboardConfig {
+    try {
+      const stored = localStorage.getItem(CONFIG_KEY);
+      if (stored) {
+        const obj = JSON.parse(stored);
+        if (obj && Array.isArray(obj.tiles) && obj.pages) return obj;
+      }
+    } catch {}
+    return { ...DEFAULT_CONFIG, pages: { ...DEFAULT_CONFIG.pages } };
+  }
+
+  private saveConfig() {
+    try {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(this.config));
+    } catch {}
+  }
+
+  updateConfig(next: DashboardConfig) {
+    this.config = next;
+    this.saveConfig();
+  }
+
+  resetConfig() {
+    this.config = { ...DEFAULT_CONFIG, pages: { ...DEFAULT_CONFIG.pages } };
+    this.saveConfig();
+  }
+
+  toggleTile(id: string) {
+    const tiles = this.config.tiles.includes(id)
+      ? this.config.tiles.filter(t => t !== id)
+      : [...this.config.tiles, id];
+    this.updateConfig({ ...this.config, tiles });
+  }
+
+  togglePage(tileId: string, pageId: string) {
+    const cur = this.config.pages[tileId] ?? [];
+    const next = cur.includes(pageId)
+      ? cur.filter(p => p !== pageId)
+      : [...cur, pageId];
+    this.updateConfig({
+      ...this.config,
+      pages: { ...this.config.pages, [tileId]: next },
+    });
+  }
+
+  isTileEnabled(id: string): boolean {
+    return this.config.tiles.includes(id);
+  }
+
+  isPageEnabled(tileId: string, pageId: string): boolean {
+    return (this.config.pages[tileId] ?? []).includes(pageId);
+  }
+
+  // Ordered tiles: enabled first (in config order), then disabled
+  get orderedTiles(): TileDef[] {
+    return [
+      ...this.config.tiles.map(id => TILES.find(t => t.id === id)).filter((t): t is TileDef => !!t),
+      ...TILES.filter(t => !this.config.tiles.includes(t.id)),
+    ];
+  }
+
+  // ── Config popover ──
+
+  toggleConfigOpen() {
+    this.configOpen = !this.configOpen;
+  }
+
+  @HostListener('document:keydown.escape')
+  closeConfig() {
+    this.configOpen = false;
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  onDocumentMousedown(event: MouseEvent) {
+    if (
+      this.configOpen &&
+      this.configWrapRef &&
+      !this.configWrapRef.nativeElement.contains(event.target as Node)
+    ) {
+      this.configOpen = false;
+    }
+  }
+
+  // ── Drag-to-reorder ──
+
+  onDragStart(id: string) {
+    this.dragId = id;
+  }
+
+  onDragOver(event: DragEvent, id: string) {
+    if (!this.dragId || this.dragId === id || !this.config.tiles.includes(id)) return;
+    event.preventDefault();
+    this.dragOverId = id;
+  }
+
+  onDrop(event: DragEvent, targetId: string) {
+    event.preventDefault();
+    if (!this.dragId || this.dragId === targetId) {
+      this.dragId = null;
+      this.dragOverId = null;
+      return;
+    }
+    if (!this.config.tiles.includes(this.dragId) || !this.config.tiles.includes(targetId)) {
+      this.dragId = null;
+      this.dragOverId = null;
+      return;
+    }
+    const next = [...this.config.tiles];
+    const from = next.indexOf(this.dragId);
+    next.splice(from, 1);
+    const to = next.indexOf(targetId);
+    next.splice(to, 0, this.dragId);
+    this.updateConfig({ ...this.config, tiles: next });
+    this.dragId = null;
+    this.dragOverId = null;
+  }
+
+  onDragEnd() {
+    this.dragId = null;
+    this.dragOverId = null;
+  }
+
+  // ── Carousel page builders ──
+
+  getMijnBoekenPages(): CarouselPageDef[] {
+    const enabledIds = this.config.pages['mijn-boeken'] ?? [];
+    const pages: CarouselPageDef[] = [];
+
+    if (enabledIds.includes('verder-lezen')) {
+      if (this.firstLoan) {
+        const dl = this.daysLeft(this.firstLoan.dueDate);
+        pages.push({
+          id: 'verder-lezen',
+          label: 'Verder lezen',
+          eyebrow: 'Verder lezen',
+          pulse: true,
+          infoTitle: 'Verder lezen',
+          infoBody: 'Het boek dat je nu in huis hebt. Hier zie je wanneer je het moet inleveren — klik "Verleng" als je meer tijd nodig hebt.',
+          linkLabel: `Geleend (${this.myLoans.length}) →`,
+          linkFragment: 'geleend',
+          book: {
+            id: this.firstLoan.bookId,
+            title: this.firstLoan.bookTitel,
+            author: '',
+            cover: this.firstLoan.bookCover,
+          },
+          badge: {
+            calendar: true,
+            label: `Inleveren ${this.formatDueDate(this.firstLoan.dueDate)} · ${dl}d`,
+            tone: dl <= 3 ? 'urgent' : dl <= 7 ? 'warn' : '',
+          },
+          primaryCta: { label: 'Bekijk boek', bookId: this.firstLoan.bookId },
+          secondaryCta: { label: 'Verleng', bookId: this.firstLoan.bookId },
+        });
+      } else if (!this.loansLoading) {
+        pages.push({
+          id: 'verder-lezen',
+          label: 'Verder lezen',
+          eyebrow: 'Verder lezen',
+          pulse: true,
+          infoTitle: 'Verder lezen',
+          infoBody: 'Het boek dat je nu in huis hebt. Hier zie je wanneer je het moet inleveren — klik "Verleng" als je meer tijd nodig hebt.',
+          linkLabel: `Geleend (${this.myLoans.length}) →`,
+          linkFragment: 'geleend',
+          book: { id: 0, title: '', author: '' },
+          empty: true,
+          emptyMessage: 'Je hebt momenteel geen geleende boeken.',
+          emptyCta: { label: 'Ontdek boeken →', route: '/books' },
+        });
+      }
+    }
+
+    if (enabledIds.includes('laatst-ingeleverd') && this.lastReturnedLoan) {
+      const returned = this.lastReturnedLoan;
+      pages.push({
+        id: 'laatst-ingeleverd',
+        label: 'Laatst ingeleverd',
+        eyebrow: '↩ Laatst ingeleverd',
+        eyebrowColor: '#2d5a78',
+        infoTitle: 'Laatst ingeleverd',
+        infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
+        linkLabel: `Historiek (${this.loanHistory.length}) →`,
+        linkFragment: 'historiek',
+        book: {
+          id: returned.bookId,
+          title: returned.bookTitel,
+          author: '',
+          cover: returned.bookCover,
+        },
+        badge: returned.returnedAt
+          ? { calendar: true, label: `Ingeleverd ${this.formatReturnedDate(returned.returnedAt)}` }
+          : undefined,
+        primaryCta: { label: 'Schrijf review', bookId: returned.bookId },
+        secondaryCta: { label: 'Bekijk boek', bookId: returned.bookId },
+      });
+    }
+
+    return pages;
+  }
+
+  getBibliotheekPages(): CarouselPageDef[] {
+    const enabledIds = this.config.pages['bibliotheek'] ?? [];
+    const pages: CarouselPageDef[] = [];
+
+    if (enabledIds.includes('in-de-kijker')) {
+      if (this.highlightedBooks.length > 0) {
+        const book = this.highlightedBooks[0];
+        pages.push({
+          id: 'in-de-kijker',
+          label: 'In de kijker',
+          eyebrow: '★ In de kijker',
+          eyebrowColor: '#b86a17',
+          infoTitle: 'In de kijker',
+          infoBody: 'Boeken die je bibliothecaris extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+          linkLabel: `Alles (${this.highlightedBooks.length}) →`,
+          linkFragment: 'kijker',
+          book: {
+            id: book.bookId,
+            title: book.titel,
+            author: book.auteur,
+            cover: book.cover ?? undefined,
+          },
+          badge: { label: book.genre || 'Uitgelicht' },
+          primaryCta: { label: 'Bekijk boek', bookId: book.bookId },
+        });
+      } else if (!this.highlightedLoading) {
+        pages.push({
+          id: 'in-de-kijker',
+          label: 'In de kijker',
+          eyebrow: '★ In de kijker',
+          eyebrowColor: '#b86a17',
+          infoTitle: 'In de kijker',
+          infoBody: 'Boeken die je bibliothecaris extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+          linkLabel: `Alles (${this.highlightedBooks.length}) →`,
+          linkFragment: 'kijker',
+          book: { id: 0, title: '', author: '' },
+          empty: true,
+          emptyMessage: 'Geen uitgelichte boeken op dit moment.',
+        });
+      }
+    }
+
+    if (enabledIds.includes('boek-vd-maand')) {
+      pages.push({
+        id: 'boek-vd-maand',
+        label: 'Boek van de maand',
+        eyebrow: '◆ Boek van de maand',
+        eyebrowColor: '#d4537e',
+        infoTitle: 'Boek van de maand',
+        infoBody: 'Elke maand kiest een leerkracht of de bibliothecaris één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+        book: { id: 0, title: '', author: '' },
+        badge: { label: this.getCurrentMonthLabel() },
+        empty: true,
+        emptyMessage: 'Nog niet ingesteld door de bibliothecaris.',
+      });
+    }
+
+    if (enabledIds.includes('themaboek')) {
+      pages.push({
+        id: 'themaboek',
+        label: 'Themaboek',
+        eyebrow: '♦ Themaboek',
+        eyebrowColor: '#2e6b3f',
+        infoTitle: 'Themaboek',
+        infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
+        book: { id: 0, title: '', author: '' },
+        empty: true,
+        emptyMessage: 'Nog niet ingesteld door de bibliothecaris.',
+      });
+    }
+
+    return pages;
+  }
+
+  getCurrentMonthLabel(): string {
+    return new Date().toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' });
+  }
+
+  // ── Data fetching ──
 
   private async fetchHighlightedBooks() {
     const schoolId = this.schoolService.getSelectedSchoolId();
@@ -208,6 +564,14 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  async fetchLoanHistory() {
+    try {
+      this.loanHistory = await this.loanService.getMyLoanHistory();
+    } catch {
+      this.loanHistory = [];
+    }
+  }
+
   daysLeft(dueDate: string): number {
     const due = new Date(dueDate);
     const today = new Date();
@@ -250,6 +614,13 @@ export class DashboardComponent implements OnInit {
 
   formatDueDate(dueDate: string): string {
     return new Date(dueDate).toLocaleDateString("nl-BE", {
+      day: "numeric",
+      month: "long",
+    });
+  }
+
+  formatReturnedDate(returnedAt: string): string {
+    return new Date(returnedAt).toLocaleDateString("nl-BE", {
       day: "numeric",
       month: "long",
     });
