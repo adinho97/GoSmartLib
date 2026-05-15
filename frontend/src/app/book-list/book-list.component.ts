@@ -124,7 +124,8 @@ export class BookListComponent implements OnInit {
   readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
   readonly isLibrarian = this.userRole.includes("bibbeheerder");
   readonly isTeacher = this.userRole.includes("leerkracht");
-  readonly isTeacherOrLibrarian = this.isTeacher || this.isLibrarian;
+  readonly isTeacherOrLibrarian =
+    this.isTeacher || this.isLibrarian || this.userRole.includes("super_admin");
 
   get availableGenres(): string[] {
     if (this.isTeacherOrLibrarian) {
@@ -428,8 +429,15 @@ export class BookListComponent implements OnInit {
           (book.averageRating || 0) >= minAverage);
 
       const pageCount = book.paginas ?? 0;
-      const pageMatches =
-        pageCount >= this.appliedMinPages && pageCount <= this.appliedMaxPages;
+      let pageMatches = false;
+      if (this.appliedMaxPages === this.maxPageFilterLimit) {
+        // If the max page filter is at its maximum limit, include books with more pages than the limit
+        pageMatches = pageCount >= this.appliedMinPages;
+      } else {
+        pageMatches =
+          pageCount >= this.appliedMinPages &&
+          pageCount <= this.appliedMaxPages;
+      }
 
       return (
         titleOrAuthorMatches &&
