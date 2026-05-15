@@ -20,11 +20,10 @@ public class SmartschoolMessageService {
         String urlTemplate = request.getPlatformUrl() + "/Api/V1/sendmsg" +
                 "?access_token={token}" +
                 "&messageTitle={title}" +
-                "&messageBody={body}" +
-                "&senderName={senderName}";
+                "&messageBody={body}";
 
         return webClient.post()
-                .uri(urlTemplate, accessToken, request.getSubject(), request.getBody(), "GoSmartLib")
+                .uri(urlTemplate, accessToken, request.getSubject(), request.getBody())
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(String.class)
