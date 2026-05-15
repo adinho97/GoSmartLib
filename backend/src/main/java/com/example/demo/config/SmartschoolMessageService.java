@@ -22,8 +22,11 @@ public class SmartschoolMessageService {
                 "&messageTitle={title}" +
                 "&messageBody={body}";
 
+        // Prepend GoSmartLib to identify the sender/application in the message
+        String brandedBody = "GoSmartLib: " + request.getBody();
+
         return webClient.post()
-                .uri(urlTemplate, accessToken, request.getSubject(), request.getBody())
+                .uri(urlTemplate, accessToken, request.getSubject(), brandedBody)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(String.class)
