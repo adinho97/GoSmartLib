@@ -150,10 +150,12 @@ public class SchoolAdminService {
             throw new ApiException("Gebruiker behoort niet tot deze school", HttpStatus.FORBIDDEN, "ACCESS_DENIED");
         }
         if (!"leerkracht".equals(newRole) && !"bibbeheerder".equals(newRole)) {
-            throw new ApiException("Rol moet 'leerkracht' of 'bibbeheerder' zijn", HttpStatus.BAD_REQUEST, "INVALID_ROLE");
+            throw new ApiException("Rol moet 'leerkracht' of 'bibbeheerder' zijn", HttpStatus.BAD_REQUEST,
+                    "INVALID_ROLE");
         }
         if (!"leerkracht".equals(user.getRole()) && !"bibbeheerder".equals(user.getRole())) {
-            throw new ApiException("Alleen leerkrachten en bibbeheerders kunnen van rol wisselen", HttpStatus.BAD_REQUEST, "INVALID_ROLE_TRANSITION");
+            throw new ApiException("Alleen leerkrachten en bibbeheerders kunnen van rol wisselen",
+                    HttpStatus.BAD_REQUEST, "INVALID_ROLE_TRANSITION");
         }
         user.setRole(newRole);
         return toUserListItem(appUserRepository.save(user));
@@ -173,6 +175,52 @@ public class SchoolAdminService {
                     return item;
                 })
                 .toList();
+    }
+
+    @Transactional
+    public void deleteSchool(Long schoolId) {
+        Long resolvedSchoolId = Objects.requireNonNull(schoolId, "schoolId is required");
+        School school = schoolRepository.findById(resolvedSchoolId)
+                .orElseThrow(() -> new ApiException("School niet gevonden", HttpStatus.NOT_FOUND, "SCHOOL_NOT_FOUND"));
+
+        // Delete all related data in proper order to avoid foreign key violations
+        // Get all books for this school first
+        var allBooks = bookRepository.findAll();
+        var booksInSchool = allBooks.stream()
+                .filter(b -> b.getSchool() != null && b.getSchool().getId().equals(resolvedSchoolId))
+                .toList();
+
+        // 1. Delete class reading list items for this school
+        var classReadingLists = classReadingListItemRepository.findBySchoolId(resolvedSchoolId);
+        classReadingListItemRepository.deleteAll(classReadingLists);
+
+        // 2. Delete wishlists for books in this school
+        var allWishlists = wishlistRepository.findAll();
+        var wishlistsToDelete = allWishlists.stream()
+                .filter(w -> booksInSchool.stream().anyMatch(b -> b.getId().equals(w.getBook().getId())))
+                .toList();
+        wishlistRepository.deleteAll(wishlistsToDelete);
+
+        // 3. Delete loans for books in this school
+        var allLoans = loanRepository.findAll();
+        var loansToDelete = allLoans.stream()
+                .filter(l -> booksInSchool.stream().anyMatch(b -> b.getId().equals(l.getCopy().getBook().getId())))
+                .toList();
+        loanRepository.deleteAll(loansToDelete);
+
+        // 4. Delete books in this school (this will cascade to book copies)
+        bookRepository.deleteAll(booksInSchool);
+
+        // 5. Delete classes in this school
+        var klassen = klasRepository.findBySchool_Id(resolvedSchoolId);
+        klasRepository.deleteAll(klassen);
+
+        // 6. Delete users in this school
+        var users = appUserRepository.findBySchool_Id(resolvedSchoolId);
+        appUserRepository.deleteAll(users);
+
+        // 7. Finally delete the school itself
+        schoolRepository.delete(school);
     }
 
     private CreateSchoolResponse toCreateResponse(School school) {
