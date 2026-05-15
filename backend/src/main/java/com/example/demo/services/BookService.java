@@ -3,15 +3,18 @@ package com.example.demo.services;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
+import com.example.demo.repositories.LeeslijstRepository;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Loan;
+import com.example.demo.entities.Leeslijst;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
 import com.example.demo.exception.ApiException;
 import com.example.demo.mappers.BookMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,11 +37,13 @@ public class BookService {
     private final IsbnService isbnService;
     private final BulkImportService bulkImportService;
     private final ImportCoreService importCoreService;
+    private final LeeslijstRepository leeslijstRepository;
 
+    @Autowired
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
-            ImportCoreService importCoreService) {
+            ImportCoreService importCoreService, LeeslijstRepository leeslijstRepository) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.loanRepository = loanRepository;
@@ -47,6 +52,18 @@ public class BookService {
         this.isbnService = isbnService;
         this.bulkImportService = bulkImportService;
         this.importCoreService = importCoreService;
+        this.leeslijstRepository = leeslijstRepository;
+    }
+
+    /**
+     * Overloaded constructor for backwards compatibility with existing tests.
+     */
+    public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
+            LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
+            IsbnService isbnService, BulkImportService bulkImportService,
+            ImportCoreService importCoreService) {
+        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService,
+                isbnService, bulkImportService, importCoreService, null);
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
@@ -244,6 +261,15 @@ public class BookService {
                 .filter(c -> c.getBook().getId().equals(id))
                 .toList();
         bookCopyRepository.deleteAll(bookCopies);
+
+        // 3. Remove book from all reading lists (Leeslijsten) to clear join table
+        if (leeslijstRepository != null) {
+            leeslijstRepository.findAll().forEach(list -> {
+                if (list.getBooks().removeIf(b -> b.getId().equals(id))) {
+                    leeslijstRepository.save(list);
+                }
+            });
+        }
 
         bookRepository.delete(book);
     }
