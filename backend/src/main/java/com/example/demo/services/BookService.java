@@ -93,14 +93,16 @@ public class BookService {
             int quantity = pair.quantity();
             try {
                 ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(isbn, school);
+                Book bookToAssociateCopies = null;
+                Long bookIdForDiagnostic = null;
+
                 if (outcome.status() == ImportCoreService.ImportStatus.ALREADY_EXISTS) {
                     // Book already exists, so just add the copies
                     Book book = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId()).orElse(null);
                     if (book != null) {
+                        bookToAssociateCopies = book;
+                        bookIdForDiagnostic = book.getId();
                         for (int i = 0; i < quantity; i++) {
-                            BookCopy copy = new BookCopy();
-                            copy.setBook(book);
-                            copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
                             bookCopyRepository.save(copy);
                         }
                         totalCopiesAdded += quantity;
@@ -108,7 +110,7 @@ public class BookService {
                                 isbn,
                                 ImportResultDto.Status.ADDED,
                                 "Boek al in bibliotheek - " + quantity + " exemplaren toegevoegd.",
-                                outcome.bookDto() != null ? outcome.bookDto().getId() : null));
+                                bookIdForDiagnostic));
                     } else {
                         rows.add(new ImportResultDto.RowResult(
                                 isbn,
@@ -128,28 +130,42 @@ public class BookService {
                     continue;
                 }
 
-                // Book was successfully added, now create the specified number of copies
-                Book book = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId()).orElse(null);
-                if (book != null) {
+                // If we reach here, it means the book was NEWLY_ADDED by importCoreService.importByNormalizedIsbn
+                // We should use the book entity from the outcome directly if possible,
+                // or fetch it using the ID from the outcome's BookDto.
+                BookDto newlyAddedBookDto = outcome.bookDto();
+                if (newlyAddedBookDto != null && newlyAddedBookDto.getId() != null) {
+                    bookToAssociateCopies = bookRepository.findById(newlyAddedBookDto.getId()).orElse(null);
+                    bookIdForDiagnostic = newlyAddedBookDto.getId();
+                }
+
+                if (bookToAssociateCopies != null) {
                     for (int i = 0; i < quantity; i++) {
                         BookCopy copy = new BookCopy();
-                        copy.setBook(book);
+                        copy.setBook(bookToAssociateCopies);
                         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
                         bookCopyRepository.save(copy);
                     }
                     totalCopiesAdded += quantity;
+                    rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.ADDED,
+                            "Boek toegevoegd met " + quantity + " exemplaar(en).",
+                            bookIdForDiagnostic));
+                } else {
+                    // This scenario means importCoreService reported success (not NOT_FOUND or ALREADY_EXISTS)
+                    // but we couldn't get the Book entity to add copies. This is an unexpected error.
+                    rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.ERROR,
+                            "Boek is geïmporteerd, maar er is een fout opgetreden bij het toevoegen van exemplaren.",
+                            bookIdForDiagnostic)); // Use bookIdForDiagnostic if available, even if bookToAssociateCopies is null
                 }
-
-                rows.add(new ImportResultDto.RowResult(
-                        isbn,
-                        ImportResultDto.Status.ADDED,
-                        "Boek toegevoegd met " + quantity + " exemplaar(en).",
-                        outcome.bookDto() != null ? outcome.bookDto().getId() : null));
             } catch (Exception ex) {
                 rows.add(new ImportResultDto.RowResult(
                         isbn,
                         ImportResultDto.Status.ERROR,
-                        "Fout bij verwerken van ISBN.",
+                        "Fout bij verwerken van ISBN: " + ex.getMessage(),
                         null));
             }
         }
