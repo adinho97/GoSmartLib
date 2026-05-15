@@ -1,0 +1,91 @@
+<div class="tp-page">
+  <header class="tp-head">
+    <a class="tp-back" routerLink="/mijn-taken">← Mijn taken</a>
+    <p class="tp-eyebrow">Bibliotheekbeheerder</p>
+    <h1 class="tp-title">Leerkracht promoveren</h1>
+    <p class="tp-subtitle">
+      Promoveer een leerkracht van uw school tot bibbeheerder
+    </p>
+  </header>
+
+  @if (loading) {
+    <p class="tp-state-msg">Leerkrachten laden…</p>
+  } @else if (loadError) {
+    <p class="tp-state-msg tp-error">{{ loadError }}</p>
+  } @else if (leerkrachten.length === 0) {
+    <p class="tp-state-msg">
+      Er zijn momenteel geen leerkrachten in uw school om te promoveren.
+    </p>
+  } @else {
+    <ul class="tp-list">
+      @for (user of leerkrachten; track user.id) {
+        <li class="tp-item">
+          <div class="tp-item-info">
+            <span class="tp-item-name">{{ user.displayName || user.sub }}</span>
+            @if (user.klasNaam) {
+              <span class="tp-item-klas">{{ user.klasNaam }}</span>
+            }
+          </div>
+          <button
+            type="button"
+            class="tp-promote-btn"
+            (click)="openConfirm(user)"
+          >
+            Maak bibbeheerder
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+@if (confirmTarget) {
+  <div
+    class="tp-modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    (click)="cancelConfirm()"
+  >
+    <div class="tp-modal" (click)="$event.stopPropagation()">
+      <header class="tp-modal-head">
+        <h3>Leerkracht promoveren</h3>
+        <button
+          type="button"
+          class="tp-modal-close"
+          (click)="cancelConfirm()"
+          aria-label="Sluit"
+        >
+          ×
+        </button>
+      </header>
+
+      <div class="tp-modal-body">
+        <p class="tp-modal-name">
+          <strong>{{ confirmTarget.displayName || confirmTarget.sub }}</strong>
+        </p>
+        <p class="tp-modal-warning">
+          Deze leerkracht wordt bibbeheerder van uw school. Deze actie kan niet
+          ongedaan worden gemaakt door een bibbeheerder — enkel een
+          schoolbeheerder kan de rol terugzetten.
+        </p>
+        @if (promoteError) {
+          <p class="tp-modal-error">{{ promoteError }}</p>
+        }
+      </div>
+
+      <footer class="tp-modal-footer">
+        <button type="button" class="tp-ghost-btn" (click)="cancelConfirm()">
+          Annuleren
+        </button>
+        <button
+          type="button"
+          class="tp-confirm-btn"
+          (click)="confirmPromote()"
+          [disabled]="isPromoting"
+        >
+          {{ isPromoting ? "Bezig…" : "Bevestig" }}
+        </button>
+      </footer>
+    </div>
+  </div>
+}

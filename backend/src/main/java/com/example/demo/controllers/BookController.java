@@ -78,10 +78,31 @@ public class BookController {
     public List<BookDto> getAll(
             @RequestParam(required = false) Long schoolId,
             Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader) {
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
+        List<Book> books;
+        if (isStudentRole(authentication, roleHeader) && effectiveSchoolId != null) {
+            books = repo.findNonDidacticBySchool_Id(effectiveSchoolId);
+        } else {
+            books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
+        }
+        return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
+    }
+
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/didactisch")
+    public List<BookDto> getDidacticCollection(
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication,
             @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
         List<Book> books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
-        return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
+        return books.stream()
+                .filter(book -> StringUtils.hasText(book.getGenre()))
+                .filter(book -> book.getGenre().toLowerCase(Locale.ROOT).contains("didactiek"))
+                .map(BookMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/paged")
@@ -91,15 +112,18 @@ public class BookController {
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(required = false) String query,
             Authentication authentication,
-            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.max(size, 1);
         String normalizedQuery = StringUtils.hasText(query) ? query.trim() : null;
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
 
+        boolean excludeDidactic = isStudentRole(authentication, roleHeader);
         Page<Book> books = repo.searchPaged(
                 effectiveSchoolId,
                 normalizedQuery,
+                excludeDidactic,
                 PageRequest.of(safePage, safeSize));
 
         List<BookDto> items = books.stream()
@@ -118,12 +142,17 @@ public class BookController {
     public ResponseEntity<BookDto> getBook(@PathVariable @NonNull Long id,
             @RequestParam(required = false) Long schoolId,
             Authentication authentication,
-            @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
+            @RequestHeader(value = "X-User-Role", required = false) String roleHeader) {
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
-        return (effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId))
-                .map(BookMapper::toDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        var bookOpt = effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId);
+        if (bookOpt.isEmpty()) return ResponseEntity.notFound().build();
+        Book book = bookOpt.get();
+        if (isStudentRole(authentication, roleHeader) && book.getGenre() != null
+                && book.getGenre().toLowerCase(Locale.ROOT).startsWith("didactiek")) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(BookMapper.toDto(book));
     }
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
@@ -518,8 +547,7 @@ public class BookController {
             @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
             @Valid @RequestBody UpdateReviewRequest request) {
         String normalizedUserSub = resolveUserSub(authentication, subHeader, roleHeader);
-        boolean isLibrarian = isLibrarianOrAdmin(authentication, roleHeader);
-        if (!isLibrarian && normalizedUserSub == null) {
+        if (normalizedUserSub == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -536,7 +564,7 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!canManageReview(review, normalizedUserSub, roleHeader)) {
+        if (!canAuthorEditReview(review, normalizedUserSub)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -557,6 +585,7 @@ public class BookController {
         dto.setReviewerUserId(review.getReviewerUserId());
         dto.setReviewerUserName(resolveReviewerUserName(review));
         dto.setCanManage(canManageReview(review, normalizedUserSub, roleHeader));
+        dto.setCanEdit(canAuthorEditReview(review, normalizedUserSub));
         dto.setCreatedAt(review.getCreatedAt());
         return dto;
     }
@@ -670,6 +699,20 @@ public class BookController {
 
         trimmed = trimmed.trim();
         return trimmed.isEmpty() ? null : trimmed.toLowerCase(Locale.ROOT);
+    }
+
+    private boolean canAuthorEditReview(Review review, String normalizedUserSub) {
+        boolean subMatch = StringUtils.hasText(review.getReviewerUserSub())
+                && StringUtils.hasText(normalizedUserSub)
+                && isSameUser(review.getReviewerUserSub(), normalizedUserSub);
+
+        boolean idMatch = false;
+        if (!subMatch && review.getReviewerUserId() != null && normalizedUserSub != null) {
+            Long currentUserId = resolveCurrentUserId(normalizedUserSub);
+            idMatch = currentUserId != null && currentUserId.equals(review.getReviewerUserId());
+        }
+
+        return subMatch || idMatch;
     }
 
     private boolean canManageReview(Review review, String normalizedUserSub, String roleHeader) {
@@ -823,7 +866,7 @@ public class BookController {
             if (review.getReviewerUserId() != null) {
                 return String.valueOf(review.getReviewerUserId());
             }
-            return "Gebruiker";
+            return "Anoniem";
         }
         return reviewerSub.trim();
     }
@@ -835,12 +878,16 @@ public class BookController {
         if (nonAnon.isEmpty()) return;
 
         Flux.fromIterable(nonAnon)
-                .flatMap(dto -> authService.getUserInfoBySub(dto.getReviewerUserName())
-                        .map(info -> {
-                            dto.setReviewerUserName(formatDisplayName(info));
-                            return dto;
-                        })
-                        .onErrorReturn(dto))
+                .flatMap(dto -> {
+                    Mono<SmartschoolUserInfo> userMono = authService.getUserInfoBySub(dto.getReviewerUserName());
+                    if (userMono == null) return Mono.just(dto);
+                    return userMono
+                            .map(info -> {
+                                dto.setReviewerUserName(formatDisplayName(info));
+                                return dto;
+                            })
+                            .onErrorReturn(dto);
+                })
                 .collectList()
                 .block();
     }
@@ -848,8 +895,7 @@ public class BookController {
     private String formatDisplayName(SmartschoolUserInfo info) {
         String given = info.getGivenName();
         String family = info.getFamilyName();
-        if (given != null && !given.isBlank() && family != null && !family.isBlank()) return family + " " + given;
-        if (family != null && !family.isBlank()) return family;
+        if (given != null && !given.isBlank() && family != null && !family.isBlank()) return given + " " + family;
         if (given != null && !given.isBlank()) return given;
         if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
         if (info.getName() != null && !info.getName().isBlank()) return info.getName();

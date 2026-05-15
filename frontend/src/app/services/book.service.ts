@@ -187,6 +187,13 @@ export class BookService {
     return res.data;
   }
 
+  async getDidacticBooks(schoolId?: number) {
+    const res = await axios.get(
+      this.withSchoolId(`${this.apiUrl}/didactisch`, schoolId),
+    );
+    return res.data;
+  }
+
   async getBooksPage(
     page: number,
     size: number,
@@ -318,8 +325,8 @@ export class BookService {
 
   async getBookLestipDetails(bookId: number): Promise<LestipResponse> {
     const res = await axios.get<LestipResponse>(
-      `${this.apiUrl}/${bookId}/lestip`,
-      this.getRoleHeaders(),
+      this.withSchoolId(`${this.apiUrl}/${bookId}/lestip`),
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
@@ -329,17 +336,17 @@ export class BookService {
     lestip: string,
   ): Promise<LestipResponse> {
     const res = await axios.put<LestipResponse>(
-      `${this.apiUrl}/${bookId}/lestip`,
+      this.withSchoolId(`${this.apiUrl}/${bookId}/lestip`),
       { lestip },
-      this.getRoleHeaders(),
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
 
   async deleteBookLestip(bookId: number): Promise<void> {
     await axios.delete(
-      `${this.apiUrl}/${bookId}/lestip`,
-      this.getRoleHeaders(),
+      this.withSchoolId(`${this.apiUrl}/${bookId}/lestip`),
+      this.getFullAuthHeaders(),
     );
   }
 

@@ -134,7 +134,7 @@ public class LoanReminderService {
                     </h1>
                   </div>
                   <div style="padding: 28px 32px;">
-                    <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong>,</p>
+                    <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong></p>
                     <p style="margin: 0 0 24px; font-size: 15px; color: #333;">
                       Dit is een vriendelijke herinnering dat onderstaand boek <strong>morgen</strong> teruggebracht moet worden.
                     </p>
@@ -154,7 +154,7 @@ public class LoanReminderService {
                       <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Terugbrengdatum:</strong> %s</p>
                       <p style="margin: 6px 0 0; font-size: 13px; color: #9a7a20;">Gelieve het boek morgen terug te brengen naar de bibliotheek.</p>
                     </div>
-                    <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
+                    <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten<br><strong>De bibliotheek</strong></p>
                   </div>
                   <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
                     <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">Dit is een automatisch gegenereerd bericht — gelieve niet te antwoorden.</p>
@@ -168,11 +168,11 @@ public class LoanReminderService {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
                   <div style="background-color: #8b1a1a; padding: 24px 32px;">
                     <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
-                      ⚠️ Bibliotheek — Boek te laat
+                      Bibliotheek — Boek te laat
                     </h1>
                   </div>
                   <div style="padding: 28px 32px;">
-                    <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong>,</p>
+                    <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong></p>
                     <p style="margin: 0 0 24px; font-size: 15px; color: #333;">
                       Onderstaand boek had <strong>%d dag(en) geleden</strong> teruggebracht moeten worden.
                       Gelieve het zo snel mogelijk terug te brengen naar de bibliotheek.
@@ -193,7 +193,7 @@ public class LoanReminderService {
                       <p style="margin: 0; font-size: 14px; color: #7a0000;"><strong>Had teruggebracht moeten zijn op:</strong> %s</p>
                       <p style="margin: 6px 0 0; font-size: 13px; color: #a00000;">Breng het boek zo snel mogelijk terug om verdere vertraging te vermijden.</p>
                     </div>
-                    <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
+                    <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten<br><strong>De bibliotheek</strong></p>
                   </div>
                   <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
                     <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">Dit is een automatisch gegenereerd bericht — gelieve niet te antwoorden.</p>

@@ -8,19 +8,10 @@ axios.interceptors.request.use((config) => {
 
   // SUPER_ADMIN users use JWT token; regular users use Smartschool OAuth token
   let token: string | null = null;
-  const roleLower = userRole?.toLowerCase() || "";
-
-  if (roleLower === "super_admin") {
-    // SUPER_ADMIN must use JWT token
+  if (userRole === "SUPER_ADMIN" || userRole === "super_admin") {
     token = localStorage.getItem("admin_jwt_token");
-  } else if (roleLower) {
-    // Regular users use Smartschool OAuth token
-    token = localStorage.getItem("smartschoolToken");
   } else {
-    // No role found, try both token types (fallback for missing role)
-    token =
-      localStorage.getItem("admin_jwt_token") ||
-      localStorage.getItem("smartschoolToken");
+    token = localStorage.getItem("smartschoolToken");
   }
 
   if (token && config.headers) {
@@ -28,6 +19,34 @@ axios.interceptors.request.use((config) => {
   }
   return config;
 });
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isAuthEndpoint = error.config?.url?.includes("/api/auth/");
+    const isAdminUser =
+      localStorage.getItem("role") === "SUPER_ADMIN" ||
+      localStorage.getItem("role") === "super_admin";
+
+    // Token permanently revoked by Smartschool — clear session and force re-login
+    if (
+      error.response?.status === 401 &&
+      error.response?.data?.code === "TOKEN_REVOKED" &&
+      !isAuthEndpoint &&
+      !isAdminUser
+    ) {
+      localStorage.removeItem("smartschoolToken");
+      localStorage.removeItem("role");
+      localStorage.removeItem("sub");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("smartschoolPlatform");
+      window.location.href = "/";
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 platformBrowserDynamic()
   .bootstrapModule(AppModule)

@@ -128,9 +128,8 @@ public class LeaderboardService {
         String given = info.getGivenName();
         String family = info.getFamilyName();
         if (given != null && !given.isBlank() && family != null && !family.isBlank()) {
-            return family + " " + given;
+            return given + " " + family;
         }
-        if (family != null && !family.isBlank()) return family;
         if (given != null && !given.isBlank()) return given;
         if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
         if (info.getName() != null && !info.getName().isBlank()) return info.getName();

@@ -39,6 +39,7 @@ import { StatistiekenComponent } from "./statistieken/statistieken.component";
 import { SchoolStatisticsComponent } from "./school-statistics/school-statistics.component";
 import { LeaderboardComponent } from "./leaderboard/leaderboard.component";
 import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
+import { TeacherPromotionComponent } from "./teacher-promotion/teacher-promotion.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -182,6 +183,12 @@ export const appRoutes: Routes = [
   {
     path: "faq-beheer",
     component: BibFaqBeheerComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
+    path: "teacher-promotion",
+    component: TeacherPromotionComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
   },

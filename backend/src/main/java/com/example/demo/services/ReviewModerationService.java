@@ -174,8 +174,6 @@ public class ReviewModerationService {
         m.put('7', 't');
         m.put('8', 'b');
         m.put('0', 'o');
-        m.put('@', 'u');
-        m.put('#', 'u');
         m.put('$', 's');
         m.put('!', 'i');
         m.put('|', 'l');

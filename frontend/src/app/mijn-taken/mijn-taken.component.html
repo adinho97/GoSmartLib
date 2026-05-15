@@ -125,6 +125,36 @@
     }
 
     @if (isLibrarian) {
+      <a class="mt-card" routerLink="/teacher-promotion">
+        <div class="mt-card-icon mt-icon-primary">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <line x1="19" y1="8" x2="19" y2="14" />
+            <line x1="22" y1="11" x2="16" y2="11" />
+          </svg>
+        </div>
+        <div class="mt-card-body">
+          <h2 class="mt-card-title">Leerkracht promoveren</h2>
+          <p class="mt-card-desc">
+            Promoveer een leerkracht van uw school tot bibbeheerder.
+          </p>
+        </div>
+        <span class="mt-card-arrow">→</span>
+      </a>
+    }
+
+    @if (isLibrarian) {
       <a class="mt-card" routerLink="/faq-beheer">
         <div class="mt-card-icon mt-icon-warn">
           <svg

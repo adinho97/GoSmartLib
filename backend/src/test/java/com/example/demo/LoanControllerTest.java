@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import com.example.demo.config.ConnectionPoolMonitor;
+import com.example.demo.config.CustomAccessDeniedHandler;
 import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.controllers.LoanController;
 import com.example.demo.dto.LoanDto;
@@ -25,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(LoanController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, CustomAccessDeniedHandler.class})
 @TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 class LoanControllerTest {
 
@@ -43,6 +45,9 @@ class LoanControllerTest {
 
     @MockBean
     private AppUserRepository appUserRepository;
+
+    @MockBean
+    private ConnectionPoolMonitor connectionPoolMonitor;
 
     @Test
     @WithMockUser(roles = "BIBBEHEERDER")

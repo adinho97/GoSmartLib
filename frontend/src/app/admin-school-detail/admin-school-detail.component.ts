@@ -1,7 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
-import { forkJoin, from } from "rxjs";
+import { firstValueFrom, forkJoin, from } from "rxjs";
 import { AdminSchoolService } from "../services/admin-school.service";
 import { BookService } from "../services/book.service";
 import {
@@ -10,6 +10,7 @@ import {
   SchoolDetail,
   SchoolStatus,
 } from "../models/admin-school";
+import { formatUserInfoDisplayName } from "../utils/name-utils";
 
 type PaginationItem = number | "...";
 
@@ -128,6 +129,11 @@ export class AdminSchoolDetailComponent implements OnInit {
   isTogglingStatus = false;
   statusError = "";
 
+  // Delete school
+  showDeleteConfirmation = false;
+  isDeletingSchool = false;
+  deleteError = "";
+
   // User actions
   togglingUserId: number | null = null;
   promotingUserId: number | null = null;
@@ -140,6 +146,7 @@ export class AdminSchoolDetailComponent implements OnInit {
   activeFilter: "" | "active" | "inactive" = "";
   userPage = 1;
   readonly userPageSize = 5;
+  private readonly userNameCache = new Map<string, string>();
 
   setActiveFilter(value: "" | "active" | "inactive"): void {
     this.activeFilter = value;
@@ -180,8 +187,10 @@ export class AdminSchoolDetailComponent implements OnInit {
         this.detail = detail;
         this.users = users;
         this.klassen = klassen;
+        this.leeslijsten = leeslijsten;
         this.leeslijsten = Array.isArray(leeslijsten) ? leeslijsten : (leeslijsten as any).data || [];
-        this.enrichUserNames(users);
+        void this.enrichUserNames(users);
+
         this.resetForm();
         this.isLoadingDetail = false;
         this.isLoadingUsers = false;
@@ -280,6 +289,33 @@ export class AdminSchoolDetailComponent implements OnInit {
       error: (err) => {
         this.statusError = err?.error?.message || "Status wijzigen mislukt.";
         this.isTogglingStatus = false;
+      },
+    });
+  }
+
+  openDeleteConfirmation(): void {
+    this.showDeleteConfirmation = true;
+    this.deleteError = "";
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirmation = false;
+    this.deleteError = "";
+  }
+
+  confirmDelete(): void {
+    if (!this.detail || this.isDeletingSchool) return;
+    this.isDeletingSchool = true;
+    this.deleteError = "";
+
+    this.adminSchoolService.deleteSchool(this.detail.id).subscribe({
+      next: () => {
+        // School deleted successfully, navigate back to dashboard
+        this.router.navigate(["/admin/dashboard"]);
+      },
+      error: (err) => {
+        this.deleteError = err?.error?.message || "School verwijderen mislukt.";
+        this.isDeletingSchool = false;
       },
     });
   }
@@ -483,6 +519,37 @@ export class AdminSchoolDetailComponent implements OnInit {
         return "Bibbeheerder";
       default:
         return role;
+    }
+  }
+
+  private async enrichUserNames(users: AdminUserListItem[]): Promise<void> {
+    const enriched = await Promise.all(
+      users.map(async (user) => {
+        if (user.displayName?.trim()) {
+          return user;
+        }
+        const displayName = await this.getDisplayNameForSub(user.sub);
+        return { ...user, displayName };
+      }),
+    );
+
+    this.users = enriched;
+  }
+
+  private async getDisplayNameForSub(sub: string): Promise<string> {
+    if (this.userNameCache.has(sub)) {
+      return this.userNameCache.get(sub)!;
+    }
+
+    try {
+      const profile = await firstValueFrom(
+        this.http.get<any>(`/api/users/${encodeURIComponent(sub)}/profile`),
+      );
+      const displayName = formatUserInfoDisplayName(profile, sub);
+      this.userNameCache.set(sub, displayName);
+      return displayName;
+    } catch {
+      return sub;
     }
   }
 

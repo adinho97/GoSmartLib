@@ -5,5 +5,6 @@ export interface Review {
   reviewerUserId?: number;
   reviewerUserName?: string;
   canManage?: boolean;
+  canEdit?: boolean;
   createdAt: string;
 }

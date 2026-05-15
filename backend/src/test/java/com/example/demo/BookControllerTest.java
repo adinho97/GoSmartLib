@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.dto.BookDto;
 import com.example.demo.controllers.BookController;
 import com.example.demo.config.AuthService;
+import com.example.demo.config.ConnectionPoolMonitor;
 import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
@@ -26,6 +27,9 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.hamcrest.Matchers;
 
 import java.time.LocalDate;
@@ -91,6 +95,9 @@ class BookControllerTest {
         @MockBean
         private ReviewModerationService reviewModerationService;
 
+        @MockBean
+        private ConnectionPoolMonitor connectionPoolMonitor;
+
         @Test
         void getAllShouldReturnBooks() throws Exception {
                 Book book = new Book();
@@ -106,6 +113,44 @@ class BookControllerTest {
                                 .andExpect(jsonPath("$[0].id").value(1))
                                 .andExpect(jsonPath("$[0].titel").value("Dune"))
                                 .andExpect(jsonPath("$[0].auteur").value("Frank Herbert"));
+        }
+
+        @Test
+        void getAllShouldExcludeDidacticForLeerlingWhenSchoolResolved() throws Exception {
+                var authentication = new UsernamePasswordAuthenticationToken(
+                                "student-sub",
+                                "N/A",
+                                List.of(new SimpleGrantedAuthority("ROLE_LEERLING")));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                School school = new School();
+                school.setId(1L);
+
+                AppUser student = new AppUser();
+                student.setSub("student-sub");
+                student.setSchool(school);
+
+                Book book = new Book();
+                book.setId(10L);
+                book.setTitel("Niet-didactisch");
+                book.setAuteur("Auteur");
+
+                when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
+                when(bookRepository.findNonDidacticBySchool_Id(1L)).thenReturn(List.of(book));
+
+                try {
+                        mockMvc.perform(get("/api/boeken")
+                                        .header("X-User-Role", "leerling")
+                                        .header("X-User-Sub", "student-sub"))
+                                        .andExpect(status().isOk())
+                                        .andExpect(jsonPath("$[0].id").value(10))
+                                        .andExpect(jsonPath("$[0].titel").value("Niet-didactisch"));
+
+                        verify(bookRepository).findNonDidacticBySchool_Id(1L);
+                        verify(bookRepository, never()).findAll();
+                } finally {
+                        SecurityContextHolder.clearContext();
+                }
         }
 
         @Test
@@ -495,6 +540,85 @@ class BookControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").value(5))
                                 .andExpect(jsonPath("$.titel").value("Eigen Schoolboek"));
+        }
+
+        @Test
+        void getByIdShouldReturnNotFoundForLeerlingWhenBookIsDidactic() throws Exception {
+                var authentication = new UsernamePasswordAuthenticationToken(
+                                "student-sub",
+                                "N/A",
+                                List.of(new SimpleGrantedAuthority("ROLE_LEERLING")));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                AppUser student = new AppUser();
+                student.setSub("student-sub");
+                student.setSchool(null);
+
+                Book didactic = new Book();
+                didactic.setId(6L);
+                didactic.setTitel("Didactisch boek");
+                didactic.setAuteur("Auteur");
+                didactic.setGenre("Didactiek - NT2");
+
+                when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
+                when(bookRepository.findById(6L)).thenReturn(Optional.of(didactic));
+
+                try {
+                        mockMvc.perform(get("/api/boeken/6")
+                                        .header("X-User-Role", "leerling")
+                                        .header("X-User-Sub", "student-sub"))
+                                        .andExpect(status().isNotFound());
+                } finally {
+                        SecurityContextHolder.clearContext();
+                }
+        }
+
+        @Test
+        void getByIdShouldReturnBookForTeacherWhenBookIsDidactic() throws Exception {
+                AppUser teacher = new AppUser();
+                teacher.setSub("teacher-sub");
+                teacher.setSchool(null);
+
+                Book didactic = new Book();
+                didactic.setId(7L);
+                didactic.setTitel("Didactisch boek");
+                didactic.setAuteur("Auteur");
+                didactic.setGenre("Didactiek - NT2");
+
+                when(appUserRepository.findBySub("teacher-sub")).thenReturn(Optional.of(teacher));
+                when(bookRepository.findById(7L)).thenReturn(Optional.of(didactic));
+
+                mockMvc.perform(get("/api/boeken/7")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Sub", "teacher-sub"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(7))
+                                .andExpect(jsonPath("$.genre").value("Didactiek - NT2"));
+        }
+
+        @Test
+        void getDidacticCollectionShouldReturnDidacticBooksForTeacher() throws Exception {
+                Book didactic = new Book();
+                didactic.setId(8L);
+                didactic.setTitel("Didactisch boek");
+                didactic.setAuteur("Auteur");
+                didactic.setGenre("Didactiek");
+
+                Book regular = new Book();
+                regular.setId(9L);
+                regular.setTitel("Fictie");
+                regular.setAuteur("Auteur");
+                regular.setGenre("Fictie");
+
+                when(bookRepository.findAll()).thenReturn(List.of(didactic, regular));
+
+                mockMvc.perform(get("/api/boeken/didactisch")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Sub", "teacher-sub"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(8))
+                                .andExpect(jsonPath("$[0].genre").value("Didactiek"))
+                                .andExpect(jsonPath("$.length()").value(1));
         }
 
         @Test
@@ -1046,6 +1170,222 @@ class BookControllerTest {
                                 .andExpect(status().isNoContent());
 
                 verify(reviewRepository).delete(review);
+        }
+
+        @Test
+        void updateReviewShouldReturnForbiddenForLibrarian() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review review = new Review();
+                review.setId(2L);
+                review.setBook(book);
+                review.setReviewerUserSub("student-sub");
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findById(2L)).thenReturn(Optional.of(review));
+
+                String json = """
+                                {
+                                  "rating": 3,
+                                  "comment": "Aangepast door bib"
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/reviews/2")
+                                .header("X-User-Role", "bibbeheerder")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isForbidden());
+
+                verify(reviewRepository, never()).save(any(Review.class));
+        }
+
+        @Test
+        void updateReviewShouldReturnForbiddenWhenNoIdentity() throws Exception {
+                String json = """
+                                {
+                                  "rating": 3,
+                                  "comment": "Anonieme poging"
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/reviews/2")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isForbidden());
+
+                verify(reviewRepository, never()).save(any(Review.class));
+        }
+
+        @Test
+        void updateReviewShouldReturnForbiddenWhenUserIsNotAuthor() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review review = new Review();
+                review.setId(2L);
+                review.setBook(book);
+                review.setReviewerUserSub("other-student-sub");
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findById(2L)).thenReturn(Optional.of(review));
+
+                String json = """
+                                {
+                                  "rating": 1,
+                                  "comment": "Niet mijn review"
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/reviews/2")
+                                .header("X-User-Sub", "student-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isForbidden());
+
+                verify(reviewRepository, never()).save(any(Review.class));
+        }
+
+        @Test
+        void updateReviewShouldSucceedWhenUserIsAuthor() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review review = new Review();
+                review.setId(2L);
+                review.setBook(book);
+                review.setRating(3);
+                review.setComment("Origineel");
+                review.setReviewerUserSub("student-sub");
+                review.setCreatedAt(LocalDateTime.of(2026, 5, 1, 10, 0));
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findById(2L)).thenReturn(Optional.of(review));
+                when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> inv.getArgument(0));
+
+                String json = """
+                                {
+                                  "rating": 5,
+                                  "comment": "Bijgewerkte review"
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/reviews/2")
+                                .header("X-User-Sub", "student-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.rating").value(5))
+                                .andExpect(jsonPath("$.comment").value("Bijgewerkte review"))
+                                .andExpect(jsonPath("$.canEdit").value(true))
+                                .andExpect(jsonPath("$.canManage").value(true));
+
+                verify(reviewRepository).save(any(Review.class));
+                verify(reviewModerationService).validateReviewComment("Bijgewerkte review");
+        }
+
+        @Test
+        void updateReviewShouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
+                when(bookRepository.existsById(1L)).thenReturn(false);
+
+                String json = """
+                                {
+                                  "rating": 4,
+                                  "comment": "Bestaat niet"
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/reviews/2")
+                                .header("X-User-Sub", "student-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void updateReviewShouldReturnNotFoundWhenReviewDoesNotBelongToBook() throws Exception {
+                Book otherBook = new Book();
+                otherBook.setId(99L);
+
+                Review review = new Review();
+                review.setId(2L);
+                review.setBook(otherBook);
+                review.setReviewerUserSub("student-sub");
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findById(2L)).thenReturn(Optional.of(review));
+
+                String json = """
+                                {
+                                  "rating": 4,
+                                  "comment": "Verkeerd boek"
+                                }
+                                """;
+
+                mockMvc.perform(put("/api/boeken/1/reviews/2")
+                                .header("X-User-Sub", "student-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void getReviewsShouldExposeCanEditTrueOnlyForAuthor() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review authorReview = new Review();
+                authorReview.setId(3L);
+                authorReview.setBook(book);
+                authorReview.setRating(4);
+                authorReview.setComment("Mijn review");
+                authorReview.setReviewerUserSub("student-sub");
+                authorReview.setCreatedAt(LocalDateTime.of(2026, 5, 1, 9, 0));
+
+                Review otherReview = new Review();
+                otherReview.setId(4L);
+                otherReview.setBook(book);
+                otherReview.setRating(3);
+                otherReview.setComment("Andere review");
+                otherReview.setReviewerUserSub("other-student-sub");
+                otherReview.setCreatedAt(LocalDateTime.of(2026, 5, 1, 8, 0));
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(1L))
+                                .thenReturn(List.of(authorReview, otherReview));
+
+                mockMvc.perform(get("/api/boeken/1/reviews")
+                                .header("X-User-Sub", "student-sub"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].canEdit").value(true))
+                                .andExpect(jsonPath("$[0].canManage").value(true))
+                                .andExpect(jsonPath("$[1].canEdit").value(false))
+                                .andExpect(jsonPath("$[1].canManage").value(false));
+        }
+
+        @Test
+        void getReviewsShouldExposeCanManageTrueButCanEditFalseForLibrarian() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                Review studentReview = new Review();
+                studentReview.setId(5L);
+                studentReview.setBook(book);
+                studentReview.setRating(4);
+                studentReview.setComment("Review van leerling");
+                studentReview.setReviewerUserSub("student-sub");
+                studentReview.setCreatedAt(LocalDateTime.of(2026, 5, 1, 9, 0));
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(1L))
+                                .thenReturn(List.of(studentReview));
+
+                mockMvc.perform(get("/api/boeken/1/reviews")
+                                .header("X-User-Role", "bibbeheerder"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].canManage").value(true))
+                                .andExpect(jsonPath("$[0].canEdit").value(false));
         }
 
         @Test

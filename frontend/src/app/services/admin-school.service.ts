@@ -24,7 +24,9 @@ export class AdminSchoolService {
     private readonly superAdminAuthService: SuperAdminAuthService,
   ) {}
 
-  createSchool(request: CreateAdminSchoolRequest): Observable<CreateAdminSchoolResponse> {
+  createSchool(
+    request: CreateAdminSchoolRequest,
+  ): Observable<CreateAdminSchoolResponse> {
     return this.http.post<CreateAdminSchoolResponse>(this.apiUrl, request, {
       headers: this.superAdminAuthService.getAuthHeaders(),
     });
@@ -42,7 +44,10 @@ export class AdminSchoolService {
     });
   }
 
-  updateSchoolInfo(id: number, request: UpdateSchoolInfoRequest): Observable<SchoolDetail> {
+  updateSchoolInfo(
+    id: number,
+    request: UpdateSchoolInfoRequest,
+  ): Observable<SchoolDetail> {
     return this.http.patch<SchoolDetail>(`${this.apiUrl}/${id}/info`, request, {
       headers: this.superAdminAuthService.getAuthHeaders(),
     });
@@ -65,7 +70,10 @@ export class AdminSchoolService {
     });
   }
 
-  toggleUserActive(schoolId: number, userId: number): Observable<AdminUserListItem> {
+  toggleUserActive(
+    schoolId: number,
+    userId: number,
+  ): Observable<AdminUserListItem> {
     return this.http.patch<AdminUserListItem>(
       `${this.apiUrl}/${schoolId}/users/${userId}/active`,
       {},
@@ -73,7 +81,11 @@ export class AdminSchoolService {
     );
   }
 
-  setUserRole(schoolId: number, userId: number, role: string): Observable<AdminUserListItem> {
+  setUserRole(
+    schoolId: number,
+    userId: number,
+    role: string,
+  ): Observable<AdminUserListItem> {
     return this.http.patch<AdminUserListItem>(
       `${this.apiUrl}/${schoolId}/users/${userId}/role`,
       { role },
@@ -83,6 +95,12 @@ export class AdminSchoolService {
 
   getSchoolKlassen(id: number): Observable<KlasListItem[]> {
     return this.http.get<KlasListItem[]>(`${this.apiUrl}/${id}/klassen`, {
+      headers: this.superAdminAuthService.getAuthHeaders(),
+    });
+  }
+
+  deleteSchool(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, {
       headers: this.superAdminAuthService.getAuthHeaders(),
     });
   }
