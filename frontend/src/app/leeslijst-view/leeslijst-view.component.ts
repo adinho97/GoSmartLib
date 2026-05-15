@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, HostListener } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { UiToastService } from "../services/ui-toast.service";
@@ -35,6 +35,7 @@ export class LeeslijstViewComponent implements OnInit {
   leeslijst: LeeslijstData | null = null;
   loading = true;
   deleting = false;
+  isActionMenuOpen = false;
   error = "";
 
   constructor(
@@ -67,6 +68,16 @@ export class LeeslijstViewComponent implements OnInit {
     } finally {
       this.loading = false;
     }
+  }
+
+  toggleActionMenu(event: Event): void {
+    event.stopPropagation();
+    this.isActionMenuOpen = !this.isActionMenuOpen;
+  }
+
+  @HostListener("document:click")
+  onDocumentClick(): void {
+    this.isActionMenuOpen = false;
   }
 
   goBack() {
@@ -166,5 +177,19 @@ export class LeeslijstViewComponent implements OnInit {
 
   printLeeslijst() {
     window.print();
+  }
+
+  copyLink() {
+    const url = window.location.href;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        this.uiToastService.success("Link gekopieerd naar klembord.");
+      })
+      .catch((err) => {
+        this.uiToastService.error("Fout bij kopiëren van link.");
+        console.error("Could not copy text: ", err);
+      });
+    this.isActionMenuOpen = false;
   }
 }

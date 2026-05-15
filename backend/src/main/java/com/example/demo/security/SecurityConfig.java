@@ -6,6 +6,7 @@ import com.example.demo.config.CustomAccessDeniedHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; 
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -55,19 +56,21 @@ public class SecurityConfig {
                 .exceptionHandling(exc -> exc
                         .accessDeniedHandler(customAccessDeniedHandler))
                 .authorizeHttpRequests(authz -> authz
-                        // Public endpoints - no authentication required
                         .requestMatchers("/api/auth/smartschool-login").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/validate-token").permitAll()
-                        .requestMatchers("/api/auth/refresh-token").authenticated() // Can be called by authenticated
-                                                                                    // users
+                        .requestMatchers("/api/auth/refresh-token").authenticated()
                         .requestMatchers("/api/admin/login").permitAll()
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/admin/genres", "/api/admin/genres/**").authenticated()
+
                         .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/uitleningen/all-active").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
-                        .requestMatchers("/api/uitleningen/inspectie/conditie")
-                        .hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
+                        .requestMatchers("/api/uitleningen/inspectie/conditie").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
+                        
+                        .requestMatchers("/api/proxy/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(smartschoolAuthenticationFilter, JwtAuthenticationFilter.class);
@@ -80,7 +83,7 @@ public class SecurityConfig {
         List<String> origins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(java.util.ArrayList::new));
 
         if (origins.isEmpty()) {
             throw new IllegalStateException("app.cors.allowed-origins must not be empty");
@@ -95,17 +98,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "X-Requested-With",
-                "X-User-Sub",
-                "X-User-Role",
-                "X-User-Name",
-                "Cache-Control",
-                "Pragma"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-User-Role", "X-User-Sub", "X-User-Name"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

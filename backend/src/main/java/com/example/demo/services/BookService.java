@@ -3,16 +3,27 @@ package com.example.demo.services;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
+import com.example.demo.repositories.LeeslijstRepository;
+import com.example.demo.repositories.WishlistRepository;
+import com.example.demo.config.HighlightedBookRepository;
+import com.example.demo.config.ClassReadingListItemRepository;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
+import com.example.demo.entities.Loan;
+import com.example.demo.entities.Leeslijst;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
+import com.example.demo.exception.ApiException;
 import com.example.demo.mappers.BookMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,11 +42,18 @@ public class BookService {
     private final IsbnService isbnService;
     private final BulkImportService bulkImportService;
     private final ImportCoreService importCoreService;
+    private final LeeslijstRepository leeslijstRepository;
+    private final WishlistRepository wishlistRepository;
+    private final HighlightedBookRepository highlightedBookRepository;
+    private final ClassReadingListItemRepository classReadingListItemRepository;
 
+    @Autowired
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
-            ImportCoreService importCoreService) {
+            ImportCoreService importCoreService, LeeslijstRepository leeslijstRepository,
+            WishlistRepository wishlistRepository, HighlightedBookRepository highlightedBookRepository,
+            ClassReadingListItemRepository classReadingListItemRepository) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.loanRepository = loanRepository;
@@ -44,6 +62,21 @@ public class BookService {
         this.isbnService = isbnService;
         this.bulkImportService = bulkImportService;
         this.importCoreService = importCoreService;
+        this.leeslijstRepository = leeslijstRepository;
+        this.wishlistRepository = wishlistRepository;
+        this.highlightedBookRepository = highlightedBookRepository;
+        this.classReadingListItemRepository = classReadingListItemRepository;
+    }
+
+    /**
+     * Overloaded constructor for backwards compatibility with existing tests.
+     */
+    public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
+            LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
+            IsbnService isbnService, BulkImportService bulkImportService,
+            ImportCoreService importCoreService) {
+        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService,
+                isbnService, bulkImportService, importCoreService, null, null, null, null);
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
@@ -93,13 +126,18 @@ public class BookService {
             int quantity = pair.quantity();
             try {
                 ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(isbn, school);
+                Book bookToAssociateCopies = null;
+                Long bookIdForDiagnostic = null;
+
                 if (outcome.status() == ImportCoreService.ImportStatus.ALREADY_EXISTS) {
                     // Book already exists, so just add the copies
                     Book book = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId()).orElse(null);
                     if (book != null) {
+                        bookToAssociateCopies = book;
+                        bookIdForDiagnostic = book.getId();
                         for (int i = 0; i < quantity; i++) {
                             BookCopy copy = new BookCopy();
-                            copy.setBook(book);
+                            copy.setBook(bookToAssociateCopies);
                             copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
                             bookCopyRepository.save(copy);
                         }
@@ -108,7 +146,7 @@ public class BookService {
                                 isbn,
                                 ImportResultDto.Status.ADDED,
                                 "Boek al in bibliotheek - " + quantity + " exemplaren toegevoegd.",
-                                outcome.bookDto() != null ? outcome.bookDto().getId() : null));
+                                bookIdForDiagnostic));
                     } else {
                         rows.add(new ImportResultDto.RowResult(
                                 isbn,
@@ -128,28 +166,42 @@ public class BookService {
                     continue;
                 }
 
-                // Book was successfully added, now create the specified number of copies
-                Book book = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId()).orElse(null);
-                if (book != null) {
+                // If we reach here, it means the book was NEWLY_ADDED by importCoreService.importByNormalizedIsbn
+                // We should use the book entity from the outcome directly if possible,
+                // or fetch it using the ID from the outcome's BookDto.
+                BookDto newlyAddedBookDto = outcome.bookDto();
+                if (newlyAddedBookDto != null && newlyAddedBookDto.getId() != null) {
+                    bookToAssociateCopies = bookRepository.findById(newlyAddedBookDto.getId()).orElse(null);
+                    bookIdForDiagnostic = newlyAddedBookDto.getId();
+                }
+
+                if (bookToAssociateCopies != null) {
                     for (int i = 0; i < quantity; i++) {
                         BookCopy copy = new BookCopy();
-                        copy.setBook(book);
+                        copy.setBook(bookToAssociateCopies);
                         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
                         bookCopyRepository.save(copy);
                     }
                     totalCopiesAdded += quantity;
+                    rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.ADDED,
+                            "Boek toegevoegd met " + quantity + " exemplaar(en).",
+                            bookIdForDiagnostic));
+                } else {
+                    // This scenario means importCoreService reported success (not NOT_FOUND or ALREADY_EXISTS)
+                    // but we couldn't get the Book entity to add copies. This is an unexpected error.
+                    rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.ERROR,
+                            "Boek is geïmporteerd, maar er is een fout opgetreden bij het toevoegen van exemplaren.",
+                            bookIdForDiagnostic)); // Use bookIdForDiagnostic if available, even if bookToAssociateCopies is null
                 }
-
-                rows.add(new ImportResultDto.RowResult(
-                        isbn,
-                        ImportResultDto.Status.ADDED,
-                        "Boek toegevoegd met " + quantity + " exemplaar(en).",
-                        outcome.bookDto() != null ? outcome.bookDto().getId() : null));
             } catch (Exception ex) {
                 rows.add(new ImportResultDto.RowResult(
                         isbn,
                         ImportResultDto.Status.ERROR,
-                        "Fout bij verwerken van ISBN.",
+                        "Fout bij verwerken van ISBN: " + ex.getMessage(),
                         null));
             }
         }
@@ -188,5 +240,74 @@ public class BookService {
         }
 
         return loanCountMap;
+    }
+
+    /**
+     * Deletes a book from the library catalog after verifying school ownership
+     * and ensuring no active loans exist for the book.
+     */
+    @Transactional
+    public void deleteBook(Long id, Long schoolId) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ApiException("Boek niet gevonden", HttpStatus.NOT_FOUND, "BOOK_NOT_FOUND"));
+
+        if (schoolId != null && (book.getSchool() == null || !book.getSchool().getId().equals(schoolId))) {
+            throw new ApiException("Dit boek behoort niet tot jouw school.", HttpStatus.FORBIDDEN, "ACCESS_DENIED");
+        }
+
+        if (!loanRepository.findByCopy_Book_IdAndReturnedAtIsNull(id).isEmpty()) {
+            throw new ApiException("Kan boek niet verwijderen: er zijn nog actieve uitleningen.", HttpStatus.CONFLICT, "ACTIVE_LOANS_EXIST");
+        }
+
+        // 1. Clear Loan history
+        List<Loan> bookLoans = loanRepository.findAll().stream()
+                .filter(l -> l.getCopy().getBook().getId().equals(id))
+                .toList();
+        loanRepository.deleteAll(bookLoans);
+
+        // 2. Clear Wishlists
+        if (wishlistRepository != null) {
+            var wishes = wishlistRepository.findAll().stream()
+                    .filter(w -> w.getBook().getId().equals(id))
+                    .toList();
+            wishlistRepository.deleteAll(wishes);
+        }
+
+        // 3. Clear Highlighted status
+        if (highlightedBookRepository != null) {
+            var highlights = highlightedBookRepository.findAll().stream()
+                    .filter(h -> id.equals(h.getBookId()))
+                    .toList();
+            highlightedBookRepository.deleteAll(highlights);
+        }
+
+        // 4. Clear Class Reading List items
+        if (classReadingListItemRepository != null) {
+            var classItems = classReadingListItemRepository.findAll().stream()
+                    .filter(c -> id.equals(c.getBookId()))
+                    .toList();
+            classReadingListItemRepository.deleteAll(classItems);
+        }
+
+        // 5. Delete all copies associated with this book.
+        List<BookCopy> bookCopies = bookCopyRepository.findAll().stream()
+                .filter(c -> c.getBook().getId().equals(id))
+                .toList();
+        bookCopyRepository.deleteAll(bookCopies);
+
+        // 3. Remove book from all reading lists (Leeslijsten) to clear join table
+        if (leeslijstRepository != null) {
+            leeslijstRepository.findAll().forEach(list -> {
+                Set<Book> booksInList = new HashSet<>(list.getBooks()); // Create a mutable copy
+                boolean changed = booksInList.removeIf(b -> b.getId().equals(id));
+                if (changed) {
+                    list.setBooks(booksInList); // Set the new collection
+                    leeslijstRepository.save(list);
+                }
+            });
+            leeslijstRepository.flush();
+        }
+
+        bookRepository.delete(book);
     }
 }
