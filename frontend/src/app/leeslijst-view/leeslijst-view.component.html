@@ -13,6 +13,50 @@
     <div class="leeslijst-page">
       <!-- Header/Title Page -->
       <div class="leeslijst-title-page">
+        <button class="back-btn" (click)="goBack()">← Terug</button>
+
+        <div class="action-menu-container">
+          <button
+            class="kebab-btn"
+            (click)="toggleActionMenu($event)"
+            aria-label="Acties"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+            >
+              <circle cx="12" cy="5" r="1" fill="currentColor"></circle>
+              <circle cx="12" cy="12" r="1" fill="currentColor"></circle>
+              <circle cx="12" cy="19" r="1" fill="currentColor"></circle>
+            </svg>
+          </button>
+
+          @if (isActionMenuOpen) {
+            <div class="actions-dropdown">
+              <button class="lib-action-btn" (click)="printLeeslijst()">
+                Afdrukken
+              </button>
+              @if (canEditLeeslijst) {
+                <button class="lib-action-btn" (click)="editLeeslijst()">
+                  Aanpassen
+                </button>
+              }
+              @if (canDeleteLeeslijst) {
+                <button
+                  class="lib-action-btn"
+                  (click)="deleteLeeslijst()"
+                  [disabled]="deleting"
+                >
+                  {{ deleting ? "Verwijderen..." : "Verwijder" }}
+                </button>
+              }
+            </div>
+          }
+        </div>
         <div class="title-content">
           <h1 class="leeslijst-title">{{ leeslijst.titel }}</h1>
           <div class="leeslijst-meta">
@@ -71,28 +115,6 @@
             </div>
           }
         </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="actions-footer">
-        <button class="btn btn-outline" (click)="goBack()">Terug</button>
-        @if (canEditLeeslijst) {
-          <button class="btn btn-primary" (click)="editLeeslijst()">
-            Aanpassen
-          </button>
-        }
-        @if (canDeleteLeeslijst) {
-          <button
-            class="btn btn-outline"
-            (click)="deleteLeeslijst()"
-            [disabled]="deleting"
-          >
-            {{ deleting ? "Verwijderen..." : "Verwijder" }}
-          </button>
-        }
-        <button class="btn btn-secondary" (click)="printLeeslijst()">
-          Afdrukken
-        </button>
       </div>
     </div>
   }

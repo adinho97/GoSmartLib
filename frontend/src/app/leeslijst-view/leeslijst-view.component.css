@@ -54,6 +54,7 @@
   );
   border-bottom: 2px solid var(--brand-300);
   text-align: center;
+  position: relative; /* Base for absolute positioning of back button and menu */
 }
 
 .title-content {
@@ -67,6 +68,92 @@
   color: var(--brand-700);
   margin: 0 0 var(--s-4);
   letter-spacing: -0.01em;
+}
+
+.back-btn {
+  position: absolute;
+  top: var(--s-6);
+  left: var(--s-6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid var(--brand);
+  color: var(--brand);
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: var(--brand-50);
+  border-color: var(--brand-700);
+  color: var(--brand-700);
+}
+
+.action-menu-container {
+  position: absolute;
+  top: var(--s-6);
+  right: var(--s-6);
+  z-index: 100;
+}
+
+.kebab-btn {
+  background: none;
+  border: none;
+  color: var(--ink-2);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.kebab-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--brand);
+}
+
+.actions-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 180px;
+}
+
+.lib-action-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.lib-action-btn:hover {
+  background-color: var(--brand-50);
+  color: var(--brand);
 }
 
 .leeslijst-meta {
@@ -193,57 +280,6 @@
   margin: 0;
 }
 
-/* Actions Footer */
-.actions-footer {
-  display: flex;
-  gap: var(--s-3);
-  padding: var(--s-6);
-  background: var(--surface-2);
-  border-top: 1px solid var(--line);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.btn {
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-outline {
-  background: var(--surface);
-  color: var(--ink);
-  border: 2px solid var(--line);
-}
-
-.btn-outline:hover {
-  border-color: var(--brand);
-  color: var(--brand);
-}
-
-.btn-secondary {
-  background: var(--brand);
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: var(--brand-700);
-}
-
-.btn-primary {
-  background: var(--brand);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: var(--brand-700);
-}
-
 /* Print Styles */
 @media print {
   .leeslijst-container {
@@ -313,6 +349,15 @@
     padding: var(--s-5);
   }
 
+  .back-btn,
+  .action-menu-container {
+    top: var(--s-4);
+  }
+
+  .back-btn {
+    left: var(--s-4);
+  }
+
   .leeslijst-title {
     font-size: 28px;
   }
@@ -329,15 +374,6 @@
   .section-title {
     font-size: 20px;
   }
-
-  .actions-footer {
-    padding: var(--s-4);
-  }
-
-  .btn {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -345,15 +381,12 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .back-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
   .leeslijst-title {
     font-size: 22px;
-  }
-
-  .actions-footer {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
   }
 }
