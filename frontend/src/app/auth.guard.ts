@@ -14,7 +14,10 @@ import { of } from "rxjs";
   providedIn: "root",
 })
 export class AuthGuard implements CanActivate {
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+  ) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -32,14 +35,18 @@ export class AuthGuard implements CanActivate {
 
     // If no role or token, deny access immediately
     if (!userRole || !accessToken) {
-      this.router.navigate(["/login"]);
+      this.router.navigate(["/login"], {
+        queryParams: { returnUrl: state.url },
+      });
       return false;
     }
 
     // Check required roles
     const requiredRoles: string[] = route.data["roles"] || [];
     if (requiredRoles.length > 0 && !requiredRoles.includes(userRole)) {
-      this.router.navigate(["/login"]);
+      this.router.navigate(["/login"], {
+        queryParams: { returnUrl: state.url },
+      });
       return false;
     }
 
@@ -49,7 +56,9 @@ export class AuthGuard implements CanActivate {
         if (!isValid) {
           console.warn("Access token is invalid or expired");
           localStorage.clear();
-          this.router.navigate(["/login"]);
+          this.router.navigate(["/login"], {
+            queryParams: { returnUrl: state.url },
+          });
           return false;
         }
         return true;
@@ -57,24 +66,28 @@ export class AuthGuard implements CanActivate {
       catchError((error) => {
         console.error("Error validating token", error);
         localStorage.clear();
-        this.router.navigate(["/login"]);
+        this.router.navigate(["/login"], {
+          queryParams: { returnUrl: state.url },
+        });
         return of(false);
       }),
     );
   }
 
   private validateAdminToken(adminToken: string): Observable<boolean> {
-    return this.http.get("/api/admin/validate-token", {
-      headers: { Authorization: `Bearer ${adminToken}` },
-      responseType: "text",
-    }).pipe(
-      map(() => true),
-      catchError(() => {
-        localStorage.removeItem("admin_jwt_token");
-        this.router.navigate(["/super-admin-login"]);
-        return of(false);
-      }),
-    );
+    return this.http
+      .get("/api/admin/validate-token", {
+        headers: { Authorization: `Bearer ${adminToken}` },
+        responseType: "text",
+      })
+      .pipe(
+        map(() => true),
+        catchError(() => {
+          localStorage.removeItem("admin_jwt_token");
+          this.router.navigate(["/super-admin-login"]);
+          return of(false);
+        }),
+      );
   }
 
   private validateTokenWithServer(accessToken: string): Observable<boolean> {
@@ -85,17 +98,16 @@ export class AuthGuard implements CanActivate {
 
     // Use the backend token validation endpoint
     // If token is invalid/expired, the server will return false
-    return this.http.get<boolean>(
-      "/api/auth/validate-token",
-      {
+    return this.http
+      .get<boolean>("/api/auth/validate-token", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      }
-    ).pipe(
-      map((isValid) => isValid), // Token is valid if response is true
-      catchError(() => of(false)), // Token is invalid if request fails
-    );
+      })
+      .pipe(
+        map((isValid) => isValid), // Token is valid if response is true
+        catchError(() => of(false)), // Token is invalid if request fails
+      );
   }
 
   private getAdminToken(): string {
