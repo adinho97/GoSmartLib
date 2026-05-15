@@ -228,6 +228,12 @@ public class BookService {
             throw new ApiException("Kan boek niet verwijderen: er zijn nog actieve uitleningen.", HttpStatus.CONFLICT, "ACTIVE_LOANS_EXIST");
         }
 
+        // Clear dependencies to satisfy foreign key constraints (SQL Error 1451).
+        // Only active loans (checked above) block the deletion.
+        // We remove historical loans and copies to allow the book to be removed.
+        loanRepository.deleteByCopy_Book_Id(id);
+        bookCopyRepository.deleteByBookId(id);
+
         bookRepository.delete(book);
     }
 }
