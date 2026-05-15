@@ -80,11 +80,12 @@ public class SecurityConfig {
         List<String> origins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(java.util.ArrayList::new));
 
         if (origins.isEmpty()) {
             throw new IllegalStateException("app.cors.allowed-origins must not be empty");
         }
+        origins.add("https://openlibrary.org");
         for (String origin : origins) {
             if (!origin.startsWith("http://") && !origin.startsWith("https://")) {
                 throw new IllegalStateException(
@@ -95,17 +96,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "X-Requested-With",
-                "X-User-Sub",
-                "X-User-Role",
-                "X-User-Name",
-                "Cache-Control",
-                "Pragma"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-User-Role", "X-User-Sub", "X-User-Name"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
