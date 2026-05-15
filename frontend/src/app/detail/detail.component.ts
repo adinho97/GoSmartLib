@@ -358,9 +358,9 @@ export class DetailComponent implements OnInit, OnDestroy {
       `?bibkeys=${encodeURIComponent(bibKey)}` +
       "&format=json&jscmd=viewapi";
 
-    // Explicitly set Authorization to null to prevent global interceptors from sending tokens to OpenLibrary
+    // Explicitly set Authorization to undefined to prevent global interceptors from sending tokens to OpenLibrary
     const response = await axios.get(booksApiUrl, {
-      headers: { Authorization: null },
+      headers: { Authorization: undefined },
     });
     const payload = response.data || {};
     const entry = payload[bibKey] as
@@ -396,7 +396,7 @@ export class DetailComponent implements OnInit, OnDestroy {
 
     const searchUrl = `https://openlibrary.org/search.json?${params.toString()}`;
     const response = await axios.get(searchUrl, {
-      headers: { Authorization: null },
+      headers: { Authorization: undefined },
     });
     const docs = Array.isArray(response.data?.docs) ? response.data.docs : [];
 
@@ -610,7 +610,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     try {
       const editionUrl = `https://openlibrary.org/books/${encodeURIComponent(editionKey)}.json`;
       const response = await axios.get(editionUrl, {
-        headers: { Authorization: null },
+        headers: { Authorization: undefined },
       });
       const data = response.data || {};
 
