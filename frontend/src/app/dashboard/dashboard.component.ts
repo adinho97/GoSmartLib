@@ -200,7 +200,7 @@ export class DashboardComponent implements OnInit {
       return;
     }
     try {
-      this.myLoans = await this.loanService.getActiveLoans(userSub);
+      this.myLoans = await this.loanService.getMyActiveLoans();
     } catch {
       this.myLoans = [];
     } finally {
