@@ -52,8 +52,14 @@ public class NewArrivalsStrategy implements RecommendationStrategy {
             return bookRepository.findAll();
         }
         return appUserRepository.findBySub(userId.trim())
-                .filter(user -> user.getSchool() != null)
-                .map(user -> bookRepository.findAllBySchool_Id(user.getSchool().getId()))
+                .map(user -> {
+                    if (user.getSchool() == null) return bookRepository.findAll();
+                    Long schoolId = user.getSchool().getId();
+                    if ("leerling".equalsIgnoreCase(user.getRole())) {
+                        return bookRepository.findNonDidacticBySchool_Id(schoolId);
+                    }
+                    return bookRepository.findAllBySchool_Id(schoolId);
+                })
                 .orElseGet(bookRepository::findAll);
     }
 }

@@ -44,18 +44,20 @@
         leeslisten.length
       }}</span>
     </button>
-    <button
-      class="tab"
-      [class.active]="activeTab === 'didactisch'"
-      role="tab"
-      [attr.aria-selected]="activeTab === 'didactisch'"
-      (click)="selectTab('didactisch')"
-    >
-      Didactische collectie
-      <span class="tab-count" [class.active]="activeTab === 'didactisch'">{{
-        didacticBooks.length
-      }}</span>
-    </button>
+    @if (canViewDidacticCollection) {
+      <button
+        class="tab"
+        [class.active]="activeTab === 'didactisch'"
+        role="tab"
+        [attr.aria-selected]="activeTab === 'didactisch'"
+        (click)="selectTab('didactisch')"
+      >
+        Didactische collectie
+        <span class="tab-count" [class.active]="activeTab === 'didactisch'">{{
+          didacticBooks.length
+        }}</span>
+      </button>
+    }
     <button
       class="tab"
       [class.active]="activeTab === 'kijker'"
@@ -120,7 +122,7 @@
   }
 
   <!-- ── Didactische collectie ── -->
-  @if (activeTab === "didactisch") {
+  @if (canViewDidacticCollection && activeTab === "didactisch") {
     <div class="section-head">
       <div>
         <h2 class="section-title">Didactische collectie</h2>

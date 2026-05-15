@@ -61,8 +61,11 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                     logger.warn("Skipping token auth due to pool stress: utilization={}%, pending={}",
                             String.format("%.0f", metrics.utilizationPercent),
                             metrics.pendingThreads);
-                    // Don't authenticate, let framework return 401/403
+                    // Mark as attempted auth failure (not database issue)
+                    request.setAttribute("authenticationAttempted", true);
+                    request.setAttribute("authenticationFailed", true);
                 } else {
+                    request.setAttribute("authenticationAttempted", true);
                     Optional<AppUser> userOpt = appUserRepository.findByAccessToken(token);
                     if (userOpt.isPresent()) {
                         AppUser user = userOpt.get();
@@ -76,7 +79,12 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                             logger.debug("Smartschool token authenticated for user: {}", user.getSub());
                         } else {
                             logger.debug("Smartschool token matched inactive user: {}", user.getSub());
+                            request.setAttribute("authenticationFailed", true);
                         }
+                    } else {
+                        // Token not found in DB - authentication failed (token invalid/expired/deleted)
+                        logger.debug("Token not found in database for user lookup");
+                        request.setAttribute("authenticationFailed", true);
                     }
                 }
             } catch (Exception ex) {
@@ -86,8 +94,13 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                 String cause = ex.getClass().getSimpleName();
                 if (cause.contains("Transient") || cause.contains("Connection")) {
                     logger.warn("Could not authenticate Smartschool token due to database issue: {}", cause);
+                    // Mark as attempted but failed (let exception handler decide on 503 vs 401)
+                    request.setAttribute("authenticationAttempted", true);
+                    request.setAttribute("databaseUnavailable", true);
                 } else {
                     logger.debug("Could not authenticate Smartschool token", ex);
+                    request.setAttribute("authenticationAttempted", true);
+                    request.setAttribute("authenticationFailed", true);
                 }
                 // Don't set authentication - let the request fail at endpoint with proper error
             }

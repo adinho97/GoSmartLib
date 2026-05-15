@@ -37,9 +37,10 @@ export class DetailComponent implements OnInit, OnDestroy {
   isInClassReadingList = false; // New property for Klasleeslijst
 
   // Role-based logic
-  readonly userRole = localStorage.getItem("role");
-  readonly isLibrarian = this.userRole === "bibbeheerder";
-  readonly isTeacher = this.userRole === "leerkracht";
+  readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
+  readonly isLibrarian = this.userRole.includes("bibbeheerder");
+  readonly isTeacher = this.userRole.includes("leerkracht");
+  readonly isTeacherOrLibrarian = this.isLibrarian || this.isTeacher;
   private readonly roleLikeValues = new Set([
     "leerling",
     "leerkracht",
@@ -160,7 +161,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       // Load reviews
       this.loadReviews(this.currentBookId);
 
-      if (this.isTeacher) {
+      if (this.isTeacherOrLibrarian) {
         this.loadLestip(this.currentBookId);
       }
 
@@ -953,9 +954,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       );
 
       this.reviews = this.reviews.map((review) =>
-        review.id === reviewId
-          ? { ...updatedReview, reviewerUserName: review.reviewerUserName }
-          : review,
+        review.id === reviewId ? updatedReview : review,
       );
       this.cancelReviewEdit();
       this.reviewSuccess = "Review bijgewerkt.";
@@ -995,7 +994,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   async saveLestip(): Promise<void> {
-    if (!this.isTeacher || this.currentBookId === null) {
+    if (!this.isTeacherOrLibrarian || this.currentBookId === null) {
       return;
     }
 
@@ -1040,7 +1039,7 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   async removeLestip(): Promise<void> {
     if (
-      !this.isTeacher ||
+      !this.isTeacherOrLibrarian ||
       !this.magLestipVerwijderen ||
       this.currentBookId === null
     ) {

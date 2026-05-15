@@ -41,4 +41,21 @@ public class AuthController {
         return authService.validateToken(accessToken)
                 .map(ResponseEntity::ok);
     }
+
+    /**
+     * Refresh access token if it's about to expire.
+     * Frontend calls this proactively before token expiration to maintain session.
+     */
+    @PostMapping("/refresh-token")
+    public Mono<ResponseEntity<TokenRefreshResponse>> refreshToken(
+            @RequestHeader(value = "X-User-Sub", required = false) String userSub) {
+        if (userSub == null || userSub.isBlank()) {
+            return Mono.just(ResponseEntity.badRequest().build());
+        }
+        return authService.getUserInfoBySub(userSub)
+                .map(userInfo -> ResponseEntity.ok(new TokenRefreshResponse(
+                        userInfo.getAccessToken(),
+                        "Token refreshed successfully")))
+                .onErrorResume(error -> Mono.just(ResponseEntity.status(401).build()));
+    }
 }

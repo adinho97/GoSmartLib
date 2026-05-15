@@ -170,8 +170,6 @@ public class OAuthRefreshTokenHandler {
             Optional<AppUser> userOpt = appUserRepository.findBySub(userSub);
             if (userOpt.isPresent()) {
                 AppUser user = userOpt.get();
-                user.setAccessToken(null);
-                user.setSmartschoolRefreshToken(null);
                 appUserRepository.save(user);
                 logger.warn("Force logged out user due to revoked token: {}", userSub);
             }

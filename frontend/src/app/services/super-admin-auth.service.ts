@@ -72,6 +72,7 @@ export class SuperAdminAuthService {
   logout(): void {
     this.removeToken();
     this.removeAdminInfo();
+    localStorage.removeItem("role");
     this.isAuthenticatedSubject.next(false);
   }
 
@@ -119,6 +120,7 @@ export class SuperAdminAuthService {
    */
   private setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.setItem("role", "SUPER_ADMIN");
   }
 
   private removeToken(): void {

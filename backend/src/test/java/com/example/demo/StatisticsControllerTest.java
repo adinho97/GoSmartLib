@@ -7,11 +7,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.example.demo.config.ConnectionPoolMonitor;
 import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.dto.StatisticsController;
 import com.example.demo.dto.StatisticsDTO;
 import com.example.demo.dto.StatisticsService;
 import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.repositories.SchoolRepository;
 import com.example.demo.repositories.SuperAdminRepository;
 
 import org.springframework.security.test.context.support.WithMockUser;
@@ -39,6 +41,12 @@ class StatisticsControllerTest {
 
     @MockBean
     private AppUserRepository appUserRepository;
+
+    @MockBean
+    private SchoolRepository schoolRepository;
+
+    @MockBean
+    private ConnectionPoolMonitor connectionPoolMonitor;
 
     @Test
     @WithMockUser(roles = "LEERKRACHT")

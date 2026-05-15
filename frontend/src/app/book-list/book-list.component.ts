@@ -121,11 +121,18 @@ export class BookListComponent implements OnInit {
   books: BookItem[] = [];
   isLoading = true;
   error = "";
-  readonly userRole = localStorage.getItem("role");
-  readonly isLibrarian = this.userRole === "bibbeheerder";
-  readonly isTeacher = this.userRole === "leerkracht";
-  readonly isTeacherOrLibrarian =
-    this.userRole === "leerkracht" || this.userRole === "bibbeheerder";
+  readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
+  readonly isLibrarian = this.userRole.includes("bibbeheerder");
+  readonly isTeacher = this.userRole.includes("leerkracht");
+  readonly isTeacherOrLibrarian = this.isTeacher || this.isLibrarian;
+
+  get availableGenres(): string[] {
+    if (this.isTeacherOrLibrarian) {
+      return this.genres;
+    }
+    // Hidden didactic collection for students/regular users
+    return this.genres.filter((g) => g.toLowerCase() !== "didactiek");
+  }
   readonly pageSize = 16;
   schools: School[] = [];
   selectedSchoolId: number | null = null;
@@ -217,6 +224,7 @@ export class BookListComponent implements OnInit {
     }
 
     if (genre.toLowerCase() === "didactiek") {
+      if (!this.isTeacherOrLibrarian) return;
       this.selectedGenre = "Didactiek";
       this.clearGenreSubgenres();
       this.applyFilters();
@@ -301,6 +309,14 @@ export class BookListComponent implements OnInit {
           : this.maxPages;
     } catch {
       localStorage.removeItem(this.FILTER_STORAGE_KEY);
+      return;
+    }
+
+    if (!this.isTeacherOrLibrarian && this.selectedGenre === "Didactiek") {
+      this.selectedGenre = "";
+      this.selectedDidacticSubgenre = "";
+      this.appliedGenre = "";
+      this.appliedDidacticSubgenre = "";
     }
   }
 
@@ -344,7 +360,7 @@ export class BookListComponent implements OnInit {
           sensitivity: "base",
         }),
       );
-      if (this.isTeacher) {
+      if (this.isTeacherOrLibrarian) {
         await this.loadLestipsForTeacher();
       }
       this.currentPage = 1;
