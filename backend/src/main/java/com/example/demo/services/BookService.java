@@ -5,6 +5,7 @@ import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
+import com.example.demo.entities.Loan;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
@@ -228,11 +229,21 @@ public class BookService {
             throw new ApiException("Kan boek niet verwijderen: er zijn nog actieve uitleningen.", HttpStatus.CONFLICT, "ACTIVE_LOANS_EXIST");
         }
 
-        // Clear dependencies to satisfy foreign key constraints (SQL Error 1451).
-        // Only active loans (checked above) block the deletion.
-        // We remove historical loans and copies to allow the book to be removed.
-        loanRepository.deleteByCopy_Book_Id(id);
-        bookCopyRepository.deleteByBookId(id);
+        // Manually clear dependencies to satisfy foreign key constraints (SQL Error 1451).
+        // We fetch historical loans and copies using base repository methods to ensure the build passes.
+        
+        // 1. Delete all historical loans for this book's copies.
+        // Note: For large datasets, adding 'deleteByCopy_Book_Id' to LoanRepository is recommended.
+        List<Loan> bookLoans = loanRepository.findAll().stream()
+                .filter(l -> l.getCopy().getBook().getId().equals(id))
+                .toList();
+        loanRepository.deleteAll(bookLoans);
+
+        // 2. Delete all copies associated with this book.
+        List<BookCopy> bookCopies = bookCopyRepository.findAll().stream()
+                .filter(c -> c.getBook().getId().equals(id))
+                .toList();
+        bookCopyRepository.deleteAll(bookCopies);
 
         bookRepository.delete(book);
     }
