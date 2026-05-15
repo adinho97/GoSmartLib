@@ -22,6 +22,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/verlanglijst")
+@SuppressWarnings("null")
 public class WishlistController {
 
     private final WishlistService wishlistService;

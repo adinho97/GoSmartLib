@@ -6,9 +6,12 @@ import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.KlasRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -18,12 +21,14 @@ public class LeaderboardService {
     private final LoanRepository loanRepository;
     private final AppUserRepository userRepository;
     private final KlasRepository klasRepository;
+    private final AuthService authService;
 
     public LeaderboardService(LoanRepository loanRepository, AppUserRepository userRepository,
-            KlasRepository klasRepository) {
+            KlasRepository klasRepository, AuthService authService) {
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
         this.klasRepository = klasRepository;
+        this.authService = authService;
     }
 
     /**
@@ -93,6 +98,43 @@ public class LeaderboardService {
         response.setAvailableClasses(availableClasses);
 
         return response;
+    }
+
+    public void resolveDisplayNames(LeaderboardResponseDTO response) {
+        List<LeaderboardEntryDTO> allEntries = new ArrayList<>();
+        if (response.getTopClassReaders() != null) allEntries.addAll(response.getTopClassReaders());
+        if (response.getTopSchoolReaders() != null) allEntries.addAll(response.getTopSchoolReaders());
+        if (response.getUserClassRank() != null) allEntries.add(response.getUserClassRank());
+        if (response.getUserSchoolRank() != null) allEntries.add(response.getUserSchoolRank());
+
+        // Resolve each unique sub once to avoid concurrent refresh-token rotation races
+        Map<String, String> resolved = new HashMap<>();
+        Flux.fromIterable(allEntries.stream()
+                        .map(LeaderboardEntryDTO::getDisplayName)
+                        .distinct()
+                        .collect(Collectors.toList()))
+                .flatMap(sub -> authService.getUserInfoBySub(sub)
+                        .map(info -> Map.entry(sub, formatDisplayName(info)))
+                        .onErrorReturn(Map.entry(sub, sub)))
+                .collectList()
+                .block()
+                .forEach(e -> resolved.put(e.getKey(), e.getValue()));
+
+        allEntries.forEach(entry -> entry.setDisplayName(
+                resolved.getOrDefault(entry.getDisplayName(), entry.getDisplayName())));
+    }
+
+    private String formatDisplayName(SmartschoolUserInfo info) {
+        String given = info.getGivenName();
+        String family = info.getFamilyName();
+        if (given != null && !given.isBlank() && family != null && !family.isBlank()) {
+            return family + " " + given;
+        }
+        if (family != null && !family.isBlank()) return family;
+        if (given != null && !given.isBlank()) return given;
+        if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
+        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
+        return info.getSub() != null ? info.getSub() : "Onbekende lezer";
     }
 
     private List<LeaderboardEntryDTO> convertToDTO(List<Object[]> results, String currentUserSub) {

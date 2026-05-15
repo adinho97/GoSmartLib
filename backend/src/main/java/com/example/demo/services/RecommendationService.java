@@ -48,7 +48,7 @@ public class RecommendationService {
 
         for (RecommendationStrategy strategy : strategies) {
             // Only run if this strategy is in the requested list
-            if (strategyNames.contains(strategy.getClass().getSimpleName())) {
+            if (strategyNames.contains(strategy.getName())) {
                 var result = strategy.recommend(userId, limit * 2, excludeRead);
 
                 for (RecommendedBook book : result) {
@@ -76,7 +76,7 @@ public class RecommendationService {
 
         for (RecommendationStrategy strategy : strategies) {
             var results = strategy.recommend(userId, limit, excludeRead);
-            grouped.put(strategy.getClass().getSimpleName(), results);
+            grouped.put(strategy.getName(), results);
         }
 
         return grouped;
@@ -85,7 +85,7 @@ public class RecommendationService {
     // Useful for clients to know what strategies are active.
     public List<String> getAvailableStrategies() {
         return strategies.stream()
-                .map(s -> s.getClass().getSimpleName())
+                .map(s -> s.getName())
                 .collect(Collectors.toList());
     }
 }

@@ -8,9 +8,11 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
+import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.ReviewRepository;
+import com.example.demo.repositories.SuperAdminRepository;
 import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.BookService;
 import com.example.demo.services.SchoolService;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -54,6 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(BookController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 @SuppressWarnings("null")
 class BookControllerTest {
 
@@ -65,6 +69,12 @@ class BookControllerTest {
 
         @MockBean
         private AppUserRepository appUserRepository;
+
+        @MockBean
+        private JwtTokenProvider jwtTokenProvider;
+
+        @MockBean
+        private SuperAdminRepository superAdminRepository;
 
         @MockBean
         private AuthService authService;
@@ -955,6 +965,36 @@ class BookControllerTest {
                                 .andExpect(status().isBadRequest());
 
                 verify(bookRepository, never()).findById(1L);
+        }
+
+        @Test
+        void createReviewShouldReturnBadRequestForTooLongComment() throws Exception {
+                Book book = new Book();
+                book.setId(1L);
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+                StringBuilder longComment = new StringBuilder();
+                for (int i = 0; i < 1001; i++) {
+                        longComment.append('a');
+                }
+
+                String json = """
+                                {
+                                  "rating": 5,
+                                  "comment": "%s"
+                                }
+                                """.formatted(longComment);
+
+                mockMvc.perform(post("/api/boeken/1/reviews")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.message", Matchers.containsString("maximaal 1000 tekens")))
+                                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+                verify(reviewRepository, never()).save(any(Review.class));
+                verify(reviewModerationService, never()).validateReviewComment(anyString());
         }
 
         @Test

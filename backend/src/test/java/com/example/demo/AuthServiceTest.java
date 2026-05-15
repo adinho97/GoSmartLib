@@ -21,7 +21,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -118,7 +117,7 @@ class AuthServiceTest {
         assertEquals("new-access-token", response.getAccessToken());
 
         ArgumentCaptor<AppUser> captor = ArgumentCaptor.forClass(AppUser.class);
-        verify(appUserRepository, times(1)).save(Objects.requireNonNull(captor.capture()));
+        verify(appUserRepository, times(1)).save(captor.capture());
         AppUser saved = captor.getValue();
         assertEquals("bibbeheerder", saved.getRole());
         assertEquals("new-access-token", saved.getAccessToken());
@@ -144,7 +143,7 @@ class AuthServiceTest {
         assertNotNull(response.getAccessToken());
 
         ArgumentCaptor<AppUser> captor = ArgumentCaptor.forClass(AppUser.class);
-        verify(appUserRepository, times(1)).save(Objects.requireNonNull(captor.capture()));
+        verify(appUserRepository, times(1)).save(captor.capture());
         AppUser saved = captor.getValue();
         assertEquals("leerkracht", saved.getRole());
         assertEquals(sub, saved.getSub());
@@ -166,7 +165,7 @@ class AuthServiceTest {
         assertEquals("leerling", response.getRole());
 
         ArgumentCaptor<AppUser> captor = ArgumentCaptor.forClass(AppUser.class);
-        verify(appUserRepository, times(1)).save(Objects.requireNonNull(captor.capture()));
+        verify(appUserRepository, times(1)).save(captor.capture());
         AppUser saved = captor.getValue();
         assertEquals("leerling", saved.getRole());
     }

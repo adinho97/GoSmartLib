@@ -4,6 +4,7 @@ import com.example.demo.dto.WishlistDto;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Wishlist;
+import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.WishlistRepository;
 import com.example.demo.services.WishlistService;
@@ -35,6 +36,9 @@ class WishlistServiceTest {
 
     @Mock
     private BookRepository bookRepository;
+
+    @Mock
+    private BookCopyRepository bookCopyRepository;
 
     @InjectMocks
     private WishlistService wishlistService;

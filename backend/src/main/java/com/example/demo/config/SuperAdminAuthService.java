@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@SuppressWarnings("null")
 public class SuperAdminAuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(SuperAdminAuthService.class);

@@ -165,4 +165,9 @@ public class GenreBasedStrategy implements RecommendationStrategy {
                 .limit(limit)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public String getName() {
+        return "GenreBasedStrategy";
+    }
 }

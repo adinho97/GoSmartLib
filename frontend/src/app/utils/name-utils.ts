@@ -122,17 +122,9 @@ export function formatUserInfoDisplayName(
 ): string {
   if (!userInfo) return (fallbackSub || "").trim();
 
+  // Smartschool maps given_name → surname and family_name → first name (inverted from OIDC spec)
   const rawFirstName =
     userInfo.actualUserFirstName ||
-    userInfo.givenName ||
-    userInfo.given_name ||
-    userInfo.firstName ||
-    userInfo.firstname ||
-    "";
-
-  const rawLastName =
-    userInfo.actualUserSurname ||
-    userInfo.actualUserLastName ||
     userInfo.familyName ||
     userInfo.family_name ||
     userInfo.lastName ||
@@ -140,14 +132,22 @@ export function formatUserInfoDisplayName(
     userInfo.surname ||
     "";
 
+  const rawLastName =
+    userInfo.actualUserSurname ||
+    userInfo.actualUserLastName ||
+    userInfo.givenName ||
+    userInfo.given_name ||
+    userInfo.firstName ||
+    userInfo.firstname ||
+    "";
+
   const { firstName, lastName } = inferNameParts(rawFirstName, rawLastName, [
     userInfo.fullName,
     userInfo.fullname,
     userInfo.actualUserFullName,
     userInfo.displayName,
-    `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
-    `${userInfo.givenName || userInfo.given_name || ""} ${
-      userInfo.familyName || userInfo.family_name || ""
+    `${userInfo.familyName || userInfo.family_name || ""} ${
+      userInfo.givenName || userInfo.given_name || ""
     }`.trim(),
     userInfo.name,
     userInfo.preferred_username,
@@ -162,9 +162,8 @@ export function formatUserInfoDisplayName(
     userInfo.actualUserFullName,
     userInfo.displayName,
     userInfo.name,
-    `${userInfo.name || ""} ${userInfo.surname || ""}`.trim(),
-    `${userInfo.givenName || userInfo.given_name || ""} ${
-      userInfo.familyName || userInfo.family_name || ""
+    `${userInfo.familyName || userInfo.family_name || ""} ${
+      userInfo.givenName || userInfo.given_name || ""
     }`.trim(),
     `${rawFirstName || ""} ${rawLastName || ""}`.trim(),
   ];

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,7 +22,7 @@ public class Review {
     private Integer rating;
 
     @NotBlank
-    @Size(max = 1000)
+    @Size(max = 1000, message = "Je review mag maximaal 1000 tekens bevatten.")
     @Column(nullable = false, length = 1000)
     private String comment;
 
@@ -31,8 +32,6 @@ public class Review {
     @Column(nullable = true)
     private String reviewerUserSub;
 
-    @Column(nullable = true)
-    private String reviewerUserName;
 
     @Column(nullable = true)
     private Boolean anonymous;
@@ -91,13 +90,6 @@ public class Review {
         this.reviewerUserSub = reviewerUserSub;
     }
 
-    public String getReviewerUserName() {
-        return reviewerUserName;
-    }
-
-    public void setReviewerUserName(String reviewerUserName) {
-        this.reviewerUserName = reviewerUserName;
-    }
 
     public Boolean getAnonymous() {
         return anonymous;

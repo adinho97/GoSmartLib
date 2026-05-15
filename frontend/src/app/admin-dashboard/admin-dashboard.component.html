@@ -1,11 +1,12 @@
 <div class="admin-dashboard">
-
   <div class="page-header">
     <div>
       <h1>Scholen</h1>
       <p class="subtitle">Overzicht van alle geregistreerde scholen</p>
     </div>
-    <button type="button" class="btn-add" (click)="goToSchoolWizard()">+ School toevoegen</button>
+    <button type="button" class="btn-add" (click)="goToSchoolWizard()">
+      + School toevoegen
+    </button>
   </div>
 
   <!-- Map section -->
@@ -15,9 +16,26 @@
       @if (mapSchoolCount > 0) {
         <span class="map-count-badge">{{ mapSchoolCount }} locaties</span>
       }
-      <button type="button" class="fold-btn" (click)="toggleMap()" [attr.aria-expanded]="mapExpanded" aria-label="Kaart tonen/verbergen">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" [class.rotated]="mapExpanded" aria-hidden="true">
-          <polyline points="6 9 12 15 18 9"/>
+      <button
+        type="button"
+        class="fold-btn"
+        (click)="toggleMap()"
+        [attr.aria-expanded]="mapExpanded"
+        aria-label="Kaart tonen/verbergen"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          [class.rotated]="mapExpanded"
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
     </div>
@@ -26,8 +44,18 @@
         <div id="admin-map" class="admin-map"></div>
         @if (mapError) {
           <div class="admin-map-fallback">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polygon points="3 11 22 2 13 21 11 13 3 11" />
             </svg>
             <p>{{ mapError }}</p>
           </div>
@@ -38,22 +66,28 @@
 
   <!-- Schools list -->
   <div class="schools-section">
-
     <!-- Header row: title + stats -->
     <div class="schools-section-header">
       <div class="schools-title-row">
         <h2>Scholen</h2>
-        <span class="schools-count">{{ schools.length }} {{ schools.length === 1 ? 'school' : 'scholen' }}</span>
+        <span class="schools-count"
+          >{{ schools.length }}
+          {{ schools.length === 1 ? "school" : "scholen" }}</span
+        >
       </div>
       <div class="schools-stats">
         @if (activeCount > 0) {
           <span class="stat-chip chip-active">{{ activeCount }} actief</span>
         }
         @if (inactiveCount > 0) {
-          <span class="stat-chip chip-inactive">{{ inactiveCount }} inactief</span>
+          <span class="stat-chip chip-inactive"
+            >{{ inactiveCount }} inactief</span
+          >
         }
         @if (pendingCount > 0) {
-          <span class="stat-chip chip-pending">{{ pendingCount }} in afwachting</span>
+          <span class="stat-chip chip-pending"
+            >{{ pendingCount }} in afwachting</span
+          >
         }
       </div>
     </div>
@@ -67,7 +101,11 @@
         (ngModelChange)="onFilterChange()"
         placeholder="Zoeken op naam..."
       />
-      <select class="filter-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+      <select
+        class="filter-select"
+        [(ngModel)]="statusFilter"
+        (ngModelChange)="onFilterChange()"
+      >
         <option value="">Alle statussen</option>
         <option value="ACTIVE">Actief</option>
         <option value="INACTIVE">Inactief</option>
@@ -86,21 +124,35 @@
     @if (!isLoadingSchools && schools.length === 0 && !schoolError) {
       <div class="empty-state">
         <p>Nog geen scholen toegevoegd.</p>
-        <button type="button" class="btn-add" (click)="goToSchoolWizard()">Eerste school toevoegen</button>
+        <button type="button" class="btn-add" (click)="goToSchoolWizard()">
+          Eerste school toevoegen
+        </button>
       </div>
     }
 
-    @if (!isLoadingSchools && filteredSchools.length === 0 && schools.length > 0) {
-      <p class="empty-filter-text">Geen scholen gevonden voor deze zoekopdracht.</p>
+    @if (
+      !isLoadingSchools && filteredSchools.length === 0 && schools.length > 0
+    ) {
+      <p class="empty-filter-text">
+        Geen scholen gevonden voor deze zoekopdracht.
+      </p>
     }
 
     @if (!isLoadingSchools && pagedSchools.length > 0) {
       <div class="school-grid">
         @for (school of pagedSchools; track school.id) {
-          <div class="school-card" (click)="goToSchoolDetail(school.id)" role="button" tabindex="0" (keyup.enter)="goToSchoolDetail(school.id)">
+          <div
+            class="school-card"
+            (click)="goToSchoolDetail(school.id)"
+            role="button"
+            tabindex="0"
+            (keyup.enter)="goToSchoolDetail(school.id)"
+          >
             <div class="card-top">
               <h3 class="card-naam">{{ school.naam || school.subdomain }}</h3>
-              <span class="status-badge status-{{ school.status.toLowerCase() }}">
+              <span
+                class="status-badge status-{{ school.status.toLowerCase() }}"
+              >
                 {{ statusLabel(school.status) }}
               </span>
             </div>
@@ -123,13 +175,40 @@
 
       @if (totalPages > 1) {
         <div class="pagination">
-          <button type="button" class="btn-page" (click)="prevPage()" [disabled]="currentPage === 1">‹</button>
-          <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-          <button type="button" class="btn-page" (click)="nextPage()" [disabled]="currentPage === totalPages">›</button>
+          <button
+            type="button"
+            class="btn-page"
+            [disabled]="currentPage === 1"
+            (click)="prevPage()"
+            title="Vorige"
+          >
+            ‹
+          </button>
+          @for (page of visiblePages; track $index) {
+            @if (page === "...") {
+              <span class="page-ellipsis">...</span>
+            } @else {
+              <button
+                type="button"
+                class="btn-page"
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+          }
+          <button
+            type="button"
+            class="btn-page"
+            [disabled]="currentPage === totalPages"
+            (click)="nextPage()"
+            title="Volgende"
+          >
+            ›
+          </button>
         </div>
       }
     }
-
   </div>
-
 </div>
