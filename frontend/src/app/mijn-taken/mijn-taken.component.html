@@ -91,6 +91,38 @@
       <span class="mt-card-arrow">→</span>
     </a>
 
+    <div
+      class="mt-card"
+      (click)="openExtensionModal()"
+      role="button"
+      tabindex="0"
+    >
+      <div class="mt-card-icon mt-icon-info">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </div>
+      <div class="mt-card-body">
+        <h2 class="mt-card-title">Leningen verlengen</h2>
+        <p class="mt-card-desc">
+          Pas de inleverdatum van actieve uitleningen aan voor leerlingen die
+          meer tijd nodig hebben om hun boek uit te lezen.
+        </p>
+      </div>
+      <span class="mt-card-arrow">→</span>
+    </div>
+
     @if (isLibrarian) {
       <a class="mt-card" routerLink="/add-general">
         <div class="mt-card-icon mt-icon-primary">
@@ -185,3 +217,105 @@
     }
   </div>
 </div>
+
+<!-- Verleng-Modal voor Bibbeheerder -->
+@if (extensionModalOpen) {
+  <div class="return-modal-backdrop" (click)="closeExtensionModal()">
+    <div class="return-modal modal-large" (click)="$event.stopPropagation()">
+      <header class="return-modal-header">
+        <h3>Leningen verlengen</h3>
+        <button
+          type="button"
+          class="return-modal-close"
+          (click)="closeExtensionModal()"
+        >
+          ×
+        </button>
+      </header>
+
+      <div class="return-modal-content">
+        @if (!selectedStudentForExtension) {
+          <!-- Stap 1: Leerling Zoeken -->
+          <div class="search-bar search-grid">
+            <input
+              type="text"
+              [(ngModel)]="studentSearchQuery"
+              (input)="onSearchStudents()"
+              placeholder="Zoek op naam..."
+            />
+            <select
+              [(ngModel)]="studentClassFilter"
+              (change)="onSearchStudents()"
+            >
+              <option value="">Alle klassen</option>
+              @for (klas of availableClasses; track klas) {
+                <option [value]="klas">{{ klas }}</option>
+              }
+            </select>
+          </div>
+
+          <ul class="leerling-list mt-modal-list">
+            @for (s of filteredStudents; track s.sub) {
+              <li class="leerling-item" (click)="selectStudentForExtension(s)">
+                <div class="leerling-avatar">{{ s.displayName.charAt(0) }}</div>
+                <div class="leerling-info">
+                  <span class="leerling-username">{{ s.displayName }}</span>
+                  <span class="leerling-meta">{{ s.klas }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <!-- Stap 2: Leningen van leerling tonen -->
+          <div class="extension-view">
+            <button
+              class="ghost-btn"
+              (click)="selectedStudentForExtension = null"
+            >
+              ← Terug naar zoeken
+            </button>
+            <h4 class="student-header">
+              Actieve leningen voor
+              <strong>{{ selectedStudentForExtension.displayName }}</strong>
+            </h4>
+
+            <ul class="loans-list">
+              @for (loan of studentLoans; track loan.id) {
+                <li class="loan-row">
+                  <div class="loan-book-info">
+                    <span class="loan-title">{{ loan.bookTitel }}</span>
+                    <span
+                      class="loan-due"
+                      [class.overdue]="isOverdue(loan.dueDate)"
+                    >
+                      Vervalmoment: {{ loan.dueDate | date: "dd/MM/yyyy" }}
+                    </span>
+                  </div>
+                  <div class="loan-due-actions">
+                    <input
+                      type="date"
+                      [(ngModel)]="loan.tempNewDueDate"
+                      [min]="today"
+                      class="inline-date-input"
+                    />
+                    <button
+                      class="primary-btn sm-btn"
+                      (click)="confirmExtension(loan)"
+                      [disabled]="!loan.tempNewDueDate"
+                    >
+                      Verlengen
+                    </button>
+                  </div>
+                </li>
+              } @empty {
+                <p class="info-msg">
+                  Deze leerling heeft momenteel geen actieve leningen.
+                </p>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
