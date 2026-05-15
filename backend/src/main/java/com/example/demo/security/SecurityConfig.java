@@ -58,7 +58,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/admin/genres").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/admin/genres", "/api/admin/genres/**").authenticated()
 
                         .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
 
