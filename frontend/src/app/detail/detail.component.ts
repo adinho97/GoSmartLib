@@ -33,8 +33,8 @@ export class DetailComponent implements OnInit, OnDestroy {
   private previewRequestNonce = 0;
   isWishlistedBook = false;
   wishlistBusy = false;
-  isHighlighted = false; // This now refers to the NEW "highlighted" feature
-  isInClassReadingList = false; // New property for Klasleeslijst
+  isHighlighted = false;
+  isInClassReadingList = false;
 
   // Role-based logic
   readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
@@ -68,6 +68,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   editReviewComment = "";
   readonly maxCollapsedReviewChars = 220;
   private expandedReviewIds = new Set<number>();
+
   get smartschoolUserName(): string {
     const firstName = (localStorage.getItem("firstName") || "").trim();
     const lastName = (localStorage.getItem("lastName") || "").trim();
@@ -137,8 +138,8 @@ export class DetailComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private badgeNotificationService: BadgeNotificationService,
     private experienceService: ExperienceService,
-    private schoolService: SchoolService, // Inject SchoolService
-    private uiToastService: UiToastService, // Inject UiToastService
+    private schoolService: SchoolService,
+    private uiToastService: UiToastService,
   ) {}
 
   ngOnInit(): void {
@@ -152,13 +153,11 @@ export class DetailComponent implements OnInit, OnDestroy {
 
       this.loadWishlistState(this.currentBookId);
 
-      // Load librarian-only states
       if (this.isLibrarian) {
         this.loadHighlightState(this.currentBookId);
         this.loadClassReadingListState(this.currentBookId);
       }
 
-      // Load reviews
       this.loadReviews(this.currentBookId);
 
       if (this.isTeacherOrLibrarian) {
@@ -214,7 +213,6 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  // New method to load the Klasleeslijst status
   private async loadClassReadingListState(bookId: number): Promise<void> {
     if (!this.isLibrarian) return;
     try {
@@ -225,8 +223,9 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.isInClassReadingList = false;
     }
   }
+
   private async loadHighlightState(bookId: number): Promise<void> {
-    if (!this.isLibrarian) return; // Only librarians need to see/manage this state
+    if (!this.isLibrarian) return;
     try {
       this.isHighlighted = await this.bookService.isHighlighted(bookId);
     } catch (error) {
@@ -236,7 +235,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   async toggleHighlight(): Promise<void> {
-    if (!this.currentBookId || !this.isLibrarian) return; // Only librarians can toggle highlight
+    if (!this.currentBookId || !this.isLibrarian) return;
 
     try {
       const newStatus = await this.bookService.toggleHighlight(
@@ -254,9 +253,8 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  // New method to toggle Klasleeslijst status
   async toggleClassReadingListItem(): Promise<void> {
-    if (!this.currentBookId || !this.isLibrarian) return; // Only librarians can toggle class reading list
+    if (!this.currentBookId || !this.isLibrarian) return;
 
     try {
       const newStatus = await this.bookService.toggleClassReadingListItem(
@@ -273,6 +271,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.uiToastService.error("Fout bij bijwerken Klasleeslijst.");
     }
   }
+
   goBack(): void {
     this.router.navigate(["/books"]);
   }
@@ -295,14 +294,12 @@ export class DetailComponent implements OnInit, OnDestroy {
     try {
       let resolvedPreviewUrl = "";
 
-      // First try the dedicated Books API for this ISBN.
       if (requestedIsbn) {
         resolvedPreviewUrl = await this.getPreviewUrlFromBibKey(
           `ISBN:${requestedIsbn}`,
         );
       }
 
-      // Fallback to search and resolve best readable candidate.
       if (!resolvedPreviewUrl) {
         resolvedPreviewUrl = await this.getPreviewUrlFromSearch(requestedIsbn);
       }
@@ -353,15 +350,13 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   private async getPreviewUrlFromBibKey(bibKey: string): Promise<string> {
-    const booksApiUrl =
-      "https://openlibrary.org/api/books" +
+    // Route through our own backend proxy to avoid CORS issues with Open Library.
+    const proxyUrl =
+      `/api/proxy/openlibrary/books` +
       `?bibkeys=${encodeURIComponent(bibKey)}` +
-      "&format=json&jscmd=viewapi";
+      `&format=json&jscmd=viewapi`;
 
-    // Explicitly set Authorization to undefined to prevent global interceptors from sending tokens to OpenLibrary
-    const response = await axios.get(booksApiUrl, {
-      headers: { Authorization: undefined },
-    });
+    const response = await axios.get(proxyUrl);
     const payload = response.data || {};
     const entry = payload[bibKey] as
       | { preview?: string; preview_url?: string }
@@ -394,10 +389,9 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
     params.set("limit", "5");
 
-    const searchUrl = `https://openlibrary.org/search.json?${params.toString()}`;
-    const response = await axios.get(searchUrl, {
-      headers: { Authorization: undefined },
-    });
+    // Route through our own backend proxy to avoid CORS issues with Open Library.
+    const searchUrl = `/api/proxy/openlibrary/search.json?${params.toString()}`;
+    const response = await axios.get(searchUrl);
     const docs = Array.isArray(response.data?.docs) ? response.data.docs : [];
 
     for (const doc of docs) {
@@ -437,7 +431,6 @@ export class DetailComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Last fallback: use search metadata to open reader directly when available.
       const hasReadablePreview =
         !!doc.has_preview ||
         !!doc.has_fulltext ||
@@ -542,7 +535,6 @@ export class DetailComponent implements OnInit, OnDestroy {
         : requestedTokens,
     );
 
-    // Require every meaningful token of the shorter value to appear in the longer one.
     return shorterTokens.every((token) => longerTokenSet.has(token));
   }
 
@@ -569,7 +561,6 @@ export class DetailComponent implements OnInit, OnDestroy {
       return "";
     }
 
-    // Keep archive embed URLs as-is.
     const archiveEmbedMatch = trimmedUrl.match(
       /archive\.org\/embed\/([^/?#]+)/i,
     );
@@ -577,7 +568,6 @@ export class DetailComponent implements OnInit, OnDestroy {
       return `https://archive.org/embed/${encodeURIComponent(archiveEmbedMatch[1])}`;
     }
 
-    // Convert archive details URLs to embed URLs.
     const archiveDetailsMatch = trimmedUrl.match(
       /archive\.org\/details\/([^/?#]+)/i,
     );
@@ -585,7 +575,6 @@ export class DetailComponent implements OnInit, OnDestroy {
       return `https://archive.org/embed/${encodeURIComponent(archiveDetailsMatch[1])}`;
     }
 
-    // For Open Library edition/read URLs, resolve archive id when possible.
     const editionMatch = trimmedUrl.match(
       /\/(?:books|read)\/(OL[0-9A-Z]+M)(?:\/|$)/i,
     );
@@ -597,7 +586,6 @@ export class DetailComponent implements OnInit, OnDestroy {
         return archiveEmbedUrl;
       }
 
-      // Fallback to reader URL when archive id is unavailable.
       return `https://openlibrary.org/read/${editionMatch[1].toUpperCase()}`;
     }
 
@@ -608,10 +596,9 @@ export class DetailComponent implements OnInit, OnDestroy {
     editionKey: string,
   ): Promise<string> {
     try {
-      const editionUrl = `https://openlibrary.org/books/${encodeURIComponent(editionKey)}.json`;
-      const response = await axios.get(editionUrl, {
-        headers: { Authorization: undefined },
-      });
+      // Route through our own backend proxy to avoid CORS issues with Open Library.
+      const proxyUrl = `/api/proxy/openlibrary/books/${encodeURIComponent(editionKey)}.json`;
+      const response = await axios.get(proxyUrl);
       const data = response.data || {};
 
       const archiveId =
@@ -749,9 +736,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const ratingToSubmit = anonymous
-      ? this.pendingReviewRating || this.newReviewRating
-      : this.pendingReviewRating || this.newReviewRating;
+    const ratingToSubmit = this.pendingReviewRating || this.newReviewRating;
 
     this.pendingReviewComment = "";
     this.pendingReviewRating = 0;
@@ -769,7 +754,6 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.reviewError = "";
       this.reviewSuccess = "Review opgeslagen.";
 
-      // Add experience for writing a review
       this.experienceService.addExperienceForReview();
 
       await this.emitReviewBadgeIfUnlocked();
@@ -874,7 +858,6 @@ export class DetailComponent implements OnInit, OnDestroy {
       await this.bookService.deleteBookReview(this.currentBookId, reviewId);
       this.reviews = this.reviews.filter((r) => r.id !== reviewId);
 
-      // Remove the review XP again when the review is deleted.
       this.experienceService.removeExperienceForReview();
 
       this.reviewError = "";

@@ -59,8 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/smartschool-login").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/validate-token").permitAll()
-                        .requestMatchers("/api/auth/refresh-token").authenticated() // Can be called by authenticated
-                                                                                    // users
+                        .requestMatchers("/api/auth/refresh-token").authenticated()
                         .requestMatchers("/api/admin/login").permitAll()
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
@@ -68,6 +67,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/uitleningen/all-active").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
                         .requestMatchers("/api/uitleningen/inspectie/conditie")
                         .hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
+                        // Proxy endpoints - accessible by any authenticated user
+                        .requestMatchers("/api/proxy/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(smartschoolAuthenticationFilter, JwtAuthenticationFilter.class);
@@ -85,7 +86,6 @@ public class SecurityConfig {
         if (origins.isEmpty()) {
             throw new IllegalStateException("app.cors.allowed-origins must not be empty");
         }
-        origins.add("https://openlibrary.org");
         for (String origin : origins) {
             if (!origin.startsWith("http://") && !origin.startsWith("https://")) {
                 throw new IllegalStateException(
