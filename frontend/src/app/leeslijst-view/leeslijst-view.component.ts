@@ -178,4 +178,18 @@ export class LeeslijstViewComponent implements OnInit {
   printLeeslijst() {
     window.print();
   }
+
+  copyLink() {
+    const url = window.location.href;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        this.uiToastService.success("Link gekopieerd naar klembord.");
+      })
+      .catch((err) => {
+        this.uiToastService.error("Fout bij kopiëren van link.");
+        console.error("Could not copy text: ", err);
+      });
+    this.isActionMenuOpen = false;
+  }
 }
