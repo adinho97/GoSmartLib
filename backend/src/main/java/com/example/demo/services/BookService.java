@@ -103,6 +103,9 @@ public class BookService {
                         bookToAssociateCopies = book;
                         bookIdForDiagnostic = book.getId();
                         for (int i = 0; i < quantity; i++) {
+                            BookCopy copy = new BookCopy();
+                            copy.setBook(bookToAssociateCopies);
+                            copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
                             bookCopyRepository.save(copy);
                         }
                         totalCopiesAdded += quantity;
