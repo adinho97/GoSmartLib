@@ -8,7 +8,9 @@ import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
+import com.example.demo.exception.ApiException;
 import com.example.demo.mappers.BookMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
@@ -216,14 +218,14 @@ public class BookService {
     @Transactional
     public void deleteBook(Long id, Long schoolId) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Boek niet gevonden"));
+                .orElseThrow(() -> new ApiException("Boek niet gevonden", HttpStatus.NOT_FOUND, "BOOK_NOT_FOUND"));
 
         if (schoolId != null && (book.getSchool() == null || !book.getSchool().getId().equals(schoolId))) {
-            throw new IllegalArgumentException("Dit boek behoort niet tot jouw school.");
+            throw new ApiException("Dit boek behoort niet tot jouw school.", HttpStatus.FORBIDDEN, "ACCESS_DENIED");
         }
 
         if (!loanRepository.findByCopy_Book_IdAndReturnedAtIsNull(id).isEmpty()) {
-            throw new IllegalStateException("Kan boek niet verwijderen: er zijn nog actieve uitleningen.");
+            throw new ApiException("Kan boek niet verwijderen: er zijn nog actieve uitleningen.", HttpStatus.CONFLICT, "ACTIVE_LOANS_EXIST");
         }
 
         bookRepository.delete(book);
