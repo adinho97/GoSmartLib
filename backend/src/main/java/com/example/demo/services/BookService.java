@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -296,7 +298,10 @@ public class BookService {
         // 3. Remove book from all reading lists (Leeslijsten) to clear join table
         if (leeslijstRepository != null) {
             leeslijstRepository.findAll().forEach(list -> {
-                if (list.getBooks().removeIf(b -> b.getId().equals(id))) {
+                Set<Book> booksInList = new HashSet<>(list.getBooks()); // Create a mutable copy
+                boolean changed = booksInList.removeIf(b -> b.getId().equals(id));
+                if (changed) {
+                    list.setBooks(booksInList); // Set the new collection
                     leeslijstRepository.save(list);
                 }
             });
