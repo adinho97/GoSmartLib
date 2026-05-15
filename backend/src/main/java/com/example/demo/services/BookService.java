@@ -4,6 +4,9 @@ import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.LeeslijstRepository;
+import com.example.demo.repositories.WishlistRepository;
+import com.example.demo.config.HighlightedBookRepository;
+import com.example.demo.config.ClassReadingListItemRepository;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Loan;
@@ -38,12 +41,17 @@ public class BookService {
     private final BulkImportService bulkImportService;
     private final ImportCoreService importCoreService;
     private final LeeslijstRepository leeslijstRepository;
+    private final WishlistRepository wishlistRepository;
+    private final HighlightedBookRepository highlightedBookRepository;
+    private final ClassReadingListItemRepository classReadingListItemRepository;
 
     @Autowired
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
-            ImportCoreService importCoreService, LeeslijstRepository leeslijstRepository) {
+            ImportCoreService importCoreService, LeeslijstRepository leeslijstRepository,
+            WishlistRepository wishlistRepository, HighlightedBookRepository highlightedBookRepository,
+            ClassReadingListItemRepository classReadingListItemRepository) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.loanRepository = loanRepository;
@@ -53,6 +61,9 @@ public class BookService {
         this.bulkImportService = bulkImportService;
         this.importCoreService = importCoreService;
         this.leeslijstRepository = leeslijstRepository;
+        this.wishlistRepository = wishlistRepository;
+        this.highlightedBookRepository = highlightedBookRepository;
+        this.classReadingListItemRepository = classReadingListItemRepository;
     }
 
     /**
@@ -63,7 +74,7 @@ public class BookService {
             IsbnService isbnService, BulkImportService bulkImportService,
             ImportCoreService importCoreService) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService,
-                isbnService, bulkImportService, importCoreService, null);
+                isbnService, bulkImportService, importCoreService, null, null, null, null);
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
@@ -246,17 +257,37 @@ public class BookService {
             throw new ApiException("Kan boek niet verwijderen: er zijn nog actieve uitleningen.", HttpStatus.CONFLICT, "ACTIVE_LOANS_EXIST");
         }
 
-        // Manually clear dependencies to satisfy foreign key constraints (SQL Error 1451).
-        // We fetch historical loans and copies using base repository methods to ensure the build passes.
-        
-        // 1. Delete all historical loans for this book's copies.
-        // Note: For large datasets, adding 'deleteByCopy_Book_Id' to LoanRepository is recommended.
+        // 1. Clear Loan history
         List<Loan> bookLoans = loanRepository.findAll().stream()
                 .filter(l -> l.getCopy().getBook().getId().equals(id))
                 .toList();
         loanRepository.deleteAll(bookLoans);
 
-        // 2. Delete all copies associated with this book.
+        // 2. Clear Wishlists
+        if (wishlistRepository != null) {
+            var wishes = wishlistRepository.findAll().stream()
+                    .filter(w -> w.getBook().getId().equals(id))
+                    .toList();
+            wishlistRepository.deleteAll(wishes);
+        }
+
+        // 3. Clear Highlighted status
+        if (highlightedBookRepository != null) {
+            var highlights = highlightedBookRepository.findAll().stream()
+                    .filter(h -> id.equals(h.getBookId()))
+                    .toList();
+            highlightedBookRepository.deleteAll(highlights);
+        }
+
+        // 4. Clear Class Reading List items
+        if (classReadingListItemRepository != null) {
+            var classItems = classReadingListItemRepository.findAll().stream()
+                    .filter(c -> id.equals(c.getBookId()))
+                    .toList();
+            classReadingListItemRepository.deleteAll(classItems);
+        }
+
+        // 5. Delete all copies associated with this book.
         List<BookCopy> bookCopies = bookCopyRepository.findAll().stream()
                 .filter(c -> c.getBook().getId().equals(id))
                 .toList();
@@ -269,6 +300,7 @@ public class BookService {
                     leeslijstRepository.save(list);
                 }
             });
+            leeslijstRepository.flush();
         }
 
         bookRepository.delete(book);
