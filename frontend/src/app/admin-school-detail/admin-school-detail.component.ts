@@ -129,6 +129,11 @@ export class AdminSchoolDetailComponent implements OnInit {
   isTogglingStatus = false;
   statusError = "";
 
+  // Delete school
+  showDeleteConfirmation = false;
+  isDeletingSchool = false;
+  deleteError = "";
+
   // User actions
   togglingUserId: number | null = null;
   promotingUserId: number | null = null;
@@ -182,7 +187,9 @@ export class AdminSchoolDetailComponent implements OnInit {
         this.detail = detail;
         this.users = users;
         this.klassen = klassen;
-        this.leeslijsten = Array.isArray(leeslijsten) ? leeslijsten : (leeslijsten as any).data || [];
+        this.leeslijsten = Array.isArray(leeslijsten)
+          ? leeslijsten
+          : (leeslijsten as any).data || [];
         void this.enrichUserNames(users);
         this.resetForm();
         this.isLoadingDetail = false;
@@ -282,6 +289,33 @@ export class AdminSchoolDetailComponent implements OnInit {
       error: (err) => {
         this.statusError = err?.error?.message || "Status wijzigen mislukt.";
         this.isTogglingStatus = false;
+      },
+    });
+  }
+
+  openDeleteConfirmation(): void {
+    this.showDeleteConfirmation = true;
+    this.deleteError = "";
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirmation = false;
+    this.deleteError = "";
+  }
+
+  confirmDelete(): void {
+    if (!this.detail || this.isDeletingSchool) return;
+    this.isDeletingSchool = true;
+    this.deleteError = "";
+
+    this.adminSchoolService.deleteSchool(this.detail.id).subscribe({
+      next: () => {
+        // School deleted successfully, navigate back to dashboard
+        this.router.navigate(["/admin/dashboard"]);
+      },
+      error: (err) => {
+        this.deleteError = err?.error?.message || "School verwijderen mislukt.";
+        this.isDeletingSchool = false;
       },
     });
   }
