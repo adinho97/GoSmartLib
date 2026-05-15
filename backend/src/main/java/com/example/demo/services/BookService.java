@@ -208,4 +208,24 @@ public class BookService {
 
         return loanCountMap;
     }
+
+    /**
+     * Deletes a book from the library catalog after verifying school ownership
+     * and ensuring no active loans exist for the book.
+     */
+    @Transactional
+    public void deleteBook(Long id, Long schoolId) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Boek niet gevonden"));
+
+        if (schoolId != null && (book.getSchool() == null || !book.getSchool().getId().equals(schoolId))) {
+            throw new IllegalArgumentException("Dit boek behoort niet tot jouw school.");
+        }
+
+        if (!loanRepository.findByCopy_Book_IdAndReturnedAtIsNull(id).isEmpty()) {
+            throw new IllegalStateException("Kan boek niet verwijderen: er zijn nog actieve uitleningen.");
+        }
+
+        bookRepository.delete(book);
+    }
 }
