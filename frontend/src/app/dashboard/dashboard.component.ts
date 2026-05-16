@@ -8,14 +8,16 @@ import {
 } from "../services/recommendation.service";
 import { HttpClient } from "@angular/common/http";
 import { UserPreferencesService } from "../services/user-preferences.service";
+import {
+  DashboardConfig,
+  DashboardConfigService,
+  DEFAULT_DASHBOARD_CONFIG,
+} from "../services/dashboard-config.service";
 import { SchoolService } from "../services/school.service";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
 import { CarouselPageDef } from "./carousel-tile.component";
 
-export interface DashboardConfig {
-  tiles: string[];
-  pages: Record<string, string[]>;
-}
+export type { DashboardConfig };
 
 interface SpotlightBook {
   bookId: number;
@@ -62,16 +64,6 @@ const TILES: TileDef[] = [
   },
 ];
 
-const DEFAULT_CONFIG: DashboardConfig = {
-  tiles: ['mijn-boeken', 'bibliotheek', 'snelkoppelingen'],
-  pages: {
-    'mijn-boeken': ['verder-lezen', 'laatst-ingeleverd'],
-    'bibliotheek': ['in-de-kijker', 'boek-vd-maand', 'themaboek'],
-  },
-};
-
-const CONFIG_KEY = 'gosmartlib.dashboard.config.v2';
-
 @Component({
   selector: "app-dashboard",
   templateUrl: "./dashboard.component.html",
@@ -98,8 +90,8 @@ export class DashboardComponent implements OnInit {
 
   // Tile config
   readonly TILES = TILES;
-  readonly DEFAULT_CONFIG = DEFAULT_CONFIG;
-  config: DashboardConfig = this.loadConfig();
+  readonly DEFAULT_CONFIG = DEFAULT_DASHBOARD_CONFIG;
+  config: DashboardConfig = DEFAULT_DASHBOARD_CONFIG;
 
   // Config popover state
   configOpen = false;
@@ -174,6 +166,7 @@ export class DashboardComponent implements OnInit {
     private http: HttpClient,
     private userPreferencesService: UserPreferencesService,
     private schoolService: SchoolService,
+    private dashboardConfigService: DashboardConfigService,
   ) {}
 
   ngOnInit(): void {
@@ -192,6 +185,10 @@ export class DashboardComponent implements OnInit {
       });
     });
 
+    this.dashboardConfigService.config$.subscribe((cfg) => {
+      this.config = cfg;
+    });
+
     this.fetchMyLoans();
     this.fetchLoanHistory();
     this.fetchHighlightedBooks();
@@ -201,31 +198,16 @@ export class DashboardComponent implements OnInit {
 
   // ── Config management ──
 
-  private loadConfig(): DashboardConfig {
-    try {
-      const stored = localStorage.getItem(CONFIG_KEY);
-      if (stored) {
-        const obj = JSON.parse(stored);
-        if (obj && Array.isArray(obj.tiles) && obj.pages) return obj;
-      }
-    } catch {}
-    return { ...DEFAULT_CONFIG, pages: { ...DEFAULT_CONFIG.pages } };
-  }
-
-  private saveConfig() {
-    try {
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(this.config));
-    } catch {}
-  }
-
   updateConfig(next: DashboardConfig) {
     this.config = next;
-    this.saveConfig();
+    this.dashboardConfigService.save(next);
   }
 
   resetConfig() {
-    this.config = { ...DEFAULT_CONFIG, pages: { ...DEFAULT_CONFIG.pages } };
-    this.saveConfig();
+    this.updateConfig({
+      ...DEFAULT_DASHBOARD_CONFIG,
+      pages: { ...DEFAULT_DASHBOARD_CONFIG.pages },
+    });
   }
 
   toggleTile(id: string) {
