@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { ExperienceService } from "../services/experience.service";
 import { UserPreferencesService } from "../services/user-preferences.service";
+import { DashboardConfigService } from "../services/dashboard-config.service";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
 import { environment } from "../../environments/environment";
 
@@ -23,6 +24,7 @@ export class LoginComponent implements OnInit {
     private http: HttpClient,
     private experienceService: ExperienceService,
     private userPreferencesService: UserPreferencesService,
+    private dashboardConfigService: DashboardConfigService,
   ) {}
 
   ngOnInit(): void {
@@ -126,6 +128,7 @@ export class LoginComponent implements OnInit {
 
         this.userPreferencesService.clearCache();
         await this.userPreferencesService.loadPreferencesFromBackend();
+        await this.dashboardConfigService.init();
 
         await this.experienceService
           .refreshForCurrentUser()
@@ -166,6 +169,8 @@ export class LoginComponent implements OnInit {
     await this.userPreferencesService
       .loadPreferencesFromBackend()
       .catch(() => {});
+
+    await this.dashboardConfigService.init();
 
     const target = sessionStorage.getItem("login_return_url") || "/dashboard";
     sessionStorage.removeItem("login_return_url");
