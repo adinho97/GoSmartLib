@@ -439,52 +439,81 @@ export class DashboardComponent implements OnInit {
       }
     }
 
-    if (enabledIds.includes('boek-vd-maand') && !this.spotlightLoading) {
+    if (enabledIds.includes('boek-vd-maand')) {
       const maand = this.spotlight.maand;
-      pages.push(maand ? {
-        id: 'boek-vd-maand',
-        label: 'Boek van de maand',
-        eyebrow: '◆ Boek van de maand',
-        eyebrowColor: '#d4537e',
-        infoTitle: 'Boek van de maand',
-        infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
-        book: { id: maand.bookId, title: maand.titel, author: maand.auteur, cover: maand.cover || undefined },
-        badge: { label: this.getCurrentMonthLabel() },
-      } : {
-        id: 'boek-vd-maand',
-        label: 'Boek van de maand',
-        eyebrow: '◆ Boek van de maand',
-        eyebrowColor: '#d4537e',
-        infoTitle: 'Boek van de maand',
-        infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
-        book: { id: 0, title: '', author: '' },
-        badge: { label: this.getCurrentMonthLabel() },
-        empty: true,
-        emptyMessage: 'Nog niet ingesteld door de bibbeheerder.',
-      });
+      if (this.spotlightLoading) {
+        pages.push({
+          id: 'boek-vd-maand',
+          label: 'Boek van de maand',
+          eyebrow: '◆ Boek van de maand',
+          eyebrowColor: '#d4537e',
+          infoTitle: 'Boek van de maand',
+          infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+          book: { id: 0, title: '', author: '' },
+          badge: { label: this.getCurrentMonthLabel() },
+          empty: true,
+          emptyMessage: 'Laden…',
+        });
+      } else {
+        pages.push(maand ? {
+          id: 'boek-vd-maand',
+          label: 'Boek van de maand',
+          eyebrow: '◆ Boek van de maand',
+          eyebrowColor: '#d4537e',
+          infoTitle: 'Boek van de maand',
+          infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+          book: { id: maand.bookId, title: maand.titel, author: maand.auteur, cover: maand.cover || undefined },
+          badge: { label: this.getCurrentMonthLabel() },
+        } : {
+          id: 'boek-vd-maand',
+          label: 'Boek van de maand',
+          eyebrow: '◆ Boek van de maand',
+          eyebrowColor: '#d4537e',
+          infoTitle: 'Boek van de maand',
+          infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+          book: { id: 0, title: '', author: '' },
+          badge: { label: this.getCurrentMonthLabel() },
+          empty: true,
+          emptyMessage: 'Nog niet ingesteld door de bibbeheerder.',
+        });
+      }
     }
 
-    if (enabledIds.includes('themaboek') && !this.spotlightLoading) {
+    if (enabledIds.includes('themaboek')) {
       const thema = this.spotlight.thema;
-      pages.push(thema ? {
-        id: 'themaboek',
-        label: 'Themaboek',
-        eyebrow: '♦ Themaboek',
-        eyebrowColor: '#2e6b3f',
-        infoTitle: 'Themaboek',
-        infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
-        book: { id: thema.bookId, title: thema.titel, author: thema.auteur, cover: thema.cover || undefined },
-      } : {
-        id: 'themaboek',
-        label: 'Themaboek',
-        eyebrow: '♦ Themaboek',
-        eyebrowColor: '#2e6b3f',
-        infoTitle: 'Themaboek',
-        infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
-        book: { id: 0, title: '', author: '' },
-        empty: true,
-        emptyMessage: 'Nog niet ingesteld door de bibbeheerder.',
-      });
+      if (this.spotlightLoading) {
+        pages.push({
+          id: 'themaboek',
+          label: 'Themaboek',
+          eyebrow: '♦ Themaboek',
+          eyebrowColor: '#2e6b3f',
+          infoTitle: 'Themaboek',
+          infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
+          book: { id: 0, title: '', author: '' },
+          empty: true,
+          emptyMessage: 'Laden…',
+        });
+      } else {
+        pages.push(thema ? {
+          id: 'themaboek',
+          label: 'Themaboek',
+          eyebrow: '♦ Themaboek',
+          eyebrowColor: '#2e6b3f',
+          infoTitle: 'Themaboek',
+          infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
+          book: { id: thema.bookId, title: thema.titel, author: thema.auteur, cover: thema.cover || undefined },
+        } : {
+          id: 'themaboek',
+          label: 'Themaboek',
+          eyebrow: '♦ Themaboek',
+          eyebrowColor: '#2e6b3f',
+          infoTitle: 'Themaboek',
+          infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
+          book: { id: 0, title: '', author: '' },
+          empty: true,
+          emptyMessage: 'Nog niet ingesteld door de bibbeheerder.',
+        });
+      }
     }
 
     return pages;
