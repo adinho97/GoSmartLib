@@ -403,7 +403,19 @@ export class DashboardComponent implements OnInit {
     const pages: CarouselPageDef[] = [];
 
     if (enabledIds.includes('in-de-kijker')) {
-      if (this.highlightedBooks.length > 0) {
+      if (this.highlightedLoading) {
+        pages.push({
+          id: 'in-de-kijker',
+          label: 'In de kijker',
+          eyebrow: '★ In de kijker',
+          eyebrowColor: '#b86a17',
+          infoTitle: 'In de kijker',
+          infoBody: 'Boeken die je bibbeheerder extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+          book: { id: 0, title: '', author: '' },
+          empty: true,
+          emptyMessage: 'Laden…',
+        });
+      } else if (this.highlightedBooks.length > 0) {
         const book = this.highlightedBooks[0];
         pages.push({
           id: 'in-de-kijker',
@@ -422,7 +434,7 @@ export class DashboardComponent implements OnInit {
           },
           badge: { label: book.genre || 'Uitgelicht' },
         });
-      } else if (!this.highlightedLoading) {
+      } else {
         pages.push({
           id: 'in-de-kijker',
           label: 'In de kijker',
