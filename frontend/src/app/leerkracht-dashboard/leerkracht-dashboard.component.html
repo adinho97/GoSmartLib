@@ -1,13 +1,14 @@
 <div class="lk-page">
-
   <!-- Greeting -->
-  <h1 class="lk-greeting">{{ greeting }}, <em>{{ currentFirstName }}</em></h1>
+  <h1 class="lk-greeting">
+    {{ greeting }}, <em>{{ currentFirstName }}</em>
+  </h1>
   <p class="lk-greeting-sub">
     @if (loansLoading) {
       Even laden…
     } @else {
       <strong [style.color]="overdueCount > 0 ? 'var(--warn)' : 'inherit'">
-        {{ overdueCount }} {{ overdueCount === 1 ? 'boek' : 'boeken' }} te laat
+        {{ overdueCount }} {{ overdueCount === 1 ? "boek" : "boeken" }} te laat
       </strong>
       &nbsp;·&nbsp; {{ totalActiveCount }} actieve uitleningen in de school
     }
@@ -15,7 +16,6 @@
 
   <!-- Hero row: 3 columns -->
   <div class="lk-hero-row">
-
     <!-- Col 1: Verder lezen -->
     <section class="lk-hero-card">
       <div class="lk-card-head">
@@ -23,7 +23,12 @@
           <span class="lk-pulse" aria-hidden="true"></span>
           Verder lezen
         </span>
-        <a class="lk-head-link" (click)="goToMijnLijsten()" role="button" tabindex="0">
+        <a
+          class="lk-head-link"
+          (click)="goToMijnLijsten()"
+          role="button"
+          tabindex="0"
+        >
           Geleend ({{ myLoans.length }}) →
         </a>
       </div>
@@ -34,7 +39,11 @@
         <div class="lk-vl-body">
           <div class="lk-vl-cover-wrap">
             @if (firstOwnLoan.bookCover) {
-              <img [src]="firstOwnLoan.bookCover" [alt]="firstOwnLoan.bookTitel" class="lk-vl-cover" />
+              <img
+                [src]="firstOwnLoan.bookCover"
+                [alt]="firstOwnLoan.bookTitel"
+                class="lk-vl-cover"
+              />
             } @else {
               <div class="lk-vl-cover lk-vl-placeholder">COVER</div>
             }
@@ -42,20 +51,40 @@
           <div class="lk-vl-info">
             <p class="lk-vl-title">{{ firstOwnLoan.bookTitel }}</p>
             <p class="lk-vl-deadline">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
               @if (isOverdue(firstOwnLoan.dueDate)) {
                 <span class="lk-vl-overdue">Verlopen!</span>
               } @else {
                 Inleveren {{ formatDueDate(firstOwnLoan.dueDate) }}
-                <span class="lk-vl-badge" [class.lk-vl-urgent]="isUrgent(firstOwnLoan.dueDate)">
+                <span
+                  class="lk-vl-badge"
+                  [class.lk-vl-urgent]="isUrgent(firstOwnLoan.dueDate)"
+                >
                   {{ daysLeft(firstOwnLoan.dueDate) }}d
                 </span>
               }
             </p>
             <div class="lk-vl-actions">
-              <button class="lk-btn-primary" type="button" (click)="goToDetail(firstOwnLoan.bookId)">
+              <button
+                class="lk-btn-primary"
+                type="button"
+                (click)="goToDetail(firstOwnLoan.bookId)"
+              >
                 Bekijk boek
               </button>
             </div>
@@ -64,7 +93,12 @@
       } @else {
         <div class="lk-empty-state">
           <p>Je hebt momenteel geen geleende boeken.</p>
-          <a class="lk-empty-link" (click)="goToBooks()" role="button" tabindex="0">
+          <a
+            class="lk-empty-link"
+            (click)="goToBooks()"
+            role="button"
+            tabindex="0"
+          >
             Ontdek boeken →
           </a>
         </div>
@@ -95,10 +129,19 @@
       } @else {
         <div class="kijker-grid">
           @for (book of highlightedBooks.slice(0, 4); track book.bookId) {
-            <div class="kijker-mini-card" (click)="goToDetail(book.bookId)" role="button" tabindex="0">
+            <div
+              class="kijker-mini-card"
+              (click)="goToDetail(book.bookId)"
+              role="button"
+              tabindex="0"
+            >
               <div class="kijker-cover-wrap">
                 @if (book.cover) {
-                  <img [src]="book.cover" [alt]="book.titel" class="kijker-cover" />
+                  <img
+                    [src]="book.cover"
+                    [alt]="book.titel"
+                    class="kijker-cover"
+                  />
                 } @else {
                   <div class="kijker-cover lk-kijker-placeholder">COVER</div>
                 }
@@ -129,30 +172,71 @@
       </div>
 
       <div class="lk-quick-actions">
-        <button class="lk-quick-btn lk-quick-primary" type="button" [routerLink]="'/uitleen'">
+        <button
+          class="lk-quick-btn lk-quick-primary"
+          type="button"
+          [routerLink]="'/uitleen'"
+        >
           <span class="lk-quick-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 17l10 5 10-5M2 12l10 5 10-5M12 2L2 7l10 5 10-5-10-5z"/></svg>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M2 17l10 5 10-5M2 12l10 5 10-5M12 2L2 7l10 5 10-5-10-5z"
+              />
+            </svg>
           </span>
           Boek uitlenen
           <span class="lk-quick-arrow">→</span>
         </button>
-        <button class="lk-quick-btn" type="button" [routerLink]="'/uitleen-catalogus'">
+        <button
+          class="lk-quick-btn"
+          type="button"
+          [routerLink]="'/uitleen-catalogus'"
+        >
           <span class="lk-quick-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3"/></svg>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3" />
+            </svg>
           </span>
           Uitleenhistoriek
           <span class="lk-quick-arrow">→</span>
         </button>
         <button class="lk-quick-btn" type="button" (click)="goToBooks()">
           <span class="lk-quick-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path
+                d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+              />
+            </svg>
           </span>
           Boekencatalogus
           <span class="lk-quick-arrow">→</span>
         </button>
         <button class="lk-quick-btn" type="button" [routerLink]="'/map'">
           <span class="lk-quick-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-2V4l5 2 6-2 5 2v14l-5-2-6 2zM9 6v14M15 4v14"/></svg>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M9 20l-5-2V4l5 2 6-2 5 2v14l-5-2-6 2zM9 6v14M15 4v14" />
+            </svg>
           </span>
           Scholenoverzicht
           <span class="lk-quick-arrow">→</span>
@@ -160,7 +244,15 @@
         @if (isLibrarian) {
           <button class="lk-quick-btn" type="button" (click)="goToAddBook()">
             <span class="lk-quick-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
             </span>
             Boek toevoegen
             <span class="lk-quick-arrow">→</span>
@@ -168,8 +260,229 @@
         }
       </div>
     </section>
+  </div>
 
-  </div><!-- /lk-hero-row -->
+  <!-- Spotlight beheer (bibbeheerder only) -->
+  @if (isLibrarian) {
+    <section class="sp-section">
+      <h2 class="sp-heading">Spotlight beheer</h2>
+
+      <div class="sp-cards">
+        <!-- Boek van de maand -->
+        <div class="sp-card">
+          <div class="sp-card-head">
+            <span class="sp-eyebrow" style="color: #d4537e"
+              >◆ Boek van de maand</span
+            >
+            <span class="sp-month">{{ currentMonthLabel }}</span>
+          </div>
+          @if (spotlightLoading) {
+            <div class="sp-loading">Laden…</div>
+          } @else if (spotlight.maand) {
+            <div class="sp-book-row">
+              <div class="sp-cover-wrap">
+                @if (spotlight.maand.cover) {
+                  <img
+                    [src]="spotlight.maand.cover"
+                    [alt]="spotlight.maand.titel"
+                    class="sp-cover"
+                  />
+                } @else {
+                  <div class="sp-cover sp-cover-placeholder">
+                    {{ spotlight.maand.titel.slice(0, 2).toUpperCase() }}
+                  </div>
+                }
+              </div>
+              <div class="sp-book-info">
+                <p class="sp-book-title">{{ spotlight.maand.titel }}</p>
+                <p class="sp-book-author">{{ spotlight.maand.auteur }}</p>
+              </div>
+            </div>
+            <div class="sp-actions">
+              <button
+                class="sp-btn-edit"
+                type="button"
+                (click)="openPicker('MAAND')"
+                [disabled]="spotlightSaving === 'MAAND'"
+              >
+                Wijzigen
+              </button>
+              <button
+                class="sp-btn-clear"
+                type="button"
+                (click)="clearSpotlight('MAAND')"
+                [disabled]="spotlightClearing === 'MAAND'"
+              >
+                {{ spotlightClearing === "MAAND" ? "…" : "×" }}
+              </button>
+            </div>
+          } @else {
+            <div class="sp-empty">Nog niet ingesteld</div>
+            <button
+              class="sp-btn-add"
+              type="button"
+              (click)="openPicker('MAAND')"
+            >
+              + Instellen
+            </button>
+          }
+        </div>
+
+        <!-- Themaboek -->
+        <div class="sp-card">
+          <div class="sp-card-head">
+            <span class="sp-eyebrow" style="color: #2e6b3f">♦ Themaboek</span>
+          </div>
+          @if (spotlightLoading) {
+            <div class="sp-loading">Laden…</div>
+          } @else if (spotlight.thema) {
+            <div class="sp-book-row">
+              <div class="sp-cover-wrap">
+                @if (spotlight.thema.cover) {
+                  <img
+                    [src]="spotlight.thema.cover"
+                    [alt]="spotlight.thema.titel"
+                    class="sp-cover"
+                  />
+                } @else {
+                  <div class="sp-cover sp-cover-placeholder">
+                    {{ spotlight.thema.titel.slice(0, 2).toUpperCase() }}
+                  </div>
+                }
+              </div>
+              <div class="sp-book-info">
+                <p class="sp-book-title">{{ spotlight.thema.titel }}</p>
+                <p class="sp-book-author">{{ spotlight.thema.auteur }}</p>
+              </div>
+            </div>
+            <div class="sp-actions">
+              <button
+                class="sp-btn-edit"
+                type="button"
+                (click)="openPicker('THEMA')"
+                [disabled]="spotlightSaving === 'THEMA'"
+              >
+                Wijzigen
+              </button>
+              <button
+                class="sp-btn-clear"
+                type="button"
+                (click)="clearSpotlight('THEMA')"
+                [disabled]="spotlightClearing === 'THEMA'"
+              >
+                {{ spotlightClearing === "THEMA" ? "…" : "×" }}
+              </button>
+            </div>
+          } @else {
+            <div class="sp-empty">Nog niet ingesteld</div>
+            <button
+              class="sp-btn-add"
+              type="button"
+              (click)="openPicker('THEMA')"
+            >
+              + Instellen
+            </button>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- Book picker modal -->
+  @if (pickerOpen) {
+    <div class="sp-overlay" (click)="closePicker()">
+      <div class="sp-modal" (click)="$event.stopPropagation()">
+        <div class="sp-modal-head">
+          <h3 class="sp-modal-title">
+            {{
+              pickerType === "MAAND"
+                ? "Boek van de maand instellen"
+                : "Themaboek instellen"
+            }}
+          </h3>
+          <button
+            class="sp-modal-close"
+            type="button"
+            (click)="closePicker()"
+            aria-label="Sluiten"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="sp-modal-search">
+          <input
+            id="sp-search-input"
+            type="text"
+            class="sp-search-input"
+            [(ngModel)]="pickerQuery"
+            (ngModelChange)="onPickerSearch()"
+            placeholder="Zoek op titel of auteur…"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="sp-modal-results">
+          @if (pickerSearching) {
+            <div class="sp-results-loading">
+              <div class="spinner"></div>
+            </div>
+          } @else if (pickerQuery.trim() && pickerResults.length === 0) {
+            <p class="sp-results-empty">Geen boeken gevonden.</p>
+          } @else if (!pickerQuery.trim()) {
+            <p class="sp-results-hint">Typ een titel of auteur om te zoeken.</p>
+          } @else {
+            @for (book of pickerResults; track book.id) {
+              <div
+                class="sp-result-item"
+                (click)="selectBook(book)"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="selectBook(book)"
+              >
+                <div class="sp-result-cover-wrap">
+                  @if (book.cover) {
+                    <img
+                      [src]="book.cover"
+                      [alt]="book.titel"
+                      class="sp-result-cover"
+                    />
+                  } @else {
+                    <div class="sp-result-cover sp-result-cover-placeholder">
+                      {{ book.titel.slice(0, 2).toUpperCase() }}
+                    </div>
+                  }
+                </div>
+                <div class="sp-result-info">
+                  <p class="sp-result-title">{{ book.titel }}</p>
+                  <p class="sp-result-author">{{ book.auteur }}</p>
+                </div>
+                <button
+                  class="sp-result-pick"
+                  type="button"
+                  [disabled]="spotlightSaving !== null"
+                >
+                  {{ spotlightSaving !== null ? "…" : "Kies" }}
+                </button>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- Mijn leeshoek strip -->
   @if (firstOwnLoan || kijkerBook) {
@@ -180,10 +493,19 @@
       </div>
 
       @if (firstOwnLoan) {
-        <div class="lk-leeshoek-book" (click)="goToDetail(firstOwnLoan.bookId)" role="button" tabindex="0">
+        <div
+          class="lk-leeshoek-book"
+          (click)="goToDetail(firstOwnLoan.bookId)"
+          role="button"
+          tabindex="0"
+        >
           <div class="lk-leeshoek-cover-wrap">
             @if (firstOwnLoan.bookCover) {
-              <img [src]="firstOwnLoan.bookCover" [alt]="firstOwnLoan.bookTitel" class="lk-leeshoek-cover" />
+              <img
+                [src]="firstOwnLoan.bookCover"
+                [alt]="firstOwnLoan.bookTitel"
+                class="lk-leeshoek-cover"
+              />
             } @else {
               <div class="lk-leeshoek-cover lk-leeshoek-placeholder">
                 {{ firstOwnLoan.bookTitel.slice(0, 2).toUpperCase() }}
@@ -193,16 +515,27 @@
           <div class="lk-leeshoek-info">
             <span class="lk-leeshoek-eyebrow">● Verder lezen</span>
             <p class="lk-leeshoek-book-title">{{ firstOwnLoan.bookTitel }}</p>
-            <p class="lk-leeshoek-book-sub">Inleveren {{ formatDueDate(firstOwnLoan.dueDate) }}</p>
+            <p class="lk-leeshoek-book-sub">
+              Inleveren {{ formatDueDate(firstOwnLoan.dueDate) }}
+            </p>
           </div>
         </div>
       }
 
       @if (kijkerBook) {
-        <div class="lk-leeshoek-book" (click)="goToDetail(kijkerBook.bookId)" role="button" tabindex="0">
+        <div
+          class="lk-leeshoek-book"
+          (click)="goToDetail(kijkerBook.bookId)"
+          role="button"
+          tabindex="0"
+        >
           <div class="lk-leeshoek-cover-wrap">
             @if (kijkerBook.cover) {
-              <img [src]="kijkerBook.cover" [alt]="kijkerBook.titel" class="lk-leeshoek-cover" />
+              <img
+                [src]="kijkerBook.cover"
+                [alt]="kijkerBook.titel"
+                class="lk-leeshoek-cover"
+              />
             } @else {
               <div class="lk-leeshoek-cover lk-leeshoek-placeholder">
                 {{ kijkerBook.titel.slice(0, 2).toUpperCase() }}
@@ -210,7 +543,9 @@
             }
           </div>
           <div class="lk-leeshoek-info">
-            <span class="lk-leeshoek-eyebrow" style="color: var(--warn)">★ In de kijker</span>
+            <span class="lk-leeshoek-eyebrow" style="color: var(--warn)"
+              >★ In de kijker</span
+            >
             <p class="lk-leeshoek-book-title">{{ kijkerBook.titel }}</p>
             <p class="lk-leeshoek-book-sub">{{ kijkerBook.auteur }}</p>
           </div>
@@ -236,7 +571,17 @@
         </div>
         <a class="overline-link" routerLink="/books">
           Bekijk meer
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            aria-hidden="true"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </a>
       </div>
       <app-recommendation-section
@@ -258,7 +603,17 @@
         </div>
         <a class="overline-link" routerLink="/books">
           Bekijk meer
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            aria-hidden="true"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </a>
       </div>
       <app-recommendation-section
@@ -273,5 +628,4 @@
 
   <!-- Fun badges -->
   <app-fun-badges></app-fun-badges>
-
 </div>

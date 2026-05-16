@@ -1,11 +1,26 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { BookService } from '../services/book.service';
 import { LoanService, Loan } from '../services/loan.service';
 import { RecommendationService, RecommendedBook } from '../services/recommendation.service';
 import { SchoolService } from '../services/school.service';
 import { UserPreferencesService } from '../services/user-preferences.service';
 import { inferNameParts } from '../utils/name-utils';
+
+interface SpotlightBook {
+  bookId: number;
+  titel: string;
+  auteur: string;
+  cover: string;
+}
+
+interface BookSearchResult {
+  id: number;
+  titel: string;
+  auteur: string;
+  cover: string | null;
+}
 
 @Component({
   selector: 'app-leerkracht-dashboard',
@@ -23,6 +38,20 @@ export class LeerkrachtDashboardComponent implements OnInit {
   loansLoading = true;
   booksLoading = true;
   recommendationsLoading = true;
+
+  // Spotlight management (bibbeheerder only)
+  spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
+  spotlightLoading = false;
+  spotlightSaving: 'MAAND' | 'THEMA' | null = null;
+  spotlightClearing: 'MAAND' | 'THEMA' | null = null;
+
+  // Book picker modal
+  pickerOpen = false;
+  pickerType: 'MAAND' | 'THEMA' = 'MAAND';
+  pickerQuery = '';
+  pickerResults: BookSearchResult[] = [];
+  pickerSearching = false;
+  private pickerDebounce: ReturnType<typeof setTimeout> | null = null;
 
   private readonly RECOMMENDATION_LIMIT = 20;
   today = new Date().toISOString().split('T')[0];
@@ -55,6 +84,10 @@ export class LeerkrachtDashboardComponent implements OnInit {
     return localStorage.getItem('role') === 'bibbeheerder';
   }
 
+  get currentMonthLabel(): string {
+    return new Date().toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' });
+  }
+
   get overdueLoans(): Loan[] {
     return this.allActiveLoans.filter(l => l.dueDate < this.today);
   }
@@ -77,6 +110,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private http: HttpClient,
     private bookService: BookService,
     private loanService: LoanService,
     private recommendationService: RecommendationService,
@@ -94,6 +128,14 @@ export class LeerkrachtDashboardComponent implements OnInit {
         prefs['recommendationExcludeRead_newArrivals'] ?? true,
       );
     });
+    if (this.isLibrarian) {
+      this.fetchSpotlights();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void {
+    this.closePicker();
   }
 
   private async fetchAllLoans(): Promise<void> {
@@ -206,6 +248,82 @@ export class LeerkrachtDashboardComponent implements OnInit {
 
   onNewArrivalsRefresh(excludeRead: boolean): void {
     this.fetchRecommendations(true, excludeRead);
+  }
+
+  private fetchSpotlights(): void {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+    this.spotlightLoading = true;
+    this.http.get<{ maand: SpotlightBook | null; thema: SpotlightBook | null }>(
+      `/api/spotlight/${schoolId}`
+    ).subscribe({
+      next: (data) => { this.spotlight = data; this.spotlightLoading = false; },
+      error: () => { this.spotlightLoading = false; },
+    });
+  }
+
+  openPicker(type: 'MAAND' | 'THEMA'): void {
+    this.pickerType = type;
+    this.pickerQuery = '';
+    this.pickerResults = [];
+    this.pickerSearching = false;
+    this.pickerOpen = true;
+    setTimeout(() => document.getElementById('sp-search-input')?.focus(), 50);
+  }
+
+  closePicker(): void {
+    this.pickerOpen = false;
+    if (this.pickerDebounce !== null) {
+      clearTimeout(this.pickerDebounce);
+      this.pickerDebounce = null;
+    }
+  }
+
+  onPickerSearch(): void {
+    if (this.pickerDebounce !== null) clearTimeout(this.pickerDebounce);
+    if (!this.pickerQuery.trim()) { this.pickerResults = []; return; }
+    this.pickerDebounce = setTimeout(() => this.searchBooks(), 300);
+  }
+
+  private searchBooks(): void {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId || !this.pickerQuery.trim()) return;
+    this.pickerSearching = true;
+    this.http.get<{ items: BookSearchResult[]; total: number }>(
+      `/api/books/paged?schoolId=${schoolId}&query=${encodeURIComponent(this.pickerQuery.trim())}&size=8&page=0`
+    ).subscribe({
+      next: (res) => { this.pickerResults = res.items; this.pickerSearching = false; },
+      error: () => { this.pickerResults = []; this.pickerSearching = false; },
+    });
+  }
+
+  selectBook(book: BookSearchResult): void {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+    this.spotlightSaving = this.pickerType;
+    this.http.put<SpotlightBook>(`/api/spotlight/${schoolId}/${this.pickerType}`, { bookId: book.id }).subscribe({
+      next: (saved) => {
+        if (this.pickerType === 'MAAND') this.spotlight.maand = saved;
+        else this.spotlight.thema = saved;
+        this.spotlightSaving = null;
+        this.closePicker();
+      },
+      error: () => { this.spotlightSaving = null; },
+    });
+  }
+
+  clearSpotlight(type: 'MAAND' | 'THEMA'): void {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+    this.spotlightClearing = type;
+    this.http.delete(`/api/spotlight/${schoolId}/${type}`).subscribe({
+      next: () => {
+        if (type === 'MAAND') this.spotlight.maand = null;
+        else this.spotlight.thema = null;
+        this.spotlightClearing = null;
+      },
+      error: () => { this.spotlightClearing = null; },
+    });
   }
 
   goToBooks(): void {
