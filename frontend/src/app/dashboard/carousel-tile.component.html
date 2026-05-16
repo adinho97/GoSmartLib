@@ -29,7 +29,6 @@
     <div class="carousel-nav">
       <button class="carousel-arrow" type="button" (click)="goPrev()" aria-label="Vorige">&#8249;</button>
       <div class="carousel-nav-center">
-        <span class="carousel-label">{{ currentPage?.label }}</span>
         <div class="carousel-dots" role="tablist">
           @for (p of pages; track p.id; let i = $index) {
             <button

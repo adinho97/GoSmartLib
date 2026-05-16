@@ -474,7 +474,7 @@ export class DashboardComponent implements OnInit {
           eyebrowColor: '#d4537e',
           infoTitle: 'Boek van de maand',
           infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
-          book: { id: maand.bookId, title: maand.titel, author: maand.auteur, cover: maand.cover || undefined },
+          book: { id: maand.bookId, title: maand.titel, author: '', cover: maand.cover || undefined },
           badge: { label: this.getCurrentMonthLabel() },
         } : {
           id: 'boek-vd-maand',
@@ -513,7 +513,7 @@ export class DashboardComponent implements OnInit {
           eyebrowColor: '#2e6b3f',
           infoTitle: 'Themaboek',
           infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
-          book: { id: thema.bookId, title: thema.titel, author: thema.auteur, cover: thema.cover || undefined },
+          book: { id: thema.bookId, title: thema.titel, author: '', cover: thema.cover || undefined },
         } : {
           id: 'themaboek',
           label: 'Themaboek',
