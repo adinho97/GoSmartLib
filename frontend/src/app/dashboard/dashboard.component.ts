@@ -17,6 +17,13 @@ export interface DashboardConfig {
   pages: Record<string, string[]>;
 }
 
+interface SpotlightBook {
+  bookId: number;
+  titel: string;
+  auteur: string;
+  cover: string;
+}
+
 interface TileDef {
   id: string;
   label: string;
@@ -84,7 +91,10 @@ export class DashboardComponent implements OnInit {
   loansLoading = true;
   recommendationsLoading = true;
   highlightedLoading = false;
+  spotlightLoading = true;
   wishlistCount = 0;
+
+  spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
 
   // Tile config
   readonly TILES = TILES;
@@ -185,6 +195,7 @@ export class DashboardComponent implements OnInit {
     this.fetchMyLoans();
     this.fetchLoanHistory();
     this.fetchHighlightedBooks();
+    this.fetchSpotlights();
     this.fetchWishlistCount();
   }
 
@@ -428,14 +439,24 @@ export class DashboardComponent implements OnInit {
       }
     }
 
-    if (enabledIds.includes('boek-vd-maand')) {
-      pages.push({
+    if (enabledIds.includes('boek-vd-maand') && !this.spotlightLoading) {
+      const maand = this.spotlight.maand;
+      pages.push(maand ? {
         id: 'boek-vd-maand',
         label: 'Boek van de maand',
         eyebrow: '◆ Boek van de maand',
         eyebrowColor: '#d4537e',
         infoTitle: 'Boek van de maand',
-        infoBody: 'Elke maand kiest een leerkracht of de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+        infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+        book: { id: maand.bookId, title: maand.titel, author: maand.auteur, cover: maand.cover || undefined },
+        badge: { label: this.getCurrentMonthLabel() },
+      } : {
+        id: 'boek-vd-maand',
+        label: 'Boek van de maand',
+        eyebrow: '◆ Boek van de maand',
+        eyebrowColor: '#d4537e',
+        infoTitle: 'Boek van de maand',
+        infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
         book: { id: 0, title: '', author: '' },
         badge: { label: this.getCurrentMonthLabel() },
         empty: true,
@@ -443,8 +464,17 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    if (enabledIds.includes('themaboek')) {
-      pages.push({
+    if (enabledIds.includes('themaboek') && !this.spotlightLoading) {
+      const thema = this.spotlight.thema;
+      pages.push(thema ? {
+        id: 'themaboek',
+        label: 'Themaboek',
+        eyebrow: '♦ Themaboek',
+        eyebrowColor: '#2e6b3f',
+        infoTitle: 'Themaboek',
+        infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
+        book: { id: thema.bookId, title: thema.titel, author: thema.auteur, cover: thema.cover || undefined },
+      } : {
         id: 'themaboek',
         label: 'Themaboek',
         eyebrow: '♦ Themaboek',
@@ -494,6 +524,24 @@ export class DashboardComponent implements OnInit {
       console.error("Fout bij ophalen gemarkeerde boeken:", error);
     } finally {
       this.highlightedLoading = false;
+    }
+  }
+
+  private async fetchSpotlights() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) {
+      this.spotlightLoading = false;
+      return;
+    }
+    try {
+      const data = await this.http.get<{ maand: SpotlightBook | null; thema: SpotlightBook | null }>(
+        `/api/spotlight/${schoolId}`
+      ).toPromise();
+      this.spotlight = data ?? { maand: null, thema: null };
+    } catch {
+      this.spotlight = { maand: null, thema: null };
+    } finally {
+      this.spotlightLoading = false;
     }
   }
 
