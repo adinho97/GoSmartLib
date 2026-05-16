@@ -14,6 +14,13 @@ import { formatUserInfoDisplayName } from "../utils/name-utils";
 
 type PaginationItem = number | "...";
 
+interface SpotlightBook {
+  bookId: number;
+  titel: string;
+  auteur: string;
+  cover: string;
+}
+
 interface NominatimResult {
   lat: string;
   lon: string;
@@ -108,6 +115,16 @@ export class AdminSchoolDetailComponent implements OnInit {
     },
   ];
 
+  // Spotlight management
+  spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
+  spotlightLoading = false;
+  spotlightSaving: 'MAAND' | 'THEMA' | null = null;
+  spotlightClearing: 'MAAND' | 'THEMA' | null = null;
+  spotlightError = "";
+  spotlightSuccess = "";
+  maandBookIdInput: number | null = null;
+  themaBookIdInput: number | null = null;
+
   // Info edit form
   infoExpanded = false;
   editNaam = "";
@@ -168,6 +185,7 @@ export class AdminSchoolDetailComponent implements OnInit {
   ngOnInit(): void {
     this.schoolId = Number(this.route.snapshot.paramMap.get("id"));
     this.loadAll();
+    this.loadSpotlights();
   }
 
   loadAll(): void {
@@ -611,6 +629,56 @@ export class AdminSchoolDetailComponent implements OnInit {
       );
     }
     this.router.navigate([route]);
+  }
+
+  loadSpotlights(): void {
+    this.spotlightLoading = true;
+    this.http.get<{ maand: SpotlightBook | null; thema: SpotlightBook | null }>(
+      `/api/spotlight/${this.schoolId}`
+    ).subscribe({
+      next: (data) => { this.spotlight = data; this.spotlightLoading = false; },
+      error: () => { this.spotlightLoading = false; },
+    });
+  }
+
+  setSpotlight(type: 'MAAND' | 'THEMA'): void {
+    const bookId = type === 'MAAND' ? this.maandBookIdInput : this.themaBookIdInput;
+    if (!bookId) return;
+    this.spotlightSaving = type;
+    this.spotlightError = "";
+    this.spotlightSuccess = "";
+    this.http.put<SpotlightBook>(`/api/spotlight/${this.schoolId}/${type}`, { bookId }).subscribe({
+      next: (book) => {
+        if (type === 'MAAND') { this.spotlight.maand = book; this.maandBookIdInput = null; }
+        else { this.spotlight.thema = book; this.themaBookIdInput = null; }
+        this.spotlightSaving = null;
+        this.spotlightSuccess = "Opgeslagen.";
+        setTimeout(() => (this.spotlightSuccess = ""), 3000);
+      },
+      error: (err) => {
+        this.spotlightError = err?.error?.message || "Opslaan mislukt. Controleer het boek-ID.";
+        this.spotlightSaving = null;
+      },
+    });
+  }
+
+  clearSpotlight(type: 'MAAND' | 'THEMA'): void {
+    this.spotlightClearing = type;
+    this.spotlightError = "";
+    this.spotlightSuccess = "";
+    this.http.delete(`/api/spotlight/${this.schoolId}/${type}`).subscribe({
+      next: () => {
+        if (type === 'MAAND') this.spotlight.maand = null;
+        else this.spotlight.thema = null;
+        this.spotlightClearing = null;
+        this.spotlightSuccess = "Gewist.";
+        setTimeout(() => (this.spotlightSuccess = ""), 3000);
+      },
+      error: (err) => {
+        this.spotlightError = err?.error?.message || "Wissen mislukt.";
+        this.spotlightClearing = null;
+      },
+    });
   }
 
   goBack(): void {
