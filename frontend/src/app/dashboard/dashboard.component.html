@@ -130,15 +130,9 @@
       }
 
       @if (tileId === 'bibliotheek') {
-        @if (highlightedLoading) {
-          <div class="hero-card hero-card-loading">
-            <div class="hero-loader"><div class="spinner"></div></div>
-          </div>
-        } @else {
-          @let bibliotheekPages = getBibliotheekPages();
-          @if (bibliotheekPages.length > 0) {
-            <app-carousel-tile [pages]="bibliotheekPages"></app-carousel-tile>
-          }
+        @let bibliotheekPages = getBibliotheekPages();
+        @if (bibliotheekPages.length > 0) {
+          <app-carousel-tile [pages]="bibliotheekPages"></app-carousel-tile>
         }
       }
 

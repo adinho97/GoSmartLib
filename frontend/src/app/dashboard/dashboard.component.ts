@@ -371,28 +371,42 @@ export class DashboardComponent implements OnInit {
       }
     }
 
-    if (enabledIds.includes('laatst-ingeleverd') && this.lastReturnedLoan) {
-      const returned = this.lastReturnedLoan;
-      pages.push({
-        id: 'laatst-ingeleverd',
-        label: 'Laatst ingeleverd',
-        eyebrow: '↩ Laatst ingeleverd',
-        eyebrowColor: '#2d5a78',
-        infoTitle: 'Laatst ingeleverd',
-        infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
-        linkLabel: `Historiek (${this.loanHistory.length}) →`,
-        linkFragment: 'historiek',
-        book: {
-          id: returned.bookId,
-          title: returned.bookTitel,
-          author: '',
-          cover: returned.bookCover,
-        },
-        badge: returned.returnedAt
-          ? { calendar: true, label: `Ingeleverd ${this.formatReturnedDate(returned.returnedAt)}` }
-          : undefined,
-        headerCta: { label: 'Schrijf review', bookId: returned.bookId },
-      });
+    if (enabledIds.includes('laatst-ingeleverd')) {
+      if (this.lastReturnedLoan) {
+        const returned = this.lastReturnedLoan;
+        pages.push({
+          id: 'laatst-ingeleverd',
+          label: 'Laatst ingeleverd',
+          eyebrow: '↩ Laatst ingeleverd',
+          eyebrowColor: '#2d5a78',
+          infoTitle: 'Laatst ingeleverd',
+          infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
+          linkLabel: `Historiek (${this.loanHistory.length}) →`,
+          linkFragment: 'historiek',
+          book: {
+            id: returned.bookId,
+            title: returned.bookTitel,
+            author: '',
+            cover: returned.bookCover,
+          },
+          badge: returned.returnedAt
+            ? { calendar: true, label: `Ingeleverd ${this.formatReturnedDate(returned.returnedAt)}` }
+            : undefined,
+          headerCta: { label: 'Schrijf review', bookId: returned.bookId },
+        });
+      } else if (!this.loansLoading) {
+        pages.push({
+          id: 'laatst-ingeleverd',
+          label: 'Laatst ingeleverd',
+          eyebrow: '↩ Laatst ingeleverd',
+          eyebrowColor: '#2d5a78',
+          infoTitle: 'Laatst ingeleverd',
+          infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
+          book: { id: 0, title: '', author: '' },
+          empty: true,
+          emptyMessage: 'Je hebt nog geen boeken ingeleverd.',
+        });
+      }
     }
 
     return pages;
@@ -403,7 +417,19 @@ export class DashboardComponent implements OnInit {
     const pages: CarouselPageDef[] = [];
 
     if (enabledIds.includes('in-de-kijker')) {
-      if (this.highlightedBooks.length > 0) {
+      if (this.highlightedLoading) {
+        pages.push({
+          id: 'in-de-kijker',
+          label: 'In de kijker',
+          eyebrow: '★ In de kijker',
+          eyebrowColor: '#b86a17',
+          infoTitle: 'In de kijker',
+          infoBody: 'Boeken die je bibbeheerder extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+          book: { id: 0, title: '', author: '' },
+          empty: true,
+          emptyMessage: 'Laden…',
+        });
+      } else if (this.highlightedBooks.length > 0) {
         const book = this.highlightedBooks[0];
         pages.push({
           id: 'in-de-kijker',
@@ -422,7 +448,7 @@ export class DashboardComponent implements OnInit {
           },
           badge: { label: book.genre || 'Uitgelicht' },
         });
-      } else if (!this.highlightedLoading) {
+      } else {
         pages.push({
           id: 'in-de-kijker',
           label: 'In de kijker',
@@ -462,7 +488,7 @@ export class DashboardComponent implements OnInit {
           eyebrowColor: '#d4537e',
           infoTitle: 'Boek van de maand',
           infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
-          book: { id: maand.bookId, title: maand.titel, author: maand.auteur, cover: maand.cover || undefined },
+          book: { id: maand.bookId, title: maand.titel, author: '', cover: maand.cover || undefined },
           badge: { label: this.getCurrentMonthLabel() },
         } : {
           id: 'boek-vd-maand',
@@ -501,7 +527,7 @@ export class DashboardComponent implements OnInit {
           eyebrowColor: '#2e6b3f',
           infoTitle: 'Themaboek',
           infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
-          book: { id: thema.bookId, title: thema.titel, author: thema.auteur, cover: thema.cover || undefined },
+          book: { id: thema.bookId, title: thema.titel, author: '', cover: thema.cover || undefined },
         } : {
           id: 'themaboek',
           label: 'Themaboek',
