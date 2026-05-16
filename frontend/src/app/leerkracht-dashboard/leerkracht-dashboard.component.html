@@ -16,150 +16,23 @@
 
   <!-- Hero row: 3 columns -->
   <div class="lk-hero-row">
-    <!-- Col 1: Verder lezen -->
-    <section class="lk-hero-card">
-      <div class="lk-card-head">
-        <span class="lk-eyebrow">
-          <span class="lk-pulse" aria-hidden="true"></span>
-          Verder lezen
-        </span>
-        <a
-          class="lk-head-link"
-          (click)="goToMijnLijsten()"
-          role="button"
-          tabindex="0"
-        >
-          Geleend ({{ myLoans.length }}) →
-        </a>
-      </div>
-
-      @if (loansLoading) {
+    <!-- Col 1: Mijn boeken (carousel) -->
+    @if (loansLoading) {
+      <section class="lk-hero-card">
         <div class="lk-loader"><div class="spinner"></div></div>
-      } @else if (firstOwnLoan) {
-        <div class="lk-vl-body">
-          <div class="lk-vl-cover-wrap">
-            @if (firstOwnLoan.bookCover) {
-              <img
-                [src]="firstOwnLoan.bookCover"
-                [alt]="firstOwnLoan.bookTitel"
-                class="lk-vl-cover"
-              />
-            } @else {
-              <div class="lk-vl-cover lk-vl-placeholder">COVER</div>
-            }
-          </div>
-          <div class="lk-vl-info">
-            <p class="lk-vl-title">{{ firstOwnLoan.bookTitel }}</p>
-            <p class="lk-vl-deadline">
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              @if (isOverdue(firstOwnLoan.dueDate)) {
-                <span class="lk-vl-overdue">Verlopen!</span>
-              } @else {
-                Inleveren {{ formatDueDate(firstOwnLoan.dueDate) }}
-                <span
-                  class="lk-vl-badge"
-                  [class.lk-vl-urgent]="isUrgent(firstOwnLoan.dueDate)"
-                >
-                  {{ daysLeft(firstOwnLoan.dueDate) }}d
-                </span>
-              }
-            </p>
-            <div class="lk-vl-actions">
-              <button
-                class="lk-btn-primary"
-                type="button"
-                (click)="goToDetail(firstOwnLoan.bookId)"
-              >
-                Bekijk boek
-              </button>
-            </div>
-          </div>
-        </div>
-      } @else {
-        <div class="lk-empty-state">
-          <p>Je hebt momenteel geen geleende boeken.</p>
-          <a
-            class="lk-empty-link"
-            (click)="goToBooks()"
-            role="button"
-            tabindex="0"
-          >
-            Ontdek boeken →
-          </a>
-        </div>
+      </section>
+    } @else {
+      @let mijnBoekenPages = getMijnBoekenPages();
+      @if (mijnBoekenPages.length > 0) {
+        <app-carousel-tile [pages]="mijnBoekenPages"></app-carousel-tile>
       }
-    </section>
+    }
 
-    <!-- Col 2: In de kijker -->
-    <section class="lk-hero-card">
-      <div class="lk-card-head">
-        <div class="lk-card-head-right">
-          <span class="lk-eyebrow">★ In de kijker</span>
-          <app-info-button
-            title="In de kijker"
-            description="Boeken die de bibliothecaris heeft uitgelicht voor de hele school. Ideaal om nieuwe titels te ontdekken."
-          ></app-info-button>
-        </div>
-        <a class="lk-head-link" routerLink="/mijn-lijsten">
-          Alles ({{ highlightedBooks.length }}) →
-        </a>
-      </div>
-
-      @if (booksLoading) {
-        <div class="lk-loader"><div class="spinner"></div></div>
-      } @else if (highlightedBooks.length === 0) {
-        <div class="lk-empty-state">
-          <p>Geen uitgelichte boeken op dit moment.</p>
-        </div>
-      } @else {
-        <div class="kijker-grid">
-          @for (book of highlightedBooks.slice(0, 4); track book.bookId) {
-            <div
-              class="kijker-mini-card"
-              (click)="goToDetail(book.bookId)"
-              role="button"
-              tabindex="0"
-            >
-              <div class="kijker-cover-wrap">
-                @if (book.cover) {
-                  <img
-                    [src]="book.cover"
-                    [alt]="book.titel"
-                    class="kijker-cover"
-                  />
-                } @else {
-                  <div class="kijker-cover lk-kijker-placeholder">COVER</div>
-                }
-              </div>
-              <p class="kijker-title">{{ book.titel }}</p>
-              <p class="kijker-author">{{ book.auteur }}</p>
-            </div>
-          }
-        </div>
-      }
-      @if (isLibrarian) {
-        <div class="lk-kijker-manage">
-          <button class="lk-btn-manage" type="button" (click)="goToBooks()">
-            + Boeken in de kijker zetten
-          </button>
-        </div>
-      }
-    </section>
+    <!-- Col 2: Bibliotheek (carousel) -->
+    @let bibliotheekPages = getBibliotheekPages();
+    @if (bibliotheekPages.length > 0) {
+      <app-carousel-tile [pages]="bibliotheekPages"></app-carousel-tile>
+    }
 
     <!-- Col 3: Snelle acties -->
     <section class="lk-hero-card">
@@ -384,6 +257,40 @@
             </button>
           }
         </div>
+
+        <!-- In de kijker -->
+        <div class="sp-card sp-card-highlight">
+          <div class="sp-card-head">
+            <span class="sp-eyebrow" style="color: #b86a17">★ In de kijker</span>
+            <span class="sp-count">{{ highlightedBookIds.size }}</span>
+          </div>
+          @if (booksLoading) {
+            <div class="sp-loading">Laden…</div>
+          } @else if (highlightedBooks.length > 0) {
+            <div class="sp-book-row">
+              <div class="sp-cover-wrap">
+                @if (highlightedBooks[0].cover) {
+                  <img
+                    [src]="highlightedBooks[0].cover"
+                    [alt]="highlightedBooks[0].titel"
+                    class="sp-cover"
+                  />
+                } @else {
+                  <div class="sp-cover sp-cover-placeholder">COVER</div>
+                }
+              </div>
+              <div class="sp-book-info">
+                <p class="sp-book-title">{{ highlightedBooks[0].titel }}</p>
+                <p class="sp-book-author">{{ highlightedBooks[0].auteur }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="sp-empty">Nog geen boeken in de kijker</div>
+          }
+          <button class="sp-btn-add" type="button" (click)="openHighlightPicker()">
+            Boeken toevoegen
+          </button>
+        </div>
       </div>
     </section>
   }
@@ -479,6 +386,113 @@
               </div>
             }
           }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (highlightPickerOpen) {
+    <div class="sp-overlay" (click)="closeHighlightPicker()">
+      <div class="sp-modal sp-modal-wide" (click)="$event.stopPropagation()">
+        <div class="sp-modal-head">
+          <h3 class="sp-modal-title">In de kijker toevoegen</h3>
+          <button class="sp-modal-close" type="button" (click)="closeHighlightPicker()">×</button>
+        </div>
+
+        <div class="sp-modal-body sp-modal-body-split">
+          <div class="sp-modal-main">
+            <div class="sp-modal-search">
+              <input
+                id="hk-search-input"
+                class="sp-search-input"
+                type="text"
+                placeholder="Zoek een boek om toe te voegen"
+                [(ngModel)]="highlightQuery"
+                (input)="onHighlightSearch()"
+              />
+            </div>
+
+            <div class="sp-modal-results">
+              @if (highlightSearching) {
+                <div class="sp-results-loading"><div class="spinner"></div></div>
+              } @else if (!highlightQuery) {
+                <p class="sp-results-hint">Typ om boeken te zoeken.</p>
+              } @else if (highlightResults.length === 0) {
+                <p class="sp-results-empty">Geen resultaten gevonden.</p>
+              } @else {
+                @for (book of highlightResults; track book.id) {
+                  <label
+                    class="sp-result-item sp-result-select"
+                    [class.selected]="isHighlightSelected(book.id)"
+                    [class.disabled]="isHighlightLocked(book.id)"
+                  >
+                    <input
+                      class="sp-result-check"
+                      type="checkbox"
+                      [checked]="isHighlightSelected(book.id)"
+                      [disabled]="isHighlightLocked(book.id)"
+                      (click)="$event.stopPropagation()"
+                      (change)="toggleHighlightSelection(book)"
+                    />
+                    <div class="sp-result-cover-wrap">
+                      @if (book.cover) {
+                        <img [src]="book.cover" [alt]="book.titel" class="sp-result-cover" />
+                      } @else {
+                        <div class="sp-result-cover-placeholder">COVER</div>
+                      }
+                    </div>
+                    <div class="sp-result-info">
+                      <p class="sp-result-title">{{ book.titel }}</p>
+                      <p class="sp-result-author">{{ book.auteur }}</p>
+                    </div>
+                    @if (isHighlightLocked(book.id)) {
+                      <span class="sp-result-tag">Al toegevoegd</span>
+                    }
+                  </label>
+                }
+              }
+            </div>
+          </div>
+
+          <aside class="sp-modal-side">
+            <div class="sp-side-head">
+              Geselecteerd ({{ highlightSelectedBooks.length }})
+            </div>
+            <div class="sp-side-list">
+              @if (highlightSelectedBooks.length === 0) {
+                <p class="sp-results-hint">Nog geen boeken geselecteerd.</p>
+              } @else {
+                @for (book of highlightSelectedBooks; track book.id) {
+                  <div class="sp-side-item">
+                    <div class="sp-side-info">
+                      <p class="sp-side-title">{{ book.titel }}</p>
+                      <p class="sp-side-author">{{ book.auteur }}</p>
+                    </div>
+                    <button
+                      class="sp-side-remove"
+                      type="button"
+                      (click)="removeHighlightSelection(book.id)"
+                    >
+                      ×
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+
+            @if (highlightError) {
+              <p class="sp-error">{{ highlightError }}</p>
+            }
+
+            <button
+              class="sp-btn-primary"
+              type="button"
+              [disabled]="highlightSelectedBooks.length === 0 || highlightSaving"
+              (click)="confirmHighlightAdd()"
+            >
+              {{ highlightSaving ? 'Bezig...' : 'Toevoegen (' + highlightSelectedBooks.length + ')' }}
+            </button>
+          </aside>
         </div>
       </div>
     </div>
