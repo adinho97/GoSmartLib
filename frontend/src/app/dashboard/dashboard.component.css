@@ -227,6 +227,38 @@
   margin: 0;
 }
 
+.hero-tile {
+  position: relative;
+  cursor: grab;
+  border-radius: var(--r-lg);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+.hero-tile:active {
+  cursor: grabbing;
+}
+
+.hero-tile::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 2px dashed transparent;
+  border-radius: calc(var(--r-lg) + 6px);
+  pointer-events: none;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.hero-tile.dragging {
+  opacity: 0.55;
+  transform: scale(0.99);
+  box-shadow: 0 18px 30px -18px rgba(20, 24, 30, 0.35);
+}
+
+.hero-tile.drag-over::after {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(29, 115, 233, 0.12);
+}
+
 /* Base hero card (shared by carousel and snelkoppelingen) */
 .hero-card {
   background: var(--surface);
