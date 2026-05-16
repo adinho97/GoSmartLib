@@ -7,6 +7,7 @@ import { RecommendationService, RecommendedBook } from '../services/recommendati
 import { SchoolService } from '../services/school.service';
 import { UserPreferencesService } from '../services/user-preferences.service';
 import { inferNameParts } from '../utils/name-utils';
+import { CarouselPageDef } from '../dashboard/carousel-tile.component';
 
 interface SpotlightBook {
   bookId: number;
@@ -31,7 +32,9 @@ interface BookSearchResult {
 export class LeerkrachtDashboardComponent implements OnInit {
   allActiveLoans: Loan[] = [];
   myLoans: Loan[] = [];
+  loanHistory: Loan[] = [];
   highlightedBooks: RecommendedBook[] = [];
+  highlightedBookIds = new Set<number>();
   trendingBooks: RecommendedBook[] = [];
   newArrivalsBooks: RecommendedBook[] = [];
 
@@ -41,9 +44,20 @@ export class LeerkrachtDashboardComponent implements OnInit {
 
   // Spotlight management (bibbeheerder only)
   spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
-  spotlightLoading = false;
+  spotlightLoading = true;
   spotlightSaving: 'MAAND' | 'THEMA' | null = null;
   spotlightClearing: 'MAAND' | 'THEMA' | null = null;
+
+  // Highlight (In de kijker) picker
+  highlightPickerOpen = false;
+  highlightQuery = '';
+  highlightResults: BookSearchResult[] = [];
+  highlightSearching = false;
+  highlightSaving = false;
+  highlightError = '';
+  highlightSelectedIds = new Set<number>();
+  highlightSelectedBooks: BookSearchResult[] = [];
+  private highlightDebounce: ReturnType<typeof setTimeout> | null = null;
 
   // Book picker modal
   pickerOpen = false;
@@ -104,6 +118,10 @@ export class LeerkrachtDashboardComponent implements OnInit {
     return this.myLoans[0] ?? null;
   }
 
+  get lastReturnedLoan(): Loan | null {
+    return this.loanHistory[0] ?? null;
+  }
+
   get kijkerBook(): RecommendedBook | null {
     return this.highlightedBooks[0] ?? null;
   }
@@ -121,6 +139,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.fetchAllLoans();
     this.fetchMyLoans();
+    this.fetchLoanHistory();
     this.fetchHighlightedBooks();
     this.userPreferencesService.preferences$.subscribe(prefs => {
       this.fetchRecommendations(
@@ -128,14 +147,13 @@ export class LeerkrachtDashboardComponent implements OnInit {
         prefs['recommendationExcludeRead_newArrivals'] ?? true,
       );
     });
-    if (this.isLibrarian) {
-      this.fetchSpotlights();
-    }
+    this.fetchSpotlights();
   }
 
   @HostListener('document:keydown.escape')
   onEsc(): void {
     this.closePicker();
+    this.closeHighlightPicker();
   }
 
   private async fetchAllLoans(): Promise<void> {
@@ -167,6 +185,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
     this.booksLoading = true;
     try {
       const ids = await this.bookService.getHighlightedBookIds(schoolId);
+      this.highlightedBookIds = new Set(ids || []);
       if (ids?.length) {
         const enriched = await this.bookService.enrichBooksWithDetails(
           ids.map((id: number) => ({ bookId: id })),
@@ -185,8 +204,17 @@ export class LeerkrachtDashboardComponent implements OnInit {
       }
     } catch {
       this.highlightedBooks = [];
+      this.highlightedBookIds = new Set();
     } finally {
       this.booksLoading = false;
+    }
+  }
+
+  private async fetchLoanHistory(): Promise<void> {
+    try {
+      this.loanHistory = await this.loanService.getMyLoanHistory();
+    } catch {
+      this.loanHistory = [];
     }
   }
 
@@ -234,6 +262,218 @@ export class LeerkrachtDashboardComponent implements OnInit {
     return new Date(dueDate).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' });
   }
 
+  formatReturnedDate(returnedAt: string): string {
+    return new Date(returnedAt).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' });
+  }
+
+  getMijnBoekenPages(): CarouselPageDef[] {
+    const pages: CarouselPageDef[] = [];
+
+    if (this.firstOwnLoan) {
+      const dl = this.daysLeft(this.firstOwnLoan.dueDate);
+      pages.push({
+        id: 'verder-lezen',
+        label: 'Verder lezen',
+        eyebrow: 'Verder lezen',
+        pulse: true,
+        infoTitle: 'Verder lezen',
+        infoBody: 'Het boek dat je nu in huis hebt. Hier zie je wanneer je het moet inleveren.',
+        linkLabel: `Geleend (${this.myLoans.length}) →`,
+        linkFragment: 'geleend',
+        book: {
+          id: this.firstOwnLoan.bookId,
+          title: this.firstOwnLoan.bookTitel,
+          author: '',
+          cover: this.firstOwnLoan.bookCover,
+        },
+        badge: {
+          calendar: true,
+          label: `Inleveren ${this.formatDueDate(this.firstOwnLoan.dueDate)} · ${dl}d`,
+          tone: dl <= 3 ? 'urgent' : dl <= 7 ? 'warn' : '',
+        },
+      });
+    } else if (!this.loansLoading) {
+      pages.push({
+        id: 'verder-lezen',
+        label: 'Verder lezen',
+        eyebrow: 'Verder lezen',
+        pulse: true,
+        infoTitle: 'Verder lezen',
+        infoBody: 'Het boek dat je nu in huis hebt. Hier zie je wanneer je het moet inleveren.',
+        linkLabel: `Geleend (${this.myLoans.length}) →`,
+        linkFragment: 'geleend',
+        book: { id: 0, title: '', author: '' },
+        empty: true,
+        emptyMessage: 'Je hebt momenteel geen geleende boeken.',
+        emptyCta: { label: 'Ontdek boeken →', route: '/books' },
+      });
+    }
+
+    if (this.lastReturnedLoan) {
+      const returned = this.lastReturnedLoan;
+      pages.push({
+        id: 'laatst-ingeleverd',
+        label: 'Laatst ingeleverd',
+        eyebrow: '↩ Laatst ingeleverd',
+        eyebrowColor: '#2d5a78',
+        infoTitle: 'Laatst ingeleverd',
+        infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
+        linkLabel: `Historiek (${this.loanHistory.length}) →`,
+        linkFragment: 'historiek',
+        book: {
+          id: returned.bookId,
+          title: returned.bookTitel,
+          author: '',
+          cover: returned.bookCover,
+        },
+        badge: returned.returnedAt
+          ? { calendar: true, label: `Ingeleverd ${this.formatReturnedDate(returned.returnedAt)}` }
+          : undefined,
+        headerCta: { label: 'Schrijf review', bookId: returned.bookId },
+      });
+    } else if (!this.loansLoading) {
+      pages.push({
+        id: 'laatst-ingeleverd',
+        label: 'Laatst ingeleverd',
+        eyebrow: '↩ Laatst ingeleverd',
+        eyebrowColor: '#2d5a78',
+        infoTitle: 'Laatst ingeleverd',
+        infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
+        book: { id: 0, title: '', author: '' },
+        empty: true,
+        emptyMessage: 'Je hebt nog geen boeken ingeleverd.',
+      });
+    }
+
+    return pages;
+  }
+
+  getBibliotheekPages(): CarouselPageDef[] {
+    const pages: CarouselPageDef[] = [];
+
+    if (this.booksLoading) {
+      pages.push({
+        id: 'in-de-kijker',
+        label: 'In de kijker',
+        eyebrow: '★ In de kijker',
+        eyebrowColor: '#b86a17',
+        infoTitle: 'In de kijker',
+        infoBody: 'Boeken die je bibbeheerder extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+        book: { id: 0, title: '', author: '' },
+        empty: true,
+        emptyMessage: 'Laden…',
+      });
+    } else if (this.highlightedBooks.length > 0) {
+      const book = this.highlightedBooks[0];
+      pages.push({
+        id: 'in-de-kijker',
+        label: 'In de kijker',
+        eyebrow: '★ In de kijker',
+        eyebrowColor: '#b86a17',
+        infoTitle: 'In de kijker',
+        infoBody: 'Boeken die je bibbeheerder extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+        linkLabel: `Alles (${this.highlightedBooks.length}) →`,
+        linkFragment: 'kijker',
+        book: {
+          id: book.bookId,
+          title: book.titel,
+          author: '',
+          cover: book.cover ?? undefined,
+        },
+        badge: { label: book.genre || 'Uitgelicht' },
+      });
+    } else {
+      pages.push({
+        id: 'in-de-kijker',
+        label: 'In de kijker',
+        eyebrow: '★ In de kijker',
+        eyebrowColor: '#b86a17',
+        infoTitle: 'In de kijker',
+        infoBody: 'Boeken die je bibbeheerder extra in de spotlight zet. Vaak gaat het om bijzondere aanwinsten of titels die ergens bij passen.',
+        linkLabel: `Alles (${this.highlightedBooks.length}) →`,
+        linkFragment: 'kijker',
+        book: { id: 0, title: '', author: '' },
+        empty: true,
+        emptyMessage: 'Geen uitgelichte boeken op dit moment.',
+      });
+    }
+
+    const maand = this.spotlight.maand;
+    if (this.spotlightLoading) {
+      pages.push({
+        id: 'boek-vd-maand',
+        label: 'Boek van de maand',
+        eyebrow: '◆ Boek van de maand',
+        eyebrowColor: '#d4537e',
+        infoTitle: 'Boek van de maand',
+        infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+        book: { id: 0, title: '', author: '' },
+        badge: { label: this.currentMonthLabel },
+        empty: true,
+        emptyMessage: 'Laden…',
+      });
+    } else {
+      pages.push(maand ? {
+        id: 'boek-vd-maand',
+        label: 'Boek van de maand',
+        eyebrow: '◆ Boek van de maand',
+        eyebrowColor: '#d4537e',
+        infoTitle: 'Boek van de maand',
+        infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+        book: { id: maand.bookId, title: maand.titel, author: '', cover: maand.cover || undefined },
+        badge: { label: this.currentMonthLabel },
+      } : {
+        id: 'boek-vd-maand',
+        label: 'Boek van de maand',
+        eyebrow: '◆ Boek van de maand',
+        eyebrowColor: '#d4537e',
+        infoTitle: 'Boek van de maand',
+        infoBody: 'Elke maand kiest de bibbeheerder één titel die ze in de spotlight zetten. Een goed startpunt als je niet weet wat je wil lezen.',
+        book: { id: 0, title: '', author: '' },
+        badge: { label: this.currentMonthLabel },
+        empty: true,
+        emptyMessage: 'Nog niet ingesteld door de bibbeheerder.',
+      });
+    }
+
+    const thema = this.spotlight.thema;
+    if (this.spotlightLoading) {
+      pages.push({
+        id: 'themaboek',
+        label: 'Themaboek',
+        eyebrow: '♦ Themaboek',
+        eyebrowColor: '#2e6b3f',
+        infoTitle: 'Themaboek',
+        infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
+        book: { id: 0, title: '', author: '' },
+        empty: true,
+        emptyMessage: 'Laden…',
+      });
+    } else {
+      pages.push(thema ? {
+        id: 'themaboek',
+        label: 'Themaboek',
+        eyebrow: '♦ Themaboek',
+        eyebrowColor: '#2e6b3f',
+        infoTitle: 'Themaboek',
+        infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
+        book: { id: thema.bookId, title: thema.titel, author: '', cover: thema.cover || undefined },
+      } : {
+        id: 'themaboek',
+        label: 'Themaboek',
+        eyebrow: '♦ Themaboek',
+        eyebrowColor: '#2e6b3f',
+        infoTitle: 'Themaboek',
+        infoBody: 'Een boek dat past bij het lopende thema in de klas of op school. Wisselt om de paar weken.',
+        book: { id: 0, title: '', author: '' },
+        empty: true,
+        emptyMessage: 'Nog niet ingesteld door de bibbeheerder.',
+      });
+    }
+
+    return pages;
+  }
+
   goToDetail(bookId: number): void {
     this.router.navigate(['/detail', bookId]);
   }
@@ -252,14 +492,119 @@ export class LeerkrachtDashboardComponent implements OnInit {
 
   private fetchSpotlights(): void {
     const schoolId = this.schoolService.getSelectedSchoolId();
-    if (!schoolId) return;
+    if (!schoolId) {
+      this.spotlightLoading = false;
+      return;
+    }
     this.spotlightLoading = true;
     this.http.get<{ maand: SpotlightBook | null; thema: SpotlightBook | null }>(
       `/api/spotlight/${schoolId}`
     ).subscribe({
-      next: (data) => { this.spotlight = data; this.spotlightLoading = false; },
-      error: () => { this.spotlightLoading = false; },
+      next: (data) => {
+        this.spotlight = data ?? { maand: null, thema: null };
+        this.spotlightLoading = false;
+      },
+      error: () => {
+        this.spotlight = { maand: null, thema: null };
+        this.spotlightLoading = false;
+      },
     });
+  }
+
+  openHighlightPicker(): void {
+    this.highlightPickerOpen = true;
+    this.highlightQuery = '';
+    this.highlightResults = [];
+    this.highlightSearching = false;
+    this.highlightSaving = false;
+    this.highlightError = '';
+    this.highlightSelectedIds = new Set();
+    this.highlightSelectedBooks = [];
+    setTimeout(() => document.getElementById('hk-search-input')?.focus(), 50);
+  }
+
+  closeHighlightPicker(): void {
+    this.highlightPickerOpen = false;
+    if (this.highlightDebounce !== null) {
+      clearTimeout(this.highlightDebounce);
+      this.highlightDebounce = null;
+    }
+  }
+
+  onHighlightSearch(): void {
+    if (this.highlightDebounce !== null) clearTimeout(this.highlightDebounce);
+    if (!this.highlightQuery.trim()) {
+      this.highlightResults = [];
+      return;
+    }
+    this.highlightDebounce = setTimeout(() => this.searchHighlightBooks(), 300);
+  }
+
+  private searchHighlightBooks(): void {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId || !this.highlightQuery.trim()) return;
+    this.highlightSearching = true;
+    this.http.get<{ items: BookSearchResult[]; total: number }>(
+      `/api/books/paged?schoolId=${schoolId}&query=${encodeURIComponent(this.highlightQuery.trim())}&size=8&page=0`
+    ).subscribe({
+      next: (res) => {
+        this.highlightResults = res.items;
+        this.highlightSearching = false;
+      },
+      error: () => {
+        this.highlightResults = [];
+        this.highlightSearching = false;
+      },
+    });
+  }
+
+  isHighlightLocked(bookId?: number): boolean {
+    return !!bookId && this.highlightedBookIds.has(bookId);
+  }
+
+  isHighlightSelected(bookId?: number): boolean {
+    return !!bookId && this.highlightSelectedIds.has(bookId);
+  }
+
+  toggleHighlightSelection(book: BookSearchResult): void {
+    if (!book?.id || this.isHighlightLocked(book.id)) return;
+    if (this.highlightSelectedIds.has(book.id)) {
+      this.highlightSelectedIds.delete(book.id);
+      this.highlightSelectedBooks = this.highlightSelectedBooks.filter(
+        (b) => b.id !== book.id,
+      );
+      return;
+    }
+    this.highlightSelectedIds.add(book.id);
+    this.highlightSelectedBooks = [...this.highlightSelectedBooks, book];
+  }
+
+  removeHighlightSelection(bookId: number): void {
+    this.highlightSelectedIds.delete(bookId);
+    this.highlightSelectedBooks = this.highlightSelectedBooks.filter(
+      (b) => b.id !== bookId,
+    );
+  }
+
+  async confirmHighlightAdd(): Promise<void> {
+    const ids = Array.from(this.highlightSelectedIds).filter(
+      (id) => !this.highlightedBookIds.has(id),
+    );
+    if (ids.length === 0) return;
+    this.highlightSaving = true;
+    this.highlightError = '';
+    try {
+      for (const id of ids) {
+        await this.bookService.toggleHighlight(id);
+        this.highlightedBookIds.add(id);
+      }
+      await this.fetchHighlightedBooks();
+      this.closeHighlightPicker();
+    } catch {
+      this.highlightError = "Toevoegen aan 'In de kijker' mislukt.";
+    } finally {
+      this.highlightSaving = false;
+    }
   }
 
   openPicker(type: 'MAAND' | 'THEMA'): void {
