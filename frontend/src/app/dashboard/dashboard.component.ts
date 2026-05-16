@@ -371,28 +371,42 @@ export class DashboardComponent implements OnInit {
       }
     }
 
-    if (enabledIds.includes('laatst-ingeleverd') && this.lastReturnedLoan) {
-      const returned = this.lastReturnedLoan;
-      pages.push({
-        id: 'laatst-ingeleverd',
-        label: 'Laatst ingeleverd',
-        eyebrow: '↩ Laatst ingeleverd',
-        eyebrowColor: '#2d5a78',
-        infoTitle: 'Laatst ingeleverd',
-        infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
-        linkLabel: `Historiek (${this.loanHistory.length}) →`,
-        linkFragment: 'historiek',
-        book: {
-          id: returned.bookId,
-          title: returned.bookTitel,
-          author: '',
-          cover: returned.bookCover,
-        },
-        badge: returned.returnedAt
-          ? { calendar: true, label: `Ingeleverd ${this.formatReturnedDate(returned.returnedAt)}` }
-          : undefined,
-        headerCta: { label: 'Schrijf review', bookId: returned.bookId },
-      });
+    if (enabledIds.includes('laatst-ingeleverd')) {
+      if (this.lastReturnedLoan) {
+        const returned = this.lastReturnedLoan;
+        pages.push({
+          id: 'laatst-ingeleverd',
+          label: 'Laatst ingeleverd',
+          eyebrow: '↩ Laatst ingeleverd',
+          eyebrowColor: '#2d5a78',
+          infoTitle: 'Laatst ingeleverd',
+          infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
+          linkLabel: `Historiek (${this.loanHistory.length}) →`,
+          linkFragment: 'historiek',
+          book: {
+            id: returned.bookId,
+            title: returned.bookTitel,
+            author: '',
+            cover: returned.bookCover,
+          },
+          badge: returned.returnedAt
+            ? { calendar: true, label: `Ingeleverd ${this.formatReturnedDate(returned.returnedAt)}` }
+            : undefined,
+          headerCta: { label: 'Schrijf review', bookId: returned.bookId },
+        });
+      } else if (!this.loansLoading) {
+        pages.push({
+          id: 'laatst-ingeleverd',
+          label: 'Laatst ingeleverd',
+          eyebrow: '↩ Laatst ingeleverd',
+          eyebrowColor: '#2d5a78',
+          infoTitle: 'Laatst ingeleverd',
+          infoBody: 'Het boek dat jij het meest recent terugbracht. Handig om een review achter te laten of een gelijkaardige titel te zoeken.',
+          book: { id: 0, title: '', author: '' },
+          empty: true,
+          emptyMessage: 'Je hebt nog geen boeken ingeleverd.',
+        });
+      }
     }
 
     return pages;
