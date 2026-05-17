@@ -279,6 +279,12 @@
               <strong>{{ selectedStudentForExtension.displayName }}</strong>
             </h4>
 
+            @if (loansLoading) {
+              <p class="info-msg">Leningen laden...</p>
+            } @else if (loansError) {
+              <p class="error-msg">{{ loansError }}</p>
+            }
+
             <ul class="loans-list">
               @for (loan of studentLoans; track loan.id) {
                 <li class="loan-row">
