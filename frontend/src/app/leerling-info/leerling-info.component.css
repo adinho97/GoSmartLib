@@ -4,31 +4,39 @@
   color: #1f2937;
 }
 
-.info-hero {
-  padding: 38px 20px 30px;
-  text-align: center;
-  background: linear-gradient(180deg, #ffffff 0%, #f6f7f8 100%);
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.info-hero h1 {
-  margin: 0;
-  font-size: clamp(1.6rem, 3.3vw, 2.3rem);
-  color: #2f2f2f;
-}
-
-.info-hero p {
-  margin: 0.65rem auto 0;
-  max-width: 700px;
-  color: #5b636d;
-}
-
 .info-content {
   max-width: 980px;
   margin: 0 auto;
-  padding: 24px 16px 36px;
+  padding: var(--s-7) 28px var(--s-8);
   display: grid;
   gap: 14px;
+}
+
+.info-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: var(--s-6);
+}
+
+.info-head-text {
+  min-width: 0;
+}
+
+.info-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+.info-sub {
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--ink-3);
 }
 
 .info-card {
@@ -146,16 +154,6 @@
     padding: 14px;
   }
 }
-.info-hero-inner {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 12px;
-  position: relative;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
 .edit-hero-btn {
   background: #fff;
   border: 1px solid #d1d5db;

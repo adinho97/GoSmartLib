@@ -24,20 +24,20 @@ export class LeerlingInfoComponent implements OnInit {
     "Zoek een boek via Boekencatalogus en open de detailpagina.",
     "Controleer of het boek beschikbaar is in de bibliotheek.",
     "Vind het boek in de bibliotheek en ga naar de bib-verantwoordelijke om het te ontlenen.",
-    "Het boek verschijnt daarna bij Geleende boeken in je dashboardprofiel.",
-    "Lever op tijd in om boetes of blokkering te vermijden.",
+    "Het boek verschijnt daarna bij Geleende boeken in je lijsten.",
+    "Lever op tijd in om sancties te voorkomen.",
   ];
 
   private readonly defaultSiteFeatures: SiteFeature[] = [
     { title: 'Dashboard', description: 'persoonlijke aanbevelingen en snelle toegang tot je profielblokken.' },
     { title: 'Boekencatalogus', description: 'zoeken, filteren en boekdetails bekijken.' },
-    { title: 'Verlanglijst', description: 'bewaar boeken die je later wilt lezen.' },
-    { title: 'Ontleenhistoriek', description: 'bekijk welke boeken je eerder ontleende.' },
+    { title: 'Mijn lijsten', description: 'verlanglijsten, ontleenhistoriek, klasleeslijsten en geleende boeken.' },
+    { title: 'Klassement', description: 'bekijk de top lezers in jouw klas en school.' },
   ];
 
   private readonly defaultTips: string[] = [
     "Gebruik de filters in de catalogus op genre, taal en leesniveau om sneller een passend boek te vinden.",
-    "Voeg interessante titels toe aan je verlanglijst, zodat je ze later makkelijk terugvindt.",
+    "Voeg interessante boeken toe aan je verlanglijst, zodat je ze later makkelijk terugvindt.",
   ];
 
   private readonly defaultFaqItems: InfoContentItem[] = [
