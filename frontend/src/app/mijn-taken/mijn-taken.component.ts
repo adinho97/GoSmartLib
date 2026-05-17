@@ -1,4 +1,7 @@
 import { Component, OnInit } from "@angular/core";
+import { SchoolService } from "../services/school.service"; // Import the new service
+import { LoanService, Loan } from "../services/loan.service";
+import { UserService, StudentWithKlas } from "../services/user.service";
 
 @Component({
   selector: "app-mijn-taken",
@@ -10,18 +13,22 @@ export class MijnTakenComponent implements OnInit {
   // Properties for the "Leningen verlengen" modal
   extensionModalOpen: boolean = false;
   studentSearchQuery: string = "";
-  studentClassFilter: string = "";
-  availableClasses: string[] = ["Klas A", "Klas B", "Klas C"]; // Example classes
+  studentClassFilter: string = ""; // Holds the selected class filter
+  availableClasses: string[] = []; // Will be populated from the service
 
   // Define a basic structure for a student
-  // In a real application, this would likely be an interface or a class from a shared model.
   filteredStudents: { sub: string; displayName: string; klas: string }[] = [];
-  allStudents: { sub: string; displayName: string; klas: string }[] = [
-    { sub: "s1", displayName: "Jan Jansen", klas: "Klas A" },
-    { sub: "s2", displayName: "Piet Pietersen", klas: "Klas B" },
-    { sub: "s3", displayName: "Klaas Klaassen", klas: "Klas A" },
-    { sub: "s4", displayName: "Marieke Meijer", klas: "Klas C" },
-  ]; // Example student data
+  allStudents: { sub: string; displayName: string; klas: string }[] = [];
+  // loans for the selected student
+  studentLoans: Array<{
+    id: number | string;
+    bookTitel: string;
+    dueDate: string;
+    tempNewDueDate?: string;
+  }> = [];
+
+  loansLoading = false;
+  loansError = "";
 
   selectedStudentForExtension: {
     sub: string;
@@ -29,24 +36,59 @@ export class MijnTakenComponent implements OnInit {
     klas: string;
   } | null = null;
 
-  // Define a basic structure for a loan
-  // In a real application, this would likely be an interface or a class from a shared model.
-  studentLoans: {
-    id: string;
-    bookTitel: string;
-    dueDate: string;
-    tempNewDueDate?: string;
-  }[] = [];
-
   today: string;
 
-  constructor() {
+  constructor(
+    private schoolService: SchoolService,
+    private loanService: LoanService,
+    private userService: UserService,
+  ) {
+    // Inject the SchoolService
     // Initialize 'today' for the date input's min attribute
     this.today = new Date().toISOString().split("T")[0];
   }
 
   ngOnInit(): void {
-    this.onSearchStudents(); // Initialize student list on component load
+    this.schoolService.getClasses().subscribe((classes) => {
+      this.availableClasses = classes;
+    });
+    // Load students from backend (includes klas)
+    void this.loadStudents();
+  }
+
+  private async loadStudents(): Promise<void> {
+    try {
+      const students = await this.userService.getAllStudentsWithKlas();
+      // students: StudentWithKlas[] -> { sub, displayName, klas }
+      // We still need to resolve display names via /api/users/{sub}/profile
+      const resolved = await Promise.all(
+        students.map(async (s) => {
+          let display = s.sub;
+          try {
+            const profile: any = await fetch(
+              `/api/users/${encodeURIComponent(s.sub)}/profile`,
+            ).then((r) => r.json());
+            display =
+              profile?.fullName ||
+              profile?.givenName ||
+              profile?.familyName ||
+              s.sub;
+          } catch {
+            // fallback to sub
+          }
+          return {
+            sub: s.sub,
+            displayName: display,
+            klas: s.klas ?? "",
+          };
+        }),
+      );
+      this.allStudents = resolved;
+      this.onSearchStudents();
+    } catch (err) {
+      // keep empty lists on failure
+      console.error("Failed to load students for verlengen:", err);
+    }
   }
 
   get isLibrarian(): boolean {
@@ -88,11 +130,25 @@ export class MijnTakenComponent implements OnInit {
     klas: string;
   }): void {
     this.selectedStudentForExtension = student;
-    // Simulate fetching loans for the selected student
-    this.studentLoans = [
-      { id: "l1", bookTitel: "De Hobbit", dueDate: "2024-05-20" },
-      { id: "l2", bookTitel: "Lord of the Rings", dueDate: "2024-06-15" },
-    ];
+    // Fetch loans from backend for this student
+    this.studentLoans = [];
+    this.loansError = "";
+    this.loansLoading = true;
+    void this.loanService
+      .getActiveLoans(student.sub)
+      .then((loans: Loan[]) => {
+        this.studentLoans = loans.map((l) => ({
+          id: l.id,
+          bookTitel: l.bookTitel,
+          dueDate: l.dueDate,
+        }));
+        this.loansLoading = false;
+      })
+      .catch((err) => {
+        console.error("Failed to load loans:", err);
+        this.loansError = "Leningen laden mislukt.";
+        this.loansLoading = false;
+      });
   }
 
   isOverdue(dueDate: string): boolean {
@@ -100,19 +156,22 @@ export class MijnTakenComponent implements OnInit {
   }
 
   confirmExtension(loan: {
-    id: string;
+    id: string | number;
     bookTitel: string;
     dueDate: string;
     tempNewDueDate?: string;
   }): void {
     if (loan.tempNewDueDate) {
-      console.log(
-        `Loan ${loan.id} for book "${loan.bookTitel}" extended to ${loan.tempNewDueDate}`,
-      );
-      // In a real application, you would send this update to a backend service.
-      // After successful update, you might want to refresh the loans list or update the specific loan.
-      loan.dueDate = loan.tempNewDueDate; // Update the display date
-      delete loan.tempNewDueDate; // Clear the temporary date
+      void this.loanService
+        .updateLoanDueDate(Number(loan.id), loan.tempNewDueDate!)
+        .then(() => {
+          loan.dueDate = loan.tempNewDueDate!;
+          delete loan.tempNewDueDate;
+        })
+        .catch((err) => {
+          console.error("Failed to extend loan:", err);
+          // Could show an error toast here
+        });
     }
   }
 }
