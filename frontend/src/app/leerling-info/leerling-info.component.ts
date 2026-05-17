@@ -3,7 +3,6 @@ import {
   InfoContentService,
   InfoContentItem,
 } from "../services/info-content.service";
-import { Router } from "@angular/router";
 
 type SiteFeature = { title: string; description: string };
 
@@ -59,14 +58,8 @@ export class LeerlingInfoComponent implements OnInit {
     return localStorage.getItem("role") === "bibbeheerder";
   }
 
-  constructor(
-    private infoContentService: InfoContentService,
-    private router: Router,
-  ) {}
+  constructor(private infoContentService: InfoContentService) {}
 
-  goToEdit(): void {
-    this.router.navigate(["/faq-beheer"]);
-  }
   ngOnInit(): void {
     const schoolId = this.getSchoolId();
     this.loadFaq(schoolId);

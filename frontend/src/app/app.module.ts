@@ -37,7 +37,6 @@ import { ActiveLoansComponent } from "./active-loans/active-loans.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
 import { UiToastComponent } from "./components/ui-toast/ui-toast.component";
 import { MapScreenComponent } from "./map-screen/map-screen.component";
-import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 import { MijnLijstenComponent } from "./mijn-lijsten/mijn-lijsten.component";
 import { AppFooterComponent } from "./components/app-footer/app-footer.component";
 import { FunBadgesComponent } from "./components/fun-badges/fun-badges.component";
@@ -82,7 +81,6 @@ registerLocaleData(localeNl, "nl");
     LoanConditionOverviewComponent,
     LoanOverviewComponent,
     LeerlingInfoComponent,
-    BibFaqBeheerComponent,
     MijnLijstenComponent,
     LeerkrachtDashboardComponent,
     KlasleeslijstBeheerComponent,
