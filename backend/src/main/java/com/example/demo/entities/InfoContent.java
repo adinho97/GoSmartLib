@@ -13,7 +13,7 @@ public class InfoContent {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id", nullable = false)
+    @JoinColumn(name = "school_id")
     private School school;
 
     @Enumerated(EnumType.STRING)
