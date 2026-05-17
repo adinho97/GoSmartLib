@@ -285,6 +285,10 @@
   gap: var(--s-2);
 }
 
+.hero-card-head {
+  min-height: 32px;
+}
+
 .hero-eyebrow-row {
   display: flex;
   align-items: center;
