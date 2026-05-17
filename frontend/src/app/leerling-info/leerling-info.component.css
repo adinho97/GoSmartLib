@@ -52,6 +52,44 @@
   font-size: 1.1rem;
 }
 
+.section-head {
+  margin: 0 0 0.7rem;
+}
+
+.section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  color: #2f2f2f;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 1.2;
+}
+
+.section-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.fold-arrow {
+  color: #6b7280;
+  font-size: 0.85rem;
+  line-height: 1;
+  transition: transform 0.18s ease;
+  transform: rotate(-90deg);
+}
+
+.fold-arrow.open {
+  transform: rotate(0deg);
+}
+
 .quick-actions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -94,11 +132,6 @@
 .info-card p {
   margin: 0;
   line-height: 1.5;
-}
-
-.tip-card {
-  background: #f3f6f8;
-  border-color: #dce2e7;
 }
 
 .faq-list {
@@ -157,30 +190,37 @@
 /* Scope toggle (super_admin) */
 .scope-toggle {
   display: inline-flex;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid var(--brand-100);
+  border-radius: 999px;
   overflow: hidden;
-  background: #fff;
+  background: var(--brand-50);
+  padding: 3px;
+  gap: 2px;
   flex-shrink: 0;
 }
 
 .scope-toggle button {
   border: 0;
   background: transparent;
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #4b5563;
+  color: var(--ink-2);
   cursor: pointer;
+  border-radius: 999px;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
 .scope-toggle button.active {
-  background: #1f2937;
+  background: var(--brand);
   color: #fff;
 }
 
 .scope-toggle button:not(.active):hover {
-  background: #f3f4f6;
+  background: var(--brand-100);
+  color: var(--ink);
 }
 
 /* Inline item rows */

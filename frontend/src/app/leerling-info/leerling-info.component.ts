@@ -32,6 +32,13 @@ export class LeerlingInfoComponent implements OnInit {
 
   openFaqIndex: number | null = 0;
 
+  sectionOpen: Record<Sectie, boolean> = {
+    STAP: true,
+    FEATURE: true,
+    TIP: true,
+    FAQ: true,
+  };
+
   mode: Mode = "student";
   scopeSchoolId: number | null = null;
   scopeSchoolName = "";
@@ -145,6 +152,15 @@ export class LeerlingInfoComponent implements OnInit {
 
   isGlobal(item: InfoContentItem): boolean {
     return item.schoolId == null;
+  }
+
+  isSectionAllGlobal(sectie: Sectie): boolean {
+    const list = this.items[sectie];
+    return list.length > 0 && list.every((item) => this.isGlobal(item));
+  }
+
+  toggleSection(sectie: Sectie): void {
+    this.sectionOpen[sectie] = !this.sectionOpen[sectie];
   }
 
   startEdit(item: InfoContentItem): void {
