@@ -107,7 +107,7 @@
   </div>
 
   <!-- Hero row -->
-  <div class="hero-row">
+  <div class="hero-row" [style.--n]="config.tiles.length || 3">
     @if (config.tiles.length === 0) {
       <p class="hero-empty-state">
         Geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er een paar te kiezen.

@@ -281,24 +281,18 @@
 /* ── Hero row ── */
 .lk-hero-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 0.85fr;
+  grid-template-columns: repeat(var(--n, 3), 1fr);
   gap: var(--s-5);
   margin-bottom: var(--s-5);
 }
 @media (max-width: 1100px) {
   .lk-hero-row {
-    grid-template-columns: 1fr 1fr;
-  }
-  .lk-hero-row > :last-child {
-    grid-column: 1 / -1;
+    grid-template-columns: repeat(min(var(--n, 3), 2), 1fr);
   }
 }
 @media (max-width: 720px) {
   .lk-hero-row {
     grid-template-columns: 1fr;
-  }
-  .lk-hero-row > :last-child {
-    grid-column: auto;
   }
 }
 

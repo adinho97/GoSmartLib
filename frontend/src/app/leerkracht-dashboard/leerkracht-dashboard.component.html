@@ -94,7 +94,7 @@
   </div>
 
   <!-- Hero row: dynamic order -->
-  <div class="lk-hero-row">
+  <div class="lk-hero-row" [style.--n]="config.tiles.length || 3">
     @if (config.tiles.length === 0) {
       <p class="lk-hero-empty">Geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er een paar te kiezen.</p>
     }
