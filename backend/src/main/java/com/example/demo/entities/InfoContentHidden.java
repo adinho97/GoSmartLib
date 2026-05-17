@@ -1,6 +1,8 @@
 package com.example.demo.entities;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(
@@ -18,10 +20,12 @@ public class InfoContentHidden {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "school_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private School school;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "info_content_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private InfoContent infoContent;
 
     public InfoContentHidden() {}
