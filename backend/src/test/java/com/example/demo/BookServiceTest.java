@@ -226,8 +226,9 @@ class BookServiceTest {
                         makeBookDto()));
         when(importCoreService.importByNormalizedIsbn("0000000000000", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.NOT_FOUND, null));
-        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
-                .thenReturn(Optional.empty());
+        // ADDED branch resolves the new book via findById(dto.getId());
+        // ALREADY_EXISTS branch resolves it via findByIsbnAndSchool_Id.
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(makeBook()));
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(existingBook));
 
@@ -272,7 +273,7 @@ class BookServiceTest {
         assertEquals(1, result.getResults().size());
         ImportResultDto.RowResult row = result.getResults().get(0);
         assertEquals(ImportResultDto.Status.ERROR, row.status());
-        assertEquals("Fout bij verwerken van ISBN.", row.message());
+        assertEquals("Fout bij verwerken van ISBN: boom", row.message());
     }
 
     // ---- Copy Creation Tests ------------------------------------------------
@@ -294,8 +295,8 @@ class BookServiceTest {
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(
                         ImportCoreService.ImportStatus.ADDED, makeBookDto()));
-        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
-                .thenReturn(Optional.of(savedBook));
+        // ADDED branch resolves the new book via findById(dto.getId()).
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(savedBook));
 
         ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
 
@@ -373,8 +374,9 @@ class BookServiceTest {
         when(importCoreService.importByNormalizedIsbn("9780156012195", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(
                         ImportCoreService.ImportStatus.ALREADY_EXISTS, makeBookDto()));
-        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
-                .thenReturn(Optional.of(book1));
+        // ADDED branch resolves the book via findById(dto.getId());
+        // ALREADY_EXISTS branch resolves it via findByIsbnAndSchool_Id.
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book1));
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(book2));
 
@@ -405,8 +407,8 @@ class BookServiceTest {
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(
                         ImportCoreService.ImportStatus.ADDED, makeBookDto()));
-        when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
-                .thenReturn(Optional.of(savedBook));
+        // ADDED branch resolves the new book via findById(dto.getId()).
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(savedBook));
 
         bookService.importBulkByIsbn(file, 1L);
 

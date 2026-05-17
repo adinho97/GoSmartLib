@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable } from "rxjs";
 export interface DashboardConfig {
   tiles: string[];
   pages: Record<string, string[]>;
+  shortcuts?: string[];
 }
 
 export const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {

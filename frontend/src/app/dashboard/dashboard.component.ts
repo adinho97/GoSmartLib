@@ -85,6 +85,7 @@ export class DashboardComponent implements OnInit {
   highlightedLoading = false;
   spotlightLoading = true;
   wishlistCount = 0;
+  klasleeslijstCount = 0;
 
   spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
 
@@ -194,6 +195,7 @@ export class DashboardComponent implements OnInit {
     this.fetchHighlightedBooks();
     this.fetchSpotlights();
     this.fetchWishlistCount();
+    this.fetchKlasleeslijstCount();
   }
 
   // ── Config management ──
@@ -588,6 +590,25 @@ export class DashboardComponent implements OnInit {
       this.wishlistCount = items?.length ?? 0;
     } catch {
       this.wishlistCount = 0;
+    }
+  }
+
+  private async fetchKlasleeslijstCount(): Promise<void> {
+    try {
+      let klasInfo: any = null;
+      try {
+        klasInfo = await this.bookService.getUserKlas();
+      } catch {
+        klasInfo = null;
+      }
+      if (klasInfo?.klasId) {
+        const lists = await this.bookService.getLeeslistenForKlas(klasInfo.klasId);
+        this.klasleeslijstCount = lists?.length ?? 0;
+      } else {
+        this.klasleeslijstCount = 0;
+      }
+    } catch {
+      this.klasleeslijstCount = 0;
     }
   }
 

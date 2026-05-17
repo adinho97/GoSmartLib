@@ -107,7 +107,7 @@
   </div>
 
   <!-- Hero row -->
-  <div class="hero-row">
+  <div class="hero-row" [style.--n]="config.tiles.length || 3">
     @if (config.tiles.length === 0) {
       <p class="hero-empty-state">
         Geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er een paar te kiezen.
@@ -179,7 +179,7 @@
             <li class="shortcut-item" (click)="goToMijnLijsten('klasleeslijst')" role="button" tabindex="0">
               <span class="shortcut-dot" style="background: #2e6b3f"></span>
               <span class="shortcut-label">Klasleeslijst</span>
-              <span class="shortcut-count">{{ classReadingListBooks.length }}</span>
+              <span class="shortcut-count">{{ klasleeslijstCount }}</span>
             </li>
             <li class="shortcut-item" (click)="goToMijnLijsten('historiek')" role="button" tabindex="0">
               <span class="shortcut-dot" style="background: var(--ink-3)"></span>
