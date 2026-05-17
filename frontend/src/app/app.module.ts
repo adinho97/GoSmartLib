@@ -54,6 +54,7 @@ import { DarkModeToggleComponent } from "./dark-mode-toggle/dark-mode-toggle.com
 import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
 import { TeacherPromotionComponent } from "./teacher-promotion/teacher-promotion.component";
 import { CarouselTileComponent } from "./dashboard/carousel-tile.component";
+import { SpotlightManageComponent } from "./spotlight-manage/spotlight-manage.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -111,6 +112,7 @@ registerLocaleData(localeNl, "nl");
     ColorblindToggleComponent,
     DarkModeToggleComponent,
     CarouselTileComponent,
+    SpotlightManageComponent,
 ],
   providers: [provideHttpClient(withInterceptors([authInterceptor])), { provide: LOCALE_ID, useValue: "nl" }],
   bootstrap: [AppComponent],
