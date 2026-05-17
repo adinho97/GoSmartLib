@@ -22,6 +22,72 @@ interface TileDef {
   pages?: { id: string; label: string }[];
 }
 
+interface ShortcutDef {
+  id: string;
+  label: string;
+  route: string;
+  roles: string[];
+  iconPaths: string[];
+}
+
+const SHORTCUT_CATALOG: ShortcutDef[] = [
+  // Both roles — actions not reachable from the nav bar
+  {
+    id: 'uitleen',
+    label: 'Boek uitlenen',
+    route: '/uitleen',
+    roles: ['leerkracht', 'bibbeheerder'],
+    iconPaths: ['M12 5v14M5 12h14', 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20', 'M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'],
+  },
+  {
+    id: 'boek-terugbrengen',
+    label: 'Boek terugbrengen',
+    route: '/boek-terugbrengen',
+    roles: ['leerkracht', 'bibbeheerder'],
+    iconPaths: ['M9 14l-4-4 4-4', 'M5 10h11a4 4 0 0 1 0 8h-1'],
+  },
+  {
+    id: 'leeslijst-create',
+    label: 'Leeslijst aanmaken',
+    route: '/leeslijst-create',
+    roles: ['leerkracht', 'bibbeheerder'],
+    iconPaths: [
+      'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7',
+      'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z',
+    ],
+  },
+  // Bibbeheerder only
+  {
+    id: 'add-general',
+    label: 'Boek toevoegen',
+    route: '/add-general',
+    roles: ['bibbeheerder'],
+    iconPaths: ['M12 5v14M5 12h14'],
+  },
+  {
+    id: 'uitleen-overzicht',
+    label: 'Uitleen overzicht',
+    route: '/uitleen-overzicht',
+    roles: ['bibbeheerder'],
+    iconPaths: ['M3 3h18v18H3zM3 9h18M9 3v18'],
+  },
+  {
+    id: 'teacher-promotion',
+    label: 'Leerkracht promoten',
+    route: '/teacher-promotion',
+    roles: ['bibbeheerder'],
+    iconPaths: [
+      'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
+      'M9 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0',
+      'M23 21v-2a4 4 0 0 0-3-3.87',
+      'M16 3.13a4 4 0 0 1 0 7.75',
+    ],
+  },
+];
+
+const DEFAULT_SHORTCUTS_LEERKRACHT = ['uitleen', 'boek-terugbrengen', 'leeslijst-create'];
+const DEFAULT_SHORTCUTS_BIBBEHEERDER = ['uitleen', 'boek-terugbrengen', 'add-general', 'uitleen-overzicht', 'teacher-promotion'];
+
 const TILES: TileDef[] = [
   {
     id: 'mijn-boeken',
@@ -96,6 +162,10 @@ export class LeerkrachtDashboardComponent implements OnInit {
   dragOverId: string | null = null;
   @ViewChild('configWrap') configWrapRef?: ElementRef<HTMLElement>;
 
+  // Shortcut customization
+  shortcutPopOpen = false;
+  @ViewChild('shortcutPopWrap') shortcutPopWrapRef?: ElementRef<HTMLElement>;
+
   // Spotlight management (bibbeheerder only)
   spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
   spotlightLoading = true;
@@ -150,6 +220,54 @@ export class LeerkrachtDashboardComponent implements OnInit {
 
   get isLibrarian(): boolean {
     return localStorage.getItem('role') === 'bibbeheerder';
+  }
+
+  get availableShortcuts(): ShortcutDef[] {
+    const role = localStorage.getItem('role') || '';
+    return SHORTCUT_CATALOG.filter(s => s.roles.includes(role));
+  }
+
+  private get defaultShortcuts(): string[] {
+    return this.isLibrarian ? DEFAULT_SHORTCUTS_BIBBEHEERDER : DEFAULT_SHORTCUTS_LEERKRACHT;
+  }
+
+  get activeShortcutIds(): string[] {
+    return this.config.shortcuts ?? this.defaultShortcuts;
+  }
+
+  get activeShortcuts(): ShortcutDef[] {
+    const available = this.availableShortcuts;
+    return this.activeShortcutIds
+      .map(id => available.find(s => s.id === id))
+      .filter((s): s is ShortcutDef => !!s);
+  }
+
+  get inactiveShortcuts(): ShortcutDef[] {
+    const activeIds = new Set(this.activeShortcutIds);
+    return this.availableShortcuts.filter(s => !activeIds.has(s.id));
+  }
+
+  toggleShortcutPop(): void {
+    this.shortcutPopOpen = !this.shortcutPopOpen;
+  }
+
+  readonly maxShortcuts = 5;
+
+  get shortcutsAtMax(): boolean {
+    return this.activeShortcuts.length >= this.maxShortcuts;
+  }
+
+  addShortcut(id: string): void {
+    if (this.shortcutsAtMax) return;
+    this.updateConfig({ ...this.config, shortcuts: [...this.activeShortcutIds, id] });
+  }
+
+  removeShortcut(id: string): void {
+    this.updateConfig({ ...this.config, shortcuts: this.activeShortcutIds.filter(s => s !== id) });
+  }
+
+  resetShortcuts(): void {
+    this.updateConfig({ ...this.config, shortcuts: [...this.defaultShortcuts] });
   }
 
   get currentMonthLabel(): string {
@@ -265,6 +383,13 @@ export class LeerkrachtDashboardComponent implements OnInit {
     ) {
       this.configOpen = false;
     }
+    if (
+      this.shortcutPopOpen &&
+      this.shortcutPopWrapRef &&
+      !this.shortcutPopWrapRef.nativeElement.contains(event.target as Node)
+    ) {
+      this.shortcutPopOpen = false;
+    }
   }
 
   // ── Drag-to-reorder ──
@@ -304,6 +429,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
     this.closePicker();
     this.closeHighlightPicker();
     this.configOpen = false;
+    this.shortcutPopOpen = false;
   }
 
   private async fetchAllLoans(): Promise<void> {

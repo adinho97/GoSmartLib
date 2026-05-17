@@ -135,101 +135,128 @@
       @if (tileId === 'snelkoppelingen') {
         <section class="lk-hero-card">
           <div class="lk-card-head">
-            <span class="lk-eyebrow lk-eyebrow-ink">Snelkoppelingen </span>
-            <app-info-button
-              title="Snelle acties"
-              description="De meest gebruikte functies in één tik bereikbaar."
-            ></app-info-button>
+            <span class="lk-eyebrow lk-eyebrow-ink">Snelkoppelingen</span>
+            <div class="lk-card-head-right">
+              <app-info-button
+                title="Snelle acties"
+                description="De meest gebruikte functies in één tik bereikbaar. Pas je snelkoppelingen aan via het schuifregelaar-icoon naast deze knop."
+              ></app-info-button>
+              <div class="lk-shortcut-pop-wrap" #shortcutPopWrap>
+                <button
+                  class="lk-shortcut-dots"
+                  type="button"
+                  (click)="toggleShortcutPop()"
+                  [attr.aria-expanded]="shortcutPopOpen"
+                  title="Snelkoppelingen aanpassen"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <line x1="4" y1="6" x2="20" y2="6"/>
+                    <line x1="4" y1="12" x2="20" y2="12"/>
+                    <line x1="4" y1="18" x2="20" y2="18"/>
+                    <circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/>
+                    <circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/>
+                    <circle cx="9" cy="18" r="2" fill="currentColor" stroke="none"/>
+                  </svg>
+                </button>
+
+                @if (shortcutPopOpen) {
+                  <div class="lk-shortcut-pop" role="dialog" aria-label="Snelkoppelingen aanpassen">
+                    <div class="lk-shortcut-pop-head">
+                      <span>Snelkoppelingen</span>
+                      <button class="lk-shortcut-pop-reset" type="button" (click)="resetShortcuts()">Standaard</button>
+                    </div>
+
+                    @if (activeShortcuts.length > 0) {
+                      <div class="lk-shortcut-pop-section">
+                        <div class="lk-shortcut-pop-label">Actief</div>
+                        @for (sc of activeShortcuts; track sc.id) {
+                          <div class="lk-shortcut-pop-row">
+                            <span class="lk-shortcut-pop-icon">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                @for (p of sc.iconPaths; track p) {
+                                  <path [attr.d]="p"/>
+                                }
+                              </svg>
+                            </span>
+                            <span class="lk-shortcut-pop-row-label">{{ sc.label }}</span>
+                            <button
+                              class="lk-shortcut-pop-action remove"
+                              type="button"
+                              (click)="removeShortcut(sc.id)"
+                              [attr.title]="'Verwijder ' + sc.label"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    @if (inactiveShortcuts.length > 0) {
+                      <div class="lk-shortcut-pop-section">
+                        <div class="lk-shortcut-pop-label">
+                          Toevoegen
+                          @if (shortcutsAtMax) {
+                            <span class="lk-shortcut-pop-max-hint">(max {{ maxShortcuts }})</span>
+                          }
+                        </div>
+                        @for (sc of inactiveShortcuts; track sc.id) {
+                          <div class="lk-shortcut-pop-row">
+                            <span class="lk-shortcut-pop-icon">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                @for (p of sc.iconPaths; track p) {
+                                  <path [attr.d]="p"/>
+                                }
+                              </svg>
+                            </span>
+                            <span class="lk-shortcut-pop-row-label">{{ sc.label }}</span>
+                            <button
+                              class="lk-shortcut-pop-action add"
+                              type="button"
+                              (click)="addShortcut(sc.id)"
+                              [disabled]="shortcutsAtMax"
+                              [attr.title]="shortcutsAtMax ? 'Maximum van ' + maxShortcuts + ' bereikt' : 'Voeg ' + sc.label + ' toe'"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
           </div>
 
-      <div class="lk-quick-actions">
-        <button
-          class="lk-quick-btn lk-quick-primary"
-          type="button"
-          [routerLink]="'/uitleen'"
-        >
-          <span class="lk-quick-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M2 17l10 5 10-5M2 12l10 5 10-5M12 2L2 7l10 5 10-5-10-5z"
-              />
-            </svg>
-          </span>
-          Boek uitlenen
-          <span class="lk-quick-arrow">→</span>
-        </button>
-        <button
-          class="lk-quick-btn"
-          type="button"
-          [routerLink]="'/uitleen-catalogus'"
-        >
-          <span class="lk-quick-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 3" />
-            </svg>
-          </span>
-          Uitleenhistoriek
-          <span class="lk-quick-arrow">→</span>
-        </button>
-        <button class="lk-quick-btn" type="button" (click)="goToBooks()">
-          <span class="lk-quick-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-              <path
-                d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-              />
-            </svg>
-          </span>
-          Boekencatalogus
-          <span class="lk-quick-arrow">→</span>
-        </button>
-        <button class="lk-quick-btn" type="button" [routerLink]="'/map'">
-          <span class="lk-quick-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M9 20l-5-2V4l5 2 6-2 5 2v14l-5-2-6 2zM9 6v14M15 4v14" />
-            </svg>
-          </span>
-          Scholenoverzicht
-          <span class="lk-quick-arrow">→</span>
-        </button>
-        @if (isLibrarian) {
-          <button class="lk-quick-btn" type="button" (click)="goToAddBook()">
-            <span class="lk-quick-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
+          <div class="lk-quick-actions">
+            @for (sc of activeShortcuts; track sc.id; let i = $index) {
+              <button
+                class="lk-quick-btn"
+                [class.lk-quick-primary]="i === 0"
+                type="button"
+                [routerLink]="sc.route"
               >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </span>
-            Boek toevoegen
-            <span class="lk-quick-arrow">→</span>
-          </button>
-        }
-      </div>
+                <span class="lk-quick-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    @for (p of sc.iconPaths; track p) {
+                      <path [attr.d]="p"/>
+                    }
+                  </svg>
+                </span>
+                {{ sc.label }}
+                <span class="lk-quick-arrow">→</span>
+              </button>
+            }
+            @if (activeShortcuts.length === 0) {
+              <p class="lk-shortcut-empty">Geen snelkoppelingen. Klik ··· om er toe te voegen.</p>
+            }
+          </div>
         </section>
       }<!-- /snelkoppelingen -->
       </div><!-- /lk-hero-tile -->
