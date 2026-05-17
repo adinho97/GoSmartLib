@@ -14,35 +14,133 @@
     }
   </p>
 
-  <!-- Hero row: 3 columns -->
-  <div class="lk-hero-row">
-    <!-- Col 1: Mijn boeken (carousel) -->
-    @if (loansLoading) {
-      <section class="lk-hero-card">
-        <div class="lk-loader"><div class="spinner"></div></div>
-      </section>
-    } @else {
-      @let mijnBoekenPages = getMijnBoekenPages();
-      @if (mijnBoekenPages.length > 0) {
-        <app-carousel-tile [pages]="mijnBoekenPages"></app-carousel-tile>
+  <!-- Tile config bar -->
+  <div class="tiles-config-bar">
+    <div class="tile-config-wrap" #configWrap>
+      <button
+        class="tiles-config-btn"
+        type="button"
+        (click)="toggleConfigOpen()"
+        [attr.aria-expanded]="configOpen"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Tegels aanpassen
+      </button>
+
+      @if (configOpen) {
+        <div class="tiles-pop" role="dialog" aria-label="Tegels kiezen">
+          <div class="tiles-pop-head">
+            <h4>Pas je dashboard aan</h4>
+            <button class="tiles-pop-reset" type="button" (click)="resetConfig()">Standaard</button>
+          </div>
+
+          <div class="tiles-pop-section">
+            <div class="tiles-pop-section-label">
+              Tegels
+              <span class="tiles-pop-hint">· sleep om te herschikken</span>
+            </div>
+            @for (tile of orderedTiles; track tile.id) {
+              <label
+                class="tile-row"
+                [class.draggable]="isTileEnabled(tile.id)"
+                [class.dragging]="dragId === tile.id"
+                [class.drag-over]="dragOverId === tile.id && dragId !== tile.id"
+                [attr.draggable]="isTileEnabled(tile.id) ? true : null"
+                (dragstart)="isTileEnabled(tile.id) ? onDragStart(tile.id) : null"
+                (dragover)="onDragOver($event, tile.id)"
+                (drop)="onDrop($event, tile.id)"
+                (dragend)="onDragEnd()"
+                (dragleave)="dragOverId === tile.id ? (dragOverId = null) : null"
+              >
+                <svg class="tile-grip" [class.disabled]="!isTileEnabled(tile.id)" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <circle cx="6" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+                  <circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/>
+                  <circle cx="6" cy="13" r="1.2"/><circle cx="10" cy="13" r="1.2"/>
+                </svg>
+                <input type="checkbox" [checked]="isTileEnabled(tile.id)" (change)="toggleTile(tile.id)" (click)="$event.stopPropagation()" />
+                <span class="tile-row-dot" [style.background]="tile.dot"></span>
+                <span class="tile-row-label">{{ tile.label }}</span>
+              </label>
+            }
+          </div>
+
+          @for (tile of TILES; track tile.id) {
+            @if (tile.carousel && isTileEnabled(tile.id)) {
+              <div class="tiles-pop-section">
+                <div class="tiles-pop-section-label">{{ tile.label }} — pagina's</div>
+                @for (page of tile.pages; track page.id) {
+                  <label class="tile-row">
+                    <svg class="tile-grip disabled" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                      <circle cx="6" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+                      <circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/>
+                      <circle cx="6" cy="13" r="1.2"/><circle cx="10" cy="13" r="1.2"/>
+                    </svg>
+                    <input type="checkbox" [checked]="isPageEnabled(tile.id, page.id)" (change)="togglePage(tile.id, page.id)" (click)="$event.stopPropagation()" />
+                    <span class="tile-row-dot" [style.background]="tile.dot" style="opacity: 0.6"></span>
+                    <span class="tile-row-label">{{ page.label }}</span>
+                  </label>
+                }
+              </div>
+            }
+          }
+        </div>
       }
+    </div>
+  </div>
+
+  <!-- Hero row: dynamic order -->
+  <div class="lk-hero-row">
+    @if (config.tiles.length === 0) {
+      <p class="lk-hero-empty">Geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er een paar te kiezen.</p>
     }
 
-    <!-- Col 2: Bibliotheek (carousel) -->
-    @let bibliotheekPages = getBibliotheekPages();
-    @if (bibliotheekPages.length > 0) {
-      <app-carousel-tile [pages]="bibliotheekPages"></app-carousel-tile>
-    }
+    @for (tileId of config.tiles; track tileId) {
+      <div
+        class="lk-hero-tile"
+        [class.dragging]="dragId === tileId"
+        [class.drag-over]="dragOverId === tileId && dragId !== tileId"
+        draggable="true"
+        (dragstart)="onDragStart(tileId)"
+        (dragover)="onDragOver($event, tileId)"
+        (drop)="onDrop($event, tileId)"
+        (dragend)="onDragEnd()"
+        (dragleave)="dragOverId === tileId ? (dragOverId = null) : null"
+      >
 
-    <!-- Col 3: Snelle acties -->
-    <section class="lk-hero-card">
-      <div class="lk-card-head">
-        <span class="lk-eyebrow lk-eyebrow-ink">Snelkoppelingen </span>
-        <app-info-button
-          title="Snelle acties"
-          description="De meest gebruikte functies in één tik bereikbaar."
-        ></app-info-button>
-      </div>
+      @if (tileId === 'mijn-boeken') {
+        @if (loansLoading) {
+          <section class="lk-hero-card">
+            <div class="lk-loader"><div class="spinner"></div></div>
+          </section>
+        } @else {
+          @let mijnBoekenPages = getMijnBoekenPages();
+          @if (mijnBoekenPages.length > 0) {
+            <app-carousel-tile [pages]="mijnBoekenPages"></app-carousel-tile>
+          }
+        }
+      }
+
+      @if (tileId === 'bibliotheek') {
+        @let bibliotheekPages = getBibliotheekPages();
+        @if (bibliotheekPages.length > 0) {
+          <app-carousel-tile [pages]="bibliotheekPages"></app-carousel-tile>
+        }
+      }
+
+      @if (tileId === 'snelkoppelingen') {
+        <section class="lk-hero-card">
+          <div class="lk-card-head">
+            <span class="lk-eyebrow lk-eyebrow-ink">Snelkoppelingen </span>
+            <app-info-button
+              title="Snelle acties"
+              description="De meest gebruikte functies in één tik bereikbaar."
+            ></app-info-button>
+          </div>
 
       <div class="lk-quick-actions">
         <button
@@ -132,8 +230,11 @@
           </button>
         }
       </div>
-    </section>
-  </div>
+        </section>
+      }<!-- /snelkoppelingen -->
+      </div><!-- /lk-hero-tile -->
+    }<!-- /@for tiles -->
+  </div><!-- /lk-hero-row -->
 
   <!-- Spotlight beheer (bibbeheerder only) -->
   @if (isLibrarian) {

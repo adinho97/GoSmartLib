@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BookService } from '../services/book.service';
@@ -6,8 +6,51 @@ import { LoanService, Loan } from '../services/loan.service';
 import { RecommendationService, RecommendedBook } from '../services/recommendation.service';
 import { SchoolService } from '../services/school.service';
 import { UserPreferencesService } from '../services/user-preferences.service';
+import {
+  DashboardConfig,
+  DashboardConfigService,
+  DEFAULT_DASHBOARD_CONFIG,
+} from '../services/dashboard-config.service';
 import { inferNameParts } from '../utils/name-utils';
 import { CarouselPageDef } from '../dashboard/carousel-tile.component';
+
+interface TileDef {
+  id: string;
+  label: string;
+  dot: string;
+  carousel: boolean;
+  pages?: { id: string; label: string }[];
+}
+
+const TILES: TileDef[] = [
+  {
+    id: 'mijn-boeken',
+    label: 'Mijn boeken',
+    dot: 'var(--brand)',
+    carousel: true,
+    pages: [
+      { id: 'verder-lezen', label: 'Verder lezen' },
+      { id: 'laatst-ingeleverd', label: 'Laatst ingeleverd' },
+    ],
+  },
+  {
+    id: 'bibliotheek',
+    label: 'Bibliotheek',
+    dot: '#b86a17',
+    carousel: true,
+    pages: [
+      { id: 'in-de-kijker', label: 'In de kijker' },
+      { id: 'boek-vd-maand', label: 'Boek van de maand' },
+      { id: 'themaboek', label: 'Themaboek' },
+    ],
+  },
+  {
+    id: 'snelkoppelingen',
+    label: 'Snelkoppelingen',
+    dot: 'var(--ink-3)',
+    carousel: false,
+  },
+];
 
 interface SpotlightBook {
   bookId: number;
@@ -41,6 +84,17 @@ export class LeerkrachtDashboardComponent implements OnInit {
   loansLoading = true;
   booksLoading = true;
   recommendationsLoading = true;
+
+  // Tile config
+  readonly TILES = TILES;
+  readonly DEFAULT_CONFIG = DEFAULT_DASHBOARD_CONFIG;
+  config: DashboardConfig = DEFAULT_DASHBOARD_CONFIG;
+
+  // Config popover state
+  configOpen = false;
+  dragId: string | null = null;
+  dragOverId: string | null = null;
+  @ViewChild('configWrap') configWrapRef?: ElementRef<HTMLElement>;
 
   // Spotlight management (bibbeheerder only)
   spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
@@ -134,6 +188,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
     private recommendationService: RecommendationService,
     private schoolService: SchoolService,
     private userPreferencesService: UserPreferencesService,
+    private dashboardConfigService: DashboardConfigService,
   ) {}
 
   ngOnInit(): void {
@@ -147,13 +202,108 @@ export class LeerkrachtDashboardComponent implements OnInit {
         prefs['recommendationExcludeRead_newArrivals'] ?? true,
       );
     });
+    this.dashboardConfigService.config$.subscribe(cfg => {
+      this.config = cfg;
+    });
     this.fetchSpotlights();
+  }
+
+  // ── Config management ──
+
+  updateConfig(next: DashboardConfig): void {
+    this.config = next;
+    this.dashboardConfigService.save(next);
+  }
+
+  resetConfig(): void {
+    this.updateConfig({
+      ...DEFAULT_DASHBOARD_CONFIG,
+      pages: { ...DEFAULT_DASHBOARD_CONFIG.pages },
+    });
+  }
+
+  toggleTile(id: string): void {
+    const tiles = this.config.tiles.includes(id)
+      ? this.config.tiles.filter(t => t !== id)
+      : [...this.config.tiles, id];
+    this.updateConfig({ ...this.config, tiles });
+  }
+
+  togglePage(tileId: string, pageId: string): void {
+    const cur = this.config.pages[tileId] ?? [];
+    const next = cur.includes(pageId)
+      ? cur.filter(p => p !== pageId)
+      : [...cur, pageId];
+    this.updateConfig({ ...this.config, pages: { ...this.config.pages, [tileId]: next } });
+  }
+
+  isTileEnabled(id: string): boolean {
+    return this.config.tiles.includes(id);
+  }
+
+  isPageEnabled(tileId: string, pageId: string): boolean {
+    return (this.config.pages[tileId] ?? []).includes(pageId);
+  }
+
+  get orderedTiles(): TileDef[] {
+    return [
+      ...this.config.tiles.map(id => TILES.find(t => t.id === id)).filter((t): t is TileDef => !!t),
+      ...TILES.filter(t => !this.config.tiles.includes(t.id)),
+    ];
+  }
+
+  toggleConfigOpen(): void {
+    this.configOpen = !this.configOpen;
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  onDocumentMousedown(event: MouseEvent): void {
+    if (
+      this.configOpen &&
+      this.configWrapRef &&
+      !this.configWrapRef.nativeElement.contains(event.target as Node)
+    ) {
+      this.configOpen = false;
+    }
+  }
+
+  // ── Drag-to-reorder ──
+
+  onDragStart(id: string): void {
+    this.dragId = id;
+  }
+
+  onDragOver(event: DragEvent, id: string): void {
+    if (!this.dragId || this.dragId === id || !this.config.tiles.includes(id)) return;
+    event.preventDefault();
+    this.dragOverId = id;
+  }
+
+  onDrop(event: DragEvent, targetId: string): void {
+    event.preventDefault();
+    if (!this.dragId || this.dragId === targetId) { this.dragId = null; this.dragOverId = null; return; }
+    if (!this.config.tiles.includes(this.dragId) || !this.config.tiles.includes(targetId)) {
+      this.dragId = null; this.dragOverId = null; return;
+    }
+    const next = [...this.config.tiles];
+    const from = next.indexOf(this.dragId);
+    next.splice(from, 1);
+    next.splice(next.indexOf(targetId), 0, this.dragId);
+    this.updateConfig({ ...this.config, tiles: next });
+    this.dragId = null;
+    this.dragOverId = null;
+  }
+
+  onDragEnd(): void {
+    this.dragId = null;
+    this.dragOverId = null;
   }
 
   @HostListener('document:keydown.escape')
   onEsc(): void {
     this.closePicker();
     this.closeHighlightPicker();
+    this.configOpen = false;
   }
 
   private async fetchAllLoans(): Promise<void> {
@@ -267,9 +417,10 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   getMijnBoekenPages(): CarouselPageDef[] {
+    const enabledIds = this.config.pages['mijn-boeken'] ?? [];
     const pages: CarouselPageDef[] = [];
 
-    if (this.firstOwnLoan) {
+    if (enabledIds.includes('verder-lezen') && this.firstOwnLoan) {
       const dl = this.daysLeft(this.firstOwnLoan.dueDate);
       pages.push({
         id: 'verder-lezen',
@@ -292,7 +443,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
           tone: dl <= 3 ? 'urgent' : dl <= 7 ? 'warn' : '',
         },
       });
-    } else if (!this.loansLoading) {
+    } else if (enabledIds.includes('verder-lezen') && !this.loansLoading) {
       pages.push({
         id: 'verder-lezen',
         label: 'Verder lezen',
@@ -309,7 +460,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
       });
     }
 
-    if (this.lastReturnedLoan) {
+    if (enabledIds.includes('laatst-ingeleverd') && this.lastReturnedLoan) {
       const returned = this.lastReturnedLoan;
       pages.push({
         id: 'laatst-ingeleverd',
@@ -331,7 +482,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
           : undefined,
         headerCta: { label: 'Schrijf review', bookId: returned.bookId },
       });
-    } else if (!this.loansLoading) {
+    } else if (enabledIds.includes('laatst-ingeleverd') && !this.loansLoading) {
       pages.push({
         id: 'laatst-ingeleverd',
         label: 'Laatst ingeleverd',
@@ -349,9 +500,10 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   getBibliotheekPages(): CarouselPageDef[] {
+    const enabledIds = this.config.pages['bibliotheek'] ?? [];
     const pages: CarouselPageDef[] = [];
 
-    if (this.booksLoading) {
+    if (enabledIds.includes('in-de-kijker') && this.booksLoading) {
       pages.push({
         id: 'in-de-kijker',
         label: 'In de kijker',
@@ -363,7 +515,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
         empty: true,
         emptyMessage: 'Laden…',
       });
-    } else if (this.highlightedBooks.length > 0) {
+    } else if (enabledIds.includes('in-de-kijker') && this.highlightedBooks.length > 0) {
       const book = this.highlightedBooks[0];
       pages.push({
         id: 'in-de-kijker',
@@ -382,7 +534,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
         },
         badge: { label: book.genre || 'Uitgelicht' },
       });
-    } else {
+    } else if (enabledIds.includes('in-de-kijker')) {
       pages.push({
         id: 'in-de-kijker',
         label: 'In de kijker',
@@ -399,7 +551,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
     }
 
     const maand = this.spotlight.maand;
-    if (this.spotlightLoading) {
+    if (enabledIds.includes('boek-vd-maand') && this.spotlightLoading) {
       pages.push({
         id: 'boek-vd-maand',
         label: 'Boek van de maand',
@@ -412,7 +564,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
         empty: true,
         emptyMessage: 'Laden…',
       });
-    } else {
+    } else if (enabledIds.includes('boek-vd-maand')) {
       pages.push(maand ? {
         id: 'boek-vd-maand',
         label: 'Boek van de maand',
@@ -437,7 +589,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
     }
 
     const thema = this.spotlight.thema;
-    if (this.spotlightLoading) {
+    if (enabledIds.includes('themaboek') && this.spotlightLoading) {
       pages.push({
         id: 'themaboek',
         label: 'Themaboek',
@@ -449,7 +601,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
         empty: true,
         emptyMessage: 'Laden…',
       });
-    } else {
+    } else if (enabledIds.includes('themaboek')) {
       pages.push(thema ? {
         id: 'themaboek',
         label: 'Themaboek',
