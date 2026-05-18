@@ -91,6 +91,10 @@ export class UserPreferencesService {
     return this.activeSyncPromise;
   }
 
+  public isSynced(): boolean {
+    return this.hasSyncedWithBackend;
+  }
+
   /**
    * Sync with backend without awaiting - runs in background
    * Merges backend response with cached values (backend wins on conflicts, cache fills gaps)
