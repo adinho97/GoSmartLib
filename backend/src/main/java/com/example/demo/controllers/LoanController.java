@@ -5,6 +5,9 @@ import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.dto.UpdateDueDateRequest;
+import com.example.demo.entities.AppUser;
+import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.services.DisplayNameResolver;
 import com.example.demo.services.LoanService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -16,6 +19,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/uitleningen")
@@ -23,9 +29,15 @@ public class LoanController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoanController.class);
     private final LoanService loanService;
+    private final AppUserRepository appUserRepository;
+    private final DisplayNameResolver displayNameResolver;
 
-    public LoanController(LoanService loanService) {
+    public LoanController(LoanService loanService,
+                          AppUserRepository appUserRepository,
+                          DisplayNameResolver displayNameResolver) {
         this.loanService = loanService;
+        this.appUserRepository = appUserRepository;
+        this.displayNameResolver = displayNameResolver;
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
@@ -129,8 +141,25 @@ public class LoanController {
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/all-active")
-    public ResponseEntity<List<LoanDto>> getAllActiveLoans() {
-        return ResponseEntity.ok(loanService.getAllActiveLoans());
+    public ResponseEntity<List<LoanDto>> getAllActiveLoans(Authentication authentication) {
+        List<LoanDto> loans = loanService.getAllActiveLoans();
+
+        String currentSub = authentication != null ? authentication.getName() : null;
+        AppUser currentUser = currentSub == null ? null : appUserRepository.findBySub(currentSub).orElse(null);
+        Long schoolId = (currentUser != null && currentUser.getSchool() != null
+                && !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole()))
+                ? currentUser.getSchool().getId() : null;
+
+        List<String> subs = loans.stream()
+                .map(LoanDto::getUserSub)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<String, String> names = displayNameResolver.resolveAll(schoolId, subs);
+        loans.forEach(loan -> loan.setUserDisplayName(
+                names.getOrDefault(loan.getUserSub(), loan.getUserSub())));
+
+        return ResponseEntity.ok(loans);
     }
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")

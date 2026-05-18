@@ -10,6 +10,7 @@ export interface Loan {
   bookTitel: string;
   bookCover: string;
   userSub: string;
+  userDisplayName?: string;
   loanedAt: string;
   dueDate: string;
   returnedAt: string | null;

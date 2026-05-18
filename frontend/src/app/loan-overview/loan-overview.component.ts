@@ -3,8 +3,6 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { DatePipe } from "@angular/common";
 import { LoanService, Loan } from "../services/loan.service";
-import { formatUserInfoDisplayName } from "../utils/name-utils";
-import axios from "axios";
 
 type PaginationItem = number | "...";
 
@@ -32,7 +30,6 @@ export class LoanOverviewComponent implements OnInit, OnDestroy {
   pageSize = 15;
   currentPage = 1;
 
-  private userNamesCache = new Map<string, string>();
   private refreshInterval: any;
 
   constructor(private loanService: LoanService) {}
@@ -57,27 +54,24 @@ export class LoanOverviewComponent implements OnInit, OnDestroy {
     try {
       const loans = await this.loanService.getAllActiveLoans();
 
-      // Enrich with user names and calculate days until due
-      this.allLoans = await Promise.all(
-        loans.map(async (loan) => {
-          const userName = await this.getDisplayNameForSub(loan.userSub);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const dueDate = new Date(loan.dueDate);
-          dueDate.setHours(0, 0, 0, 0);
-          const daysUntilDue = Math.floor(
-            (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-          );
-          const isOverdue = daysUntilDue < 0;
+      // Calculate days until due. Names already resolved server-side.
+      this.allLoans = loans.map((loan) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dueDate = new Date(loan.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        const daysUntilDue = Math.floor(
+          (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        const isOverdue = daysUntilDue < 0;
 
-          return {
-            ...loan,
-            userName,
-            isOverdue,
-            daysUntilDue,
-          };
-        }),
-      );
+        return {
+          ...loan,
+          userName: loan.userDisplayName || loan.userSub,
+          isOverdue,
+          daysUntilDue,
+        };
+      });
 
       this.applyFilters();
     } catch (err) {
@@ -216,23 +210,5 @@ export class LoanOverviewComponent implements OnInit, OnDestroy {
 
   getOntimeCount(): number {
     return this.filteredLoans.filter((loan) => !loan.isOverdue).length;
-  }
-
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    if (this.userNamesCache.has(sub)) {
-      return this.userNamesCache.get(sub)!;
-    }
-
-    try {
-      const response = await axios.get(
-        `/api/users/${encodeURIComponent(sub)}/profile`,
-      );
-      const userInfo = response.data as any;
-      const displayName = formatUserInfoDisplayName(userInfo, sub);
-      this.userNamesCache.set(sub, displayName);
-      return displayName;
-    } catch {
-      return sub;
-    }
   }
 }
