@@ -27,26 +27,22 @@ export class UserPreferencesService {
   private readonly STORAGE_KEY = "userPreferences";
 
   private hasSyncedWithBackend = false;
-  private isSyncing = false;
+  private activeSyncPromise: Promise<void> | null = null;
 
   // Reactive state - components subscribe to this observable.
-  // The initial value is loaded from localStorage in init().
-  private preferencesSubject = new BehaviorSubject<Record<string, boolean>>({});
+  private preferencesSubject: BehaviorSubject<Record<string, boolean>>;
 
-  public preferences$: Observable<Record<string, boolean>> =
-    this.preferencesSubject.asObservable();
+  public preferences$: Observable<Record<string, boolean>> = null as any; // Initialized in constructor
 
-  /**
-   * Initialize preferences from localStorage (synchronous, no flicker)
-   * Then sync with backend in background without blocking UI
-   * Note: AppComponent can call this without awaiting — localStorage seed is instant
-   * Can be called multiple times safely - will re-sync if needed
-   */
-  async init(): Promise<void> {
-    // Load from localStorage immediately (synchronous - no flicker)
+  constructor() {
     const cached = this.getFromLocalStorage();
-    this.preferencesSubject.next(cached);
+    this.preferencesSubject = new BehaviorSubject<Record<string, boolean>>(
+      cached,
+    );
+    this.preferences$ = this.preferencesSubject.asObservable();
+  }
 
+  async init(): Promise<void> {
     // Sync with backend if user is already authenticated on app load
     if (this.isUserAuthenticated()) {
       this.syncWithBackendInBackground();
@@ -54,45 +50,45 @@ export class UserPreferencesService {
   }
 
   async loadPreferencesFromBackend(): Promise<void> {
-    // Skip if not authenticated
-    const role = localStorage.getItem("role");
     if (!this.isUserAuthenticated()) {
       return;
     }
 
-    if (this.isSyncing) return;
-    this.isSyncing = true;
-
-    try {
-      const backendPrefs = await this.fetchFromBackend();
-      console.debug("[UserPreferences] Loaded from backend:", backendPrefs);
-
-      // Update local state with backend data; backend always wins on conflicts
-      const merged = { ...this.preferencesSubject.value, ...backendPrefs };
-      this.preferencesSubject.next(merged);
-      this.saveToLocalStorage(merged);
-      this.hasSyncedWithBackend = true;
-    } catch (error: any) {
-      // Silence 403 Forbidden - some roles don't have preferences enabled/configured
-      if (error.response?.status === 403 || error.status === 403) {
-        console.debug("Preferences are not enabled for this user role.");
-        return;
-      }
-
-      // Handle 401 errors by clearing stale auth data and returning silently
-      if (error.response?.status === 401 || error.status === 401) {
-        console.debug(
-          "Authentication failed when loading preferences, clearing stale auth data",
-        );
-        this.clearStaleAuthData();
-        return;
-      }
-
-      console.warn("Failed to load preferences from backend:", error);
-      // Keep using cached localStorage values if backend is unavailable
-    } finally {
-      this.isSyncing = false;
+    // If a sync is already in progress, return the existing promise to avoid race conditions
+    if (this.activeSyncPromise) {
+      return this.activeSyncPromise;
     }
+
+    this.activeSyncPromise = (async () => {
+      try {
+        const backendPrefs = await this.fetchFromBackend();
+        console.debug("[UserPreferences] Loaded from backend:", backendPrefs);
+
+        // Update local state with backend data; backend always wins on conflicts
+        const merged = { ...this.preferencesSubject.value, ...backendPrefs };
+        this.preferencesSubject.next(merged);
+        this.saveToLocalStorage(merged);
+        this.hasSyncedWithBackend = true;
+      } catch (error: any) {
+        // Silence 403 Forbidden - some roles don't have preferences enabled/configured
+        if (error.response?.status === 403 || error.status === 403) {
+          console.debug("Preferences are not enabled for this user role.");
+          return;
+        }
+
+        // Handle 401 errors by clearing stale auth data and returning silently
+        if (error.response?.status === 401 || error.status === 401) {
+          this.clearStaleAuthData();
+          return;
+        }
+
+        console.warn("Failed to load preferences from backend:", error);
+      } finally {
+        this.activeSyncPromise = null;
+      }
+    })();
+
+    return this.activeSyncPromise;
   }
 
   /**
