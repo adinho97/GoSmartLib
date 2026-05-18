@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import axios from "axios";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, Observable, defer } from "rxjs";
 
 /**
  * Strongly typed preference keys to prevent typos at compile time
@@ -26,10 +26,22 @@ export class UserPreferencesService {
   private apiUrl = "/api/user/preferences";
   private readonly STORAGE_KEY = "userPreferences";
 
+  private hasSyncedWithBackend = false;
+  private isSyncing = false;
+
   // Reactive state - components subscribe to this observable
   private preferencesSubject = new BehaviorSubject<Record<string, boolean>>({});
-  public preferences$: Observable<Record<string, boolean>> =
-    this.preferencesSubject.asObservable();
+
+  /**
+   * Lazy-syncing observable: if someone subscribes and we are authenticated
+   * but haven't synced yet, trigger a background sync.
+   */
+  public preferences$: Observable<Record<string, boolean>> = defer(() => {
+    if (this.isUserAuthenticated() && !this.hasSyncedWithBackend) {
+      this.syncWithBackendInBackground();
+    }
+    return this.preferencesSubject.asObservable();
+  });
 
   /**
    * Initialize preferences from localStorage (synchronous, no flicker)
@@ -55,6 +67,9 @@ export class UserPreferencesService {
       return;
     }
 
+    if (this.isSyncing) return;
+    this.isSyncing = true;
+
     try {
       const backendPrefs = await this.fetchFromBackend();
       console.debug("[UserPreferences] Loaded from backend:", backendPrefs);
@@ -63,6 +78,7 @@ export class UserPreferencesService {
       const merged = { ...this.preferencesSubject.value, ...backendPrefs };
       this.preferencesSubject.next(merged);
       this.saveToLocalStorage(merged);
+      this.hasSyncedWithBackend = true;
     } catch (error: any) {
       // Silence 403 Forbidden - some roles don't have preferences enabled/configured
       if (error.response?.status === 403 || error.status === 403) {
@@ -81,6 +97,8 @@ export class UserPreferencesService {
 
       console.warn("Failed to load preferences from backend:", error);
       // Keep using cached localStorage values if backend is unavailable
+    } finally {
+      this.isSyncing = false;
     }
   }
 
