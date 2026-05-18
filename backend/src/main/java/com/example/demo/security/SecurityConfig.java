@@ -59,6 +59,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/smartschool-login").permitAll()
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/validate-token").permitAll()
+                        .requestMatchers("/api/scholen").permitAll()
+                        .requestMatchers("/api/scholen/*/klassen").permitAll()
                         .requestMatchers("/api/auth/refresh-token").authenticated()
                         .requestMatchers("/api/admin/login").permitAll()
                         .requestMatchers("/api/admin/setup").permitAll()

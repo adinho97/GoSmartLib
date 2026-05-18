@@ -57,7 +57,7 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
             try {
                 // Check pool health before attempting DB access
                 ConnectionPoolMonitor.PoolMetrics metrics = poolMonitor.getMetrics();
-                if (metrics.pendingThreads > 5 || metrics.utilizationPercent > 95) {
+                if (metrics.pendingThreads > 20 || metrics.utilizationPercent > 98) {
                     logger.warn("Skipping token auth due to pool stress: utilization={}%, pending={}",
                             String.format("%.0f", metrics.utilizationPercent),
                             metrics.pendingThreads);
@@ -69,8 +69,9 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                     Optional<AppUser> userOpt = appUserRepository.findByAccessToken(token);
                     if (userOpt.isPresent()) {
                         AppUser user = userOpt.get();
-                        if (user.isActive()) {
-                            String authority = "ROLE_" + user.getRole().toUpperCase();
+                        String role = user.getRole();
+                        if (user.isActive() && role != null) {
+                            String authority = "ROLE_" + role.toUpperCase();
                             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                                     user.getSub(),
                                     null,
