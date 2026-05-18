@@ -40,6 +40,7 @@ export class LeeslijstCreateComponent implements OnInit {
 
   // Sharing logic
   isGlobal = false;
+  isSchool = false;
   userSearchQuery = "";
   foundUsers: User[] = [];
   selectedUsers: User[] = [];
@@ -187,6 +188,7 @@ export class LeeslijstCreateComponent implements OnInit {
       }
 
       this.isGlobal = !!existing?.isGlobal;
+      this.isSchool = !!existing?.isSchool;
       if (Array.isArray(existing?.sharedWithUsers)) {
         this.selectedUsers = existing.sharedWithUsers.map((u: any) => ({
           sub: u.sub,
@@ -503,6 +505,7 @@ export class LeeslijstCreateComponent implements OnInit {
           Array.from(this.selectedKlassenIds),
           this.isGlobal,
           Array.from(this.sharedWithUserSubs),
+          this.isSchool,
         );
         this.uiToastService.success("Leeslijst succesvol aangepast.");
       } else {
@@ -513,6 +516,7 @@ export class LeeslijstCreateComponent implements OnInit {
           Array.from(this.selectedKlassenIds),
           this.isGlobal,
           Array.from(this.sharedWithUserSubs),
+          this.isSchool,
         );
         this.uiToastService.success("Leeslijst succesvol aangemaakt.");
       }

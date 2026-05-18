@@ -55,6 +55,9 @@ public class LeeslijstService {
         
         // Set global flag
         leeslijst.setIsGlobal(request.getIsGlobal() != null && request.getIsGlobal());
+        
+        // Set school flag
+        leeslijst.setIsSchool(request.getIsSchool() != null && request.getIsSchool());
 
         // Add books
         if (request.getBookIds() != null && !request.getBookIds().isEmpty()) {
@@ -100,12 +103,13 @@ public class LeeslijstService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
 
         // Bibbeheerders should see:
-        // 1. All lists for their school
+        // 1. All lists for their school (including those marked as school-wide)
         // 2. All global lists (for context)
         if ("bibbeheerder".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
             Long schoolId = Objects.requireNonNull(user.getSchool().getId(), "School id is required");
             Set<Leeslijst> combined = new HashSet<>(leeslijstRepository.findBySchool_Id(schoolId));
             combined.addAll(leeslijstRepository.findByIsGlobalTrue());
+            combined.addAll(leeslijstRepository.findByIsSchoolTrue());
             return new ArrayList<>(combined);
         }
 
@@ -113,7 +117,8 @@ public class LeeslijstService {
         // 1. Lists they created
         // 2. Lists for their class
         // 3. Global lists
-        // 4. Lists assigned to them specifically
+        // 4. Lists marked as school-wide (if same school)
+        // 5. Lists assigned to them specifically
         Long userId = Objects.requireNonNull(user.getId(), "userId is required");
         Set<Leeslijst> combined = new HashSet<>(leeslijstRepository.findByCreatedBy_Id(userId));
 
@@ -122,6 +127,13 @@ public class LeeslijstService {
 
         // Get lists assigned to this user
         combined.addAll(leeslijstRepository.findByAssignedUsers(userId));
+        
+        // Get all school-wide lists for the user's school
+        if (user.getSchool() != null) {
+            Long userSchoolId = Objects.requireNonNull(user.getSchool().getId(), "School id is required");
+            List<Leeslijst> schoolWideLists = leeslijstRepository.findByIsSchoolTrueAndSchool_Id(userSchoolId);
+            combined.addAll(schoolWideLists);
+        }
 
         if (user.getKlas() != null) {
             Long klasId = Objects.requireNonNull(user.getKlas().getId(), "Klas id is required");
@@ -151,6 +163,7 @@ public class LeeslijstService {
             leeslijst.getCreatedAt());
 
         dto.setIsGlobal(leeslijst.getIsGlobal());
+        dto.setIsSchool(leeslijst.getIsSchool());
 
         // Map books
         List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
@@ -202,6 +215,7 @@ public class LeeslijstService {
             leeslijst.getCreatedAt());
 
         dto.setIsGlobal(leeslijst.getIsGlobal());
+        dto.setIsSchool(leeslijst.getIsSchool());
 
         // Map books
         List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
@@ -284,6 +298,7 @@ public class LeeslijstService {
         leeslijst.setTitel(request.getTitel());
         leeslijst.setDescription(request.getDescription());
         leeslijst.setIsGlobal(request.getIsGlobal() != null && request.getIsGlobal());
+        leeslijst.setIsSchool(request.getIsSchool() != null && request.getIsSchool());
 
         // Update books
         if (request.getBookIds() != null) {

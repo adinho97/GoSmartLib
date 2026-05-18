@@ -256,11 +256,16 @@
                   leeslijst.isGlobal &&
                   (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
                 ) {
-                  <span class="klas-badge global-badge">Voor iedereen</span>
-                } @else {
-                  @for (klas of leeslijst.klasNames; track klas) {
-                    <span class="klas-badge">{{ klas }}</span>
-                  }
+                  <span class="klas-badge">Voor iedereen</span>
+                }
+                @if (
+                  leeslijst.isSchool &&
+                  (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
+                ) {
+                  <span class="klas-badge">Deze school</span>
+                }
+                @for (klas of leeslijst.klasNames; track klas) {
+                  <span class="klas-badge">{{ klas }}</span>
                 }
               </div>
             </div>

@@ -591,6 +591,7 @@ export class BookService {
     klasIds: number[],
     isGlobal?: boolean,
     assignedUserSubs?: string[],
+    isSchool?: boolean,
   ): Promise<any> {
     const res = await axios.post(
       `/api/leeslisten`,
@@ -600,6 +601,7 @@ export class BookService {
         bookIds,
         klasIds,
         isGlobal: isGlobal || false,
+        isSchool: isSchool || false,
         assignedUserSubs: assignedUserSubs || [],
       },
       this.getFullAuthHeaders(),
@@ -623,6 +625,7 @@ export class BookService {
     klasIds: number[],
     isGlobal?: boolean,
     assignedUserSubs?: string[],
+    isSchool?: boolean,
   ): Promise<any> {
     const res = await axios.put(
       `/api/leeslisten/${id}`,
@@ -632,6 +635,7 @@ export class BookService {
         bookIds,
         klasIds,
         isGlobal: isGlobal || false,
+        isSchool: isSchool || false,
         assignedUserSubs: assignedUserSubs || [],
       },
       this.getFullAuthHeaders(),

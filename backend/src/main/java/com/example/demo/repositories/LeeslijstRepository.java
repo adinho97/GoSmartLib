@@ -32,6 +32,16 @@ public interface LeeslijstRepository extends JpaRepository<Leeslijst, Long> {
     List<Leeslijst> findByIsGlobalTrue();
 
     /**
+     * Find all school-wide reading lists
+     */
+    List<Leeslijst> findByIsSchoolTrue();
+
+    /**
+     * Find all school-wide reading lists for a specific school
+     */
+    List<Leeslijst> findByIsSchoolTrueAndSchool_Id(Long schoolId);
+
+    /**
      * Find reading lists assigned to a specific user
      */
     @Query("SELECT l FROM Leeslijst l JOIN l.assignedUsers u WHERE u.id = :userId")

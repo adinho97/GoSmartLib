@@ -323,11 +323,6 @@
   font-weight: 600;
 }
 
-.klas-badge.global-badge {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-}
-
 .leeslijst-card-action {
   padding: var(--s-3) var(--s-4);
   background: var(--surface);
