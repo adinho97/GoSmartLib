@@ -23,23 +23,39 @@ export class SchoolService {
    * Falls back to an empty array when no school is selected.
    */
   getClasses(schoolId?: number): Observable<string[]> {
-    const effectiveSchoolId =
-      schoolId ?? this.getSelectedSchoolId() ?? this.getUserOwnSchoolId();
-
     return new Observable((subscriber) => {
-      if (!effectiveSchoolId) {
-        subscriber.next([]);
-        subscriber.complete();
-        return;
-      }
+      void this.resolveSchoolId(schoolId)
+        .then((effectiveSchoolId) => {
+          if (!effectiveSchoolId) {
+            subscriber.next([]);
+            subscriber.complete();
+            return;
+          }
 
-      void this.getKlassenBySchool(effectiveSchoolId)
+          return this.getKlassenBySchool(effectiveSchoolId);
+        })
         .then((klassen) => {
+          if (!klassen) {
+            subscriber.next([]);
+            subscriber.complete();
+            return;
+          }
           subscriber.next(klassen.map((k) => k.naam));
           subscriber.complete();
         })
         .catch((err) => subscriber.error(err));
     });
+  }
+
+  private async resolveSchoolId(schoolId?: number): Promise<number | null> {
+    if (schoolId) return schoolId;
+    const selectedSchoolId = this.getSelectedSchoolId();
+    if (selectedSchoolId) return selectedSchoolId;
+    const ownSchoolId = this.getUserOwnSchoolId();
+    if (ownSchoolId) return ownSchoolId;
+
+    await this.selectUserDefaultSchool();
+    return this.getSelectedSchoolId() ?? this.getUserOwnSchoolId();
   }
 
   /**
@@ -164,7 +180,10 @@ export class SchoolService {
   async getKlassenBySchool(schoolId: number): Promise<KlasListItem[]> {
     try {
       const res = await fetch(
-        `/api/schools/${encodeURIComponent(schoolId)}/klassen`,
+        `/api/scholen/${encodeURIComponent(schoolId)}/klassen`,
+        {
+          headers: this.buildAuthHeaders(),
+        },
       );
       if (!res.ok) return [];
       return (await res.json()) as KlasListItem[];
