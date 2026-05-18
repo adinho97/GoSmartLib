@@ -46,6 +46,11 @@ export class UserPreferencesService {
     // Load from localStorage immediately (synchronous - no flicker)
     const cached = this.getFromLocalStorage();
     this.preferencesSubject.next(cached);
+
+    // Sync with backend if user is already authenticated on app load
+    if (this.isUserAuthenticated()) {
+      this.syncWithBackendInBackground();
+    }
   }
 
   async loadPreferencesFromBackend(): Promise<void> {
@@ -131,6 +136,7 @@ export class UserPreferencesService {
   clearCache(): void {
     this.preferencesSubject.next({});
     localStorage.removeItem(this.STORAGE_KEY);
+    this.hasSyncedWithBackend = false;
   }
 
   /**
@@ -149,10 +155,14 @@ export class UserPreferencesService {
       return {};
     }
   }
+
+  /**
+   * Forces a refresh of preferences from the backend.
+   * Useful after login or when authentication state changes.
+   */
   public async syncNow(): Promise<void> {
-    if (this.isUserAuthenticated()) {
-      await this.loadPreferencesFromBackend();
-    }
+    this.hasSyncedWithBackend = false;
+    await this.loadPreferencesFromBackend();
   }
 
   private saveToLocalStorage(prefs: Record<string, boolean>): void {

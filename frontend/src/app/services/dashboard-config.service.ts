@@ -37,6 +37,12 @@ export class DashboardConfigService {
   async init(): Promise<void> {
     const cached = this.readLocal();
     this.configSubject.next(cached ?? this.cloneDefault());
+
+    // Proactive sync if already logged in
+    const role = localStorage.getItem("role");
+    if (this.isAuthenticated() && role === "leerling") {
+      this.syncFromBackendInBackground();
+    }
   }
 
   getSnapshot(): DashboardConfig {
@@ -71,6 +77,7 @@ export class DashboardConfigService {
     this.configSubject.next(this.cloneDefault());
     try {
       localStorage.removeItem(this.STORAGE_KEY);
+      this.hasSynced = false;
     } catch {}
   }
 

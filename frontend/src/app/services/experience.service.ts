@@ -70,7 +70,13 @@ export class ExperienceService {
       this.backendSyncTimeoutId = undefined;
     }
 
-    if (this.hydratedForUserSub === userSub && this.initializedFromBackend) {
+    // Only skip if we have successfully hydrated for this specific userSub
+    // and the service has been fully initialized for them.
+    if (
+      this.hydratedForUserSub === userSub &&
+      this.initializedFromBackend &&
+      userSub !== ""
+    ) {
       return;
     }
 
@@ -303,7 +309,9 @@ export class ExperienceService {
     const userSub = this.getUserSub();
     const role = localStorage.getItem("role");
     if (!userSub || role !== "leerling") {
-      this.initializedFromBackend = true;
+      // If not authenticated or not a student, we don't attempt to fetch from backend.
+      // Reset flags to ensure a fresh attempt if user logs in later.
+      this.initializedFromBackend = false; // Explicitly set to false if we didn't fetch
       this.hydratedForUserSub = "";
       return;
     }
@@ -326,10 +334,15 @@ export class ExperienceService {
       this.updateLevelInfo();
       this.persistExperienceLocally(totalExperience);
       this.persistClaimedBadgeRewardsLocally(claimedBadgeRewards);
-      this.hydratedForUserSub = userSub;
-    } catch {
+      this.hydratedForUserSub = userSub; // Mark as hydrated for this user
+      this.initializedFromBackend = true; // Mark as successfully initialized from backend
+    } catch (error: any) {
       // Silence 403 errors if role is not authorized for experience tracking
-      if ((arguments[0] as any)?.response?.status === 403) {
+      if (error?.response?.status === 403) {
+        console.debug("Experience tracking not enabled for this user role.");
+        // If the fetch failed for this user, reset flags so it tries again next time.
+        this.hydratedForUserSub = "";
+        this.initializedFromBackend = false;
         return;
       }
       // Keep local fallback data when backend is unreachable.
