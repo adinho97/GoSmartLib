@@ -24,6 +24,11 @@ public class BibbeheerderService {
     }
 
     @Transactional(readOnly = true)
+    public Long getCallerSchoolId(String callerSub) {
+        return Objects.requireNonNull(resolveCaller(callerSub).getSchool().getId(), "schoolId is required");
+    }
+
+    @Transactional(readOnly = true)
     public List<AdminUserListItem> getLeerkrachtenInOwnSchool(String callerSub) {
         AppUser caller = resolveCaller(callerSub);
         Long schoolId = Objects.requireNonNull(caller.getSchool().getId(), "schoolId is required");
@@ -92,7 +97,6 @@ public class BibbeheerderService {
         item.setId(user.getId());
         item.setSub(user.getSub());
         item.setRole(user.getRole());
-        item.setDisplayName(user.getDisplayName());
         item.setKlasNaam(user.getKlas() != null ? user.getKlas().getNaam() : null);
         item.setActive(user.isActive());
         return item;

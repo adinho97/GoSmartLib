@@ -1,11 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import axios from "axios";
 import { LoanService, Loan } from "../services/loan.service";
-import {
-  composeFullName,
-  inferNameParts,
-  formatUserInfoDisplayName,
-} from "../utils/name-utils";
 
 type Tab = "students" | "books";
 
@@ -84,14 +79,14 @@ export class LoanHistoryCatalogComponent implements OnInit {
   private async loadAllStudents() {
     try {
       const res = await axios.get("/api/gebruikers/leerlingen");
-      const students = (res.data || []) as Array<{ sub: string }>;
-      const enriched = await Promise.all(
-        students.map(async (student) => ({
-          sub: student.sub,
-          displayName: await this.getDisplayNameForSub(student.sub),
-        })),
-      );
-      this.allStudents = enriched;
+      const students = (res.data || []) as Array<{
+        sub: string;
+        displayName?: string;
+      }>;
+      this.allStudents = students.map((s) => ({
+        sub: s.sub,
+        displayName: s.displayName || s.sub,
+      }));
       this.filteredStudents = [...this.allStudents];
     } catch (err) {
       console.error("Error loading students", err);
@@ -165,18 +160,6 @@ export class LoanHistoryCatalogComponent implements OnInit {
 
   get showStudentDropdown(): boolean {
     return this.studentSearch.length > 0 && this.filteredStudents.length > 0;
-  }
-
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    try {
-      const response = await axios.get(
-        `/api/users/${encodeURIComponent(sub)}/profile`,
-      );
-      const userInfo = response.data as any;
-      return formatUserInfoDisplayName(userInfo, sub);
-    } catch {
-      return sub;
-    }
   }
 
   goToHistoryPage(page: number) {

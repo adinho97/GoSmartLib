@@ -1,5 +1,4 @@
 import { Component, OnInit } from "@angular/core";
-import axios from "axios";
 import {
   BookStateOverview,
   LoanConditionOverview,
@@ -8,11 +7,6 @@ import {
   ReturnCondition,
   WorsenedReturn,
 } from "../services/loan.service";
-import {
-  composeFullName,
-  inferNameParts,
-  formatUserInfoDisplayName,
-} from "../utils/name-utils";
 
 type PaginationItem = number | "...";
 
@@ -40,8 +34,6 @@ export class LoanConditionOverviewComponent implements OnInit {
   readonly bookPageSize = 10;
   private filteredBookStatesAll: BookStateOverview[] = [];
 
-  private userNames = new Map<string, string>();
-  private loadingUserSubs = new Set<string>();
   private recoveringCopyIds = new Set<number>();
 
   constructor(private loanService: LoanService) {}
@@ -60,7 +52,6 @@ export class LoanConditionOverviewComponent implements OnInit {
       this.bookStates = overview.bookStates || [];
       this.lostCopies = overview.lostCopies || [];
       this.applyBookFilter();
-      await this.populateUserNames(this.worsenedReturns);
     } catch {
       this.error = "Overzicht laden mislukt.";
     } finally {
@@ -161,22 +152,8 @@ export class LoanConditionOverviewComponent implements OnInit {
     return "Onbekend";
   }
 
-  getUserName(sub: string): string {
-    const cached = this.userNames.get(sub);
-    if (cached) {
-      return cached;
-    }
-    if (!this.loadingUserSubs.has(sub)) {
-      this.loadingUserSubs.add(sub);
-      this.getDisplayNameForSub(sub)
-        .then((name) => {
-          this.userNames.set(sub, name);
-        })
-        .finally(() => {
-          this.loadingUserSubs.delete(sub);
-        });
-    }
-    return sub;
+  getUserName(item: WorsenedReturn): string {
+    return item.userDisplayName || item.userSub;
   }
 
   isLostReturn(item: WorsenedReturn): boolean {
@@ -283,28 +260,4 @@ export class LoanConditionOverviewComponent implements OnInit {
     }
   }
 
-  private async populateUserNames(rows: WorsenedReturn[]) {
-    const uniqueSubs = Array.from(
-      new Set(rows.map((row) => row.userSub).filter(Boolean)),
-    );
-
-    await Promise.all(
-      uniqueSubs.map(async (sub) => {
-        const displayName = await this.getDisplayNameForSub(sub);
-        this.userNames.set(sub, displayName);
-      }),
-    );
-  }
-
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    try {
-      const response = await axios.get(
-        `/api/users/${encodeURIComponent(sub)}/profile`,
-      );
-      const userInfo = response.data as any;
-      return formatUserInfoDisplayName(userInfo, sub);
-    } catch {
-      return sub;
-    }
-  }
 }

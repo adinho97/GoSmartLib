@@ -22,7 +22,6 @@ public class LeaderboardController {
             Authentication authentication,
             @RequestParam(required = false) Long klasId) {
         LeaderboardResponseDTO response = leaderboardService.getLeaderboardData(authentication.getName(), klasId);
-        leaderboardService.resolveDisplayNames(response);
         return ResponseEntity.ok(response);
     }
 }

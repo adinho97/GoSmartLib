@@ -1,7 +1,5 @@
 package com.example.demo.controllers;
 
-import com.example.demo.config.AuthService;
-import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.dto.admin.school.CreateSchoolRequest;
 import com.example.demo.dto.admin.school.CreateSchoolResponse;
 import com.example.demo.dto.admin.school.KlasListItem;
@@ -11,9 +9,11 @@ import com.example.demo.dto.admin.school.UpdateSchoolInfoRequest;
 import com.example.demo.dto.admin.school.UpdateSchoolStatusRequest;
 import com.example.demo.dto.admin.user.AdminUserListItem;
 import com.example.demo.dto.admin.user.SetUserRoleRequest;
+import com.example.demo.services.DisplayNameResolver;
 import com.example.demo.services.SchoolAdminService;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,18 +23,18 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/api/admin/schools")
 public class AdminSchoolController {
 
     private final SchoolAdminService schoolAdminService;
-    private final AuthService authService;
+    private final DisplayNameResolver displayNameResolver;
 
-    public AdminSchoolController(SchoolAdminService schoolAdminService, AuthService authService) {
+    public AdminSchoolController(SchoolAdminService schoolAdminService,
+            DisplayNameResolver displayNameResolver) {
         this.schoolAdminService = schoolAdminService;
-        this.authService = authService;
+        this.displayNameResolver = displayNameResolver;
     }
 
     @PostMapping
@@ -73,37 +73,10 @@ public class AdminSchoolController {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public List<AdminUserListItem> getSchoolUsers(@PathVariable Long id) {
         List<AdminUserListItem> users = schoolAdminService.getSchoolUsers(id);
-        resolveDisplayNames(users);
+        Map<String, String> names = displayNameResolver.resolveAll(id,
+                users.stream().map(AdminUserListItem::getSub).toList());
+        users.forEach(u -> u.setDisplayName(names.getOrDefault(u.getSub(), u.getSub())));
         return users;
-    }
-
-    private void resolveDisplayNames(List<AdminUserListItem> users) {
-        Flux.fromIterable(users)
-                .filter(u -> u.getSub() != null && !u.getSub().isBlank())
-                .flatMap(u -> authService.getUserInfoBySub(u.getSub())
-                        .map(info -> {
-                            u.setDisplayName(formatDisplayName(info));
-                            return u;
-                        })
-                        .onErrorReturn(u))
-                .collectList()
-                .block();
-    }
-
-    private String formatDisplayName(SmartschoolUserInfo info) {
-        String given = info.getGivenName();
-        String family = info.getFamilyName();
-        if (given != null && !given.isBlank() && family != null && !family.isBlank())
-            return family + " " + given;
-        if (family != null && !family.isBlank())
-            return family;
-        if (given != null && !given.isBlank())
-            return given;
-        if (info.getFullName() != null && !info.getFullName().isBlank())
-            return info.getFullName();
-        if (info.getName() != null && !info.getName().isBlank())
-            return info.getName();
-        return info.getSub();
     }
 
     @PatchMapping("/{id}/users/{userId}/active")

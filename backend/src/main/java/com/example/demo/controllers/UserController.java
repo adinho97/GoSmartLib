@@ -2,15 +2,20 @@ package com.example.demo.controllers;
 
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.entities.AppUser;
+import com.example.demo.services.DisplayNameResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -18,17 +23,34 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final AppUserRepository appUserRepository;
+    private final DisplayNameResolver displayNameResolver;
 
-    public UserController(AppUserRepository appUserRepository) {
+    public UserController(AppUserRepository appUserRepository, DisplayNameResolver displayNameResolver) {
         this.appUserRepository = appUserRepository;
+        this.displayNameResolver = displayNameResolver;
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/leerlingen")
-    public ResponseEntity<List<UserDto>> getLeerlingen() {
-        List<UserDto> leerlingen = appUserRepository.findByRole("leerling")
-                .stream()
-                .map(u -> new UserDto(u.getSub(), u.getRole()))
+    public ResponseEntity<List<UserDto>> getLeerlingen(Authentication authentication) {
+        String currentSub = authentication != null ? authentication.getName() : null;
+        AppUser currentUser = currentSub == null ? null : appUserRepository.findBySub(currentSub).orElse(null);
+
+        List<AppUser> students;
+        Long schoolId = null;
+        if (currentUser != null && currentUser.getSchool() != null
+                && !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+            schoolId = currentUser.getSchool().getId();
+            students = appUserRepository.findBySchool_IdAndRole(schoolId, "leerling");
+        } else {
+            students = appUserRepository.findByRole("leerling");
+        }
+
+        List<String> subs = students.stream().map(AppUser::getSub).collect(Collectors.toList());
+        Map<String, String> names = displayNameResolver.resolveAll(schoolId, subs);
+
+        List<UserDto> leerlingen = students.stream()
+                .map(u -> new UserDto(u.getSub(), u.getRole(), names.getOrDefault(u.getSub(), u.getSub())))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(leerlingen);
     }
@@ -95,17 +117,38 @@ public class UserController {
             @RequestParam Long schoolId) {
         String query = q.trim().toLowerCase();
 
-        List<SearchUserDto> results = appUserRepository.findBySchool_Id(schoolId)
-                .stream()
-                .filter(u -> {
-                    String username = u.getUsername() != null ? u.getUsername().toLowerCase() : "";
-                    String displayName = u.getDisplayName() != null ? u.getDisplayName().toLowerCase() : "";
-                    String sub = u.getSub() != null ? u.getSub().toLowerCase() : "";
-                    return username.contains(query) || displayName.contains(query) || sub.contains(query);
-                })
-                .map(u -> new SearchUserDto(
-                        u.getSub(),
-                        u.getDisplayName() != null ? u.getDisplayName() : (u.getUsername() != null ? u.getUsername() : u.getSub())))
+        // Warm the per-school cache via OneRoster batch (one API call, no-op if
+        // already warm or no OneRoster). Lets the cheap peek() filter below
+        // catch every name match, not just the ones already cached.
+        displayNameResolver.warmSchoolCache(schoolId);
+
+        List<AppUser> allUsers = appUserRepository.findBySchool_Id(schoolId);
+
+        // Cheap in-memory filter: sub-match always counts; name-match counts when
+        // the name is already in cache (free lookup). Anything not caught here is
+        // either uncached or doesn't match — we skip the API call for it.
+        Set<String> candidateSubs = new LinkedHashSet<>();
+        for (AppUser u : allUsers) {
+            String sub = u.getSub();
+            if (sub == null || sub.isBlank()) {
+                continue;
+            }
+            if (sub.toLowerCase().contains(query)) {
+                candidateSubs.add(sub);
+                continue;
+            }
+            Optional<String> cachedName = displayNameResolver.peek(sub);
+            if (cachedName.isPresent() && cachedName.get().toLowerCase().contains(query)) {
+                candidateSubs.add(sub);
+            }
+        }
+
+        // Resolve display names only for survivors. Cache hits return instantly;
+        // misses fall back to Smartschool userinfo for these subs alone.
+        Map<String, String> names = displayNameResolver.resolveAll(schoolId, new ArrayList<>(candidateSubs));
+
+        List<SearchUserDto> results = candidateSubs.stream()
+                .map(sub -> new SearchUserDto(sub, names.getOrDefault(sub, sub)))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(results);
@@ -132,10 +175,12 @@ public class UserController {
     public static class UserDto {
         private String sub;
         private String role;
+        private String displayName;
 
-        public UserDto(String sub, String role) {
+        public UserDto(String sub, String role, String displayName) {
             this.sub = sub;
             this.role = role;
+            this.displayName = displayName;
         }
 
         public String getSub() {
@@ -144,6 +189,10 @@ public class UserController {
 
         public String getRole() {
             return role;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
     }
 

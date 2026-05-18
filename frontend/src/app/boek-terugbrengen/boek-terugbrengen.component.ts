@@ -64,15 +64,12 @@ export class BoekTerugbrengenComponent implements OnInit {
   async loadLeerlingen(): Promise<void> {
     this.leerlingenLoading = true;
     try {
-      const res = await axios.get("/api/gebruikers/leerlingen");
-      const students = (res.data || []) as Array<{ sub: string }>;
-      const enriched = await Promise.all(
-        students.map(async (l) => ({
-          sub: l.sub,
-          displayName: await this.getDisplayNameForSub(l.sub),
-        })),
-      );
-      this.leerlingen = enriched;
+      const res = await axios.get('/api/gebruikers/leerlingen');
+      const students = (res.data || []) as Array<{ sub: string; displayName?: string }>;
+      this.leerlingen = students.map((l) => ({
+        sub: l.sub,
+        displayName: l.displayName || l.sub,
+      }));
       this.filteredLeerlingen = [...this.leerlingen];
     } catch {
       this.leerlingError = "Leerlingen laden mislukt.";

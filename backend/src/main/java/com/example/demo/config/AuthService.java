@@ -293,8 +293,6 @@ public class AuthService {
                 final String roleToPersist = finalRole;
                 final AppUser targetUser = user;
                 final String platformForUser = normalizedPlatform;
-                final String usernameForUser = userInfo.getName();
-                final String displayNameForUser = userInfo.getFullName() != null ? userInfo.getFullName() : userInfo.getName();
 
                 return getGroupInfo(userInfo.getAccessToken(), normalizedPlatform)
                                 .onErrorResume(error -> {
@@ -311,8 +309,6 @@ public class AuthService {
                                         }
                                         targetUser.setAccessToken(userInfo.getAccessToken());
                                         targetUser.setPlatform(platformForUser);
-                                        targetUser.setUsername(usernameForUser);
-                                        targetUser.setDisplayName(displayNameForUser);
                                         targetUser.setSchool(resolvedSchool);
                                         if (primaryKlas != null) {
                                                 targetUser.setKlas(primaryKlas);
