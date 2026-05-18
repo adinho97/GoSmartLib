@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import axios from "axios";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, Observable, tap } from "rxjs";
 
 export interface DashboardConfig {
   tiles: string[];
@@ -23,11 +23,26 @@ export class DashboardConfigService {
   private readonly apiUrl = "/api/user/dashboard-config";
   private readonly STORAGE_KEY = "gosmartlib.dashboard.config.v2";
 
+  private hasSynced = false;
+  private isSyncing = false;
+
   private configSubject = new BehaviorSubject<DashboardConfig>(
     this.cloneDefault(),
   );
-  public config$: Observable<DashboardConfig> =
-    this.configSubject.asObservable();
+
+  /**
+   * Reactive config stream that triggers a background sync if
+   * authenticated but not yet synced.
+   */
+  public config$: Observable<DashboardConfig> = this.configSubject
+    .asObservable()
+    .pipe(
+      tap(() => {
+        if (this.isAuthenticated() && !this.hasSynced && !this.isSyncing) {
+          this.syncFromBackendInBackground();
+        }
+      }),
+    );
 
   async init(): Promise<void> {
     const cached = this.readLocal();
@@ -80,6 +95,12 @@ export class DashboardConfigService {
   }
 
   private async loadFromBackend(): Promise<void> {
+    if (this.isSyncing) return;
+
+    const role = localStorage.getItem("role");
+    if (role !== "leerling") return; // Only students have dashboard configs
+
+    this.isSyncing = true;
     try {
       const res = await axios.get<{ configJson: string | null }>(
         this.apiUrl,
@@ -92,6 +113,7 @@ export class DashboardConfigService {
       if (parsed) {
         this.configSubject.next(parsed);
         this.writeLocal(parsed);
+        this.hasSynced = true;
       }
     } catch (error: any) {
       // Silence 401/403 errors for unauthorized roles
@@ -103,6 +125,8 @@ export class DashboardConfigService {
         return;
       }
       console.warn("Failed to load dashboard config from backend:", error);
+    } finally {
+      this.isSyncing = false;
     }
   }
 
