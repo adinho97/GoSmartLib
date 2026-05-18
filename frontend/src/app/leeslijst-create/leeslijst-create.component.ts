@@ -40,6 +40,7 @@ export class LeeslijstCreateComponent implements OnInit {
 
   // Sharing logic
   isGlobal = false;
+  isSchool = false;
   userSearchQuery = "";
   foundUsers: User[] = [];
   selectedUsers: User[] = [];
@@ -187,6 +188,7 @@ export class LeeslijstCreateComponent implements OnInit {
       }
 
       this.isGlobal = !!existing?.isGlobal;
+      this.isSchool = !!existing?.isSchool;
       if (Array.isArray(existing?.sharedWithUsers)) {
         this.selectedUsers = existing.sharedWithUsers.map((u: any) => ({
           sub: u.sub,
@@ -216,6 +218,7 @@ export class LeeslijstCreateComponent implements OnInit {
     this.step = "boeken";
     this.loadKlassen();
     this.loadBooks();
+    this.loadAllUsers();
   }
 
   async loadKlassen() {
@@ -270,10 +273,24 @@ export class LeeslijstCreateComponent implements OnInit {
     });
   }
 
+  async loadAllUsers() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    try {
+      // Pass empty string to get all users
+      this.foundUsers = await this.bookService.searchUsers("", schoolId);
+    } catch (error) {
+      console.error("Failed to load users", error);
+    }
+  }
+
   async onUserSearch() {
     const query = this.userSearchQuery.trim();
-    if (query.length < 2) {
-      this.foundUsers = [];
+
+    // If query is empty, show all users
+    if (query.length === 0) {
+      await this.loadAllUsers();
       return;
     }
 
@@ -488,6 +505,7 @@ export class LeeslijstCreateComponent implements OnInit {
           Array.from(this.selectedKlassenIds),
           this.isGlobal,
           Array.from(this.sharedWithUserSubs),
+          this.isSchool,
         );
         this.uiToastService.success("Leeslijst succesvol aangepast.");
       } else {
@@ -498,6 +516,7 @@ export class LeeslijstCreateComponent implements OnInit {
           Array.from(this.selectedKlassenIds),
           this.isGlobal,
           Array.from(this.sharedWithUserSubs),
+          this.isSchool,
         );
         this.uiToastService.success("Leeslijst succesvol aangemaakt.");
       }

@@ -5,6 +5,7 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Klas;
 import com.example.demo.entities.School;
 import com.example.demo.exception.ApiException;
+import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.services.BibbeheerderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,11 +30,14 @@ class BibbeheerderServiceTest {
     @Mock
     private AppUserRepository appUserRepository;
 
+    @Mock
+    private KlasRepository klasRepository;
+
     private BibbeheerderService service;
 
     @BeforeEach
     void setUp() {
-        service = new BibbeheerderService(appUserRepository);
+        service = new BibbeheerderService(appUserRepository, klasRepository);
     }
 
     // --- getLeerkrachtenInOwnSchool ---

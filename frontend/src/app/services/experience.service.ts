@@ -301,7 +301,8 @@ export class ExperienceService {
 
   private async initFromBackend(): Promise<void> {
     const userSub = this.getUserSub();
-    if (!userSub) {
+    const role = localStorage.getItem("role");
+    if (!userSub || role !== "leerling") {
       this.initializedFromBackend = true;
       this.hydratedForUserSub = "";
       return;
@@ -327,6 +328,10 @@ export class ExperienceService {
       this.persistClaimedBadgeRewardsLocally(claimedBadgeRewards);
       this.hydratedForUserSub = userSub;
     } catch {
+      // Silence 403 errors if role is not authorized for experience tracking
+      if ((arguments[0] as any)?.response?.status === 403) {
+        return;
+      }
       // Keep local fallback data when backend is unreachable.
     } finally {
       this.initializedFromBackend = true;

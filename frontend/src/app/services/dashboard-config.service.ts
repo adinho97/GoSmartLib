@@ -12,7 +12,7 @@ export const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
   tiles: ["mijn-boeken", "bibliotheek", "snelkoppelingen"],
   pages: {
     "mijn-boeken": ["verder-lezen", "laatst-ingeleverd"],
-    "bibliotheek": ["in-de-kijker", "boek-vd-maand", "themaboek"],
+    bibliotheek: ["in-de-kijker", "boek-vd-maand", "themaboek"],
   },
 };
 
@@ -23,14 +23,19 @@ export class DashboardConfigService {
   private readonly apiUrl = "/api/user/dashboard-config";
   private readonly STORAGE_KEY = "gosmartlib.dashboard.config.v2";
 
-  private configSubject = new BehaviorSubject<DashboardConfig>(this.cloneDefault());
-  public config$: Observable<DashboardConfig> = this.configSubject.asObservable();
+  private configSubject = new BehaviorSubject<DashboardConfig>(
+    this.cloneDefault(),
+  );
+  public config$: Observable<DashboardConfig> =
+    this.configSubject.asObservable();
 
   async init(): Promise<void> {
     const cached = this.readLocal();
     this.configSubject.next(cached ?? this.cloneDefault());
 
-    if (this.isAuthenticated()) {
+    const role = localStorage.getItem("role"); //
+    if (this.isAuthenticated() && role === "leerling") {
+      //
       this.syncFromBackendInBackground();
     }
   }
@@ -89,6 +94,10 @@ export class DashboardConfigService {
         this.writeLocal(parsed);
       }
     } catch (error: any) {
+      // Silence 401/403 errors for unauthorized roles
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        return;
+      }
       if (error?.response?.status === 401) {
         console.debug("Unauthorized when loading dashboard config");
         return;
@@ -116,7 +125,12 @@ export class DashboardConfigService {
   private parseConfig(raw: string): DashboardConfig | null {
     try {
       const obj = JSON.parse(raw);
-      if (obj && Array.isArray(obj.tiles) && obj.pages && typeof obj.pages === "object") {
+      if (
+        obj &&
+        Array.isArray(obj.tiles) &&
+        obj.pages &&
+        typeof obj.pages === "object"
+      ) {
         return obj as DashboardConfig;
       }
     } catch {}
@@ -127,7 +141,10 @@ export class DashboardConfigService {
     return {
       tiles: [...DEFAULT_DASHBOARD_CONFIG.tiles],
       pages: Object.fromEntries(
-        Object.entries(DEFAULT_DASHBOARD_CONFIG.pages).map(([k, v]) => [k, [...v]]),
+        Object.entries(DEFAULT_DASHBOARD_CONFIG.pages).map(([k, v]) => [
+          k,
+          [...v],
+        ]),
       ),
     };
   }
@@ -139,7 +156,8 @@ export class DashboardConfigService {
   }
 
   private authHeaders() {
-    const sub = localStorage.getItem("sub") || localStorage.getItem("userId") || "";
+    const sub =
+      localStorage.getItem("sub") || localStorage.getItem("userId") || "";
     const token = localStorage.getItem("smartschoolToken") || "";
     return {
       headers: {

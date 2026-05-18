@@ -57,7 +57,7 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
             try {
                 // Check pool health before attempting DB access
                 ConnectionPoolMonitor.PoolMetrics metrics = poolMonitor.getMetrics();
-                if (metrics.pendingThreads > 5 || metrics.utilizationPercent > 95) {
+                if (metrics.pendingThreads > 20 || metrics.utilizationPercent > 98) {
                     logger.warn("Skipping token auth due to pool stress: utilization={}%, pending={}",
                             String.format("%.0f", metrics.utilizationPercent),
                             metrics.pendingThreads);
@@ -67,10 +67,15 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                 } else {
                     request.setAttribute("authenticationAttempted", true);
                     Optional<AppUser> userOpt = appUserRepository.findByAccessToken(token);
-                    if (userOpt.isPresent()) {
+                    if (userOpt.isEmpty()) {
+                        // Token not found in DB - authentication failed (token invalid/expired/deleted)
+                        logger.debug("Token not found in database for user lookup");
+                        request.setAttribute("authenticationFailed", true);
+                    } else {
                         AppUser user = userOpt.get();
-                        if (user.isActive()) {
-                            String authority = "ROLE_" + user.getRole().toUpperCase();
+                        String role = user.getRole();
+                        if (user.isActive() && role != null) {
+                            String authority = "ROLE_" + role.toUpperCase();
                             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                                     user.getSub(),
                                     null,
@@ -78,13 +83,9 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                             logger.debug("Smartschool token authenticated for user: {}", user.getSub());
                         } else {
-                            logger.debug("Smartschool token matched inactive user: {}", user.getSub());
+                            logger.debug("Smartschool token matched inactive or role-less user: {}", user.getSub());
                             request.setAttribute("authenticationFailed", true);
                         }
-                    } else {
-                        // Token not found in DB - authentication failed (token invalid/expired/deleted)
-                        logger.debug("Token not found in database for user lookup");
-                        request.setAttribute("authenticationFailed", true);
                     }
                 }
             } catch (Exception ex) {

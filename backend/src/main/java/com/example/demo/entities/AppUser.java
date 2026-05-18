@@ -25,6 +25,12 @@ public class AppUser {
     @Column(nullable = true)
     private String platform;
 
+    @Column(nullable = true)
+    private String username;
+
+    @Column(nullable = true)
+    private String displayName;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -109,6 +115,22 @@ public class AppUser {
 
     public void setKlas(Klas klas) {
         this.klas = klas;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
 }
