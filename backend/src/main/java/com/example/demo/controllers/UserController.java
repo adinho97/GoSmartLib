@@ -1,5 +1,7 @@
 package com.example.demo.controllers;
 
+import com.example.demo.config.AuthService;
+import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.entities.AppUser;
 import org.springframework.http.HttpStatus;
@@ -7,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import reactor.core.publisher.Flux;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +21,11 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final AppUserRepository appUserRepository;
+    private final AuthService authService;
 
-    public UserController(AppUserRepository appUserRepository) {
+    public UserController(AppUserRepository appUserRepository, AuthService authService) {
         this.appUserRepository = appUserRepository;
+        this.authService = authService;
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
@@ -95,20 +100,37 @@ public class UserController {
             @RequestParam Long schoolId) {
         String query = q.trim().toLowerCase();
 
-        List<SearchUserDto> results = appUserRepository.findBySchool_Id(schoolId)
-                .stream()
-                .filter(u -> {
-                    String username = u.getUsername() != null ? u.getUsername().toLowerCase() : "";
-                    String displayName = u.getDisplayName() != null ? u.getDisplayName().toLowerCase() : "";
-                    String sub = u.getSub() != null ? u.getSub().toLowerCase() : "";
-                    return username.contains(query) || displayName.contains(query) || sub.contains(query);
-                })
-                .map(u -> new SearchUserDto(
-                        u.getSub(),
-                        u.getDisplayName() != null ? u.getDisplayName() : (u.getUsername() != null ? u.getUsername() : u.getSub())))
-                .collect(Collectors.toList());
+        List<SearchUserDto> results = Flux.fromIterable(appUserRepository.findBySchool_Id(schoolId))
+                .flatMap(user -> authService.getUserInfoBySub(user.getSub())
+                        .map(info -> new SearchUserDto(user.getSub(), formatDisplayName(info)))
+                        .onErrorReturn(new SearchUserDto(user.getSub(), user.getSub())))
+                .filter(dto -> matchesQuery(dto, query))
+                .collectList()
+                .block();
 
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(results == null ? List.of() : results);
+    }
+
+    private boolean matchesQuery(SearchUserDto dto, String query) {
+        String sub = dto.getSub() != null ? dto.getSub().toLowerCase() : "";
+        String displayName = dto.getDisplayName() != null ? dto.getDisplayName().toLowerCase() : "";
+        return sub.contains(query) || displayName.contains(query);
+    }
+
+    private String formatDisplayName(SmartschoolUserInfo info) {
+        String given = info.getGivenName();
+        String family = info.getFamilyName();
+        if (given != null && !given.isBlank() && family != null && !family.isBlank())
+            return family + " " + given;
+        if (family != null && !family.isBlank())
+            return family;
+        if (given != null && !given.isBlank())
+            return given;
+        if (info.getFullName() != null && !info.getFullName().isBlank())
+            return info.getFullName();
+        if (info.getName() != null && !info.getName().isBlank())
+            return info.getName();
+        return info.getSub();
     }
 
     public static class SearchUserDto {

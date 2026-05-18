@@ -92,7 +92,6 @@ public class BibbeheerderService {
         item.setId(user.getId());
         item.setSub(user.getSub());
         item.setRole(user.getRole());
-        item.setDisplayName(user.getDisplayName());
         item.setKlasNaam(user.getKlas() != null ? user.getKlas().getNaam() : null);
         item.setActive(user.isActive());
         return item;
