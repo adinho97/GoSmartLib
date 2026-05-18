@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
-import { AdminUserListItem } from "../models/admin-school";
+import { AdminUserListItem, KlasListItem } from "../models/admin-school";
 
 @Injectable({ providedIn: "root" })
 export class BibbeheerderService {
@@ -11,6 +11,14 @@ export class BibbeheerderService {
 
   getLeerkrachten(): Observable<AdminUserListItem[]> {
     return this.http.get<AdminUserListItem[]>(`${this.apiUrl}/leerkrachten`);
+  }
+
+  getAllUsers(): Observable<AdminUserListItem[]> {
+    return this.http.get<AdminUserListItem[]>(`${this.apiUrl}/users`);
+  }
+
+  getKlassen(): Observable<KlasListItem[]> {
+    return this.http.get<KlasListItem[]>(`${this.apiUrl}/klassen`);
   }
 
   promoteLeerkracht(userId: number): Observable<AdminUserListItem> {

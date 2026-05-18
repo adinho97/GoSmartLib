@@ -1,7 +1,8 @@
 import { Component, OnInit } from "@angular/core";
-import { SchoolService } from "../services/school.service"; // Import the new service
+import { SchoolService } from "../services/school.service";
 import { LoanService, Loan } from "../services/loan.service";
-import { UserService, StudentWithKlas } from "../services/user.service";
+import { BibbeheerderService } from "../services/bibbeheerder.service";
+import { firstValueFrom } from "rxjs";
 
 @Component({
   selector: "app-mijn-taken",
@@ -43,7 +44,7 @@ export class MijnTakenComponent implements OnInit {
   constructor(
     private schoolService: SchoolService,
     private loanService: LoanService,
-    private userService: UserService,
+    private bibbeheerderService: BibbeheerderService,
   ) {
     // Inject the SchoolService
     // Initialize 'today' for the date input's min attribute
@@ -69,9 +70,9 @@ export class MijnTakenComponent implements OnInit {
   }
 
   private loadAvailableClasses(): void {
-    this.schoolService.getClasses().subscribe({
-      next: (classes) => {
-        this.availableClasses = classes;
+    this.bibbeheerderService.getKlassen().subscribe({
+      next: (klassen) => {
+        this.availableClasses = klassen.map((k) => k.naam);
       },
       error: (err) => {
         console.error("Failed to load class filters:", err);
@@ -83,31 +84,19 @@ export class MijnTakenComponent implements OnInit {
   private async loadStudents(): Promise<void> {
     this.studentsLoading = true;
     this.studentsError = "";
+
     try {
-      const students = await this.userService.getAllStudentsWithKlas();
-      // students: StudentWithKlas[] -> { sub, displayName, klas }
-      // We still need to resolve display names via /api/users/{sub}/profile
-      const resolved = await Promise.all(
-        students.map(async (s) => {
-          let display = s.sub;
-          try {
-            const profile: any = await this.userService.getUserProfile(s.sub);
-            display =
-              profile?.fullName ||
-              profile?.givenName ||
-              profile?.familyName ||
-              s.sub;
-          } catch {
-            // fallback to sub
-          }
-          return {
-            sub: s.sub,
-            displayName: display,
-            klas: s.klas ?? "",
-          };
-        }),
+      // Use BibbeheerderService to get users for the caller's school
+      const users = await firstValueFrom(
+        this.bibbeheerderService.getAllUsers(),
       );
-      this.allStudents = resolved;
+
+      this.allStudents = users.map((u) => ({
+        sub: u.sub,
+        displayName: u.displayName || u.sub,
+        klas: u.klasNaam || "",
+      }));
+
       this.onSearchStudents();
     } catch (err) {
       console.error("Failed to load students for verlengen:", err);

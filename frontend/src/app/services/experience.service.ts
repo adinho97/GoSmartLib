@@ -327,6 +327,10 @@ export class ExperienceService {
       this.persistClaimedBadgeRewardsLocally(claimedBadgeRewards);
       this.hydratedForUserSub = userSub;
     } catch {
+      // Silence 403 errors if role is not authorized for experience tracking
+      if ((arguments[0] as any)?.response?.status === 403) {
+        return;
+      }
       // Keep local fallback data when backend is unreachable.
     } finally {
       this.initializedFromBackend = true;

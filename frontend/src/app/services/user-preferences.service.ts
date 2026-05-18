@@ -61,6 +61,12 @@ export class UserPreferencesService {
       this.preferencesSubject.next(merged);
       this.saveToLocalStorage(merged);
     } catch (error: any) {
+      // Silence 403 Forbidden - some roles don't have preferences enabled/configured
+      if (error.response?.status === 403 || error.status === 403) {
+        console.debug("Preferences are not enabled for this user role.");
+        return;
+      }
+
       // Handle 401 errors by clearing stale auth data and returning silently
       if (error.response?.status === 401 || error.status === 401) {
         console.debug(
