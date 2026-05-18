@@ -1,19 +1,21 @@
 package com.example.demo.controllers;
 
-import com.example.demo.config.AuthService;
-import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.entities.AppUser;
+import com.example.demo.services.DisplayNameResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
-import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,11 +23,11 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final AppUserRepository appUserRepository;
-    private final AuthService authService;
+    private final DisplayNameResolver displayNameResolver;
 
-    public UserController(AppUserRepository appUserRepository, AuthService authService) {
+    public UserController(AppUserRepository appUserRepository, DisplayNameResolver displayNameResolver) {
         this.appUserRepository = appUserRepository;
-        this.authService = authService;
+        this.displayNameResolver = displayNameResolver;
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
@@ -100,37 +102,41 @@ public class UserController {
             @RequestParam Long schoolId) {
         String query = q.trim().toLowerCase();
 
-        List<SearchUserDto> results = Flux.fromIterable(appUserRepository.findBySchool_Id(schoolId))
-                .flatMap(user -> authService.getUserInfoBySub(user.getSub())
-                        .map(info -> new SearchUserDto(user.getSub(), formatDisplayName(info)))
-                        .onErrorReturn(new SearchUserDto(user.getSub(), user.getSub())))
-                .filter(dto -> matchesQuery(dto, query))
-                .collectList()
-                .block();
+        // Warm the per-school cache via OneRoster batch (one API call, no-op if
+        // already warm or no OneRoster). Lets the cheap peek() filter below
+        // catch every name match, not just the ones already cached.
+        displayNameResolver.warmSchoolCache(schoolId);
 
-        return ResponseEntity.ok(results == null ? List.of() : results);
-    }
+        List<AppUser> allUsers = appUserRepository.findBySchool_Id(schoolId);
 
-    private boolean matchesQuery(SearchUserDto dto, String query) {
-        String sub = dto.getSub() != null ? dto.getSub().toLowerCase() : "";
-        String displayName = dto.getDisplayName() != null ? dto.getDisplayName().toLowerCase() : "";
-        return sub.contains(query) || displayName.contains(query);
-    }
+        // Cheap in-memory filter: sub-match always counts; name-match counts when
+        // the name is already in cache (free lookup). Anything not caught here is
+        // either uncached or doesn't match — we skip the API call for it.
+        Set<String> candidateSubs = new LinkedHashSet<>();
+        for (AppUser u : allUsers) {
+            String sub = u.getSub();
+            if (sub == null || sub.isBlank()) {
+                continue;
+            }
+            if (sub.toLowerCase().contains(query)) {
+                candidateSubs.add(sub);
+                continue;
+            }
+            Optional<String> cachedName = displayNameResolver.peek(sub);
+            if (cachedName.isPresent() && cachedName.get().toLowerCase().contains(query)) {
+                candidateSubs.add(sub);
+            }
+        }
 
-    private String formatDisplayName(SmartschoolUserInfo info) {
-        String given = info.getGivenName();
-        String family = info.getFamilyName();
-        if (given != null && !given.isBlank() && family != null && !family.isBlank())
-            return family + " " + given;
-        if (family != null && !family.isBlank())
-            return family;
-        if (given != null && !given.isBlank())
-            return given;
-        if (info.getFullName() != null && !info.getFullName().isBlank())
-            return info.getFullName();
-        if (info.getName() != null && !info.getName().isBlank())
-            return info.getName();
-        return info.getSub();
+        // Resolve display names only for survivors. Cache hits return instantly;
+        // misses fall back to Smartschool userinfo for these subs alone.
+        Map<String, String> names = displayNameResolver.resolveAll(schoolId, new ArrayList<>(candidateSubs));
+
+        List<SearchUserDto> results = candidateSubs.stream()
+                .map(sub -> new SearchUserDto(sub, names.getOrDefault(sub, sub)))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(results);
     }
 
     public static class SearchUserDto {
