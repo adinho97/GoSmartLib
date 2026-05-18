@@ -25,6 +25,30 @@ axios.interceptors.request.use((config: any) => {
   return config;
 });
 
+// Apply UI prefs from cookie early so they persist across refresh/login flows
+try {
+  const UI_COOKIE_KEY = "ui_prefs_v1";
+  const nameEQ = UI_COOKIE_KEY + "=";
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === " ") c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) {
+      const raw = decodeURIComponent(c.substring(nameEQ.length));
+      const parsed = JSON.parse(raw || "{}");
+      if (parsed["ui_darkMode"]) {
+        document.documentElement.classList.add("dark");
+      }
+      if (parsed["ui_colorblind"]) {
+        document.documentElement.classList.add("cb-deuteranopia");
+      }
+      break;
+    }
+  }
+} catch (err) {
+  // ignore
+}
+
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
