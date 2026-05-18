@@ -19,11 +19,12 @@ export class ColorblindService {
 
     // 2. Luister naar updates vanuit de database sync
     this.prefsService.preferences$.subscribe((prefs) => {
-      // Determine mode: DB value wins if explicitly set (true/false).
-      // If DB value is undefined (user never set it), default to 'none'.
       const dbValue = prefs["ui_colorblind"];
-      const targetMode: ColorblindMode =
-        dbValue !== undefined ? (dbValue ? "deuteranopia" : "none") : "none"; // Default to 'none' if not in DB
+
+      // Only react if the sync actually returned a value for this key
+      if (dbValue === undefined) return;
+
+      const targetMode: ColorblindMode = dbValue ? "deuteranopia" : "none";
 
       if (targetMode !== this.currentMode) {
         this.applyMode(targetMode);
