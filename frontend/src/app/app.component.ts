@@ -107,7 +107,7 @@ export class AppComponent implements OnInit {
   }
 
   get showStaffNav(): boolean {
-    return this.showNavbar && !this.isStudent;
+    return this.showNavbar && !this.isStudent && !this.showAdminNav;
   }
 
   get showFooter(): boolean {

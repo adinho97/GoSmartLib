@@ -15,7 +15,9 @@ export class TeacherPromotionComponent implements OnInit {
   leerkrachten: AdminUserListItem[] = [];
   loading = true;
   loadError = "";
-
+  get isAdmin(): boolean {
+    return !!localStorage.getItem("admin_jwt_token");
+  }
   confirmTarget: AdminUserListItem | null = null;
   isPromoting = false;
   promoteError = "";

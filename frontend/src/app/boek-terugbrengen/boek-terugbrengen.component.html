@@ -1,18 +1,30 @@
 <div class="btb-page">
   <header class="btb-head">
-    <a class="btb-back" routerLink="/mijn-taken">← Mijn taken</a>
+    @if (!isAdmin) {
+      <a class="btb-back" routerLink="/mijn-taken">← Mijn taken</a>
+    }
     <p class="btb-eyebrow">Mijn taken</p>
     <h1 class="btb-title">Boek terugbrengen</h1>
-    <p class="btb-subtitle">Selecteer een leerling om hun actieve uitleningen te bekijken en terug te brengen.</p>
+    <p class="btb-subtitle">
+      Selecteer een leerling om hun actieve uitleningen te bekijken en terug te
+      brengen.
+    </p>
   </header>
 
   <!-- Step indicator -->
   <div class="btb-steps">
-    <div class="btb-step" [class.btb-step-active]="step === 'leerling'" [class.btb-step-done]="step === 'uitleningen'">
+    <div
+      class="btb-step"
+      [class.btb-step-active]="step === 'leerling'"
+      [class.btb-step-done]="step === 'uitleningen'"
+    >
       <span class="btb-step-num">1</span>
       <span class="btb-step-label">Leerling</span>
     </div>
-    <div class="btb-step-line" [class.btb-step-line-done]="step === 'uitleningen'"></div>
+    <div
+      class="btb-step-line"
+      [class.btb-step-line-done]="step === 'uitleningen'"
+    ></div>
     <div class="btb-step" [class.btb-step-active]="step === 'uitleningen'">
       <span class="btb-step-num">2</span>
       <span class="btb-step-label">Uitleningen</span>
@@ -24,13 +36,24 @@
   }
 
   <!-- Stap 1: Leerling kiezen -->
-  @if (step === 'leerling') {
+  @if (step === "leerling") {
     <div class="btb-card">
       <h2 class="btb-card-title">Wie brengt een boek terug?</h2>
 
       <div class="btb-search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <input
           type="text"
@@ -54,14 +77,29 @@
           @for (leerling of filteredLeerlingen; track leerling.sub) {
             <li
               class="btb-leerling-item"
-              [class.btb-leerling-selected]="selectedLeerling?.sub === leerling.sub"
+              [class.btb-leerling-selected]="
+                selectedLeerling?.sub === leerling.sub
+              "
               (click)="selectLeerling(leerling)"
             >
-              <div class="btb-leerling-avatar">{{ leerling.displayName.charAt(0).toUpperCase() }}</div>
+              <div class="btb-leerling-avatar">
+                {{ leerling.displayName.charAt(0).toUpperCase() }}
+              </div>
               <span class="btb-leerling-name">{{ leerling.displayName }}</span>
               @if (selectedLeerling?.sub === leerling.sub) {
-                <svg class="btb-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  class="btb-check"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               }
             </li>
@@ -76,18 +114,22 @@
           [disabled]="!selectedLeerling"
           (click)="confirmLeerling()"
         >
-          Verder met {{ selectedLeerling?.displayName || '…' }} →
+          Verder met {{ selectedLeerling?.displayName || "…" }} →
         </button>
       </div>
     </div>
   }
 
   <!-- Stap 2: Uitleningen -->
-  @if (step === 'uitleningen') {
+  @if (step === "uitleningen") {
     <div class="btb-card">
       <div class="btb-card-head">
-        <button class="btb-ghost-btn" type="button" (click)="goBack()">← Terug</button>
-        <h2 class="btb-card-title">Uitleningen van <strong>{{ selectedLeerling?.displayName }}</strong></h2>
+        <button class="btb-ghost-btn" type="button" (click)="goBack()">
+          ← Terug
+        </button>
+        <h2 class="btb-card-title">
+          Uitleningen van <strong>{{ selectedLeerling?.displayName }}</strong>
+        </h2>
       </div>
 
       @if (errorMessage) {
@@ -98,11 +140,24 @@
         <div class="btb-loader"><div class="spinner"></div></div>
       } @else if (activeLoans.length === 0) {
         <div class="btb-no-loans">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          <svg
+            width="36"
+            height="36"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg>
-          <p>{{ selectedLeerling?.displayName }} heeft momenteel geen actieve uitleningen.</p>
+          <p>
+            {{ selectedLeerling?.displayName }} heeft momenteel geen actieve
+            uitleningen.
+          </p>
         </div>
       } @else {
         <ul class="btb-loan-list">
@@ -112,16 +167,22 @@
                 @if (loan.bookCover) {
                   <img [src]="loan.bookCover" [alt]="loan.bookTitel" />
                 } @else {
-                  <div class="btb-loan-cover-placeholder">{{ loan.bookTitel.slice(0, 2).toUpperCase() }}</div>
+                  <div class="btb-loan-cover-placeholder">
+                    {{ loan.bookTitel.slice(0, 2).toUpperCase() }}
+                  </div>
                 }
               </div>
               <div class="btb-loan-info">
                 <p class="btb-loan-title">{{ loan.bookTitel }}</p>
-                <p class="btb-loan-due" [class.btb-overdue]="isOverdue(loan.dueDate)">
+                <p
+                  class="btb-loan-due"
+                  [class.btb-overdue]="isOverdue(loan.dueDate)"
+                >
                   @if (isOverdue(loan.dueDate)) {
-                    Te laat — inleveren was {{ loan.dueDate | date:'dd/MM/yyyy' }}
+                    Te laat — inleveren was
+                    {{ loan.dueDate | date: "dd/MM/yyyy" }}
                   } @else {
-                    Inleveren voor {{ loan.dueDate | date:'dd/MM/yyyy' }}
+                    Inleveren voor {{ loan.dueDate | date: "dd/MM/yyyy" }}
                   }
                 </p>
               </div>
@@ -130,8 +191,18 @@
                 type="button"
                 (click)="openReturnDialog(loan, $event)"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
                 Teruggebracht
               </button>
@@ -144,30 +215,77 @@
 
   <!-- Return dialog -->
   @if (returnDialogOpen && returnDialogLoan) {
-    <div class="btb-modal-backdrop" role="dialog" aria-modal="true" (click)="closeReturnDialog()">
+    <div
+      class="btb-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeReturnDialog()"
+    >
       <div class="btb-modal" (click)="$event.stopPropagation()">
         <header class="btb-modal-head">
           <h3>Boek terugbrengen</h3>
-          <button type="button" class="btb-modal-close" (click)="closeReturnDialog()" aria-label="Sluit">×</button>
+          <button
+            type="button"
+            class="btb-modal-close"
+            (click)="closeReturnDialog()"
+            aria-label="Sluit"
+          >
+            ×
+          </button>
         </header>
 
         <div class="btb-modal-body">
           <p class="btb-modal-book">
             <strong>{{ returnDialogLoan.bookTitel }}</strong>
           </p>
-          <p class="btb-modal-intro">In welke staat wordt het boek teruggebracht?</p>
+          <p class="btb-modal-intro">
+            In welke staat wordt het boek teruggebracht?
+          </p>
 
           <div class="btb-condition-group">
-            <label class="btb-condition-opt" [class.btb-condition-selected]="returnCondition === 'GOOD' && !returnLostBook">
-              <input type="radio" name="cond" value="GOOD" [(ngModel)]="returnCondition" [disabled]="returnLostBook" />
+            <label
+              class="btb-condition-opt"
+              [class.btb-condition-selected]="
+                returnCondition === 'GOOD' && !returnLostBook
+              "
+            >
+              <input
+                type="radio"
+                name="cond"
+                value="GOOD"
+                [(ngModel)]="returnCondition"
+                [disabled]="returnLostBook"
+              />
               <span class="btb-condition-label">Goed</span>
             </label>
-            <label class="btb-condition-opt" [class.btb-condition-selected]="returnCondition === 'MODERATE' && !returnLostBook">
-              <input type="radio" name="cond" value="MODERATE" [(ngModel)]="returnCondition" [disabled]="returnLostBook" />
+            <label
+              class="btb-condition-opt"
+              [class.btb-condition-selected]="
+                returnCondition === 'MODERATE' && !returnLostBook
+              "
+            >
+              <input
+                type="radio"
+                name="cond"
+                value="MODERATE"
+                [(ngModel)]="returnCondition"
+                [disabled]="returnLostBook"
+              />
               <span class="btb-condition-label">Matig</span>
             </label>
-            <label class="btb-condition-opt" [class.btb-condition-selected]="returnCondition === 'BAD' && !returnLostBook">
-              <input type="radio" name="cond" value="BAD" [(ngModel)]="returnCondition" [disabled]="returnLostBook" />
+            <label
+              class="btb-condition-opt"
+              [class.btb-condition-selected]="
+                returnCondition === 'BAD' && !returnLostBook
+              "
+            >
+              <input
+                type="radio"
+                name="cond"
+                value="BAD"
+                [(ngModel)]="returnCondition"
+                [disabled]="returnLostBook"
+              />
               <span class="btb-condition-label">Slecht</span>
             </label>
           </div>
@@ -178,7 +296,9 @@
           </label>
 
           <p class="btb-condition-hint">
-            Status wordt geregistreerd als <strong>{{ returnConditionLabel }}</strong>.
+            Status wordt geregistreerd als
+            <strong>{{ returnConditionLabel }}</strong
+            >.
           </p>
 
           @if (errorMessage) {
@@ -187,18 +307,23 @@
         </div>
 
         <footer class="btb-modal-footer">
-          <button type="button" class="btb-ghost-btn" (click)="closeReturnDialog()">Annuleren</button>
+          <button
+            type="button"
+            class="btb-ghost-btn"
+            (click)="closeReturnDialog()"
+          >
+            Annuleren
+          </button>
           <button
             type="button"
             class="btb-btn-primary"
             [disabled]="isReturningLoan"
             (click)="confirmReturnLoan()"
           >
-            {{ isReturningLoan ? 'Bezig…' : 'Bevestig terugkeer' }}
+            {{ isReturningLoan ? "Bezig…" : "Bevestig terugkeer" }}
           </button>
         </footer>
       </div>
     </div>
   }
-
 </div>
