@@ -12,6 +12,7 @@ public class LeeslijstDTO {
     private String createdBySub;
     private LocalDateTime createdAt;
     private Boolean isGlobal;
+    private Boolean isSchool;
     private List<LeeslijstBookDTO> books;
     private List<String> klasNames;
     private List<Long> klasIds;
@@ -62,6 +63,9 @@ public class LeeslijstDTO {
 
     public Boolean getIsGlobal() { return isGlobal; }
     public void setIsGlobal(Boolean isGlobal) { this.isGlobal = isGlobal; }
+
+    public Boolean getIsSchool() { return isSchool; }
+    public void setIsSchool(Boolean isSchool) { this.isSchool = isSchool; }
 
     public List<UserDTO> getSharedWithUsers() { return sharedWithUsers; }
     public void setSharedWithUsers(List<UserDTO> sharedWithUsers) { this.sharedWithUsers = sharedWithUsers; }

@@ -31,6 +31,7 @@ interface Leeslijst {
   books: any[];
   klasNames: string[];
   isGlobal?: boolean;
+  isSchool?: boolean;
 }
 
 @Component({

@@ -29,6 +29,9 @@ public class Leeslijst {
     @Column(name = "is_global", nullable = false)
     private Boolean isGlobal = false;
 
+    @Column(name = "is_school", nullable = false)
+    private Boolean isSchool = false;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -108,6 +111,9 @@ public class Leeslijst {
 
     public Boolean getIsGlobal() { return isGlobal; }
     public void setIsGlobal(Boolean isGlobal) { this.isGlobal = isGlobal; }
+
+    public Boolean getIsSchool() { return isSchool; }
+    public void setIsSchool(Boolean isSchool) { this.isSchool = isSchool; }
 
     public Set<AppUser> getAssignedUsers() { return assignedUsers; }
     public void setAssignedUsers(Set<AppUser> assignedUsers) { this.assignedUsers = assignedUsers; }

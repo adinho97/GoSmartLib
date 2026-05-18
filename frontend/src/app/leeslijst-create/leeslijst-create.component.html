@@ -76,9 +76,15 @@
             >🌍 Deze lijst is globaal (zichtbaar voor alle scholen)</span
           >
         </label>
+        <label class="global-toggle">
+          <input type="checkbox" [(ngModel)]="isSchool" />
+          <span class="toggle-label"
+            >🏫 Deze lijst is voor de hele school zichtbaar</span
+          >
+        </label>
       </div>
 
-      @if (!isGlobal) {
+      @if (!isGlobal && !isSchool) {
         <div class="dual-selector">
           <div class="klassen-selector">
             <h4 class="card-subtitle">Klassen</h4>
