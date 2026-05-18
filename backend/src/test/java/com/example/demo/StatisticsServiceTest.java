@@ -7,6 +7,7 @@ import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.SchoolRepository;
+import com.example.demo.services.DisplayNameResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,12 +32,19 @@ class StatisticsServiceTest {
     private AppUserRepository userRepository;
     @Mock
     private SchoolRepository schoolRepository;
+    @Mock
+    private DisplayNameResolver displayNameResolver;
 
     private StatisticsService statisticsService;
 
     @BeforeEach
     void setUp() {
-        statisticsService = new StatisticsService(bookRepository, loanRepository, userRepository, schoolRepository);
+        statisticsService = new StatisticsService(
+                bookRepository,
+                loanRepository,
+                userRepository,
+                schoolRepository,
+                displayNameResolver);
     }
 
     @Test
