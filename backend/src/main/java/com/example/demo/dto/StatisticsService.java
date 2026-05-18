@@ -5,6 +5,7 @@ import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.SchoolRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
+import com.example.demo.services.DisplayNameResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -20,15 +21,18 @@ public class StatisticsService {
     private final LoanRepository loanRepository;
     private final AppUserRepository userRepository;
     private final SchoolRepository schoolRepository;
+    private final DisplayNameResolver displayNameResolver;
 
     public StatisticsService(BookRepository bookRepository,
             LoanRepository loanRepository,
             AppUserRepository userRepository,
-            SchoolRepository schoolRepository) {
+            SchoolRepository schoolRepository,
+            DisplayNameResolver displayNameResolver) {
         this.bookRepository = bookRepository;
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
         this.schoolRepository = schoolRepository;
+        this.displayNameResolver = displayNameResolver;
     }
 
     /**
@@ -77,7 +81,15 @@ public class StatisticsService {
         }
 
         // Populate Top Reader and Top Class
-        dto.setTopReader(formatTopItem(loanRepository.findTopReadersBySchool(requiredSchoolId), "sub", "displayName"));
+        Map<String, Object> topReader = formatTopItem(loanRepository.findTopReadersBySchool(requiredSchoolId), "sub", "displayName");
+        if (topReader != null) {
+            Object subObj = topReader.get("sub");
+            if (subObj instanceof String sub && !sub.isBlank()) {
+                Map<String, String> names = displayNameResolver.resolveAll(requiredSchoolId, List.of(sub));
+                topReader.put("displayName", names.getOrDefault(sub, sub));
+            }
+        }
+        dto.setTopReader(topReader);
         dto.setTopClass(formatTopItem(loanRepository.findTopClassesBySchool(requiredSchoolId), "name"));
 
         dto.setPopularBooks(formatPopularBooks(loanRepository.findPopularBooksBySchool(requiredSchoolId)));

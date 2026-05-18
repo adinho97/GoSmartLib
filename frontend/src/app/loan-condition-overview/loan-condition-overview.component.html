@@ -75,7 +75,7 @@
                   </div>
                 </td>
                 <td>#{{ item.copyNumber ?? "..." }}</td>
-                <td>{{ getUserName(item.userSub) }}</td>
+                <td>{{ getUserName(item) }}</td>
                 <td>{{ conditionLabel(item.loanedCondition) }}</td>
                 <td>
                   @if (isLostReturn(item)) {

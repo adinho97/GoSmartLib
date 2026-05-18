@@ -43,6 +43,7 @@ public class LoanConditionOverviewDto {
         private String bookTitel;
         private String bookCover;
         private String userSub;
+        private String userDisplayName;
         private LocalDate loanedAt;
         private LocalDate returnedAt;
         private BookCopy.CopyCondition loanedCondition;
@@ -103,6 +104,14 @@ public class LoanConditionOverviewDto {
 
         public void setUserSub(String userSub) {
             this.userSub = userSub;
+        }
+
+        public String getUserDisplayName() {
+            return userDisplayName;
+        }
+
+        public void setUserDisplayName(String userDisplayName) {
+            this.userDisplayName = userDisplayName;
         }
 
         public LocalDate getLoanedAt() {

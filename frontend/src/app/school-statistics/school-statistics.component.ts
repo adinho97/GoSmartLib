@@ -3,8 +3,6 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { BookService, SchoolStatistics } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
-import { formatUserInfoDisplayName } from "../utils/name-utils";
-import axios from "axios";
 
 @Component({
   selector: "app-school-statistics",
@@ -33,26 +31,11 @@ export class SchoolStatisticsComponent implements OnInit {
 
     try {
       this.stats = await this.bookService.getSchoolStatistics(schoolId);
-
-      if (this.stats?.topReader?.sub) {
-        this.stats.topReader.displayName = await this.getDisplayNameForSub(
-          this.stats.topReader.sub
-        );
-      }
     } catch (err) {
       console.error("Failed to load school statistics", err);
       this.error = "Fout bij het laden van de statistieken.";
     } finally {
       this.isLoading = false;
-    }
-  }
-
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    try {
-      const profile = await axios.get(`/api/users/${encodeURIComponent(sub)}/profile`);
-      return formatUserInfoDisplayName(profile.data, sub);
-    } catch {
-      return sub;
     }
   }
 }
