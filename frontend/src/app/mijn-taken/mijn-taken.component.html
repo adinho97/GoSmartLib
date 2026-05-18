@@ -254,6 +254,12 @@
             </select>
           </div>
 
+          @if (studentsLoading) {
+            <p class="info-msg">Leerlingen laden...</p>
+          } @else if (studentsError) {
+            <p class="error-msg">{{ studentsError }}</p>
+          }
+
           <ul class="leerling-list mt-modal-list">
             @for (s of filteredStudents; track s.sub) {
               <li class="leerling-item" (click)="selectStudentForExtension(s)">
