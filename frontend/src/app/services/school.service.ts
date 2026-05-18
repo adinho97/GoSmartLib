@@ -187,7 +187,13 @@ export class SchoolService {
       const token = this.authContext.getEffectiveBearerToken();
       const res = await axios.get(
         `/api/scholen/${schoolId}/default-loan-days`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-User-Role": this.authContext.getEffectiveRole(),
+            "X-User-Sub": this.authContext.getEffectiveSub(),
+          },
+        }
       );
       return res.data?.defaultLoanDays ?? 14;
     } catch {
@@ -200,7 +206,13 @@ export class SchoolService {
     await axios.patch(
       `/api/scholen/${schoolId}/default-loan-days`,
       { defaultLoanDays: days },
-      { headers: { Authorization: `Bearer ${token}` } }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-User-Role": this.authContext.getEffectiveRole(),
+          "X-User-Sub": this.authContext.getEffectiveSub(),
+        },
+      }
     );
   }
 }
