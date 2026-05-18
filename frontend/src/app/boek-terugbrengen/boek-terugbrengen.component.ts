@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { LoanService, Loan, ReturnCondition, ReturnLoanRequest } from '../services/loan.service';
-import { formatUserInfoDisplayName } from '../utils/name-utils';
 import axios from 'axios';
 
 type Leerling = { sub: string; displayName: string };
@@ -41,27 +40,15 @@ export class BoekTerugbrengenComponent implements OnInit {
     this.loadLeerlingen();
   }
 
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    try {
-      const profile = await axios.get(`/api/users/${encodeURIComponent(sub)}/profile`);
-      return formatUserInfoDisplayName(profile.data as any, sub);
-    } catch {
-      return sub;
-    }
-  }
-
   async loadLeerlingen(): Promise<void> {
     this.leerlingenLoading = true;
     try {
       const res = await axios.get('/api/gebruikers/leerlingen');
-      const students = (res.data || []) as Array<{ sub: string }>;
-      const enriched = await Promise.all(
-        students.map(async (l) => ({
-          sub: l.sub,
-          displayName: await this.getDisplayNameForSub(l.sub),
-        })),
-      );
-      this.leerlingen = enriched;
+      const students = (res.data || []) as Array<{ sub: string; displayName?: string }>;
+      this.leerlingen = students.map((l) => ({
+        sub: l.sub,
+        displayName: l.displayName || l.sub,
+      }));
       this.filteredLeerlingen = [...this.leerlingen];
     } catch {
       this.leerlingError = 'Leerlingen laden mislukt.';
