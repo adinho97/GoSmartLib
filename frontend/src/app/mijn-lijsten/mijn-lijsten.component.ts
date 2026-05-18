@@ -30,6 +30,7 @@ interface Leeslijst {
   createdAt: string;
   books: any[];
   klasNames: string[];
+  isGlobal?: boolean;
 }
 
 @Component({
