@@ -20,10 +20,44 @@ export interface PagedResult<T> {
 export class SchoolService {
   constructor(private authContext: AuthContextService) {}
 
-  getClasses(): Observable<string[]> {
-    return of(["Klas A", "Klas B", "Klas C", "Klas D", "Klas E"]).pipe(
-      delay(500),
-    ); // Simulate network delay
+  /**
+   * Fetches available classes for the currently selected school or the user's own school.
+   * Falls back to an empty array when no school is selected.
+   */
+  getClasses(schoolId?: number): Observable<string[]> {
+    return new Observable((subscriber) => {
+      void this.resolveSchoolId(schoolId)
+        .then((effectiveSchoolId) => {
+          if (!effectiveSchoolId) {
+            subscriber.next([]);
+            subscriber.complete();
+            return;
+          }
+
+          return this.getKlassenBySchool(effectiveSchoolId);
+        })
+        .then((klassen) => {
+          if (!klassen) {
+            subscriber.next([]);
+            subscriber.complete();
+            return;
+          }
+          subscriber.next(klassen.map((k) => k.naam));
+          subscriber.complete();
+        })
+        .catch((err) => subscriber.error(err));
+    });
+  }
+
+  private async resolveSchoolId(schoolId?: number): Promise<number | null> {
+    if (schoolId) return schoolId;
+    const selectedSchoolId = this.getSelectedSchoolId();
+    if (selectedSchoolId) return selectedSchoolId;
+    const ownSchoolId = this.getUserOwnSchoolId();
+    if (ownSchoolId) return ownSchoolId;
+
+    await this.selectUserDefaultSchool();
+    return this.getSelectedSchoolId() ?? this.getUserOwnSchoolId();
   }
 
   getAllSchools(): Observable<any[]> {
@@ -135,7 +169,10 @@ export class SchoolService {
   async getKlassenBySchool(schoolId: number): Promise<KlasListItem[]> {
     try {
       const res = await fetch(
-        `/api/schools/${encodeURIComponent(schoolId)}/klassen`,
+        `/api/scholen/${encodeURIComponent(schoolId)}/klassen`,
+        {
+          headers: this.buildAuthHeaders(),
+        },
       );
       if (!res.ok) return [];
       return (await res.json()) as KlasListItem[];
@@ -150,7 +187,13 @@ export class SchoolService {
       const token = this.authContext.getEffectiveBearerToken();
       const res = await axios.get(
         `/api/scholen/${schoolId}/default-loan-days`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-User-Role": this.authContext.getEffectiveRole(),
+            "X-User-Sub": this.authContext.getEffectiveSub(),
+          },
+        }
       );
       return res.data?.defaultLoanDays ?? 14;
     } catch {
@@ -163,7 +206,13 @@ export class SchoolService {
     await axios.patch(
       `/api/scholen/${schoolId}/default-loan-days`,
       { defaultLoanDays: days },
-      { headers: { Authorization: `Bearer ${token}` } }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-User-Role": this.authContext.getEffectiveRole(),
+          "X-User-Sub": this.authContext.getEffectiveSub(),
+        },
+      }
     );
   }
 }
