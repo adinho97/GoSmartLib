@@ -19,4 +19,6 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     List<AppUser> findBySchool_Id(Long schoolId);
 
     List<AppUser> findBySchool_IdAndRole(Long schoolId, String role);
+
+    List<AppUser> findBySubIn(List<String> subs);
 }

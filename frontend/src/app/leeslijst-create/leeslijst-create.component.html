@@ -64,6 +64,80 @@
   <!-- Step 2: Klassen & Boeken Selection -->
   @if (step === "boeken") {
     <div class="selection-card">
+      <div class="sharing-options">
+        <h3 class="card-title">Met wie wil je dit delen?</h3>
+        <label class="global-toggle">
+          <input
+            type="checkbox"
+            [(ngModel)]="isGlobal"
+            (change)="onGlobalToggle()"
+          />
+          <span class="toggle-label"
+            >🌍 Deze lijst is globaal (zichtbaar voor alle scholen)</span
+          >
+        </label>
+      </div>
+
+      @if (!isGlobal) {
+        <div class="dual-selector">
+          <div class="klassen-selector">
+            <h4 class="card-subtitle">Klassen</h4>
+            <div class="search-bar klas-search-bar">
+              <input
+                type="text"
+                placeholder="Zoek klas..."
+                [(ngModel)]="klasSearchQuery"
+                class="search-input"
+              />
+            </div>
+            <div class="grid-list small-grid">
+              @for (klas of filteredKlassen; track klas.id) {
+                <div
+                  class="grid-item"
+                  [class.selected]="selectedKlassenIds.has(klas.id)"
+                  (click)="toggleKlasSelection(klas.id)"
+                >
+                  <span class="item-name">{{ klas.naam }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="users-selector">
+            <h4 class="card-subtitle">Individuele Gebruikers</h4>
+            <div class="search-bar">
+              <input
+                type="text"
+                placeholder="Zoek collega..."
+                [(ngModel)]="userSearchQuery"
+                (input)="onUserSearch()"
+                class="search-input"
+              />
+            </div>
+            <div class="grid-list small-grid">
+              @for (user of foundUsers; track user.sub) {
+                <div
+                  class="grid-item"
+                  [class.selected]="sharedWithUserSubs.has(user.sub)"
+                  (click)="toggleUserSelection(user)"
+                >
+                  <span class="item-name">{{ user.displayName }}</span>
+                </div>
+              }
+            </div>
+            @if (selectedUsers.length > 0) {
+              <div class="selected-tags">
+                @for (user of selectedUsers; track user.sub) {
+                  <span class="user-tag" (click)="toggleUserSelection(user)">
+                    {{ user.displayName }} ✕
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
       <div class="klassen-selector">
         <h3 class="card-title">Selecteer doelklassen</h3>
         <div class="search-bar klas-search-bar">
@@ -272,7 +346,10 @@
           class="btn btn-primary"
           (click)="goToConfirmation()"
           [disabled]="
-            selectedBookIds.size === 0 || selectedKlassenIds.size === 0
+            selectedBookIds.size === 0 ||
+            (!isGlobal &&
+              selectedKlassenIds.size === 0 &&
+              sharedWithUserSubs.size === 0)
           "
         >
           Volgende: Bevestigen
@@ -288,8 +365,18 @@
       <div class="summary">
         <p class="summary-item"><strong>Titel:</strong> {{ leeslijstTitel }}</p>
         <p class="summary-item">
-          <strong>Doelklassen:</strong> {{ getSelectedKlassenNames() }}
+          <strong>Gedeeld met:</strong>
+          {{
+            isGlobal
+              ? "Iedereen (Globaal)"
+              : getSelectedKlassenNames() || "Geen klassen"
+          }}
         </p>
+        @if (!isGlobal && sharedWithUserSubs.size > 0) {
+          <p class="summary-item">
+            <strong>Gebruikers:</strong> {{ getSelectedUserNames() }}
+          </p>
+        }
         <p class="summary-item">
           <strong>Aantal boeken:</strong> {{ selectedBookIds.size }}
         </p>

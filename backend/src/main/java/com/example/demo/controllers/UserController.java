@@ -65,6 +65,40 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/search")
+    public ResponseEntity<List<SearchUserDto>> searchUsers(
+            @RequestParam String q,
+            @RequestParam Long schoolId) {
+        String query = q.trim().toLowerCase();
+        
+        List<SearchUserDto> results = appUserRepository.findBySchool_Id(schoolId)
+                .stream()
+                .filter(u -> {
+                    String sub = u.getSub() != null ? u.getSub().toLowerCase() : "";
+                    return sub.contains(query);
+                })
+                .map(u -> new SearchUserDto(
+                        u.getSub(),
+                        u.getSub()))
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(results);
+    }
+
+    public static class SearchUserDto {
+        private String sub;
+        private String displayName;
+
+        public SearchUserDto(String sub, String displayName) {
+            this.sub = sub;
+            this.displayName = displayName;
+        }
+
+        public String getSub() { return sub; }
+        public String getDisplayName() { return displayName; }
+    }
+
     public static class UserDto {
         private String sub;
         private String role;
