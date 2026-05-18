@@ -75,12 +75,14 @@ public class UserController {
         List<SearchUserDto> results = appUserRepository.findBySchool_Id(schoolId)
                 .stream()
                 .filter(u -> {
+                    String username = u.getUsername() != null ? u.getUsername().toLowerCase() : "";
+                    String displayName = u.getDisplayName() != null ? u.getDisplayName().toLowerCase() : "";
                     String sub = u.getSub() != null ? u.getSub().toLowerCase() : "";
-                    return sub.contains(query);
+                    return username.contains(query) || displayName.contains(query) || sub.contains(query);
                 })
                 .map(u -> new SearchUserDto(
                         u.getSub(),
-                        u.getSub()))
+                        u.getDisplayName() != null ? u.getDisplayName() : (u.getUsername() != null ? u.getUsername() : u.getSub())))
                 .collect(Collectors.toList());
         
         return ResponseEntity.ok(results);

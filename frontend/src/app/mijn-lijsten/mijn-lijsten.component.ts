@@ -157,57 +157,17 @@ export class MijnLijstenComponent implements OnInit {
 
       const schoolId = this.schoolService.getSelectedSchoolId();
 
-      // Fetch class-based lists if user has a klas ID
-      let klasInfo: any = null;
+      // Always fetch all leeslisten the user should see (including global ones)
       try {
-        klasInfo = await this.bookService.getUserKlas();
-      } catch {
-        klasInfo = null;
+        myLists = await this.bookService.getMyLeeslisten();
+      } catch (error) {
+        console.error("Failed to fetch user's leeslisten:", error);
+        myLists = [];
       }
 
-      if (klasInfo && klasInfo.klasId) {
-        try {
-          klasLists = await this.bookService.getLeeslistenForKlas(
-            klasInfo.klasId,
-          );
-        } catch {
-          klasLists = [];
-        }
-      }
-
-      // For teachers, ensure we fetch all lists they created by filtering school lists
-      if (this.hasRole("leerkracht") && schoolId) {
-        try {
-          // Fetch all school lists once
-          const allSchoolLists = await this.bookService.getLeeslisten(schoolId);
-          const currentSub = this.userSub;
-          const currentName =
-            localStorage.getItem("userName") ||
-            localStorage.getItem("fullname") ||
-            "";
-
-          // Filter for lists created by current teacher
-          myLists = (allSchoolLists || []).filter((l: any) => {
-            if (!l) return false;
-            // Match by sub (preferred)
-            if (l.createdBySub && l.createdBySub === currentSub) {
-              return true;
-            }
-            // Match by name as fallback
-            if (currentName && l.createdByName === currentName) {
-              return true;
-            }
-            return false;
-          });
-        } catch (error) {
-          console.error("Failed to fetch teacher's created lists:", error);
-          myLists = [];
-        }
-      }
-
-      // Merge klasLists and myLists by ID (deduplicate)
+      // Merge all leeslisten by ID (deduplicate)
       const mergedMap = new Map<number, any>();
-      (klasLists || []).forEach((l: any) => {
+      (myLists || []).forEach((l: any) => {
         if (l && l.id) mergedMap.set(Number(l.id), l);
       });
       (myLists || []).forEach((l: any) => {
