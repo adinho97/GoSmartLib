@@ -73,7 +73,9 @@ public class WishlistService {
         
         // Count available and total copies
         long totalCopies = bookCopyRepo.countByBook_Id(book.getId());
-        long availableCopies = bookCopyRepo.countByBook_IdAndStatus(book.getId(), BookCopy.CopyStatus.AVAILABLE);
+        long availableCopies = bookCopyRepo.findByBook_Id(book.getId()).stream()
+ .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+ .count();
         
         return new WishlistDto(
                 wishlist.getId(),

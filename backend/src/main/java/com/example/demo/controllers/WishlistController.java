@@ -99,9 +99,9 @@ public class WishlistController {
 
         // Validation: Can only enable notifications if book is unavailable
         if (dto.isNotificationEnabled()) {
-            long availableCopies = bookCopyRepository.countByBook_IdAndStatus(
-                    bookId,
-                    BookCopy.CopyStatus.AVAILABLE);
+            long availableCopies = bookCopyRepository.findByBook_Id(bookId).stream()
+ .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+ .count();
 
             if (availableCopies > 0) {
                 throw new IllegalStateException("Cannot enable notifications for available book");

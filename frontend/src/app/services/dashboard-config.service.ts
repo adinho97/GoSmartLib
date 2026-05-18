@@ -23,9 +23,14 @@ export class DashboardConfigService {
   private readonly apiUrl = "/api/user/dashboard-config";
   private readonly STORAGE_KEY = "gosmartlib.dashboard.config.v2";
 
+  private hasSynced = false;
+  private activeSyncPromise: Promise<void> | null = null;
+
+  // Reactive config stream. The initial value is loaded from localStorage in init().
   private configSubject = new BehaviorSubject<DashboardConfig>(
     this.cloneDefault(),
   );
+
   public config$: Observable<DashboardConfig> =
     this.configSubject.asObservable();
 
@@ -33,9 +38,9 @@ export class DashboardConfigService {
     const cached = this.readLocal();
     this.configSubject.next(cached ?? this.cloneDefault());
 
-    const role = localStorage.getItem("role"); //
+    // Proactive sync if already logged in
+    const role = localStorage.getItem("role");
     if (this.isAuthenticated() && role === "leerling") {
-      //
       this.syncFromBackendInBackground();
     }
   }
@@ -72,7 +77,17 @@ export class DashboardConfigService {
     this.configSubject.next(this.cloneDefault());
     try {
       localStorage.removeItem(this.STORAGE_KEY);
+      this.hasSynced = false;
     } catch {}
+  }
+
+  /**
+   * Forces a refresh of the dashboard configuration from the backend.
+   * Useful after login or when authentication state changes.
+   */
+  async syncNow(): Promise<void> {
+    this.hasSynced = false; // Ensure a fresh sync
+    await this.loadFromBackend();
   }
 
   private syncFromBackendInBackground(): void {
@@ -80,30 +95,42 @@ export class DashboardConfigService {
   }
 
   private async loadFromBackend(): Promise<void> {
-    try {
-      const res = await axios.get<{ configJson: string | null }>(
-        this.apiUrl,
-        this.authHeaders(),
-      );
-      const json = res.data?.configJson;
-      if (!json) return;
-
-      const parsed = this.parseConfig(json);
-      if (parsed) {
-        this.configSubject.next(parsed);
-        this.writeLocal(parsed);
-      }
-    } catch (error: any) {
-      // Silence 401/403 errors for unauthorized roles
-      if (error?.response?.status === 401 || error?.response?.status === 403) {
-        return;
-      }
-      if (error?.response?.status === 401) {
-        console.debug("Unauthorized when loading dashboard config");
-        return;
-      }
-      console.warn("Failed to load dashboard config from backend:", error);
+    if (this.activeSyncPromise) {
+      return this.activeSyncPromise;
     }
+
+    const role = localStorage.getItem("role");
+    if (role !== "leerling") return; // Only students have dashboard configs
+
+    this.activeSyncPromise = (async () => {
+      try {
+        const res = await axios.get<{ configJson: string | null }>(
+          this.apiUrl,
+          this.authHeaders(),
+        );
+        const json = res.data?.configJson;
+        if (!json) return;
+
+        const parsed = this.parseConfig(json);
+        if (parsed) {
+          this.configSubject.next(parsed);
+          this.writeLocal(parsed);
+          this.hasSynced = true;
+        }
+      } catch (error: any) {
+        if (
+          error?.response?.status === 401 ||
+          error?.response?.status === 403
+        ) {
+          return;
+        }
+        console.warn("Failed to load dashboard config from backend:", error);
+      } finally {
+        this.activeSyncPromise = null;
+      }
+    })();
+
+    return this.activeSyncPromise;
   }
 
   private readLocal(): DashboardConfig | null {
