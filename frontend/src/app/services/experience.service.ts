@@ -301,7 +301,8 @@ export class ExperienceService {
 
   private async initFromBackend(): Promise<void> {
     const userSub = this.getUserSub();
-    if (!userSub) {
+    const role = localStorage.getItem("role");
+    if (!userSub || role !== "leerling") {
       this.initializedFromBackend = true;
       this.hydratedForUserSub = "";
       return;

@@ -11,7 +11,7 @@ export type PreferenceKey =
   | "recommendationExcludeRead_author"
   | "recommendationExcludeRead_newArrivals"
   | "ui_darkMode"
-  | "ui_colorblind"     
+  | "ui_colorblind"
   | "dashboard_showWishlist"
   | "dashboard_showReadingHistory"
   | "dashboard_showBorrowed"
@@ -49,8 +49,13 @@ export class UserPreferencesService {
   }
 
   async loadPreferencesFromBackend(): Promise<void> {
-    // Skip if user is not authenticated to avoid 401 errors
-    if (!this.isUserAuthenticated()) {
+    // Skip if not authenticated or if user is a teacher/admin (only students have preference records currently)
+    const role = localStorage.getItem("role");
+    if (
+      !this.isUserAuthenticated() ||
+      role === "leerkracht" ||
+      role === "bibbeheerder"
+    ) {
       return;
     }
 
@@ -138,10 +143,10 @@ export class UserPreferencesService {
     }
   }
   public async forceRefresh(): Promise<void> {
-  if (this.isUserAuthenticated()) {
-    await this.loadPreferencesFromBackend();
+    if (this.isUserAuthenticated()) {
+      await this.loadPreferencesFromBackend();
+    }
   }
-}
 
   private saveToLocalStorage(prefs: Record<string, boolean>): void {
     try {

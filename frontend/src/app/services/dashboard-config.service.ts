@@ -33,7 +33,8 @@ export class DashboardConfigService {
     const cached = this.readLocal();
     this.configSubject.next(cached ?? this.cloneDefault());
 
-    if (this.isAuthenticated()) {
+    const role = localStorage.getItem("role");
+    if (this.isAuthenticated() && role === "leerling") {
       this.syncFromBackendInBackground();
     }
   }
