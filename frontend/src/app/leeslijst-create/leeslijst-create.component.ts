@@ -204,7 +204,9 @@ export class LeeslijstCreateComponent implements OnInit {
       } else {
         this.uiToastService.error("Fout bij het laden van de leeslijst.");
       }
-      this.router.navigate(["/mijn-lijsten", { fragment: "klasleeslijst" }]);
+      this.router.navigate(["/mijn-lijsten"], {
+        fragment: "klasleeslijst",
+      });
     } finally {
       this.isLoading = false;
     }
@@ -521,7 +523,9 @@ export class LeeslijstCreateComponent implements OnInit {
         this.uiToastService.success("Leeslijst succesvol aangemaakt.");
       }
 
-      this.router.navigate(["/mijn-lijsten", { fragment: "klasleeslijst" }]);
+      this.router.navigate(["/mijn-lijsten"], {
+        fragment: "klasleeslijst",
+      });
     } catch (error: any) {
       if (error?.response?.status === 403) {
         this.uiToastService.error(

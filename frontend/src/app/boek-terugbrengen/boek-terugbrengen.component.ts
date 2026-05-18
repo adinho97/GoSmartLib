@@ -1,43 +1,64 @@
-import { Component, OnInit } from '@angular/core';
-import { LoanService, Loan, ReturnCondition, ReturnLoanRequest } from '../services/loan.service';
-import axios from 'axios';
+import { Component, OnInit } from "@angular/core";
+import {
+  LoanService,
+  Loan,
+  ReturnCondition,
+  ReturnLoanRequest,
+} from "../services/loan.service";
+import { formatUserInfoDisplayName } from "../utils/name-utils";
+import axios from "axios";
 
 type Leerling = { sub: string; displayName: string };
-type Step = 'leerling' | 'uitleningen';
+type Step = "leerling" | "uitleningen";
 
 @Component({
-  selector: 'app-boek-terugbrengen',
-  templateUrl: './boek-terugbrengen.component.html',
-  styleUrls: ['./boek-terugbrengen.component.css'],
+  selector: "app-boek-terugbrengen",
+  templateUrl: "./boek-terugbrengen.component.html",
+  styleUrls: ["./boek-terugbrengen.component.css"],
   standalone: false,
 })
 export class BoekTerugbrengenComponent implements OnInit {
-  step: Step = 'leerling';
+  step: Step = "leerling";
 
   leerlingen: Leerling[] = [];
   filteredLeerlingen: Leerling[] = [];
-  leerlingSearch = '';
+  leerlingSearch = "";
   selectedLeerling: Leerling | null = null;
   leerlingenLoading = false;
-  leerlingError = '';
+  leerlingError = "";
+
+  get isAdmin(): boolean {
+    return !!localStorage.getItem("admin_jwt_token");
+  }
 
   activeLoans: Loan[] = [];
   loansLoading = false;
 
   returnDialogOpen = false;
   returnDialogLoan: Loan | null = null;
-  returnCondition: ReturnCondition = 'GOOD';
+  returnCondition: ReturnCondition = "GOOD";
   returnLostBook = false;
   isReturningLoan = false;
 
-  successMessage = '';
-  errorMessage = '';
-  today = new Date().toISOString().split('T')[0];
+  successMessage = "";
+  errorMessage = "";
+  today = new Date().toISOString().split("T")[0];
 
   constructor(private loanService: LoanService) {}
 
   ngOnInit(): void {
     this.loadLeerlingen();
+  }
+
+  private async getDisplayNameForSub(sub: string): Promise<string> {
+    try {
+      const profile = await axios.get(
+        `/api/users/${encodeURIComponent(sub)}/profile`,
+      );
+      return formatUserInfoDisplayName(profile.data as any, sub);
+    } catch {
+      return sub;
+    }
   }
 
   async loadLeerlingen(): Promise<void> {
@@ -51,7 +72,7 @@ export class BoekTerugbrengenComponent implements OnInit {
       }));
       this.filteredLeerlingen = [...this.leerlingen];
     } catch {
-      this.leerlingError = 'Leerlingen laden mislukt.';
+      this.leerlingError = "Leerlingen laden mislukt.";
     } finally {
       this.leerlingenLoading = false;
     }
@@ -61,25 +82,29 @@ export class BoekTerugbrengenComponent implements OnInit {
     const q = this.leerlingSearch.trim().toLowerCase();
     this.filteredLeerlingen = q
       ? this.leerlingen.filter(
-          (l) => l.displayName.toLowerCase().includes(q) || l.sub.toLowerCase().includes(q),
+          (l) =>
+            l.displayName.toLowerCase().includes(q) ||
+            l.sub.toLowerCase().includes(q),
         )
       : [...this.leerlingen];
   }
 
   selectLeerling(leerling: Leerling): void {
     this.selectedLeerling = leerling;
-    this.leerlingError = '';
+    this.leerlingError = "";
   }
 
   async confirmLeerling(): Promise<void> {
     if (!this.selectedLeerling) {
-      this.leerlingError = 'Selecteer een leerling.';
+      this.leerlingError = "Selecteer een leerling.";
       return;
     }
-    this.step = 'uitleningen';
+    this.step = "uitleningen";
     this.loansLoading = true;
     try {
-      this.activeLoans = await this.loanService.getActiveLoans(this.selectedLeerling.sub);
+      this.activeLoans = await this.loanService.getActiveLoans(
+        this.selectedLeerling.sub,
+      );
     } catch {
       this.activeLoans = [];
     } finally {
@@ -88,10 +113,10 @@ export class BoekTerugbrengenComponent implements OnInit {
   }
 
   goBack(): void {
-    this.step = 'leerling';
+    this.step = "leerling";
     this.activeLoans = [];
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.errorMessage = "";
+    this.successMessage = "";
   }
 
   isOverdue(dueDate: string): boolean {
@@ -102,7 +127,7 @@ export class BoekTerugbrengenComponent implements OnInit {
     event?.stopPropagation();
     this.returnDialogLoan = loan;
     this.returnLostBook = false;
-    this.errorMessage = '';
+    this.errorMessage = "";
     this.returnCondition = await this.resolveReturnCondition(loan);
     this.returnDialogOpen = true;
   }
@@ -111,33 +136,36 @@ export class BoekTerugbrengenComponent implements OnInit {
     try {
       const copies = await this.loanService.getCopiesForBook(loan.bookId);
       const copy = copies.find((c) => c.id === loan.copyId);
-      if (!copy) return 'GOOD';
-      if (copy.condition === 'MODERATE') return 'MODERATE';
-      if (copy.condition === 'BAD') return 'BAD';
-      return 'GOOD';
+      if (!copy) return "GOOD";
+      if (copy.condition === "MODERATE") return "MODERATE";
+      if (copy.condition === "BAD") return "BAD";
+      return "GOOD";
     } catch {
-      return 'GOOD';
+      return "GOOD";
     }
   }
 
   closeReturnDialog(): void {
     this.returnDialogOpen = false;
     this.returnDialogLoan = null;
-    this.returnCondition = 'GOOD';
+    this.returnCondition = "GOOD";
     this.returnLostBook = false;
     this.isReturningLoan = false;
   }
 
   get returnConditionLabel(): string {
-    if (this.returnLostBook) return 'verloren';
-    if (this.returnCondition === 'MODERATE') return 'matig';
-    if (this.returnCondition === 'BAD') return 'slecht';
-    return 'goed';
+    if (this.returnLostBook) return "verloren";
+    if (this.returnCondition === "MODERATE") return "matig";
+    if (this.returnCondition === "BAD") return "slecht";
+    return "goed";
   }
 
   async confirmReturnLoan(): Promise<void> {
     if (!this.returnDialogLoan || this.isReturningLoan) return;
-    const request: ReturnLoanRequest = { condition: this.returnCondition, lost: this.returnLostBook };
+    const request: ReturnLoanRequest = {
+      condition: this.returnCondition,
+      lost: this.returnLostBook,
+    };
     this.isReturningLoan = true;
     try {
       const loan = this.returnDialogLoan;
@@ -148,7 +176,7 @@ export class BoekTerugbrengenComponent implements OnInit {
         : `Boek "${loan.bookTitel}" succesvol teruggebracht.`;
       this.closeReturnDialog();
     } catch {
-      this.errorMessage = 'Terugbrengen mislukt. Probeer opnieuw.';
+      this.errorMessage = "Terugbrengen mislukt. Probeer opnieuw.";
     } finally {
       this.isReturningLoan = false;
     }

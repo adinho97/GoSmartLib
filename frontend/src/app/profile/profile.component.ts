@@ -601,8 +601,16 @@ export class ProfileComponent {
     await this.removeFromWishlist(null, bookId);
   }
 
+  private navigateBackOrFallback(fallback: string): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate([fallback]);
+    }
+  }
+
   goBack() {
-    this.location.back();
+    this.navigateBackOrFallback("/dashboard");
   }
 
   toggleSettings() {
