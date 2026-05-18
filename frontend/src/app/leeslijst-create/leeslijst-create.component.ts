@@ -6,6 +6,11 @@ import { BookService } from "../services/book.service";
 import { UiToastService } from "../services/ui-toast.service";
 import { Book } from "../models/book";
 
+interface User {
+  sub: string;
+  displayName: string;
+}
+
 type Step = "titel" | "boeken" | "bevestiging";
 
 @Component({
@@ -28,6 +33,17 @@ export class LeeslijstCreateComponent implements OnInit {
   klassen: KlasListItem[] = [];
   klasSearchQuery = "";
   selectedKlassenIds = new Set<number>();
+
+  // Years (jaren) selection
+  jaren: number[] = [1, 2, 3, 4, 5, 6];
+  selectedJaren = new Set<number>();
+
+  // Sharing logic
+  isGlobal = false;
+  userSearchQuery = "";
+  foundUsers: User[] = [];
+  selectedUsers: User[] = [];
+  sharedWithUserSubs = new Set<string>();
 
   // Step 2: Boeken
   books: Book[] = [];
@@ -169,6 +185,15 @@ export class LeeslijstCreateComponent implements OnInit {
           .map((klas) => klas.id);
         this.selectedKlassenIds = new Set<number>(idsFromNames);
       }
+
+      this.isGlobal = !!existing?.isGlobal;
+      if (Array.isArray(existing?.sharedWithUsers)) {
+        this.selectedUsers = existing.sharedWithUsers.map((u: any) => ({
+          sub: u.sub,
+          displayName: u.displayName || u.username,
+        }));
+        this.sharedWithUserSubs = new Set(this.selectedUsers.map((u) => u.sub));
+      }
     } catch (error: any) {
       if (error?.response?.status === 403) {
         this.uiToastService.error(
@@ -214,6 +239,66 @@ export class LeeslijstCreateComponent implements OnInit {
     } else {
       this.selectedKlassenIds.add(id);
     }
+  }
+
+  toggleYearSelection(year: number) {
+    if (this.selectedJaren.has(year)) {
+      this.selectedJaren.delete(year);
+      // Remove all classes from this year
+      this.klassen.forEach((klas) => {
+        const klasYear = parseInt(klas.naam.charAt(0), 10);
+        if (klasYear === year) {
+          this.selectedKlassenIds.delete(klas.id);
+        }
+      });
+    } else {
+      this.selectedJaren.add(year);
+      // Auto-select all classes from this year
+      this.klassen.forEach((klas) => {
+        const klasYear = parseInt(klas.naam.charAt(0), 10);
+        if (klasYear === year) {
+          this.selectedKlassenIds.add(klas.id);
+        }
+      });
+    }
+  }
+
+  getKlasenForYear(year: number): KlasListItem[] {
+    return this.klassen.filter((klas) => {
+      const klasYear = parseInt(klas.naam.charAt(0), 10);
+      return klasYear === year;
+    });
+  }
+
+  async onUserSearch() {
+    const query = this.userSearchQuery.trim();
+    if (query.length < 2) {
+      this.foundUsers = [];
+      return;
+    }
+
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    try {
+      this.foundUsers = await this.bookService.searchUsers(query, schoolId);
+    } catch (error) {
+      console.error("User search failed", error);
+    }
+  }
+
+  toggleUserSelection(user: User) {
+    if (this.sharedWithUserSubs.has(user.sub)) {
+      this.sharedWithUserSubs.delete(user.sub);
+      this.selectedUsers = this.selectedUsers.filter((u) => u.sub !== user.sub);
+    } else {
+      this.sharedWithUserSubs.add(user.sub);
+      this.selectedUsers.push(user);
+    }
+  }
+
+  onGlobalToggle() {
+    // Logic handled in template, but can add side-effects here
   }
 
   async loadBooks() {
@@ -373,8 +458,15 @@ export class LeeslijstCreateComponent implements OnInit {
   }
 
   goToConfirmation() {
-    if (this.selectedKlassenIds.size === 0) {
-      this.uiToastService.error("Selecteer minstens één klas.");
+    const hasTarget =
+      this.isGlobal ||
+      this.selectedKlassenIds.size > 0 ||
+      this.sharedWithUserSubs.size > 0;
+
+    if (!hasTarget) {
+      this.uiToastService.error(
+        "Selecteer een doelgroep (klas, gebruiker of globaal).",
+      );
       return;
     }
     if (this.isBookSelectionEmpty) {
@@ -394,6 +486,8 @@ export class LeeslijstCreateComponent implements OnInit {
           this.leeslijstDescription,
           Array.from(this.selectedBookIds),
           Array.from(this.selectedKlassenIds),
+          this.isGlobal,
+          Array.from(this.sharedWithUserSubs),
         );
         this.uiToastService.success("Leeslijst succesvol aangepast.");
       } else {
@@ -402,6 +496,8 @@ export class LeeslijstCreateComponent implements OnInit {
           this.leeslijstDescription,
           Array.from(this.selectedBookIds),
           Array.from(this.selectedKlassenIds),
+          this.isGlobal,
+          Array.from(this.sharedWithUserSubs),
         );
         this.uiToastService.success("Leeslijst succesvol aangemaakt.");
       }
@@ -434,6 +530,10 @@ export class LeeslijstCreateComponent implements OnInit {
       .filter((k) => this.selectedKlassenIds.has(k.id))
       .map((k) => k.naam)
       .join(", ");
+  }
+
+  getSelectedUserNames(): string {
+    return this.selectedUsers.map((u) => u.displayName).join(", ");
   }
 
   get totalPages(): number {

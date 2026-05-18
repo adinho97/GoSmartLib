@@ -33,6 +33,29 @@ public class UserController {
         return ResponseEntity.ok(leerlingen);
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/leerlingen-met-klas")
+    public ResponseEntity<List<StudentWithKlasDto>> getLeerlingenMetKlas(Authentication authentication) {
+        String currentSub = authentication != null ? authentication.getName() : null;
+        AppUser currentUser = currentSub == null ? null : appUserRepository.findBySub(currentSub).orElse(null);
+        List<AppUser> students;
+
+        if (currentUser != null && currentUser.getSchool() != null
+                && !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+            students = appUserRepository.findBySchool_IdAndRole(currentUser.getSchool().getId(), "leerling");
+        } else {
+            students = appUserRepository.findByRole("leerling");
+        }
+
+        List<StudentWithKlasDto> leerlingen = students
+                .stream()
+                .map(u -> new StudentWithKlasDto(
+                        u.getSub(),
+                        u.getKlas() != null ? u.getKlas().getNaam() : null))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(leerlingen);
+    }
+
     @GetMapping("/me/school")
     public ResponseEntity<Map<String, Object>> getCurrentUserSchool(Authentication authentication) {
         String sub = authentication != null ? authentication.getName() : null;
@@ -65,6 +88,47 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/search")
+    public ResponseEntity<List<SearchUserDto>> searchUsers(
+            @RequestParam String q,
+            @RequestParam Long schoolId) {
+        String query = q.trim().toLowerCase();
+
+        List<SearchUserDto> results = appUserRepository.findBySchool_Id(schoolId)
+                .stream()
+                .filter(u -> {
+                    String username = u.getUsername() != null ? u.getUsername().toLowerCase() : "";
+                    String displayName = u.getDisplayName() != null ? u.getDisplayName().toLowerCase() : "";
+                    String sub = u.getSub() != null ? u.getSub().toLowerCase() : "";
+                    return username.contains(query) || displayName.contains(query) || sub.contains(query);
+                })
+                .map(u -> new SearchUserDto(
+                        u.getSub(),
+                        u.getDisplayName() != null ? u.getDisplayName() : (u.getUsername() != null ? u.getUsername() : u.getSub())))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(results);
+    }
+
+    public static class SearchUserDto {
+        private String sub;
+        private String displayName;
+
+        public SearchUserDto(String sub, String displayName) {
+            this.sub = sub;
+            this.displayName = displayName;
+        }
+
+        public String getSub() {
+            return sub;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
     public static class UserDto {
         private String sub;
         private String role;
@@ -80,6 +144,24 @@ public class UserController {
 
         public String getRole() {
             return role;
+        }
+    }
+
+    public static class StudentWithKlasDto {
+        private String sub;
+        private String klasName;
+
+        public StudentWithKlasDto(String sub, String klasName) {
+            this.sub = sub;
+            this.klasName = klasName;
+        }
+
+        public String getSub() {
+            return sub;
+        }
+
+        public String getKlasName() {
+            return klasName;
         }
     }
 }

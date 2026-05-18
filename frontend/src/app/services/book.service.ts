@@ -591,6 +591,8 @@ export class BookService {
     description: string,
     bookIds: number[],
     klasIds: number[],
+    isGlobal?: boolean,
+    assignedUserSubs?: string[],
   ): Promise<any> {
     const res = await axios.post(
       `/api/leeslisten`,
@@ -599,6 +601,8 @@ export class BookService {
         description,
         bookIds,
         klasIds,
+        isGlobal: isGlobal || false,
+        assignedUserSubs: assignedUserSubs || [],
       },
       this.getFullAuthHeaders(),
     );
@@ -619,6 +623,8 @@ export class BookService {
     description: string,
     bookIds: number[],
     klasIds: number[],
+    isGlobal?: boolean,
+    assignedUserSubs?: string[],
   ): Promise<any> {
     const res = await axios.put(
       `/api/leeslisten/${id}`,
@@ -627,6 +633,8 @@ export class BookService {
         description,
         bookIds,
         klasIds,
+        isGlobal: isGlobal || false,
+        assignedUserSubs: assignedUserSubs || [],
       },
       this.getFullAuthHeaders(),
     );
@@ -668,6 +676,14 @@ export class BookService {
   }> {
     const res = await axios.get(
       `/api/gebruikers/me/klas`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async searchUsers(query: string, schoolId: number): Promise<any[]> {
+    const res = await axios.get(
+      `/api/gebruikers/search?q=${encodeURIComponent(query)}&schoolId=${schoolId}`,
       this.getFullAuthHeaders(),
     );
     return res.data;

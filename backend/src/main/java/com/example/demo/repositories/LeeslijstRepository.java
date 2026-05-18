@@ -25,4 +25,15 @@ public interface LeeslijstRepository extends JpaRepository<Leeslijst, Long> {
      * Find reading lists created by a specific user
      */
     List<Leeslijst> findByCreatedBy_Id(Long userId);
+
+    /**
+     * Find all global reading lists
+     */
+    List<Leeslijst> findByIsGlobalTrue();
+
+    /**
+     * Find reading lists assigned to a specific user
+     */
+    @Query("SELECT l FROM Leeslijst l JOIN l.assignedUsers u WHERE u.id = :userId")
+    List<Leeslijst> findByAssignedUsers(@Param("userId") Long userId);
 }

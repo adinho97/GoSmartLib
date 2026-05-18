@@ -26,6 +26,9 @@ public class Leeslijst {
     @Column(name = "created_by_name")
     private String createdByName;
 
+    @Column(name = "is_global", nullable = false)
+    private Boolean isGlobal = false;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -44,6 +47,14 @@ public class Leeslijst {
         inverseJoinColumns = @JoinColumn(name = "klas_id")
     )
     private Set<Klas> klassen = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+        name = "leeslijst_assigned_users",
+        joinColumns = @JoinColumn(name = "leeslijst_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<AppUser> assignedUsers = new HashSet<>();
 
     public Leeslijst() {}
 
@@ -94,4 +105,10 @@ public class Leeslijst {
 
     public Set<Klas> getKlassen() { return klassen; }
     public void setKlassen(Set<Klas> klassen) { this.klassen = klassen; }
+
+    public Boolean getIsGlobal() { return isGlobal; }
+    public void setIsGlobal(Boolean isGlobal) { this.isGlobal = isGlobal; }
+
+    public Set<AppUser> getAssignedUsers() { return assignedUsers; }
+    public void setAssignedUsers(Set<AppUser> assignedUsers) { this.assignedUsers = assignedUsers; }
 }

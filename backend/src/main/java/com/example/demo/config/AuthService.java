@@ -72,12 +72,26 @@ public class AuthService {
                                 .flatMap(user -> {
                                         logger.info("User found. ID: {}, has refresh token: {}",
                                                         user.getId(), user.getSmartschoolRefreshToken() != null);
+
                                         if (user.getSmartschoolRefreshToken() == null) {
-                                                logger.warn("No refresh token in DB for user: {} — user must re-login",
+                                                if (user.getAccessToken() != null && !user.getAccessToken().isBlank()) {
+                                                        logger.debug("No refresh token in DB for user: {}, trying stored access token instead",
+                                                                        sub);
+                                                        SmartschoolTokenResponse tokenResponse = new SmartschoolTokenResponse();
+                                                        tokenResponse.setAccessToken(user.getAccessToken());
+                                                        tokenResponse.setRefreshToken(null);
+                                                        return getUserInfo(tokenResponse, user.getPlatform())
+                                                                        .doOnError(error -> logger.warn(
+                                                                                        "Failed to fetch user info with stored access token for user: {}. Error: {}",
+                                                                                        sub, error.getMessage()));
+                                                }
+
+                                                logger.warn("No refresh token or access token in DB for user: {} — user must re-login",
                                                                 sub);
                                                 return Mono.error(new RevokedTokenException(
                                                                 "No refresh token available for user: " + sub));
                                         }
+
                                         logger.debug("Refreshing access token for user: {}", sub);
 
                                         // Deduplicate: if a refresh is already in-flight for this sub,
@@ -117,56 +131,40 @@ public class AuthService {
                                                                                                                         freshUser.getSmartschoolRefreshToken(),
                                                                                                                         rejectedToken)) {
                                                                                                                 logger.warn("Refresh token permanently revoked for user: {}. "
-                                                                                                                                + "Clearing refresh token — user will be logged out on next token expiration.",
+                                                                                                                                + "Keeping refresh token in DB to avoid destructive cleanup. "
+                                                                                                                                + "Explicit re-login is still required.",
                                                                                                                                 sub);
-                                                                                                                // IMPORTANT:
-                                                                                                                // Only
+                                                                                                                // Do
+                                                                                                                // not
                                                                                                                 // clear
+                                                                                                                // the
                                                                                                                 // refresh
-                                                                                                                // token,
-                                                                                                                // NOT
-                                                                                                                // access
-                                                                                                                // token.
-                                                                                                                // If we
-                                                                                                                // clear
-                                                                                                                // accessToken,
+                                                                                                                // token
+                                                                                                                // here.
+                                                                                                                // If
+                                                                                                                // Smartschool
+                                                                                                                // has
+                                                                                                                // permanently
+                                                                                                                // revoked
+                                                                                                                // it,
                                                                                                                 // the
-                                                                                                                // auth
-                                                                                                                // filter
-                                                                                                                // can't
-                                                                                                                // find
+                                                                                                                // next
+                                                                                                                // refresh
+                                                                                                                // attempt
+                                                                                                                // will
+                                                                                                                // still
+                                                                                                                // fail,
+                                                                                                                // but
+                                                                                                                // we
+                                                                                                                // preserve
                                                                                                                 // the
-                                                                                                                // user
-                                                                                                                // anymore
-                                                                                                                // and
-                                                                                                                // subsequent
-                                                                                                                // requests
-                                                                                                                // fail
-                                                                                                                // with
-                                                                                                                // 403
+                                                                                                                // stored
+                                                                                                                // token
                                                                                                                 // instead
                                                                                                                 // of
-                                                                                                                // proper
-                                                                                                                // 401.
-                                                                                                                // Keep
-                                                                                                                // accessToken
-                                                                                                                // valid
-                                                                                                                // until
+                                                                                                                // deleting
                                                                                                                 // it
-                                                                                                                // naturally
-                                                                                                                // expires
-                                                                                                                // (a
-                                                                                                                // few
-                                                                                                                // seconds/minutes),
-                                                                                                                // allowing
-                                                                                                                // current
-                                                                                                                // requests
-                                                                                                                // to
-                                                                                                                // complete.
-                                                                                                                freshUser.setSmartschoolRefreshToken(
-                                                                                                                                null);
-                                                                                                                appUserRepository
-                                                                                                                                .save(freshUser);
+                                                                                                                // unexpectedly.
                                                                                                         } else {
                                                                                                                 logger.info("Skipping token clear for user: {} — refresh token changed (user re-logged in).",
                                                                                                                                 sub);
@@ -295,6 +293,8 @@ public class AuthService {
                 final String roleToPersist = finalRole;
                 final AppUser targetUser = user;
                 final String platformForUser = normalizedPlatform;
+                final String usernameForUser = userInfo.getName();
+                final String displayNameForUser = userInfo.getFullName() != null ? userInfo.getFullName() : userInfo.getName();
 
                 return getGroupInfo(userInfo.getAccessToken(), normalizedPlatform)
                                 .onErrorResume(error -> {
@@ -311,6 +311,8 @@ public class AuthService {
                                         }
                                         targetUser.setAccessToken(userInfo.getAccessToken());
                                         targetUser.setPlatform(platformForUser);
+                                        targetUser.setUsername(usernameForUser);
+                                        targetUser.setDisplayName(displayNameForUser);
                                         targetUser.setSchool(resolvedSchool);
                                         if (primaryKlas != null) {
                                                 targetUser.setKlas(primaryKlas);
