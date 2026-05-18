@@ -73,13 +73,13 @@
             (change)="onGlobalToggle()"
           />
           <span class="toggle-label"
-            >🌍 Deze lijst is globaal (zichtbaar voor alle scholen)</span
+            >Deze lijst is globaal (zichtbaar voor alle scholen)</span
           >
         </label>
         <label class="global-toggle">
           <input type="checkbox" [(ngModel)]="isSchool" />
           <span class="toggle-label"
-            >🏫 Deze lijst is voor de hele school zichtbaar</span
+            >Deze lijst is voor de hele school zichtbaar</span
           >
         </label>
       </div>
@@ -145,7 +145,7 @@
       }
 
       <div class="jaren-selector">
-        <h3 class="card-title">Selecteer een jaar</h3>
+        <h3 class="card-title">Selecteer een jaar (optioneel)</h3>
         <div class="grid-list">
           @for (jaar of jaren; track jaar) {
             <div
@@ -337,6 +337,7 @@
           [disabled]="
             selectedBookIds.size === 0 ||
             (!isGlobal &&
+              !isSchool &&
               selectedKlassenIds.size === 0 &&
               sharedWithUserSubs.size === 0)
           "
