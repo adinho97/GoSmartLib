@@ -49,18 +49,16 @@ export class UserPreferencesService {
   }
 
   async loadPreferencesFromBackend(): Promise<void> {
-    // Skip if not authenticated or if user is a teacher/admin (only students have preference records currently)
+    // Skip if not authenticated
     const role = localStorage.getItem("role");
-    if (
-      !this.isUserAuthenticated() ||
-      role === "leerkracht" ||
-      role === "bibbeheerder"
-    ) {
+    if (!this.isUserAuthenticated()) {
       return;
     }
 
     try {
       const backendPrefs = await this.fetchFromBackend();
+      console.debug("[UserPreferences] Loaded from backend:", backendPrefs);
+
       // Update local state with backend data; backend always wins on conflicts
       const merged = { ...this.preferencesSubject.value, ...backendPrefs };
       this.preferencesSubject.next(merged);
@@ -99,6 +97,8 @@ export class UserPreferencesService {
    * Rollback on backend failure to prevent silent data loss
    */
   async savePreference(key: PreferenceKey, value: boolean): Promise<void> {
+    console.debug(`[UserPreferences] Attempting to save ${key}=${value}`);
+
     // Snapshot state before optimistic update
     const previous = { ...this.preferencesSubject.value };
     const updated = { ...previous, [key]: value };
@@ -110,6 +110,7 @@ export class UserPreferencesService {
     // Sync to backend
     try {
       await axios.patch(this.apiUrl, { key, value }, this.getUserHeaders());
+      console.debug(`[UserPreferences] Successfully synced ${key} to backend`);
     } catch (error) {
       // Backend failed — rollback to prevent silent data loss on next sync
       console.warn(
