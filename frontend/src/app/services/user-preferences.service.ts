@@ -149,7 +149,7 @@ export class UserPreferencesService {
       return {};
     }
   }
-  public async forceRefresh(): Promise<void> {
+  public async syncNow(): Promise<void> {
     if (this.isUserAuthenticated()) {
       await this.loadPreferencesFromBackend();
     }
