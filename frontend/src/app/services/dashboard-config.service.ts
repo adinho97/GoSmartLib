@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import axios from "axios";
-import { BehaviorSubject, Observable, tap } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 
 export interface DashboardConfig {
   tiles: string[];
@@ -26,33 +26,17 @@ export class DashboardConfigService {
   private hasSynced = false;
   private isSyncing = false;
 
+  // Reactive config stream. The initial value is loaded from localStorage in init().
   private configSubject = new BehaviorSubject<DashboardConfig>(
     this.cloneDefault(),
   );
 
-  /**
-   * Reactive config stream that triggers a background sync if
-   * authenticated but not yet synced.
-   */
-  public config$: Observable<DashboardConfig> = this.configSubject
-    .asObservable()
-    .pipe(
-      tap(() => {
-        if (this.isAuthenticated() && !this.hasSynced && !this.isSyncing) {
-          this.syncFromBackendInBackground();
-        }
-      }),
-    );
+  public config$: Observable<DashboardConfig> =
+    this.configSubject.asObservable();
 
   async init(): Promise<void> {
     const cached = this.readLocal();
     this.configSubject.next(cached ?? this.cloneDefault());
-
-    const role = localStorage.getItem("role"); //
-    if (this.isAuthenticated() && role === "leerling") {
-      //
-      this.syncFromBackendInBackground();
-    }
   }
 
   getSnapshot(): DashboardConfig {
@@ -88,6 +72,15 @@ export class DashboardConfigService {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
     } catch {}
+  }
+
+  /**
+   * Forces a refresh of the dashboard configuration from the backend.
+   * Useful after login or when authentication state changes.
+   */
+  async syncNow(): Promise<void> {
+    this.hasSynced = false; // Ensure a fresh sync
+    await this.loadFromBackend();
   }
 
   private syncFromBackendInBackground(): void {

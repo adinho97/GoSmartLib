@@ -1,14 +1,14 @@
-import { Injectable } from '@angular/core';
-import { UserPreferencesService } from './user-preferences.service';
+import { Injectable } from "@angular/core";
+import { UserPreferencesService } from "./user-preferences.service";
 
-export type ColorblindMode = 'none' | 'deuteranopia'; 
-const STORAGE_KEY = 'colorblindMode';
+export type ColorblindMode = "none" | "deuteranopia";
+const STORAGE_KEY = "colorblindMode";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class ColorblindService {
-  private currentMode: ColorblindMode = 'none';
+  private currentMode: ColorblindMode = "none";
 
   constructor(private prefsService: UserPreferencesService) {
     // 1. Snelle initialisatie vanuit localStorage
@@ -18,12 +18,15 @@ export class ColorblindService {
     }
 
     // 2. Luister naar updates vanuit de database sync
-    this.prefsService.preferences$.subscribe(prefs => {
-      if (prefs['ui_colorblind'] !== undefined) {
-        const modeFromDb: ColorblindMode = prefs['ui_colorblind'] ? 'deuteranopia' : 'none';
-        if (modeFromDb !== this.currentMode) {
-          this.applyMode(modeFromDb);
-        }
+    this.prefsService.preferences$.subscribe((prefs) => {
+      // Determine mode: DB value wins if explicitly set (true/false).
+      // If DB value is undefined (user never set it), default to 'none'.
+      const dbValue = prefs["ui_colorblind"];
+      const targetMode: ColorblindMode =
+        dbValue !== undefined ? (dbValue ? "deuteranopia" : "none") : "none"; // Default to 'none' if not in DB
+
+      if (targetMode !== this.currentMode) {
+        this.applyMode(targetMode);
       }
     });
   }
@@ -33,25 +36,26 @@ export class ColorblindService {
   }
 
   toggle(): void {
-    const newMode: ColorblindMode = this.currentMode === 'none' ? 'deuteranopia' : 'none';
+    const newMode: ColorblindMode =
+      this.currentMode === "none" ? "deuteranopia" : "none";
     this.setMode(newMode);
   }
 
   private setMode(mode: ColorblindMode): void {
     localStorage.setItem(STORAGE_KEY, mode);
     this.applyMode(mode);
-    
+
     // Opslaan in database via de centrale service
-    this.prefsService.savePreference('ui_colorblind', mode !== 'none');
+    this.prefsService.savePreference("ui_colorblind", mode !== "none");
   }
 
   private applyMode(mode: ColorblindMode): void {
     this.currentMode = mode;
     const htmlElement = document.documentElement;
-    
+
     // Verwijder oude klassen en voeg nieuwe toe indien nodig
-    htmlElement.classList.remove('cb-deuteranopia');
-    if (mode !== 'none') {
+    htmlElement.classList.remove("cb-deuteranopia");
+    if (mode !== "none") {
       htmlElement.classList.add(`cb-${mode}`);
     }
   }

@@ -25,15 +25,19 @@ export class DarkModeService {
 
     // 2. ABONNEER op database updates (Dit regelt de switch na login!)
     this.prefsService.preferences$.subscribe((prefs) => {
-      // Determine mode: DB value wins, otherwise use what's already in local storage or OS default
+      // Determine mode:
+      // 1. DB value wins if explicitly set (true/false).
+      // 2. If DB value is undefined (user never set it), fall back to OS preference.
+      // 3. If OS preference is not available, use the current modeSubject value (which would be OS default from initial load).
       const dbValue = prefs["ui_darkMode"];
       const targetMode: ThemeMode =
         dbValue !== undefined
           ? dbValue
             ? "dark"
             : "light"
-          : (localStorage.getItem(STORAGE_KEY) as ThemeMode) ||
-            this.modeSubject.value;
+          : window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
 
       if (targetMode !== this.modeSubject.value) {
         this.applyMode(targetMode);

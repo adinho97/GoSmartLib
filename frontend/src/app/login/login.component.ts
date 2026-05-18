@@ -127,8 +127,8 @@ export class LoginComponent implements OnInit {
           localStorage.setItem("selectedSchoolId", String(userInfo.schoolId));
 
         this.userPreferencesService.clearCache();
-        await this.userPreferencesService.loadPreferencesFromBackend();
-        await this.dashboardConfigService.init();
+        await this.userPreferencesService.syncNow(); // Use syncNow to ensure fresh fetch
+        await this.dashboardConfigService.syncNow(); // Use syncNow to ensure fresh fetch
 
         await this.experienceService
           .refreshForCurrentUser()
@@ -166,11 +166,9 @@ export class LoginComponent implements OnInit {
     }
 
     this.userPreferencesService.clearCache();
-    await this.userPreferencesService
-      .loadPreferencesFromBackend()
-      .catch(() => {});
+    await this.userPreferencesService.syncNow().catch(() => {}); // Use syncNow
 
-    await this.dashboardConfigService.init();
+    await this.dashboardConfigService.syncNow(); // Use syncNow
 
     const target = sessionStorage.getItem("login_return_url") || "/dashboard";
     sessionStorage.removeItem("login_return_url");
