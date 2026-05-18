@@ -8,6 +8,7 @@ public class CreateLeeslijstRequest {
     private List<Long> bookIds;
     private List<Long> klasIds;
     private Boolean isGlobal;
+    private Boolean isSchool;
     private List<String> assignedUserSubs;
 
     public CreateLeeslijstRequest() {}
@@ -33,6 +34,9 @@ public class CreateLeeslijstRequest {
 
     public Boolean getIsGlobal() { return isGlobal; }
     public void setIsGlobal(Boolean isGlobal) { this.isGlobal = isGlobal; }
+
+    public Boolean getIsSchool() { return isSchool; }
+    public void setIsSchool(Boolean isSchool) { this.isSchool = isSchool; }
 
     public List<String> getAssignedUserSubs() { return assignedUserSubs; }
     public void setAssignedUserSubs(List<String> assignedUserSubs) { this.assignedUserSubs = assignedUserSubs; }

@@ -252,6 +252,18 @@
                 <p class="leeslijst-description">{{ leeslijst.description }}</p>
               }
               <div class="leeslijst-klassen">
+                @if (
+                  leeslijst.isGlobal &&
+                  (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
+                ) {
+                  <span class="klas-badge">Voor iedereen</span>
+                }
+                @if (
+                  leeslijst.isSchool &&
+                  (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
+                ) {
+                  <span class="klas-badge">Deze school</span>
+                }
                 @for (klas of leeslijst.klasNames; track klas) {
                   <span class="klas-badge">{{ klas }}</span>
                 }
