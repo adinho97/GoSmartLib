@@ -16,11 +16,6 @@ import {
 } from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
 import { ExperienceService } from "../services/experience.service";
-import {
-  composeFullName,
-  inferNameParts,
-  formatUserInfoDisplayName,
-} from "../utils/name-utils";
 import axios from "axios";
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 import { BarcodeService } from "../services/barcode.service";
@@ -181,31 +176,18 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     this.barcodeService.cleanup();
   }
 
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    try {
-      const profile = await axios.get(
-        `/api/users/${encodeURIComponent(sub)}/profile`,
-      );
-      const userInfo = profile.data as any;
-      return formatUserInfoDisplayName(userInfo, sub);
-    } catch {
-      return sub;
-    }
-  }
-
   async loadLeerlingen() {
     this.leerlingenLoading = true;
     try {
       const res = await axios.get("/api/gebruikers/leerlingen");
-      const students = (res.data || []) as Array<{ sub: string }>;
-      const enriched = await Promise.all(
-        students.map(async (l) => ({
-          sub: l.sub,
-          displayName: await this.getDisplayNameForSub(l.sub),
-        })),
-      );
-
-      this.leerlingen = enriched;
+      const students = (res.data || []) as Array<{
+        sub: string;
+        displayName?: string;
+      }>;
+      this.leerlingen = students.map((l) => ({
+        sub: l.sub,
+        displayName: l.displayName || l.sub,
+      }));
       this.filteredLeerlingen = [...this.leerlingen];
     } catch (err) {
       console.error("loadLeerlingen error", err);

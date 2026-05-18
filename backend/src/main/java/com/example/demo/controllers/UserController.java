@@ -32,10 +32,25 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/leerlingen")
-    public ResponseEntity<List<UserDto>> getLeerlingen() {
-        List<UserDto> leerlingen = appUserRepository.findByRole("leerling")
-                .stream()
-                .map(u -> new UserDto(u.getSub(), u.getRole()))
+    public ResponseEntity<List<UserDto>> getLeerlingen(Authentication authentication) {
+        String currentSub = authentication != null ? authentication.getName() : null;
+        AppUser currentUser = currentSub == null ? null : appUserRepository.findBySub(currentSub).orElse(null);
+
+        List<AppUser> students;
+        Long schoolId = null;
+        if (currentUser != null && currentUser.getSchool() != null
+                && !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+            schoolId = currentUser.getSchool().getId();
+            students = appUserRepository.findBySchool_IdAndRole(schoolId, "leerling");
+        } else {
+            students = appUserRepository.findByRole("leerling");
+        }
+
+        List<String> subs = students.stream().map(AppUser::getSub).collect(Collectors.toList());
+        Map<String, String> names = displayNameResolver.resolveAll(schoolId, subs);
+
+        List<UserDto> leerlingen = students.stream()
+                .map(u -> new UserDto(u.getSub(), u.getRole(), names.getOrDefault(u.getSub(), u.getSub())))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(leerlingen);
     }
@@ -160,10 +175,12 @@ public class UserController {
     public static class UserDto {
         private String sub;
         private String role;
+        private String displayName;
 
-        public UserDto(String sub, String role) {
+        public UserDto(String sub, String role, String displayName) {
             this.sub = sub;
             this.role = role;
+            this.displayName = displayName;
         }
 
         public String getSub() {
@@ -172,6 +189,10 @@ public class UserController {
 
         public String getRole() {
             return role;
+        }
+
+        public String getDisplayName() {
+            return displayName;
         }
     }
 
