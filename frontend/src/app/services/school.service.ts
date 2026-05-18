@@ -19,13 +19,27 @@ export class SchoolService {
   constructor() {}
 
   /**
-   * Simulates fetching available classes from a backend database.
-   * In a real application, this would make an HTTP request.
+   * Fetches available classes for the currently selected school or the user's own school.
+   * Falls back to an empty array when no school is selected.
    */
-  getClasses(): Observable<string[]> {
-    return of(["Klas A", "Klas B", "Klas C", "Klas D", "Klas E"]).pipe(
-      delay(500),
-    ); // Simulate network delay
+  getClasses(schoolId?: number): Observable<string[]> {
+    const effectiveSchoolId =
+      schoolId ?? this.getSelectedSchoolId() ?? this.getUserOwnSchoolId();
+
+    return new Observable((subscriber) => {
+      if (!effectiveSchoolId) {
+        subscriber.next([]);
+        subscriber.complete();
+        return;
+      }
+
+      void this.getKlassenBySchool(effectiveSchoolId)
+        .then((klassen) => {
+          subscriber.next(klassen.map((k) => k.naam));
+          subscriber.complete();
+        })
+        .catch((err) => subscriber.error(err));
+    });
   }
 
   /**
