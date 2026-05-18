@@ -15,6 +15,8 @@ export class MijnTakenComponent implements OnInit {
   studentSearchQuery: string = "";
   studentClassFilter: string = ""; // Holds the selected class filter
   availableClasses: string[] = []; // Will be populated from the service
+  studentsLoading = false;
+  studentsError = "";
 
   // Define a basic structure for a student
   filteredStudents: { sub: string; displayName: string; klas: string }[] = [];
@@ -49,14 +51,38 @@ export class MijnTakenComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.schoolService.getClasses().subscribe((classes) => {
-      this.availableClasses = classes;
-    });
+    this.loadAvailableClasses();
     // Load students from backend (includes klas)
     void this.loadStudents();
   }
 
+  async openExtensionModal(): Promise<void> {
+    this.extensionModalOpen = true;
+    this.selectedStudentForExtension = null;
+    this.studentSearchQuery = "";
+    this.studentClassFilter = "";
+    this.studentsError = "";
+
+    this.loadAvailableClasses();
+    await this.loadStudents();
+    this.onSearchStudents();
+  }
+
+  private loadAvailableClasses(): void {
+    this.schoolService.getClasses().subscribe({
+      next: (classes) => {
+        this.availableClasses = classes;
+      },
+      error: (err) => {
+        console.error("Failed to load class filters:", err);
+        this.availableClasses = [];
+      },
+    });
+  }
+
   private async loadStudents(): Promise<void> {
+    this.studentsLoading = true;
+    this.studentsError = "";
     try {
       const students = await this.userService.getAllStudentsWithKlas();
       // students: StudentWithKlas[] -> { sub, displayName, klas }
@@ -65,9 +91,7 @@ export class MijnTakenComponent implements OnInit {
         students.map(async (s) => {
           let display = s.sub;
           try {
-            const profile: any = await fetch(
-              `/api/users/${encodeURIComponent(s.sub)}/profile`,
-            ).then((r) => r.json());
+            const profile: any = await this.userService.getUserProfile(s.sub);
             display =
               profile?.fullName ||
               profile?.givenName ||
@@ -86,8 +110,11 @@ export class MijnTakenComponent implements OnInit {
       this.allStudents = resolved;
       this.onSearchStudents();
     } catch (err) {
-      // keep empty lists on failure
       console.error("Failed to load students for verlengen:", err);
+      this.studentsError =
+        "Er is iets misgegaan met het laden van de leerlingen.";
+    } finally {
+      this.studentsLoading = false;
     }
   }
 
@@ -100,14 +127,6 @@ export class MijnTakenComponent implements OnInit {
   }
 
   // Methods for the "Leningen verlengen" modal
-  openExtensionModal(): void {
-    this.extensionModalOpen = true;
-    this.selectedStudentForExtension = null; // Reset selected student when opening
-    this.studentSearchQuery = ""; // Clear search query
-    this.studentClassFilter = ""; // Clear class filter
-    this.onSearchStudents(); // Refresh student list
-  }
-
   closeExtensionModal(): void {
     this.extensionModalOpen = false;
   }
