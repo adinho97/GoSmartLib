@@ -52,6 +52,9 @@ public class LeeslijstService {
         Leeslijst leeslijst = new Leeslijst(request.getTitel(), school, user);
         leeslijst.setDescription(request.getDescription());
         leeslijst.setCreatedByName((userName == null || userName.isBlank()) ? userSub : userName);
+        
+        // Set global flag
+        leeslijst.setIsGlobal(request.getIsGlobal() != null && request.getIsGlobal());
 
         // Add books
         if (request.getBookIds() != null && !request.getBookIds().isEmpty()) {
@@ -71,6 +74,12 @@ public class LeeslijstService {
                     .toList();
             List<Klas> klassen = klasRepository.findAllById(klasIds);
             leeslijst.getKlassen().addAll(klassen);
+        }
+
+        // Add assigned users
+        if (request.getAssignedUserSubs() != null && !request.getAssignedUserSubs().isEmpty()) {
+            List<AppUser> assignedUsers = userRepository.findBySubIn(request.getAssignedUserSubs());
+            leeslijst.getAssignedUsers().addAll(assignedUsers);
         }
 
         return leeslijstRepository.save(Objects.requireNonNull(leeslijst, "leeslijst is required"));
@@ -96,23 +105,26 @@ public class LeeslijstService {
             return leeslijstRepository.findBySchool_Id(schoolId);
         }
 
-        // For other users (Teachers/Students), combine lists they created with lists
-        // for their class
+        // For other users (Teachers/Students), combine:
+        // 1. Lists they created
+        // 2. Lists for their class
+        // 3. Global lists
+        // 4. Lists assigned to them specifically
         Long userId = Objects.requireNonNull(user.getId(), "userId is required");
-        List<Leeslijst> createdByMe = leeslijstRepository.findByCreatedBy_Id(userId);
+        Set<Leeslijst> combined = new HashSet<>(leeslijstRepository.findByCreatedBy_Id(userId));
+
+        // Get all global lists
+        combined.addAll(leeslijstRepository.findByIsGlobalTrue());
+
+        // Get lists assigned to this user
+        combined.addAll(leeslijstRepository.findByAssignedUsers(userId));
 
         if (user.getKlas() != null) {
             Long klasId = Objects.requireNonNull(user.getKlas().getId(), "Klas id is required");
-            List<Leeslijst> forMyKlas = leeslijstRepository.findByKlas(klasId);
-
-            // Use a Set to merge the lists and avoid duplicates (e.g., if a teacher created
-            // a list for their own class)
-            Set<Leeslijst> combined = new HashSet<>(createdByMe);
-            combined.addAll(forMyKlas);
-            return new ArrayList<>(combined);
+            combined.addAll(leeslijstRepository.findByKlas(klasId));
         }
 
-        return createdByMe;
+        return new ArrayList<>(combined);
     }
 
     public Optional<Leeslijst> getLeeslijst(Long id) {
@@ -134,6 +146,8 @@ public class LeeslijstService {
             resolveCreatedByName(leeslijst),
             leeslijst.getCreatedAt());
 
+        dto.setIsGlobal(leeslijst.getIsGlobal());
+
         // Map books
         List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
                 .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
@@ -157,6 +171,14 @@ public class LeeslijstService {
             .map(klas -> Objects.requireNonNull(klas.getId(), "klasId is required"))
                 .collect(Collectors.toList());
         dto.setKlasIds(klasIds);
+
+        // Map assigned users
+        List<LeeslijstDTO.UserDTO> userDTOs = leeslijst.getAssignedUsers().stream()
+                .map(u -> new LeeslijstDTO.UserDTO(
+                        u.getSub(),
+                        u.getSub()))
+                .collect(Collectors.toList());
+        dto.setSharedWithUsers(userDTOs);
 
         if (leeslijst.getCreatedBy() != null) {
             dto.setCreatedBySub(leeslijst.getCreatedBy().getSub());
@@ -175,6 +197,8 @@ public class LeeslijstService {
             resolveCreatedByName(leeslijst),
             leeslijst.getCreatedAt());
 
+        dto.setIsGlobal(leeslijst.getIsGlobal());
+
         // Map books
         List<LeeslijstDTO.LeeslijstBookDTO> bookDTOs = leeslijst.getBooks().stream()
                 .map(book -> new LeeslijstDTO.LeeslijstBookDTO(
@@ -198,6 +222,14 @@ public class LeeslijstService {
             .map(klas -> Objects.requireNonNull(klas.getId(), "klasId is required"))
                 .collect(Collectors.toList());
         dto.setKlasIds(klasIds);
+
+        // Map assigned users
+        List<LeeslijstDTO.UserDTO> userDTOs = leeslijst.getAssignedUsers().stream()
+                .map(u -> new LeeslijstDTO.UserDTO(
+                        u.getSub(),
+                        u.getSub()))
+                .collect(Collectors.toList());
+        dto.setSharedWithUsers(userDTOs);
 
         if (leeslijst.getCreatedBy() != null) {
             dto.setCreatedBySub(leeslijst.getCreatedBy().getSub());
@@ -247,6 +279,7 @@ public class LeeslijstService {
 
         leeslijst.setTitel(request.getTitel());
         leeslijst.setDescription(request.getDescription());
+        leeslijst.setIsGlobal(request.getIsGlobal() != null && request.getIsGlobal());
 
         // Update books
         if (request.getBookIds() != null) {
@@ -268,6 +301,13 @@ public class LeeslijstService {
                     .toList();
             List<Klas> klassen = klasRepository.findAllById(klasIds);
             leeslijst.getKlassen().addAll(klassen);
+        }
+
+        // Update assigned users
+        if (request.getAssignedUserSubs() != null) {
+            leeslijst.getAssignedUsers().clear();
+            List<AppUser> assignedUsers = userRepository.findBySubIn(request.getAssignedUserSubs());
+            leeslijst.getAssignedUsers().addAll(assignedUsers);
         }
 
         return leeslijstRepository.save(Objects.requireNonNull(leeslijst, "leeslijst is required"));
