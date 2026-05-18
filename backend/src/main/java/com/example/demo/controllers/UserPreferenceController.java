@@ -2,6 +2,8 @@ package com.example.demo.controllers;
 
 import com.example.demo.entities.UserPreference;
 import com.example.demo.repositories.UserPreferenceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +17,8 @@ import java.util.Map;
 @RequestMapping("/api/user/preferences")
 public class UserPreferenceController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserPreferenceController.class);
+
     private final UserPreferenceRepository userPreferenceRepository;
 
     public UserPreferenceController(UserPreferenceRepository userPreferenceRepository) {
@@ -27,6 +31,8 @@ public class UserPreferenceController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String userSub = authentication.getName();
+        logger.debug("Fetching preferences for userSub: {}", userSub);
+
         try {
             List<UserPreference> preferences = userPreferenceRepository.findByUserSub(userSub);
             Map<String, Boolean> result = new HashMap<>();
@@ -47,6 +53,8 @@ public class UserPreferenceController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String userSub = authentication.getName();
+        logger.info("Saving preference for userSub: {}, key: {}, value: {}", userSub, request.getKey(), request.getValue());
+
         if (request.getKey() == null || request.getValue() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }

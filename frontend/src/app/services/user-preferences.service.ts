@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import axios from "axios";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, Observable, defer } from "rxjs";
 
 /**
  * Strongly typed preference keys to prevent typos at compile time
@@ -26,10 +26,22 @@ export class UserPreferencesService {
   private apiUrl = "/api/user/preferences";
   private readonly STORAGE_KEY = "userPreferences";
 
+  private hasSyncedWithBackend = false;
+  private isSyncing = false;
+
   // Reactive state - components subscribe to this observable
   private preferencesSubject = new BehaviorSubject<Record<string, boolean>>({});
-  public preferences$: Observable<Record<string, boolean>> =
-    this.preferencesSubject.asObservable();
+
+  /**
+   * Lazy-syncing observable: if someone subscribes and we are authenticated
+   * but haven't synced yet, trigger a background sync.
+   */
+  public preferences$: Observable<Record<string, boolean>> = defer(() => {
+    if (this.isUserAuthenticated() && !this.hasSyncedWithBackend) {
+      this.syncWithBackendInBackground();
+    }
+    return this.preferencesSubject.asObservable();
+  });
 
   /**
    * Initialize preferences from localStorage (synchronous, no flicker)
@@ -49,22 +61,24 @@ export class UserPreferencesService {
   }
 
   async loadPreferencesFromBackend(): Promise<void> {
-    // Skip if not authenticated or if user is a teacher/admin (only students have preference records currently)
+    // Skip if not authenticated
     const role = localStorage.getItem("role");
-    if (
-      !this.isUserAuthenticated() ||
-      role === "leerkracht" ||
-      role === "bibbeheerder"
-    ) {
+    if (!this.isUserAuthenticated()) {
       return;
     }
 
+    if (this.isSyncing) return;
+    this.isSyncing = true;
+
     try {
       const backendPrefs = await this.fetchFromBackend();
+      console.debug("[UserPreferences] Loaded from backend:", backendPrefs);
+
       // Update local state with backend data; backend always wins on conflicts
       const merged = { ...this.preferencesSubject.value, ...backendPrefs };
       this.preferencesSubject.next(merged);
       this.saveToLocalStorage(merged);
+      this.hasSyncedWithBackend = true;
     } catch (error: any) {
       // Silence 403 Forbidden - some roles don't have preferences enabled/configured
       if (error.response?.status === 403 || error.status === 403) {
@@ -83,6 +97,8 @@ export class UserPreferencesService {
 
       console.warn("Failed to load preferences from backend:", error);
       // Keep using cached localStorage values if backend is unavailable
+    } finally {
+      this.isSyncing = false;
     }
   }
 
@@ -99,6 +115,8 @@ export class UserPreferencesService {
    * Rollback on backend failure to prevent silent data loss
    */
   async savePreference(key: PreferenceKey, value: boolean): Promise<void> {
+    console.debug(`[UserPreferences] Attempting to save ${key}=${value}`);
+
     // Snapshot state before optimistic update
     const previous = { ...this.preferencesSubject.value };
     const updated = { ...previous, [key]: value };
@@ -110,6 +128,7 @@ export class UserPreferencesService {
     // Sync to backend
     try {
       await axios.patch(this.apiUrl, { key, value }, this.getUserHeaders());
+      console.debug(`[UserPreferences] Successfully synced ${key} to backend`);
     } catch (error) {
       // Backend failed — rollback to prevent silent data loss on next sync
       console.warn(
