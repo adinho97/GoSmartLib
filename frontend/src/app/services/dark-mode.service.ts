@@ -11,12 +11,12 @@ export class DarkModeService {
   mode$ = this.modeSubject.asObservable();
 
   constructor(private prefsService: UserPreferencesService) {
-    // 1. Snel laden uit localStorage voor de eerste seconde
-    const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-    if (saved) {
-      this.applyMode(saved);
+    // 1. Snel laden vanuit de centrale preferences cache
+    const initialPref =
+      this.prefsService.getSnapshotForLegacyUse()["ui_darkMode"];
+    if (initialPref !== undefined) {
+      this.applyMode(initialPref ? "dark" : "light");
     } else {
-      // Fallback naar OS als er niks in storage staat
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)",
       ).matches;
@@ -52,16 +52,14 @@ export class DarkModeService {
     return this.modeSubject.value === "dark";
   }
 
-  toggle(): void {
+  async toggle(): Promise<void> {
     const newMode = this.isDark() ? "light" : "dark";
-    this.setMode(newMode);
+    await this.setMode(newMode);
   }
 
-  private setMode(mode: ThemeMode): void {
-    localStorage.setItem(STORAGE_KEY, mode);
+  private async setMode(mode: ThemeMode): Promise<void> {
     this.applyMode(mode);
-    // Sla op in DB
-    this.prefsService.savePreference("ui_darkMode", mode === "dark");
+    await this.prefsService.savePreference("ui_darkMode", mode === "dark");
   }
 
   private applyMode(mode: ThemeMode): void {

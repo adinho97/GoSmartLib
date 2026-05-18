@@ -11,20 +11,23 @@ export class ColorblindService {
   private currentMode: ColorblindMode = "none";
 
   constructor(private prefsService: UserPreferencesService) {
-    // 1. Snelle initialisatie vanuit localStorage
-    const saved = localStorage.getItem(STORAGE_KEY) as ColorblindMode;
-    if (saved) {
-      this.applyMode(saved);
+    // 1. Snelle initialisatie vanuit de centrale preferences cache
+    const initialPref =
+      this.prefsService.getSnapshotForLegacyUse()["ui_colorblind"];
+    if (initialPref !== undefined) {
+      this.applyMode(initialPref ? "deuteranopia" : "none");
     }
 
     // 2. Luister naar updates vanuit de database sync
     this.prefsService.preferences$.subscribe((prefs) => {
       const dbValue = prefs["ui_colorblind"];
 
-      // Only react if the sync actually returned a value for this key
-      if (dbValue === undefined) return;
+      // Wait for sync to complete before falling back to default
+      if (dbValue === undefined && !this.prefsService.isSynced()) return;
 
-      const targetMode: ColorblindMode = dbValue ? "deuteranopia" : "none";
+      // Default to 'none' if we synced but no preference was found
+      const targetMode: ColorblindMode =
+        dbValue === true ? "deuteranopia" : "none";
 
       if (targetMode !== this.currentMode) {
         this.applyMode(targetMode);
@@ -36,18 +39,15 @@ export class ColorblindService {
     return this.currentMode;
   }
 
-  toggle(): void {
+  async toggle(): Promise<void> {
     const newMode: ColorblindMode =
       this.currentMode === "none" ? "deuteranopia" : "none";
-    this.setMode(newMode);
+    await this.setMode(newMode);
   }
 
-  private setMode(mode: ColorblindMode): void {
-    localStorage.setItem(STORAGE_KEY, mode);
+  private async setMode(mode: ColorblindMode): Promise<void> {
     this.applyMode(mode);
-
-    // Opslaan in database via de centrale service
-    this.prefsService.savePreference("ui_colorblind", mode !== "none");
+    await this.prefsService.savePreference("ui_colorblind", mode !== "none");
   }
 
   private applyMode(mode: ColorblindMode): void {
