@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -63,7 +64,8 @@ class BibbeheerderControllerTest {
         when(bibbeheerderService.getLeerkrachtenInOwnSchool("bib-sub"))
                 .thenReturn(List.of(item));
 
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten"))
+        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                        .header("X-User-Sub", "bib-sub"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(10))
                 .andExpect(jsonPath("$[0].sub").value("leerkracht-sub"))
@@ -78,7 +80,8 @@ class BibbeheerderControllerTest {
         when(bibbeheerderService.getLeerkrachtenInOwnSchool("admin-sub"))
                 .thenReturn(List.of(item));
 
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten"))
+        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                        .header("X-User-Sub", "admin-sub"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(11));
     }
@@ -109,7 +112,8 @@ class BibbeheerderControllerTest {
         when(bibbeheerderService.getLeerkrachtenInOwnSchool("bib-sub"))
                 .thenReturn(List.of());
 
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten"))
+        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                        .header("X-User-Sub", "bib-sub"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
     }
@@ -124,7 +128,10 @@ class BibbeheerderControllerTest {
         when(bibbeheerderService.promoteLeerkrachtToBibbeheerder("bib-sub", 20L))
                 .thenReturn(promoted);
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote"))
+        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                        .header("X-User-Sub", "bib-sub")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(20))
                 .andExpect(jsonPath("$.sub").value("target-sub"))
@@ -139,7 +146,10 @@ class BibbeheerderControllerTest {
         when(bibbeheerderService.promoteLeerkrachtToBibbeheerder("admin-sub", 21L))
                 .thenReturn(promoted);
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/21/promote"))
+        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/21/promote")
+                        .header("X-User-Sub", "admin-sub")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(21));
     }
@@ -147,14 +157,18 @@ class BibbeheerderControllerTest {
     @Test
     @WithMockUser(roles = "LEERKRACHT")
     void promoteLeerkracht_shouldReturn403ForLeerkracht() throws Exception {
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote"))
+        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                        .header("X-User-Sub", "leerkracht-sub")
+                        .content("{}"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "LEERLING")
     void promoteLeerkracht_shouldReturn403ForLeerling() throws Exception {
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote"))
+        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                        .header("X-User-Sub", "leerling-sub")
+                        .content("{}"))
                 .andExpect(status().isForbidden());
     }
 
@@ -170,7 +184,10 @@ class BibbeheerderControllerTest {
         when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(99L)))
                 .thenThrow(new ApiException("Gebruiker niet gevonden", HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/99/promote"))
+        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/99/promote")
+                        .header("X-User-Sub", "bib-sub")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isNotFound());
     }
 
@@ -180,7 +197,10 @@ class BibbeheerderControllerTest {
         when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(20L)))
                 .thenThrow(new ApiException("Alleen leerkrachten kunnen worden gepromoveerd", HttpStatus.BAD_REQUEST, "INVALID_ROLE_TRANSITION"));
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote"))
+        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                        .header("X-User-Sub", "bib-sub")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -190,7 +210,10 @@ class BibbeheerderControllerTest {
         when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(20L)))
                 .thenThrow(new ApiException("Gebruiker behoort niet tot uw school", HttpStatus.FORBIDDEN, "ACCESS_DENIED"));
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote"))
+        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                        .header("X-User-Sub", "bib-sub")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isForbidden());
     }
 
