@@ -55,21 +55,33 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
         String token = extractToken(request);
         if (token != null) {
             try {
-                // IMPORTANT: Always attempt authentication, even if pool is stressed.
-                // Let the connection pool handle queueing rather than silently failing auth.
-                // This ensures users stay authenticated during high load periods.
-                request.setAttribute("authenticationAttempted", true);
-                Optional<AppUser> userOpt = appUserRepository.findByAccessToken(token);
-                if (userOpt.isPresent()) {
-                    AppUser user = userOpt.get();
-                    if (user.isActive()) {
-                        String authority = "ROLE_" + user.getRole().toUpperCase();
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                user.getSub(),
-                                null,
-                                Collections.singletonList(new SimpleGrantedAuthority(authority)));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        logger.debug("Smartschool token authenticated for user: {}", user.getSub());
+                // Check pool health before attempting DB access
+                ConnectionPoolMonitor.PoolMetrics metrics = poolMonitor.getMetrics();
+                if (metrics.pendingThreads > 20 || metrics.utilizationPercent > 98) {
+                    logger.warn("Skipping token auth due to pool stress: utilization={}%, pending={}",
+                            String.format("%.0f", metrics.utilizationPercent),
+                            metrics.pendingThreads);
+                    // Mark as attempted auth failure (not database issue)
+                    request.setAttribute("authenticationAttempted", true);
+                    request.setAttribute("authenticationFailed", true);
+                } else {
+                    request.setAttribute("authenticationAttempted", true);
+                    Optional<AppUser> userOpt = appUserRepository.findByAccessToken(token);
+                    if (userOpt.isPresent()) {
+                        AppUser user = userOpt.get();
+                        String role = user.getRole();
+                        if (user.isActive() && role != null) {
+                            String authority = "ROLE_" + role.toUpperCase();
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                    user.getSub(),
+                                    null,
+                                    Collections.singletonList(new SimpleGrantedAuthority(authority)));
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                            logger.debug("Smartschool token authenticated for user: {}", user.getSub());
+                        } else {
+                            logger.debug("Smartschool token matched inactive user: {}", user.getSub());
+                            request.setAttribute("authenticationFailed", true);
+                        }
                     } else {
                         logger.debug("Smartschool token matched inactive user: {}", user.getSub());
                         request.setAttribute("authenticationFailed", true);
