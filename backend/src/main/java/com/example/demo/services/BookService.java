@@ -80,10 +80,8 @@ public class BookService {
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
             ImportCoreService importCoreService) { // Removed LeeslijstRepository from this constructor
-            ImportCoreService importCoreService) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService,
                 isbnService, bulkImportService, importCoreService, null, null, null, null); // Pass null for all new dependencies
-                isbnService, bulkImportService, importCoreService, null, null, null, null);
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
