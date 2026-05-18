@@ -25,6 +25,7 @@ export type PreferenceKey =
 export class UserPreferencesService {
   private apiUrl = "/api/user/preferences";
   private readonly STORAGE_KEY = "userPreferences";
+  private readonly UI_COOKIE_KEY = "ui_prefs_v1";
 
   private hasSyncedWithBackend = false;
   private activeSyncPromise: Promise<void> | null = null;
@@ -36,8 +37,11 @@ export class UserPreferencesService {
 
   constructor() {
     const cached = this.getFromLocalStorage();
+    const cookiePrefs = this.getUiPrefsFromCookie();
+    // Cookie values are a user-visible override when local cache is empty or missing
+    const mergedInitial = { ...cached, ...cookiePrefs };
     this.preferencesSubject = new BehaviorSubject<Record<string, boolean>>(
-      cached,
+      mergedInitial,
     );
     this.preferences$ = this.preferencesSubject.asObservable();
   }
@@ -122,6 +126,10 @@ export class UserPreferencesService {
     try {
       await axios.patch(this.apiUrl, { key, value }, this.getUserHeaders());
       console.debug(`[UserPreferences] Successfully synced ${key} to backend`);
+      // Persist UI-related prefs to cookie so they survive logout/localStorage.clear()
+      if (key === "ui_darkMode" || key === "ui_colorblind") {
+        this.saveUiPrefsToCookie(this.preferencesSubject.value);
+      }
     } catch (error) {
       // Backend failed — rollback to prevent silent data loss on next sync
       console.warn(
@@ -170,6 +178,57 @@ export class UserPreferencesService {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(prefs));
     } catch (error) {
       console.warn("Failed to save preferences to localStorage:", error);
+    }
+  }
+
+  // --- Cookie helpers for UI preferences (persist across logout) ---
+  private saveUiPrefsToCookie(allPrefs: Record<string, boolean>): void {
+    try {
+      const uiSubset: Record<string, boolean> = {};
+      if (allPrefs["ui_darkMode"] !== undefined)
+        uiSubset["ui_darkMode"] = !!allPrefs["ui_darkMode"];
+      if (allPrefs["ui_colorblind"] !== undefined)
+        uiSubset["ui_colorblind"] = !!allPrefs["ui_colorblind"];
+      const json = JSON.stringify(uiSubset);
+      const expires = new Date();
+      expires.setFullYear(expires.getFullYear() + 1);
+      document.cookie = `${this.UI_COOKIE_KEY}=${encodeURIComponent(
+        json,
+      )}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
+    } catch (err) {
+      // non-fatal
+    }
+  }
+
+  private getUiPrefsFromCookie(): Record<string, boolean> {
+    try {
+      const nameEQ = this.UI_COOKIE_KEY + "=";
+      const ca = document.cookie.split(";");
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === " ") c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) {
+          const raw = decodeURIComponent(c.substring(nameEQ.length));
+          const parsed = JSON.parse(raw || "{}");
+          const out: Record<string, boolean> = {};
+          if (parsed["ui_darkMode"] !== undefined)
+            out["ui_darkMode"] = !!parsed["ui_darkMode"];
+          if (parsed["ui_colorblind"] !== undefined)
+            out["ui_colorblind"] = !!parsed["ui_colorblind"];
+          return out;
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+    return {};
+  }
+
+  public clearUiPrefsCookie(): void {
+    try {
+      document.cookie = `${this.UI_COOKIE_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+    } catch {
+      // ignore
     }
   }
 
