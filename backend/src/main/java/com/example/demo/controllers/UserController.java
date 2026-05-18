@@ -65,7 +65,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/search")
     public ResponseEntity<List<SearchUserDto>> searchUsers(
             @RequestParam String q,

@@ -34,6 +34,10 @@ export class LeeslijstCreateComponent implements OnInit {
   klasSearchQuery = "";
   selectedKlassenIds = new Set<number>();
 
+  // Years (jaren) selection
+  jaren: number[] = [1, 2, 3, 4, 5, 6];
+  selectedJaren = new Set<number>();
+
   // Sharing logic
   isGlobal = false;
   userSearchQuery = "";
@@ -235,6 +239,35 @@ export class LeeslijstCreateComponent implements OnInit {
     } else {
       this.selectedKlassenIds.add(id);
     }
+  }
+
+  toggleYearSelection(year: number) {
+    if (this.selectedJaren.has(year)) {
+      this.selectedJaren.delete(year);
+      // Remove all classes from this year
+      this.klassen.forEach((klas) => {
+        const klasYear = parseInt(klas.naam.charAt(0), 10);
+        if (klasYear === year) {
+          this.selectedKlassenIds.delete(klas.id);
+        }
+      });
+    } else {
+      this.selectedJaren.add(year);
+      // Auto-select all classes from this year
+      this.klassen.forEach((klas) => {
+        const klasYear = parseInt(klas.naam.charAt(0), 10);
+        if (klasYear === year) {
+          this.selectedKlassenIds.add(klas.id);
+        }
+      });
+    }
+  }
+
+  getKlasenForYear(year: number): KlasListItem[] {
+    return this.klassen.filter((klas) => {
+      const klasYear = parseInt(klas.naam.charAt(0), 10);
+      return klasYear === year;
+    });
   }
 
   async onUserSearch() {

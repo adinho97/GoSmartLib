@@ -138,6 +138,21 @@
         </div>
       }
 
+      <div class="jaren-selector">
+        <h3 class="card-title">Selecteer een jaar</h3>
+        <div class="grid-list">
+          @for (jaar of jaren; track jaar) {
+            <div
+              class="grid-item"
+              [class.selected]="selectedJaren.has(jaar)"
+              (click)="toggleYearSelection(jaar)"
+            >
+              <span class="item-name">Jaar {{ jaar }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
       <div class="klassen-selector">
         <h3 class="card-title">Selecteer doelklassen</h3>
         <div class="search-bar klas-search-bar">
