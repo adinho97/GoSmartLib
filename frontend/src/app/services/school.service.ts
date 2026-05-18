@@ -192,4 +192,34 @@ export class SchoolService {
       return [];
     }
   }
+  async getDefaultLoanDays(schoolId: number): Promise<number> {
+    try {
+      const res = await fetch(
+        `/api/scholen/${encodeURIComponent(schoolId)}/default-loan-days`,
+        { headers: this.buildAuthHeaders() },
+      );
+      if (!res.ok) return 14;
+      const data = await res.json();
+      return data.defaultLoanDays ?? 14;
+    } catch {
+      return 14;
+    }
+  }
+
+  async updateDefaultLoanDays(schoolId: number, days: number): Promise<void> {
+    const res = await fetch(
+      `/api/scholen/${encodeURIComponent(schoolId)}/default-loan-days`,
+      {
+        method: "PATCH",
+        headers: {
+          ...this.buildAuthHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ defaultLoanDays: days }),
+      },
+    );
+    if (!res.ok) {
+      throw new Error("Opslaan mislukt");
+    }
+  }
 }
