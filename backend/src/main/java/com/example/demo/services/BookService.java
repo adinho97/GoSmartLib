@@ -28,7 +28,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Optional;
+import com.example.demo.dto.UserDto; // Corrected import
 import java.util.stream.Collectors;
 
 @Service
@@ -49,10 +51,13 @@ public class BookService {
 
     @Autowired
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
-            LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
-            IsbnService isbnService, BulkImportService bulkImportService,
-            ImportCoreService importCoreService, LeeslijstRepository leeslijstRepository,
+            LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService, 
+            IsbnService isbnService, BulkImportService bulkImportService, ImportCoreService importCoreService, 
+            LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
             WishlistRepository wishlistRepository, HighlightedBookRepository highlightedBookRepository,
+            IsbnService isbnService, BulkImportService bulkImportService, ImportCoreService importCoreService,
+            LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository,
+            HighlightedBookRepository highlightedBookRepository,
             ClassReadingListItemRepository classReadingListItemRepository) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
@@ -74,8 +79,10 @@ public class BookService {
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
+            ImportCoreService importCoreService) { // Removed LeeslijstRepository from this constructor
             ImportCoreService importCoreService) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService,
+                isbnService, bulkImportService, importCoreService, null, null, null, null); // Pass null for all new dependencies
                 isbnService, bulkImportService, importCoreService, null, null, null, null);
     }
 
@@ -259,7 +266,7 @@ public class BookService {
             throw new ApiException("Kan boek niet verwijderen: er zijn nog actieve uitleningen.", HttpStatus.CONFLICT, "ACTIVE_LOANS_EXIST");
         }
 
-        // 1. Clear Loan history
+        // 1. Clear Loan history for this book's copies
         List<Loan> bookLoans = loanRepository.findAll().stream()
                 .filter(l -> l.getCopy().getBook().getId().equals(id))
                 .toList();
@@ -289,13 +296,7 @@ public class BookService {
             classReadingListItemRepository.deleteAll(classItems);
         }
 
-        // 5. Delete all copies associated with this book.
-        List<BookCopy> bookCopies = bookCopyRepository.findAll().stream()
-                .filter(c -> c.getBook().getId().equals(id))
-                .toList();
-        bookCopyRepository.deleteAll(bookCopies);
-
-        // 3. Remove book from all reading lists (Leeslijsten) to clear join table
+        // 5. Remove book from all reading lists (Leeslijsten) to clear join table
         if (leeslijstRepository != null) {
             leeslijstRepository.findAll().forEach(list -> {
                 Set<Book> booksInList = new HashSet<>(list.getBooks()); // Create a mutable copy
@@ -308,6 +309,56 @@ public class BookService {
             leeslijstRepository.flush();
         }
 
+        // 6. Delete all copies associated with this book.
+        List<BookCopy> bookCopies = bookCopyRepository.findAll().stream()
+                .filter(c -> c.getBook().getId().equals(id))
+                .toList();
+        bookCopyRepository.deleteAll(bookCopies);
+
         bookRepository.delete(book);
+    }
+
+    @Transactional
+    public Leeslijst createLeeslijst(String titel, String description, List<Long> bookIds, List<Long> klasIds, boolean isGlobal, List<String> sharedWithUserSubs) {
+        // Placeholder for actual Leeslijst creation logic
+        // In a real scenario, you would create a Leeslijst entity, set its properties
+        // including isGlobal and sharedWithUserSubs, and save it.
+        // For now, we just return a dummy Leeslijst.
+        Leeslijst dummyLeeslijst = new Leeslijst();
+        dummyLeeslijst.setTitel(titel);
+        dummyLeeslijst.setDescription(description);
+        // Assume other fields are set
+        // dummyLeeslijst.setGlobal(isGlobal);
+        // dummyLeeslijst.setSharedWithUserSubs(sharedWithUserSubs);
+        return dummyLeeslijst;
+    }
+
+    @Transactional
+    public Leeslijst updateLeeslijst(Long id, String titel, String description, List<Long> bookIds, List<Long> klasIds, boolean isGlobal, List<String> sharedWithUserSubs) {
+        // Placeholder for actual Leeslijst update logic
+        // In a real scenario, you would fetch the existing Leeslijst, update its properties
+        // including isGlobal and sharedWithUserSubs, and save it.
+        // For now, we just return a dummy Leeslijst.
+        Leeslijst dummyLeeslijst = new Leeslijst();
+        dummyLeeslijst.setId(id);
+        dummyLeeslijst.setTitel(titel);
+        dummyLeeslijst.setDescription(description);
+        // Assume other fields are set
+        // dummyLeeslijst.setGlobal(isGlobal);
+        // dummyLeeslijst.setSharedWithUserSubs(sharedWithUserSubs);
+        return dummyLeeslijst;
+    }
+
+    public List<UserDto> searchUsers(String searchTerm, Long schoolId) {
+        // Placeholder for user search logic.
+        // In a real application, this would query a UserRepository or an external Smartschool API.
+        List<UserDto> users = new ArrayList<>();
+        if (searchTerm.toLowerCase().contains("jan")) {
+            users.add(new UserDto("sub123", "Jan Jansen"));
+        }
+        if (searchTerm.toLowerCase().contains("piet")) {
+            users.add(new UserDto("sub456", "Piet Pieters"));
+        }
+        return users;
     }
 }
