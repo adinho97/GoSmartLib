@@ -33,6 +33,29 @@ public class UserController {
         return ResponseEntity.ok(leerlingen);
     }
 
+    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/leerlingen-met-klas")
+    public ResponseEntity<List<StudentWithKlasDto>> getLeerlingenMetKlas(Authentication authentication) {
+        String currentSub = authentication != null ? authentication.getName() : null;
+        AppUser currentUser = currentSub == null ? null : appUserRepository.findBySub(currentSub).orElse(null);
+        List<AppUser> students;
+
+        if (currentUser != null && currentUser.getSchool() != null
+                && !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+            students = appUserRepository.findBySchool_IdAndRole(currentUser.getSchool().getId(), "leerling");
+        } else {
+            students = appUserRepository.findByRole("leerling");
+        }
+
+        List<StudentWithKlasDto> leerlingen = students
+                .stream()
+                .map(u -> new StudentWithKlasDto(
+                        u.getSub(),
+                        u.getKlas() != null ? u.getKlas().getNaam() : null))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(leerlingen);
+    }
+
     @GetMapping("/me/school")
     public ResponseEntity<Map<String, Object>> getCurrentUserSchool(Authentication authentication) {
         String sub = authentication != null ? authentication.getName() : null;
@@ -71,7 +94,7 @@ public class UserController {
             @RequestParam String q,
             @RequestParam Long schoolId) {
         String query = q.trim().toLowerCase();
-        
+
         List<SearchUserDto> results = appUserRepository.findBySchool_Id(schoolId)
                 .stream()
                 .filter(u -> {
@@ -82,7 +105,7 @@ public class UserController {
                         u.getSub(),
                         u.getSub()))
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(results);
     }
 
@@ -95,8 +118,13 @@ public class UserController {
             this.displayName = displayName;
         }
 
-        public String getSub() { return sub; }
-        public String getDisplayName() { return displayName; }
+        public String getSub() {
+            return sub;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
     public static class UserDto {
@@ -114,6 +142,24 @@ public class UserController {
 
         public String getRole() {
             return role;
+        }
+    }
+
+    public static class StudentWithKlasDto {
+        private String sub;
+        private String klasName;
+
+        public StudentWithKlasDto(String sub, String klasName) {
+            this.sub = sub;
+            this.klasName = klasName;
+        }
+
+        public String getSub() {
+            return sub;
+        }
+
+        public String getKlasName() {
+            return klasName;
         }
     }
 }

@@ -1,4 +1,6 @@
+import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
+import { firstValueFrom } from "rxjs";
 
 export interface StudentWithKlas {
   sub: string;
@@ -9,21 +11,31 @@ export interface StudentWithKlas {
   providedIn: "root",
 })
 export class UserService {
-  constructor() {}
+  constructor(private readonly http: HttpClient) {}
 
   async getAllStudentsWithKlas(): Promise<StudentWithKlas[]> {
     try {
-      const res = await fetch(`/api/gebruikers/leerlingen-met-klas`);
-      if (!res.ok) return [];
-      const payload = await res.json();
-      // Expected shape: [{ sub: string, klasName: string | null }, ...]
-      return (payload || []).map((p: any) => ({
+      const payload = await firstValueFrom(
+        this.http.get<any[]>(`/api/gebruikers/leerlingen-met-klas`),
+      );
+      return (payload || []).map((p) => ({
         sub: p.sub,
         klas: p.klasName ?? null,
       }));
     } catch (err) {
       console.error("getAllStudentsWithKlas failed:", err);
       return [];
+    }
+  }
+
+  async getUserProfile(sub: string): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.http.get<any>(`/api/users/${encodeURIComponent(sub)}/profile`),
+      );
+    } catch (err) {
+      console.error(`getUserProfile failed for ${sub}:`, err);
+      return null;
     }
   }
 }

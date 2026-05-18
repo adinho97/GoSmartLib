@@ -91,9 +91,7 @@ export class MijnTakenComponent implements OnInit {
         students.map(async (s) => {
           let display = s.sub;
           try {
-            const profile: any = await fetch(
-              `/api/users/${encodeURIComponent(s.sub)}/profile`,
-            ).then((r) => r.json());
+            const profile: any = await this.userService.getUserProfile(s.sub);
             display =
               profile?.fullName ||
               profile?.givenName ||
