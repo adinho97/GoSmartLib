@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import axios from "axios";
-import { BehaviorSubject, Observable, tap } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 
 /**
  * Strongly typed preference keys to prevent typos at compile time
@@ -29,27 +29,12 @@ export class UserPreferencesService {
   private hasSyncedWithBackend = false;
   private isSyncing = false;
 
-  // Reactive state - components subscribe to this observable
+  // Reactive state - components subscribe to this observable.
+  // The initial value is loaded from localStorage in init().
   private preferencesSubject = new BehaviorSubject<Record<string, boolean>>({});
 
-  /**
-   * Lazy-syncing observable: if someone subscribes and we are authenticated
-   * but haven't synced yet, trigger a background sync.
-   * We use a tap here so that even early subscribers (like DarkModeService)
-   * will trigger a sync the moment they receive an emission while logged in.
-   */
   public preferences$: Observable<Record<string, boolean>> =
-    this.preferencesSubject.asObservable().pipe(
-      tap(() => {
-        if (
-          this.isUserAuthenticated() &&
-          !this.hasSyncedWithBackend &&
-          !this.isSyncing
-        ) {
-          this.syncWithBackendInBackground();
-        }
-      }),
-    );
+    this.preferencesSubject.asObservable();
 
   /**
    * Initialize preferences from localStorage (synchronous, no flicker)
@@ -61,11 +46,6 @@ export class UserPreferencesService {
     // Load from localStorage immediately (synchronous - no flicker)
     const cached = this.getFromLocalStorage();
     this.preferencesSubject.next(cached);
-
-    // Only sync with backend if user is authenticated
-    if (this.isUserAuthenticated()) {
-      this.syncWithBackendInBackground();
-    }
   }
 
   async loadPreferencesFromBackend(): Promise<void> {
