@@ -68,8 +68,19 @@ export class UserPreferencesService {
         const backendPrefs = await this.fetchFromBackend();
         console.debug("[UserPreferences] Loaded from backend:", backendPrefs);
 
-        // Update local state with backend data; backend always wins on conflicts
-        const merged = { ...this.preferencesSubject.value, ...backendPrefs };
+        // Update local state with backend data.
+        // For UI prefs (`ui_darkMode`, `ui_colorblind`) prefer local/cookie values
+        // (user's explicit choice) and only use backend value when local is undefined.
+        const merged: Record<string, boolean> = {
+          ...this.preferencesSubject.value,
+        };
+        for (const k of Object.keys(backendPrefs || {})) {
+          if (k === "ui_darkMode" || k === "ui_colorblind") {
+            if (merged[k] === undefined) merged[k] = backendPrefs[k];
+          } else {
+            merged[k] = backendPrefs[k];
+          }
+        }
         this.preferencesSubject.next(merged);
         this.saveToLocalStorage(merged);
         this.hasSyncedWithBackend = true;
@@ -121,23 +132,34 @@ export class UserPreferencesService {
     // Update local state immediately (optimistic update - no flicker)
     this.preferencesSubject.next(updated);
     this.saveToLocalStorage(updated);
+    // Persist UI-related prefs to cookie immediately so they survive logout/refresh
+    if (key === "ui_darkMode" || key === "ui_colorblind") {
+      this.saveUiPrefsToCookie(updated);
+    }
 
     // Sync to backend
     try {
       await axios.patch(this.apiUrl, { key, value }, this.getUserHeaders());
       console.debug(`[UserPreferences] Successfully synced ${key} to backend`);
-      // Persist UI-related prefs to cookie so they survive logout/localStorage.clear()
-      if (key === "ui_darkMode" || key === "ui_colorblind") {
-        this.saveUiPrefsToCookie(this.preferencesSubject.value);
-      }
     } catch (error) {
-      // Backend failed — rollback to prevent silent data loss on next sync
-      console.warn(
-        `Failed to sync preference ${key}, rolling back to previous state:`,
-        error,
-      );
-      this.preferencesSubject.next(previous);
-      this.saveToLocalStorage(previous);
+      // Backend failed
+      if (key === "ui_darkMode" || key === "ui_colorblind") {
+        // For UI preferences, prefer to keep the user's choice locally (and in cookie)
+        // so the preference persists across logout/refresh even when backend
+        // rejects the change (e.g., 403). Log and continue.
+        console.warn(
+          `Failed to sync UI preference ${key}, keeping local/cookie state:`,
+          error,
+        );
+      } else {
+        // Non-UI prefs: rollback to previous state to avoid silent data loss
+        console.warn(
+          `Failed to sync preference ${key}, rolling back to previous state:`,
+          error,
+        );
+        this.preferencesSubject.next(previous);
+        this.saveToLocalStorage(previous);
+      }
     }
   }
 
