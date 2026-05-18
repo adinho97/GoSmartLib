@@ -4,12 +4,11 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.KlasRepository;
+import com.example.demo.services.DisplayNameResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,14 +20,14 @@ public class LeaderboardService {
     private final LoanRepository loanRepository;
     private final AppUserRepository userRepository;
     private final KlasRepository klasRepository;
-    private final AuthService authService;
+    private final DisplayNameResolver displayNameResolver;
 
     public LeaderboardService(LoanRepository loanRepository, AppUserRepository userRepository,
-            KlasRepository klasRepository, AuthService authService) {
+            KlasRepository klasRepository, DisplayNameResolver displayNameResolver) {
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
         this.klasRepository = klasRepository;
-        this.authService = authService;
+        this.displayNameResolver = displayNameResolver;
     }
 
     /**
@@ -97,43 +96,33 @@ public class LeaderboardService {
                 .collect(Collectors.toList());
         response.setAvailableClasses(availableClasses);
 
+        // 6. Resolve sub placeholders to display names (OneRoster batch + Smartschool
+        // fallback, all in-memory cached — no names ever written to the DB).
+        resolveDisplayNames(response, schoolId);
+
         return response;
     }
 
-    public void resolveDisplayNames(LeaderboardResponseDTO response) {
+    private void resolveDisplayNames(LeaderboardResponseDTO response, Long schoolId) {
         List<LeaderboardEntryDTO> allEntries = new ArrayList<>();
         if (response.getTopClassReaders() != null) allEntries.addAll(response.getTopClassReaders());
         if (response.getTopSchoolReaders() != null) allEntries.addAll(response.getTopSchoolReaders());
         if (response.getUserClassRank() != null) allEntries.add(response.getUserClassRank());
         if (response.getUserSchoolRank() != null) allEntries.add(response.getUserSchoolRank());
 
-        // Resolve each unique sub once to avoid concurrent refresh-token rotation races
-        Map<String, String> resolved = new HashMap<>();
-        Flux.fromIterable(allEntries.stream()
-                        .map(LeaderboardEntryDTO::getDisplayName)
-                        .distinct()
-                        .collect(Collectors.toList()))
-                .flatMap(sub -> authService.getUserInfoBySub(sub)
-                        .map(info -> Map.entry(sub, formatDisplayName(info)))
-                        .onErrorReturn(Map.entry(sub, sub)))
-                .collectList()
-                .block()
-                .forEach(e -> resolved.put(e.getKey(), e.getValue()));
+        List<String> subs = allEntries.stream()
+                .map(LeaderboardEntryDTO::getDisplayName)
+                .filter(s -> s != null && !s.isBlank())
+                .distinct()
+                .collect(Collectors.toList());
 
-        allEntries.forEach(entry -> entry.setDisplayName(
-                resolved.getOrDefault(entry.getDisplayName(), entry.getDisplayName())));
-    }
-
-    private String formatDisplayName(SmartschoolUserInfo info) {
-        String given = info.getGivenName();
-        String family = info.getFamilyName();
-        if (given != null && !given.isBlank() && family != null && !family.isBlank()) {
-            return given + " " + family;
-        }
-        if (given != null && !given.isBlank()) return given;
-        if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
-        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
-        return info.getSub() != null ? info.getSub() : "Onbekende lezer";
+        Map<String, String> names = displayNameResolver.resolveAll(schoolId, subs);
+        allEntries.forEach(entry -> {
+            String sub = entry.getDisplayName();
+            if (sub != null) {
+                entry.setDisplayName(names.getOrDefault(sub, sub));
+            }
+        });
     }
 
     private List<LeaderboardEntryDTO> convertToDTO(List<Object[]> results, String currentUserSub) {
@@ -143,11 +132,11 @@ public class LeaderboardService {
             String subFromQuery = (String) row[0];
             Long count = row[1] instanceof Number ? ((Number) row[1]).longValue() : 0L;
 
-            String displayName = (subFromQuery != null && !subFromQuery.isBlank()) ? subFromQuery : "Onbekende lezer";
-
+            // Sub is used as the placeholder displayName; resolveDisplayNames overwrites
+            // it with the real name (OneRoster batch + Smartschool fallback).
             dtos.add(new LeaderboardEntryDTO(
                     i + 1,
-                    displayName,
+                    subFromQuery,
                     count.intValue(),
                     subFromQuery != null && subFromQuery.equals(currentUserSub)));
         }
