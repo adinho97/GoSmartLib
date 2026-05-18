@@ -26,6 +26,7 @@ export class ExperienceService {
   private readonly LEVEL_MULTIPLIER = 1.25; // Keep progression gentle so early levels come much faster
   private backendSyncTimeoutId?: ReturnType<typeof setTimeout>;
   private initializedFromBackend = false;
+  private activeInitPromise: Promise<void> | null = null;
   private hydratedForUserSub = "";
 
   private totalExperienceSubject = new BehaviorSubject<number>(
@@ -306,6 +307,10 @@ export class ExperienceService {
   }
 
   private async initFromBackend(): Promise<void> {
+    if (this.activeInitPromise) {
+      return this.activeInitPromise;
+    }
+
     const userSub = this.getUserSub();
     const role = localStorage.getItem("role");
     if (!userSub || role !== "leerling") {
@@ -316,39 +321,40 @@ export class ExperienceService {
       return;
     }
 
-    try {
-      const response = await axios.get<{
-        totalExperience: number;
-        claimedBadgeRewardsJson: string;
-      }>(this.API_URL, this.getUserHeaders());
+    this.activeInitPromise = (async () => {
+      try {
+        const response = await axios.get<{
+          totalExperience: number;
+          claimedBadgeRewardsJson: string;
+        }>(this.API_URL, this.getUserHeaders());
 
-      const totalExperience = Math.max(
-        0,
-        Number(response.data?.totalExperience || 0),
-      );
-      const claimedBadgeRewards = this.parseClaimedBadgeRewardsJson(
-        response.data?.claimedBadgeRewardsJson,
-      );
+        const totalExperience = Math.max(
+          0,
+          Number(response.data?.totalExperience || 0),
+        );
+        const claimedBadgeRewards = this.parseClaimedBadgeRewardsJson(
+          response.data?.claimedBadgeRewardsJson,
+        );
 
-      this.totalExperienceSubject.next(totalExperience);
-      this.updateLevelInfo();
-      this.persistExperienceLocally(totalExperience);
-      this.persistClaimedBadgeRewardsLocally(claimedBadgeRewards);
-      this.hydratedForUserSub = userSub; // Mark as hydrated for this user
-      this.initializedFromBackend = true; // Mark as successfully initialized from backend
-    } catch (error: any) {
-      // Silence 403 errors if role is not authorized for experience tracking
-      if (error?.response?.status === 403) {
-        console.debug("Experience tracking not enabled for this user role.");
-        // If the fetch failed for this user, reset flags so it tries again next time.
-        this.hydratedForUserSub = "";
-        this.initializedFromBackend = false;
-        return;
+        this.totalExperienceSubject.next(totalExperience);
+        this.updateLevelInfo();
+        this.persistExperienceLocally(totalExperience);
+        this.persistClaimedBadgeRewardsLocally(claimedBadgeRewards);
+        this.hydratedForUserSub = userSub;
+        this.initializedFromBackend = true;
+      } catch (error: any) {
+        if (error?.response?.status === 403) {
+          this.hydratedForUserSub = "";
+          this.initializedFromBackend = false;
+          return;
+        }
+      } finally {
+        this.activeInitPromise = null;
+        this.initializedFromBackend = true;
       }
-      // Keep local fallback data when backend is unreachable.
-    } finally {
-      this.initializedFromBackend = true;
-    }
+    })();
+
+    return this.activeInitPromise;
   }
 
   private async syncToBackend(): Promise<void> {

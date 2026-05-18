@@ -27,12 +27,20 @@ export class DarkModeService {
     this.prefsService.preferences$.subscribe((prefs) => {
       const dbValue = prefs["ui_darkMode"];
 
-      // If the key is missing from the stream, it means the sync hasn't provided
-      // a value yet or the user has no preference. DO NOT fall back to OS
-      // here as it will overwrite our valid localStorage state.
-      if (dbValue === undefined) return;
+      // If value is undefined, only return if we haven't even finished a sync yet.
+      // This prevents reverting to light mode during the login transition.
+      if (dbValue === undefined && !this.prefsService.isSynced()) return;
 
-      const targetMode: ThemeMode = dbValue ? "dark" : "light";
+      // If we have synced but the value is still undefined,
+      // fall back to OS/default because the user has no preference saved.
+      const targetMode: ThemeMode =
+        dbValue === true
+          ? "dark"
+          : dbValue === false
+            ? "light"
+            : window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
 
       if (targetMode !== this.modeSubject.value) {
         this.applyMode(targetMode);
