@@ -175,6 +175,14 @@
   font-size: 14px;
   color: var(--ink);
   background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.filter-field select:hover {
+  border-color: var(--line-strong);
 }
 
 .filter-field select:focus {
@@ -252,7 +260,14 @@
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  transition: border-color 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  cursor: text;
+}
+
+.search-input:hover {
+  border-color: var(--line-strong);
 }
 
 .search-input:focus {
@@ -516,20 +531,27 @@
   padding: 12px 16px;
   font-size: 16px;
   line-height: 1.4;
-  border: 2px solid var(--line);
-  border-radius: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   color: var(--ink);
   background: var(--surface);
-  transition: border-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   font-family: inherit;
   box-sizing: border-box;
   margin: 0;
+  cursor: text;
+}
+
+.title-input:hover {
+  border-color: var(--line-strong);
 }
 
 .title-input:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-50);
+  box-shadow: 0 0 0 2px var(--brand-50);
 }
 
 .title-input::placeholder {
