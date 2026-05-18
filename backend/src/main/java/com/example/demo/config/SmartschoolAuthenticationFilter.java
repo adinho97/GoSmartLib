@@ -86,7 +86,15 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                             logger.debug("Smartschool token matched inactive or role-less user: {}", user.getSub());
                             request.setAttribute("authenticationFailed", true);
                         }
+                    } else {
+                        // Token not found in DB - authentication failed (token invalid/expired/deleted)
+                        logger.debug("Token not found in database for user lookup");
+                        request.setAttribute("authenticationFailed", true);
                     }
+                } else {
+                    // Token not found in DB - authentication failed (token invalid/expired/deleted)
+                    logger.debug("Token not found in database for user lookup");
+                    request.setAttribute("authenticationFailed", true);
                 }
             } catch (Exception ex) {
                 // DB might be unavailable. Log but don't rethrow.

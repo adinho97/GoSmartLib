@@ -20,6 +20,9 @@ public class School {
     @Column(length = 255)
     private String naam;
 
+    @Column(nullable = false)
+    private int defaultLoanDays = 14;
+
     private String adres;
 
     private Double latitude;
@@ -43,6 +46,14 @@ public class School {
     // Getters and Setters
     public Long getId() {
         return id;
+    }
+
+    public int getDefaultLoanDays() {
+        return defaultLoanDays;
+    }
+
+    public void setDefaultLoanDays(int defaultLoanDays) {
+        this.defaultLoanDays = defaultLoanDays;
     }
 
     public void setId(Long id) {

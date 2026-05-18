@@ -4,13 +4,13 @@
       <h1>Uitlenen</h1>
       <p>
         @if (step === "leerling") {
-          Stap 1 — Selecteer een leerling
+        Stap 1 — Selecteer een leerling
         }
         @if (step === "boeken") {
-          Stap 2 — Selecteer boeken voor {{ selectedLeerling?.displayName }}
+        Stap 2 — Selecteer boeken voor {{ selectedLeerling?.displayName }}
         }
         @if (step === "bevestiging") {
-          Stap 3 — Bevestig de uitlening
+        Stap 3 — Bevestig de uitlening
         }
       </p>
     </div>
@@ -18,23 +18,12 @@
 
   <!-- Stap indicator -->
   <div class="step-indicator">
-    <div
-      class="step"
-      [class.active]="step === 'leerling'"
-      [class.done]="step === 'boeken' || step === 'bevestiging'"
-    >
+    <div class="step" [class.active]="step === 'leerling'" [class.done]="step === 'boeken' || step === 'bevestiging'">
       <span class="step-num">1</span>
       <span class="step-label">Leerling</span>
     </div>
-    <div
-      class="step-line"
-      [class.done]="step === 'boeken' || step === 'bevestiging'"
-    ></div>
-    <div
-      class="step"
-      [class.active]="step === 'boeken'"
-      [class.done]="step === 'bevestiging'"
-    >
+    <div class="step-line" [class.done]="step === 'boeken' || step === 'bevestiging'"></div>
+    <div class="step" [class.active]="step === 'boeken'" [class.done]="step === 'bevestiging'">
       <span class="step-num">2</span>
       <span class="step-label">Boeken</span>
     </div>
@@ -46,835 +35,614 @@
   </div>
 
   @if (successMessage) {
-    <div class="success-banner">{{ successMessage }}</div>
+  <div class="success-banner">{{ successMessage }}</div>
   }
 
   <!-- STAP 1: Leerling -->
   @if (step === "leerling") {
-    <div class="step-card">
-      <h2>Wie leent uit?</h2>
+  <div class="step-card">
+    <h2>Wie leent uit?</h2>
 
-      <div class="search-bar">
-        <input
-          type="text"
-          placeholder="Zoek op gebruikersnaam..."
-          [(ngModel)]="leerlingSearch"
-          (input)="onLeerlingSearch()"
-        />
-      </div>
-
-      @if (leerlingError) {
-        <p class="field-error">{{ leerlingError }}</p>
-      }
-
-      @if (leerlingenLoading) {
-        <p class="info-msg">Leerlingen laden...</p>
-      } @else if (filteredLeerlingen.length === 0) {
-        <p class="info-msg">
-          Geen leerlingen gevonden. Leerlingen verschijnen hier nadat ze
-          minstens één keer ingelogd hebben via Smartschool.
-        </p>
-      } @else {
-        <ul class="leerling-list">
-          @for (leerling of filteredLeerlingen; track leerling.sub) {
-            <li
-              class="leerling-item"
-              [class.selected]="selectedLeerling?.sub === leerling.sub"
-              (click)="selectLeerling(leerling)"
-            >
-              <div class="leerling-avatar">
-                {{ leerling.displayName.charAt(0).toUpperCase() }}
-              </div>
-              <span class="leerling-username">{{ leerling.displayName }}</span>
-              @if (selectedLeerling?.sub === leerling.sub) {
-                <span class="selected-check">✓</span>
-              }
-            </li>
-          }
-        </ul>
-      }
-
-      <div class="step-footer">
-        <button
-          class="primary-btn"
-          (click)="confirmLeerling()"
-          [disabled]="!selectedLeerling"
-        >
-          Verder met {{ selectedLeerling?.displayName || "..." }} →
-        </button>
-      </div>
+    <div class="search-bar search-grid">
+      <input type="text" placeholder="Zoek op naam..." [(ngModel)]="leerlingSearch" (input)="onLeerlingSearch()" />
     </div>
+
+    @if (leerlingError) {
+    <p class="field-error">{{ leerlingError }}</p>
+    }
+
+    @if (leerlingenLoading) {
+    <p class="info-msg">Leerlingen laden...</p>
+    } @else if (filteredLeerlingen.length === 0) {
+    <p class="info-msg">
+      Geen leerlingen gevonden. Leerlingen verschijnen hier nadat ze
+      minstens één keer ingelogd hebben via Smartschool.
+    </p>
+    } @else {
+    <ul class="leerling-list">
+      @for (leerling of filteredLeerlingen; track leerling.sub) {
+      <li class="leerling-item" [class.selected]="selectedLeerling?.sub === leerling.sub"
+        (click)="selectLeerling(leerling)">
+        <div class="leerling-avatar">
+          {{ leerling.displayName.charAt(0).toUpperCase() }}
+        </div>
+        <span class="leerling-username">{{ leerling.displayName }}</span>
+        @if (selectedLeerling?.sub === leerling.sub) {
+        <span class="selected-check">✓</span>
+        }
+      </li>
+      }
+    </ul>
+    }
+
+    <div class="step-footer">
+      <button class="primary-btn" (click)="confirmLeerling()" [disabled]="!selectedLeerling">
+        Verder met {{ selectedLeerling?.displayName || "..." }} →
+      </button>
+    </div>
+  </div>
   }
 
   <!-- STAP 2: Boeken selecteren -->
   @if (step === "boeken") {
-    <div class="step-card">
-      <div class="step-card-header">
-        <button class="ghost-btn" (click)="goBack()">← Terug</button>
-        <h2>
-          Boeken voor <strong>{{ selectedLeerling?.displayName }}</strong>
-        </h2>
-        <button
-          class="primary-btn"
-          (click)="proceedToConfirm()"
-          [disabled]="selectedBooks.length === 0"
-        >
-          {{ selectedBooks.length }} boek(en) → Verder
-        </button>
-      </div>
+  <div class="step-card">
+    <div class="step-card-header">
+      <button class="ghost-btn" (click)="goBack()">← Terug</button>
+      <h2>
+        Boeken voor <strong>{{ selectedLeerling?.displayName }}</strong>
+      </h2>
+      <button class="primary-btn" (click)="proceedToConfirm()" [disabled]="selectedBooks.length === 0">
+        {{ selectedBooks.length }} boek(en) → Verder
+      </button>
+    </div>
 
-      @if (errorMessage) {
-        <p class="field-error">{{ errorMessage }}</p>
-      }
+    @if (errorMessage) {
+    <p class="field-error">{{ errorMessage }}</p>
+    }
 
-      <!-- Actieve uitleningen van deze leerling -->
-      @if (activeLoans.length > 0) {
-        <div class="active-loans-section">
-          <h3>Momenteel uitgeleend aan {{ selectedLeerling?.displayName }}</h3>
-          <ul class="loans-list">
-            @for (loan of activeLoans; track loan.id) {
-              <li class="loan-row">
-                <div class="loan-book-info">
-                  @if (loan.bookCover) {
-                    <img
-                      [src]="loan.bookCover"
-                      [alt]="loan.bookTitel"
-                      class="loan-cover"
-                    />
-                  }
-                  <span class="loan-title">{{ loan.bookTitel }}</span>
-                </div>
-                <div class="loan-due-actions">
-                  @if (editingLoanId === loan.id) {
-                    <input
-                      type="date"
-                      [(ngModel)]="tempDueDate"
-                      [min]="today"
-                      class="inline-date-input"
-                    />
-                    <button
-                      class="icon-btn save-btn"
-                      (click)="saveDueDate(loan)"
-                      title="Opslaan"
-                    >
-                      Opslaan
-                    </button>
-                    <button
-                      class="icon-btn cancel-btn"
-                      (click)="cancelEdit()"
-                      title="Annuleren"
-                    >
-                      Annuleren
-                    </button>
-                  } @else {
-                    <span
-                      class="loan-due"
-                      [class.overdue]="isOverdue(loan.dueDate)"
-                    >
-                      tot {{ loan.dueDate | date: "dd/MM/yyyy" }}
-                      @if (isOverdue(loan.dueDate)) {
-                        <span class="overdue-tag">Te laat</span>
-                      }
-                    </span>
-                    <button
-                      class="edit-due-btn"
-                      (click)="startEditing(loan)"
-                      title="Deadline aanpassen"
-                    >
-                      Aanpassen
-                    </button>
-                  }
-                </div>
-                <button
-                  type="button"
-                  class="return-btn"
-                  (click)="openReturnDialog(loan, $event)"
-                >
-                  ✓ Teruggebracht
-                </button>
-              </li>
+    <!-- Actieve uitleningen van deze leerling -->
+    @if (activeLoans.length > 0) {
+    <div class="active-loans-section">
+      <h3>Momenteel uitgeleend aan {{ selectedLeerling?.displayName }}</h3>
+      <ul class="loans-list">
+        @for (loan of activeLoans; track loan.id) {
+        <li class="loan-row">
+          <div class="loan-book-info">
+            @if (loan.bookCover) {
+            <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="loan-cover" />
             }
-          </ul>
-        </div>
-      }
-
-      @if (returnDialogOpen && returnDialogLoan) {
-        <div
-          class="return-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          (click)="closeReturnDialog()"
-        >
-          <div class="return-modal" (click)="$event.stopPropagation()">
-            <header class="return-modal-header">
-              <h3>Boek terugbrengen</h3>
-              <button
-                type="button"
-                class="return-modal-close"
-                (click)="closeReturnDialog()"
-                aria-label="Sluit dialoog"
-              >
-                ×
-              </button>
-            </header>
-
-            <div class="return-modal-content">
-              <p class="return-modal-intro">
-                Geef aan in welke staat het boek terugkomt. Als het boek
-                verloren is, markeren we het als vermist.
-              </p>
-
-              <div class="return-modal-field">
-                <label for="return-condition">Staat van het boek</label>
-                <select
-                  id="return-condition"
-                  [(ngModel)]="returnCondition"
-                  [disabled]="returnLostBook"
-                >
-                  <option value="GOOD">Goed</option>
-                  <option value="MODERATE">Matig</option>
-                  <option value="BAD">Slecht</option>
-                </select>
-              </div>
-
-              <label class="return-modal-checkbox">
-                <input type="checkbox" [(ngModel)]="returnLostBook" />
-                Boek is verloren
-              </label>
-
-              <p class="return-modal-hint">
-                De uiteindelijke status wordt
-                <strong>{{ returnConditionLabel }}</strong
-                >.
-              </p>
-
-              @if (errorMessage) {
-                <p class="field-error">{{ errorMessage }}</p>
-              }
-            </div>
-
-            <footer class="return-modal-actions">
-              <button
-                type="button"
-                class="cancel-return-btn"
-                (click)="closeReturnDialog()"
-              >
-                Annuleren
-              </button>
-              <button
-                type="button"
-                class="confirm-return-btn"
-                [disabled]="isReturningLoan"
-                (click)="confirmReturnLoan()"
-              >
-                {{ isReturningLoan ? "Bezig..." : "Terugbrengen bevestigen" }}
-              </button>
-            </footer>
+            <span class="loan-title">{{ loan.bookTitel }}</span>
           </div>
-        </div>
-      }
-
-      <!-- Historiek van deze leerling -->
-      @if (loanHistory.length > 0 && !showHistory) {
-        <div class="active-loans-section">
-          <button
-            type="button"
-            class="show-history-btn"
-            (click)="showHistory = true"
-          >
-            Zie ontleenhistoriek van {{ selectedLeerling?.displayName }}
-          </button>
-        </div>
-      }
-
-      @if (loanHistory.length > 0 && showHistory) {
-        <div class="active-loans-section">
-          <h3>Ontleenhistoriek van {{ selectedLeerling?.displayName }}</h3>
-          <button
-            type="button"
-            class="hide-history-btn"
-            (click)="showHistory = false"
-          >
-            Verbergen
-          </button>
-          <ul class="loans-list">
-            @for (loan of pagedLoanHistory; track loan.id) {
-              <li class="loan-row">
-                <div class="loan-book-info">
-                  @if (loan.bookCover) {
-                    <img
-                      [src]="loan.bookCover"
-                      [alt]="loan.bookTitel"
-                      class="loan-cover"
-                    />
-                  }
-                  <span class="loan-title">{{ loan.bookTitel }}</span>
-                </div>
-                <span class="loan-due">
-                  terug op {{ loan.returnedAt | date: "dd/MM/yyyy" }}
-                </span>
-              </li>
-            }
-          </ul>
-
-          @if (totalHistoryPages > 1) {
-            <div class="history-pagination">
-              <button
-                type="button"
-                class="page-btn page-nav-btn"
-                [disabled]="currentHistoryPage === 1"
-                (click)="goToHistoryPage(1)"
-              >
-                &lt;&lt;
-              </button>
-              <button
-                type="button"
-                class="page-btn page-nav-btn"
-                [disabled]="currentHistoryPage === 1"
-                (click)="goToPreviousHistoryPage()"
-              >
-                &lt;
-              </button>
-
-              @for (page of visibleHistoryPages; track $index) {
-                @if (page === "...") {
-                  <span class="page-ellipsis">...</span>
-                } @else {
-                  <button
-                    type="button"
-                    class="page-btn"
-                    [class.active]="page === currentHistoryPage"
-                    (click)="goToHistoryPage(page)"
-                  >
-                    {{ page }}
-                  </button>
-                }
-              }
-
-              <button
-                type="button"
-                class="page-btn page-nav-btn"
-                [disabled]="currentHistoryPage === totalHistoryPages"
-                (click)="goToNextHistoryPage()"
-              >
-                &gt;
-              </button>
-              <button
-                type="button"
-                class="page-btn page-nav-btn"
-                [disabled]="currentHistoryPage === totalHistoryPages"
-                (click)="goToHistoryPage(totalHistoryPages)"
-              >
-                &gt;&gt;
-              </button>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Zoekbalk -->
-      <div class="search-bar">
-        <input
-          type="text"
-          placeholder="Zoek op titel of auteur..."
-          [(ngModel)]="searchQuery"
-          (input)="onSearch()"
-        />
-        <button
-          type="button"
-          class="barcode-scan-btn"
-          (click)="
-            cameraMode ? deactivateCameraMode() : activateCameraMode();
-            $event.stopPropagation()
-          "
-          [title]="cameraMode ? 'Sluit camera' : 'Scan barcode'"
-          aria-label="Scan barcode"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
-            <path d="M17 3h2a2 0 0 1 2 2v2"></path>
-            <path d="M21 17v2a2 0 0 1-2 2h-2"></path>
-            <path d="M5 21H3a2 0 0 1-2-2v-2"></path>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-            <line x1="12" y1="8" x2="12" y2="16"></line>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Camera scanning view -->
-      @if (cameraMode) {
-        <div class="camera-scan-section">
-          <div class="camera-preview-wrapper">
-            <video #cameraVideo class="camera-video-element"></video>
-            <div class="camera-scanner-overlay"></div>
-            <button
-              type="button"
-              class="camera-exit-btn"
-              (click)="deactivateCameraMode()"
-            >
-              ×
+          <div class="loan-due-actions">
+            @if (editingLoanId === loan.id) {
+            <input type="date" [(ngModel)]="tempDueDate" [min]="today" class="inline-date-input" />
+            <button class="icon-btn save-btn" (click)="saveDueDate(loan)" title="Opslaan">
+              Opslaan
             </button>
-          </div>
-          @if (cameraErrorMessage) {
-            <p class="camera-error-message">{{ cameraErrorMessage }}</p>
-          }
-          @if (isProcessingScan) {
-            <div class="scan-loader">
-              <span class="spinner"></span>
-              Zoeken in bibliotheek...
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Boeken lijst -->
-      @if (isLoading) {
-        <p class="info-msg">Boeken laden...</p>
-      } @else if (filteredBooks.length === 0 && !cameraMode) {
-        <p class="info-msg">Geen boeken gevonden.</p>
-      } @else if (
-        filteredBooks.length === 0 && cameraMode && !isProcessingScan
-      ) {
-        <p class="info-msg">Scan een barcode om boeken te vinden.</p>
-      } @else {
-        <ul class="book-list">
-          @for (book of filteredBooks; track book.id) {
-            <li
-              class="book-item"
-              [class.selected]="isSelected(book)"
-              [class.unavailable]="book.availableCopies === 0"
-              (click)="toggleBook(book)"
-            >
-              <div class="book-cover-small">
-                @if (book.cover) {
-                  <img [src]="book.cover" [alt]="book.titel" />
-                } @else {
-                  <div class="no-cover">?</div>
-                }
-              </div>
-              <div class="book-info">
-                <span class="book-title">{{ book.titel }}</span>
-                <span class="book-author">{{ book.auteur }}</span>
-              </div>
-              <div class="book-item-right">
-                <span
-                  class="copy-badge"
-                  [class.zero]="book.availableCopies === 0"
-                >
-                  {{ book.availableCopies }}/{{ book.totalCopies }}
-                </span>
-                @if (isSelected(book)) {
-                  <span class="selected-check">✓</span>
-                }
-              </div>
-            </li>
-          }
-        </ul>
-      }
-
-      @if (totalBookPages > 1) {
-        <div class="book-pagination">
-          <button
-            type="button"
-            class="page-btn page-nav-btn"
-            [disabled]="bookPage === 1 || isLoading"
-            (click)="goToFirstBookPage()"
-          >
-            &lt;&lt;
-          </button>
-          <button
-            type="button"
-            class="page-btn page-nav-btn"
-            [disabled]="bookPage === 1 || isLoading"
-            (click)="goToPreviousBookPage()"
-          >
-            &lt;
-          </button>
-
-          <div class="book-page-numbers">
-            @for (page of visibleBookPages; track $index) {
-              @if (page === "...") {
-                <span class="page-ellipsis">...</span>
-              } @else {
-                <button
-                  type="button"
-                  class="page-btn"
-                  [class.active]="page === bookPage"
-                  (click)="goToBookPage(page)"
-                  [disabled]="isLoading"
-                >
-                  {{ page }}
-                </button>
+            <button class="icon-btn cancel-btn" (click)="cancelEdit()" title="Annuleren">
+              Annuleren
+            </button>
+            } @else {
+            <span class="loan-due" [class.overdue]="isOverdue(loan.dueDate)">
+              tot {{ loan.dueDate | date: "dd/MM/yyyy" }}
+              @if (isOverdue(loan.dueDate)) {
+              <span class="overdue-tag">Te laat</span>
               }
+            </span>
+            <button class="edit-due-btn" (click)="startEditing(loan)" title="Deadline aanpassen">
+              Aanpassen
+            </button>
             }
           </div>
+          <button type="button" class="return-btn" (click)="openReturnDialog(loan, $event)">
+            ✓ Teruggebracht
+          </button>
+        </li>
+        }
+      </ul>
+    </div>
+    }
 
-          <button
-            type="button"
-            class="page-btn page-nav-btn"
-            [disabled]="bookPage === totalBookPages || isLoading"
-            (click)="goToNextBookPage()"
-          >
-            &gt;
+    @if (returnDialogOpen && returnDialogLoan) {
+    <div class="return-modal-backdrop" role="dialog" aria-modal="true" (click)="closeReturnDialog()">
+      <div class="return-modal" (click)="$event.stopPropagation()">
+        <header class="return-modal-header">
+          <h3>Boek terugbrengen</h3>
+          <button type="button" class="return-modal-close" (click)="closeReturnDialog()" aria-label="Sluit dialoog">
+            ×
           </button>
-          <button
-            type="button"
-            class="page-btn page-nav-btn"
-            [disabled]="bookPage === totalBookPages || isLoading"
-            (click)="goToLastBookPage()"
-          >
-            &gt;&gt;
-          </button>
+        </header>
+
+        <div class="return-modal-content">
+          <p class="return-modal-intro">
+            Geef aan in welke staat het boek terugkomt. Als het boek
+            verloren is, markeren we het als vermist.
+          </p>
+
+          <div class="return-modal-field">
+            <label for="return-condition">Staat van het boek</label>
+            <select id="return-condition" [(ngModel)]="returnCondition" [disabled]="returnLostBook">
+              <option value="GOOD">Goed</option>
+              <option value="MODERATE">Matig</option>
+              <option value="BAD">Slecht</option>
+            </select>
+          </div>
+
+          <label class="return-modal-checkbox">
+            <input type="checkbox" [(ngModel)]="returnLostBook" />
+            Boek is verloren
+          </label>
+
+          <p class="return-modal-hint">
+            De uiteindelijke status wordt
+            <strong>{{ returnConditionLabel }}</strong>.
+          </p>
+
+          @if (errorMessage) {
+          <p class="field-error">{{ errorMessage }}</p>
+          }
         </div>
+
+        <footer class="return-modal-actions">
+          <button type="button" class="cancel-return-btn" (click)="closeReturnDialog()">
+            Annuleren
+          </button>
+          <button type="button" class="confirm-return-btn" [disabled]="isReturningLoan" (click)="confirmReturnLoan()">
+            {{ isReturningLoan ? "Bezig..." : "Terugbrengen bevestigen" }}
+          </button>
+        </footer>
+      </div>
+    </div>
+    }
+
+    <!-- Historiek van deze leerling -->
+    @if (loanHistory.length > 0 && !showHistory) {
+    <div class="active-loans-section">
+      <button type="button" class="show-history-btn" (click)="showHistory = true">
+        Zie ontleenhistoriek van {{ selectedLeerling?.displayName }}
+      </button>
+    </div>
+    }
+
+    @if (loanHistory.length > 0 && showHistory) {
+    <div class="active-loans-section">
+      <h3>Ontleenhistoriek van {{ selectedLeerling?.displayName }}</h3>
+      <button type="button" class="hide-history-btn" (click)="showHistory = false">
+        Verbergen
+      </button>
+      <ul class="loans-list">
+        @for (loan of pagedLoanHistory; track loan.id) {
+        <li class="loan-row">
+          <div class="loan-book-info">
+            @if (loan.bookCover) {
+            <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="loan-cover" />
+            }
+            <span class="loan-title">{{ loan.bookTitel }}</span>
+          </div>
+          <span class="loan-due">
+            terug op {{ loan.returnedAt | date: "dd/MM/yyyy" }}
+          </span>
+        </li>
+        }
+      </ul>
+
+      @if (totalHistoryPages > 1) {
+      <div class="history-pagination">
+        <button type="button" class="page-btn page-nav-btn" [disabled]="currentHistoryPage === 1"
+          (click)="goToHistoryPage(1)">
+          &lt;&lt;
+        </button>
+        <button type="button" class="page-btn page-nav-btn" [disabled]="currentHistoryPage === 1"
+          (click)="goToPreviousHistoryPage()">
+          &lt;
+        </button>
+
+        @for (page of visibleHistoryPages; track $index) {
+        @if (page === "...") {
+        <span class="page-ellipsis">...</span>
+        } @else {
+        <button type="button" class="page-btn" [class.active]="page === currentHistoryPage"
+          (click)="goToHistoryPage(page)">
+          {{ page }}
+        </button>
+        }
+        }
+
+        <button type="button" class="page-btn page-nav-btn" [disabled]="currentHistoryPage === totalHistoryPages"
+          (click)="goToNextHistoryPage()">
+          &gt;
+        </button>
+        <button type="button" class="page-btn page-nav-btn" [disabled]="currentHistoryPage === totalHistoryPages"
+          (click)="goToHistoryPage(totalHistoryPages)">
+          &gt;&gt;
+        </button>
+      </div>
       }
     </div>
+    }
+
+    <!-- Zoekbalk -->
+    <div class="search-bar">
+      <input type="text" placeholder="Zoek op titel of auteur..." [(ngModel)]="searchQuery" (input)="onSearch()" />
+      <button type="button" class="barcode-scan-btn" (click)="
+            cameraMode ? deactivateCameraMode() : activateCameraMode();
+            $event.stopPropagation()
+          " [title]="cameraMode ? 'Sluit camera' : 'Scan barcode'" aria-label="Scan barcode">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+          <path d="M17 3h2a2 0 0 1 2 2v2"></path>
+          <path d="M21 17v2a2 0 0 1-2 2h-2"></path>
+          <path d="M5 21H3a2 0 0 1-2-2v-2"></path>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+          <line x1="12" y1="8" x2="12" y2="16"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Camera scanning view -->
+    @if (cameraMode) {
+    <div class="camera-scan-section">
+      <div class="camera-preview-wrapper">
+        <video #cameraVideo class="camera-video-element"></video>
+        <div class="camera-scanner-overlay"></div>
+        <button type="button" class="camera-exit-btn" (click)="deactivateCameraMode()">
+          ×
+        </button>
+      </div>
+      @if (cameraErrorMessage) {
+      <p class="camera-error-message">{{ cameraErrorMessage }}</p>
+      }
+      @if (isProcessingScan) {
+      <div class="scan-loader">
+        <span class="spinner"></span>
+        Zoeken in bibliotheek...
+      </div>
+      }
+    </div>
+    }
+
+    <!-- Boeken lijst -->
+    @if (isLoading) {
+    <p class="info-msg">Boeken laden...</p>
+    } @else if (filteredBooks.length === 0 && !cameraMode) {
+    <p class="info-msg">Geen boeken gevonden.</p>
+    } @else if (
+    filteredBooks.length === 0 && cameraMode && !isProcessingScan
+    ) {
+    <p class="info-msg">Scan een barcode om boeken te vinden.</p>
+    } @else {
+    <ul class="book-list">
+      @for (book of filteredBooks; track book.id) {
+      <li class="book-item" [class.selected]="isSelected(book)" [class.unavailable]="book.availableCopies === 0"
+        (click)="toggleBook(book)">
+        <div class="book-cover-small">
+          @if (book.cover) {
+          <img [src]="book.cover" [alt]="book.titel" />
+          } @else {
+          <div class="no-cover">?</div>
+          }
+        </div>
+        <div class="book-info">
+          <span class="book-title">{{ book.titel }}</span>
+          <span class="book-author">{{ book.auteur }}</span>
+        </div>
+        <div class="book-item-right">
+          <span class="copy-badge" [class.zero]="book.availableCopies === 0">
+            {{ book.availableCopies }}/{{ book.totalCopies }}
+          </span>
+          @if (isSelected(book)) {
+          <span class="selected-check">✓</span>
+          }
+        </div>
+      </li>
+      }
+    </ul>
+    }
+
+    @if (totalBookPages > 1) {
+    <div class="book-pagination">
+      <button type="button" class="page-btn page-nav-btn" [disabled]="bookPage === 1 || isLoading"
+        (click)="goToFirstBookPage()">
+        &lt;&lt;
+      </button>
+      <button type="button" class="page-btn page-nav-btn" [disabled]="bookPage === 1 || isLoading"
+        (click)="goToPreviousBookPage()">
+        &lt;
+      </button>
+
+      <div class="book-page-numbers">
+        @for (page of visibleBookPages; track $index) {
+        @if (page === "...") {
+        <span class="page-ellipsis">...</span>
+        } @else {
+        <button type="button" class="page-btn" [class.active]="page === bookPage" (click)="goToBookPage(page)"
+          [disabled]="isLoading">
+          {{ page }}
+        </button>
+        }
+        }
+      </div>
+
+      <button type="button" class="page-btn page-nav-btn" [disabled]="bookPage === totalBookPages || isLoading"
+        (click)="goToNextBookPage()">
+        &gt;
+      </button>
+      <button type="button" class="page-btn page-nav-btn" [disabled]="bookPage === totalBookPages || isLoading"
+        (click)="goToLastBookPage()">
+        &gt;&gt;
+      </button>
+    </div>
+    }
+  </div>
   }
 
   <!-- STAP 3: Bevestigen -->
   @if (step === "bevestiging") {
-    <div class="step-card">
-      <div class="step-card-header">
-        <button class="ghost-btn" (click)="goBack()">← Terug</button>
-        <h2>Bevestig uitlening</h2>
-        <div></div>
-      </div>
-
-      <div class="confirm-info">
-        <div class="confirm-row">
-          <span class="confirm-label">Leerling</span>
-          <span class="confirm-value">{{ selectedLeerling?.displayName }}</span>
-        </div>
-        <div class="confirm-row">
-          <span class="confirm-label">Terugbrengdatum</span>
-          <input
-            type="date"
-            [(ngModel)]="dueDate"
-            [min]="today"
-            class="date-input"
-          />
-        </div>
-      </div>
-
-      <h3 class="books-header">Geselecteerde boeken</h3>
-      <ul class="confirm-book-list">
-        @for (book of selectedBooks; track book.id) {
-          <li class="confirm-book-row">
-            <div class="book-cover-small">
-              @if (book.cover) {
-                <img [src]="book.cover" [alt]="book.titel" />
-              } @else {
-                <div class="no-cover">?</div>
-              }
-            </div>
-            <div class="book-info">
-              <span class="book-title">{{ book.titel }}</span>
-              <span class="book-author">{{ book.auteur }}</span>
-            </div>
-            <button class="remove-book-btn" (click)="toggleBook(book)">
-              ✕
-            </button>
-          </li>
-        }
-      </ul>
-
-      @if (errorMessage) {
-        <p class="field-error">{{ errorMessage }}</p>
-      }
-
-      <button
-        type="button"
-        class="loan-confirm-btn"
-        (click)="loanBooks()"
-        [disabled]="isLoaning || !dueDate || selectedBooks.length === 0"
-      >
-        {{
-          isLoaning
-            ? "Bezig..."
-            : "✓ Bevestig uitlening van " + selectedBooks.length + " boek(en)"
-        }}
-      </button>
+  <div class="step-card">
+    <div class="step-card-header">
+      <button class="ghost-btn" (click)="goBack()">← Terug</button>
+      <h2>Bevestig uitlening</h2>
+      <div></div>
     </div>
+
+    <div class="confirm-info">
+      <div class="confirm-row">
+        <span class="confirm-label">Leerling</span>
+        <span class="confirm-value">{{ selectedLeerling?.displayName }}</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Terugbrengdatum</span>
+        <div class="due-date-row">
+          <input type="date" [(ngModel)]="dueDate" [min]="today" class="date-input" />
+          @if (role === 'bibbeheerder') {
+          <button type="button" class="edit-default-days-btn" (click)="openDefaultDaysEdit()"
+            title="Standaard uitleentermijn aanpassen">
+            ⚙ Standaard: {{ defaultLoanDays }} dagen
+          </button>
+          }
+        </div>
+      </div>
+
+      @if (defaultDueDateEditOpen) {
+      <div class="return-modal-backdrop" role="dialog" aria-modal="true" (click)="closeDefaultDaysEdit()">
+        <div class="return-modal" (click)="$event.stopPropagation()">
+          <header class="return-modal-header">
+            <h3>Standaard uitleentermijn</h3>
+            <button type="button" class="return-modal-close" (click)="closeDefaultDaysEdit()">×</button>
+          </header>
+          <div class="return-modal-content">
+            <p class="return-modal-intro">
+              Stel het standaard aantal dagen in dat leerlingen boeken mogen houden.
+              Dit geldt voor alle nieuwe uitleningen van deze school.
+            </p>
+            <div class="return-modal-field">
+              <label for="default-days">Aantal dagen</label>
+              <input type="number" id="default-days" [(ngModel)]="tempDefaultLoanDays" min="1" max="365"
+                class="date-input" />
+            </div>
+            @if (defaultDaysError) {
+            <p class="field-error">{{ defaultDaysError }}</p>
+            }
+          </div>
+          <footer class="return-modal-actions">
+            <button type="button" class="cancel-return-btn" (click)="closeDefaultDaysEdit()">
+              Annuleren
+            </button>
+            <button type="button" class="confirm-return-btn" [disabled]="isSavingDefaultDays"
+              (click)="saveDefaultLoanDays()">
+              {{ isSavingDefaultDays ? 'Bezig...' : 'Opslaan' }}
+            </button>
+          </footer>
+        </div>
+      </div>
+      }
+    </div>
+
+    <h3 class="books-header">Geselecteerde boeken</h3>
+    <ul class="confirm-book-list">
+      @for (book of selectedBooks; track book.id) {
+      <li class="confirm-book-row">
+        <div class="book-cover-small">
+          @if (book.cover) {
+          <img [src]="book.cover" [alt]="book.titel" />
+          } @else {
+          <div class="no-cover">?</div>
+          }
+        </div>
+        <div class="book-info">
+          <span class="book-title">{{ book.titel }}</span>
+          <span class="book-author">{{ book.auteur }}</span>
+        </div>
+        <button class="remove-book-btn" (click)="toggleBook(book)">
+          ✕
+        </button>
+      </li>
+      }
+    </ul>
+
+    @if (errorMessage) {
+    <p class="field-error">{{ errorMessage }}</p>
+    }
+
+    <button type="button" class="loan-confirm-btn" (click)="loanBooks()"
+      [disabled]="isLoaning || !dueDate || selectedBooks.length === 0">
+      {{
+      isLoaning
+      ? "Bezig..."
+      : "✓ Bevestig uitlening van " + selectedBooks.length + " boek(en)"
+      }}
+    </button>
+  </div>
   }
 
   @if (copySelectionOpen && copySelectionState) {
-    <div
-      class="return-modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      (click)="closeCopySelectionDialog()"
-    >
-      <div
-        class="return-modal copy-selection-modal"
-        (click)="$event.stopPropagation()"
-      >
-        <header class="return-modal-header">
-          <h3>Kies een exemplaar</h3>
-          <button
-            type="button"
-            class="return-modal-close"
-            (click)="closeCopySelectionDialog()"
-            aria-label="Sluit dialoog"
-          >
-            ×
-          </button>
-        </header>
+  <div class="return-modal-backdrop" role="dialog" aria-modal="true" (click)="closeCopySelectionDialog()">
+    <div class="return-modal copy-selection-modal" (click)="$event.stopPropagation()">
+      <header class="return-modal-header">
+        <h3>Kies een exemplaar</h3>
+        <button type="button" class="return-modal-close" (click)="closeCopySelectionDialog()"
+          aria-label="Sluit dialoog">
+          ×
+        </button>
+      </header>
 
-        <div class="return-modal-content">
-          <p class="return-modal-intro">
-            Er zijn meerdere exemplaren beschikbaar voor
-            <strong>{{ copySelectionState.book.titel }}</strong
-            >. Kies welk exemplaar je wilt uitlenen.
-          </p>
+      <div class="return-modal-content">
+        <p class="return-modal-intro">
+          Er zijn meerdere exemplaren beschikbaar voor
+          <strong>{{ copySelectionState.book.titel }}</strong>. Kies welk exemplaar je wilt uitlenen.
+        </p>
 
-          <div class="copy-selection-list">
-            @for (
-              copy of copySelectionState.copies;
-              track copy.id;
-              let copyIndex = $index
-            ) {
-              <label class="copy-selection-item">
-                <input
-                  type="radio"
-                  name="copySelection"
-                  [value]="copy.id"
-                  [(ngModel)]="copySelectionState.selectedCopyId"
-                />
-                <span class="copy-selection-main">
-                  <span class="copy-selection-label"
-                    >Exemplaar #{{ copyIndex + 1 }}</span
-                  >
-                  <span class="copy-selection-meta">
-                    {{ getCopyConditionLabel(copy.condition) }} ·
-                    {{ getCopyStatusLabel(copy.status) }}
-                  </span>
-                </span>
-              </label>
-            }
-          </div>
+        <div class="copy-selection-list">
+          @for (
+          copy of copySelectionState.copies;
+          track copy.id;
+          let copyIndex = $index
+          ) {
+          <label class="copy-selection-item">
+            <input type="radio" name="copySelection" [value]="copy.id"
+              [(ngModel)]="copySelectionState.selectedCopyId" />
+            <span class="copy-selection-main">
+              <span class="copy-selection-label">Exemplaar #{{ copyIndex + 1 }}</span>
+              <span class="copy-selection-meta">
+                {{ getCopyConditionLabel(copy.condition) }} ·
+                {{ getCopyStatusLabel(copy.status) }}
+              </span>
+            </span>
+          </label>
+          }
         </div>
-
-        <footer class="return-modal-actions">
-          <button
-            type="button"
-            class="cancel-return-btn"
-            (click)="closeCopySelectionDialog()"
-          >
-            Annuleren
-          </button>
-          <button
-            type="button"
-            class="confirm-return-btn"
-            [disabled]="!copySelectionState.selectedCopyId"
-            (click)="confirmCopySelection()"
-          >
-            Gebruik dit exemplaar
-          </button>
-        </footer>
       </div>
+
+      <footer class="return-modal-actions">
+        <button type="button" class="cancel-return-btn" (click)="closeCopySelectionDialog()">
+          Annuleren
+        </button>
+        <button type="button" class="confirm-return-btn" [disabled]="!copySelectionState.selectedCopyId"
+          (click)="confirmCopySelection()">
+          Gebruik dit exemplaar
+        </button>
+      </footer>
     </div>
+  </div>
   }
 
   @if (bookNotFoundDialogOpen) {
-    <div
-      class="return-modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      (click)="closeBookNotFoundDialog()"
-    >
-      <div class="return-modal" (click)="$event.stopPropagation()">
-        <header class="return-modal-header error-header">
-          <div class="header-title-group">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#f44336"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="error-icon"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <h3>Boek niet gevonden</h3>
-          </div>
-          <button
-            type="button"
-            class="return-modal-close"
-            (click)="closeBookNotFoundDialog()"
-            aria-label="Sluit dialoog"
-          >
-            ×
-          </button>
-        </header>
-        <div class="return-modal-content">
-          <p class="return-modal-intro">
-            Het gescande boek met barcode
-            <strong>{{ scannedBarcodeNotFound }}</strong> werd niet gevonden in
-            de bibliotheek van deze school.
-          </p>
+  <div class="return-modal-backdrop" role="dialog" aria-modal="true" (click)="closeBookNotFoundDialog()">
+    <div class="return-modal" (click)="$event.stopPropagation()">
+      <header class="return-modal-header error-header">
+        <div class="header-title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <h3>Boek niet gevonden</h3>
         </div>
-        <footer class="return-modal-actions">
-          <button
-            type="button"
-            class="confirm-return-btn"
-            (click)="closeBookNotFoundDialog()"
-          >
-            Begrepen
-          </button>
-        </footer>
+        <button type="button" class="return-modal-close" (click)="closeBookNotFoundDialog()" aria-label="Sluit dialoog">
+          ×
+        </button>
+      </header>
+      <div class="return-modal-content">
+        <p class="return-modal-intro">
+          Het gescande boek met barcode
+          <strong>{{ scannedBarcodeNotFound }}</strong> werd niet gevonden in
+          de bibliotheek van deze school.
+        </p>
       </div>
+      <footer class="return-modal-actions">
+        <button type="button" class="confirm-return-btn" (click)="closeBookNotFoundDialog()">
+          Begrepen
+        </button>
+      </footer>
     </div>
+  </div>
   }
 
   <!-- Boek niet beschikbaar Dialog -->
   @if (bookUnavailableDialogOpen && pendingScannedBook) {
-    <div
-      class="return-modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      (click)="closeBookUnavailableDialog()"
-    >
-      <div class="return-modal" (click)="$event.stopPropagation()">
-        <header class="return-modal-header warning-header">
-          <div class="header-title-group">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ff9800"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="warning-icon"
-            >
-              <path
-                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-              ></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <h3>Boek niet beschikbaar</h3>
-          </div>
-          <button
-            type="button"
-            class="return-modal-close"
-            (click)="closeBookUnavailableDialog()"
-            aria-label="Sluit dialoog"
-          >
-            ×
-          </button>
-        </header>
-        <div class="return-modal-content">
-          <p class="return-modal-intro">
-            Het boek <strong>"{{ pendingScannedBook.titel }}"</strong> is
-            gevonden, maar alle
-            <strong>{{ pendingScannedBook.totalCopies }}</strong> exemplaren
-            zijn momenteel al uitgeleend.
-          </p>
-          <p class="return-modal-hint">
-            Het boek moet eerst worden teruggebracht voordat het opnieuw kan
-            worden uitgeleend.
-          </p>
+  <div class="return-modal-backdrop" role="dialog" aria-modal="true" (click)="closeBookUnavailableDialog()">
+    <div class="return-modal" (click)="$event.stopPropagation()">
+      <header class="return-modal-header warning-header">
+        <div class="header-title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="warning-icon">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <h3>Boek niet beschikbaar</h3>
         </div>
-        <footer class="return-modal-actions">
-          <button
-            type="button"
-            class="confirm-return-btn"
-            (click)="closeBookUnavailableDialog()"
-          >
-            Begrepen
-          </button>
-        </footer>
+        <button type="button" class="return-modal-close" (click)="closeBookUnavailableDialog()"
+          aria-label="Sluit dialoog">
+          ×
+        </button>
+      </header>
+      <div class="return-modal-content">
+        <p class="return-modal-intro">
+          Het boek <strong>"{{ pendingScannedBook.titel }}"</strong> is
+          gevonden, maar alle
+          <strong>{{ pendingScannedBook.totalCopies }}</strong> exemplaren
+          zijn momenteel al uitgeleend.
+        </p>
+        <p class="return-modal-hint">
+          Het boek moet eerst worden teruggebracht voordat het opnieuw kan
+          worden uitgeleend.
+        </p>
       </div>
+      <footer class="return-modal-actions">
+        <button type="button" class="confirm-return-btn" (click)="closeBookUnavailableDialog()">
+          Begrepen
+        </button>
+      </footer>
     </div>
+  </div>
   }
 
   <!-- Scan Bevestiging Dialog -->
   @if (scanConfirmationOpen && pendingScannedBook) {
-    <div
-      class="return-modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      (click)="cancelScannedBook()"
-    >
-      <div class="return-modal" (click)="$event.stopPropagation()">
-        <header class="return-modal-header success-header">
-          <div class="header-title-group">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#4caf50"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <h3>Boek gevonden</h3>
-          </div>
-          <button
-            type="button"
-            class="return-modal-close"
-            (click)="cancelScannedBook()"
-          >
-            ×
-          </button>
-        </header>
-        <div class="return-modal-content">
-          <div class="scanned-book-preview">
-            @if (pendingScannedBook.cover) {
-              <img [src]="pendingScannedBook.cover" class="preview-cover" />
-            }
-            <div class="preview-details">
-              <p class="preview-title">
-                <strong>{{ pendingScannedBook.titel }}</strong>
-              </p>
-              <p class="preview-author">{{ pendingScannedBook.auteur }}</p>
-              <p class="preview-copies">
-                {{ pendingScannedBook.availableCopies }} van de
-                {{ pendingScannedBook.totalCopies }} exemplaren beschikbaar.
-              </p>
-            </div>
+  <div class="return-modal-backdrop" role="dialog" aria-modal="true" (click)="cancelScannedBook()">
+    <div class="return-modal" (click)="$event.stopPropagation()">
+      <header class="return-modal-header success-header">
+        <div class="header-title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <h3>Boek gevonden</h3>
+        </div>
+        <button type="button" class="return-modal-close" (click)="cancelScannedBook()">
+          ×
+        </button>
+      </header>
+      <div class="return-modal-content">
+        <div class="scanned-book-preview">
+          @if (pendingScannedBook.cover) {
+          <img [src]="pendingScannedBook.cover" class="preview-cover" />
+          }
+          <div class="preview-details">
+            <p class="preview-title">
+              <strong>{{ pendingScannedBook.titel }}</strong>
+            </p>
+            <p class="preview-author">{{ pendingScannedBook.auteur }}</p>
+            <p class="preview-copies">
+              {{ pendingScannedBook.availableCopies }} van de
+              {{ pendingScannedBook.totalCopies }} exemplaren beschikbaar.
+            </p>
           </div>
         </div>
-        <footer class="return-modal-actions">
-          <button
-            type="button"
-            class="cancel-return-btn"
-            (click)="cancelScannedBook()"
-          >
-            Annuleren
-          </button>
-          <button
-            type="button"
-            class="confirm-return-btn"
-            (click)="confirmScannedBook()"
-          >
-            Toevoegen aan selectie
-          </button>
-        </footer>
       </div>
+      <footer class="return-modal-actions">
+        <button type="button" class="cancel-return-btn" (click)="cancelScannedBook()">
+          Annuleren
+        </button>
+        <button type="button" class="confirm-return-btn" (click)="confirmScannedBook()">
+          Toevoegen aan selectie
+        </button>
+      </footer>
     </div>
+  </div>
   }
 </div>

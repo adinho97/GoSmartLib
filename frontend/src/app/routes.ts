@@ -26,7 +26,6 @@ import { LoanHistoryCatalogComponent } from "./loan-history-catalog/loan-history
 import { LoanConditionOverviewComponent } from "./loan-condition-overview/loan-condition-overview.component";
 import { LoanOverviewComponent } from "./loan-overview/loan-overview.component";
 import { LeerlingInfoComponent } from "./leerling-info/leerling-info.component";
-import { BibFaqBeheerComponent } from "./bib-faq-beheer/bib-faq-beheer.component";
 import { MapScreenComponent } from "./map-screen/map-screen.component";
 import { MijnLijstenComponent } from "./mijn-lijsten/mijn-lijsten.component";
 import { LeerkrachtDashboardComponent } from "./leerkracht-dashboard/leerkracht-dashboard.component";
@@ -177,12 +176,6 @@ export const appRoutes: Routes = [
   {
     path: "uitleen-overzicht",
     component: LoanOverviewComponent,
-    canActivate: [AuthGuard],
-    data: { roles: ["bibbeheerder"] },
-  },
-  {
-    path: "faq-beheer",
-    component: BibFaqBeheerComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"] },
   },

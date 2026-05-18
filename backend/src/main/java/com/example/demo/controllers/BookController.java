@@ -775,7 +775,9 @@ public class BookController {
     }
 
     private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication) {
-        if (requestedSchoolId != null) {
+        // Students cannot scope to any school other than their own — ignore the param if present.
+        boolean studentCaller = isStudentRole(authentication, null);
+        if (requestedSchoolId != null && !studentCaller) {
             return requestedSchoolId;
         }
         if (authentication == null) {
@@ -792,7 +794,9 @@ public class BookController {
     }
 
     private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication, String subHeader) {
-        if (requestedSchoolId != null) {
+        // Students cannot scope to any school other than their own — ignore the param if present.
+        boolean studentCaller = isStudentRole(authentication, null);
+        if (requestedSchoolId != null && !studentCaller) {
             return requestedSchoolId;
         }
 

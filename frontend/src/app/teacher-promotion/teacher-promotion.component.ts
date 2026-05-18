@@ -20,8 +20,6 @@ export class TeacherPromotionComponent implements OnInit {
   isPromoting = false;
   promoteError = "";
 
-  private readonly nameCache = new Map<string, string>();
-
   constructor(
     private readonly bibbeheerderService: BibbeheerderService,
     private readonly http: HttpClient,
@@ -38,39 +36,12 @@ export class TeacherPromotionComponent implements OnInit {
       next: (users) => {
         this.leerkrachten = users;
         this.loading = false;
-        void this.enrichNames(users);
       },
       error: (err) => {
-        this.loadError =
-          err?.error?.message || "Leerkrachten laden mislukt.";
+        this.loadError = err?.error?.message || "Leerkrachten laden mislukt.";
         this.loading = false;
       },
     });
-  }
-
-  private async enrichNames(users: AdminUserListItem[]): Promise<void> {
-    const enriched = await Promise.all(
-      users.map(async (user) => {
-        if (user.displayName?.trim()) return user;
-        const displayName = await this.getDisplayName(user.sub);
-        return { ...user, displayName };
-      }),
-    );
-    this.leerkrachten = enriched;
-  }
-
-  private async getDisplayName(sub: string): Promise<string> {
-    if (this.nameCache.has(sub)) return this.nameCache.get(sub)!;
-    try {
-      const profile = await firstValueFrom(
-        this.http.get<any>(`/api/users/${encodeURIComponent(sub)}/profile`),
-      );
-      const name = formatUserInfoDisplayName(profile, sub);
-      this.nameCache.set(sub, name);
-      return name;
-    } catch {
-      return sub;
-    }
   }
 
   openConfirm(user: AdminUserListItem): void {
@@ -88,25 +59,27 @@ export class TeacherPromotionComponent implements OnInit {
     this.isPromoting = true;
     this.promoteError = "";
 
-    this.bibbeheerderService.promoteLeerkracht(this.confirmTarget.id).subscribe({
-      next: () => {
-        this.leerkrachten = this.leerkrachten.filter(
-          (u) => u.id !== this.confirmTarget!.id,
-        );
-        this.confirmTarget = null;
-        this.isPromoting = false;
-      },
-      error: (err) => {
-        this.isPromoting = false;
-        if (err?.error?.code === "INVALID_ROLE_TRANSITION") {
-          this.promoteError = "Deze leerkracht is al bibbeheerder.";
+    this.bibbeheerderService
+      .promoteLeerkracht(this.confirmTarget.id)
+      .subscribe({
+        next: () => {
+          this.leerkrachten = this.leerkrachten.filter(
+            (u) => u.id !== this.confirmTarget!.id,
+          );
           this.confirmTarget = null;
-          this.loadLeerkrachten();
-        } else {
-          this.promoteError =
-            err?.error?.message || "Promoveren mislukt. Probeer opnieuw.";
-        }
-      },
-    });
+          this.isPromoting = false;
+        },
+        error: (err) => {
+          this.isPromoting = false;
+          if (err?.error?.code === "INVALID_ROLE_TRANSITION") {
+            this.promoteError = "Deze leerkracht is al bibbeheerder.";
+            this.confirmTarget = null;
+            this.loadLeerkrachten();
+          } else {
+            this.promoteError =
+              err?.error?.message || "Promoveren mislukt. Probeer opnieuw.";
+          }
+        },
+      });
   }
 }

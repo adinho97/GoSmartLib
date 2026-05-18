@@ -131,7 +131,10 @@ export class ExperienceService {
   }
 
   reconcileReviewExperienceFromHistory(reviewCount: number): void {
-    const normalizedReviewCount = Math.max(0, Math.floor(Number(reviewCount) || 0));
+    const normalizedReviewCount = Math.max(
+      0,
+      Math.floor(Number(reviewCount) || 0),
+    );
     const previouslySyncedReviewCount = this.readReviewXpSyncedCount();
     const delta = normalizedReviewCount - previouslySyncedReviewCount;
 
@@ -143,7 +146,9 @@ export class ExperienceService {
 
     this.persistReviewXpSyncedCount(normalizedReviewCount);
 
-    for (const threshold of Object.keys(this.BADGE_THRESHOLD_REWARDS).map(Number)) {
+    for (const threshold of Object.keys(this.BADGE_THRESHOLD_REWARDS).map(
+      Number,
+    )) {
       if (normalizedReviewCount >= threshold) {
         this.addExperienceForBadge(threshold, "review");
       }
@@ -265,9 +270,13 @@ export class ExperienceService {
   }
 
   private getUserHeaders() {
+    const token = localStorage.getItem("smartschoolToken");
     return {
       headers: {
         "X-User-Sub": this.getUserSub(),
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     };
   }
@@ -292,7 +301,8 @@ export class ExperienceService {
 
   private async initFromBackend(): Promise<void> {
     const userSub = this.getUserSub();
-    if (!userSub) {
+    const role = localStorage.getItem("role");
+    if (!userSub || role !== "leerling") {
       this.initializedFromBackend = true;
       this.hydratedForUserSub = "";
       return;
@@ -318,6 +328,10 @@ export class ExperienceService {
       this.persistClaimedBadgeRewardsLocally(claimedBadgeRewards);
       this.hydratedForUserSub = userSub;
     } catch {
+      // Silence 403 errors if role is not authorized for experience tracking
+      if ((arguments[0] as any)?.response?.status === 403) {
+        return;
+      }
       // Keep local fallback data when backend is unreachable.
     } finally {
       this.initializedFromBackend = true;

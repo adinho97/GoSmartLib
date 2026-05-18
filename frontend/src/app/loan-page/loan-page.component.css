@@ -1157,3 +1157,28 @@
   border-color: #871f42;
   color: #ffffff;
 }
+
+.due-date-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-default-days-btn {
+  padding: 6px 12px;
+  background: transparent;
+  color: #871f42;
+  border: 1.5px dashed #d4c1c9;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.edit-default-days-btn:hover {
+  border-color: #871f42;
+  background: #fff0f4;
+}

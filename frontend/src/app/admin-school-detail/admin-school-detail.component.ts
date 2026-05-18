@@ -14,6 +14,13 @@ import { formatUserInfoDisplayName } from "../utils/name-utils";
 
 type PaginationItem = number | "...";
 
+interface SpotlightBook {
+  bookId: number;
+  titel: string;
+  auteur: string;
+  cover: string;
+}
+
 interface NominatimResult {
   lat: string;
   lon: string;
@@ -97,7 +104,7 @@ export class AdminSchoolDetailComponent implements OnInit {
     {
       label: "FAQ & Inhoud",
       sub: "Inhoud & veelgestelde vragen",
-      route: "/faq-beheer",
+      route: "/info",
       icon: "faq",
     },
     {
@@ -107,6 +114,19 @@ export class AdminSchoolDetailComponent implements OnInit {
       icon: "stats",
     },
   ];
+
+  // Spotlight management
+  spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = {
+    maand: null,
+    thema: null,
+  };
+  spotlightLoading = false;
+  spotlightSaving: "MAAND" | "THEMA" | null = null;
+  spotlightClearing: "MAAND" | "THEMA" | null = null;
+  spotlightError = "";
+  spotlightSuccess = "";
+  maandBookIdInput: number | null = null;
+  themaBookIdInput: number | null = null;
 
   // Info edit form
   infoExpanded = false;
@@ -146,7 +166,6 @@ export class AdminSchoolDetailComponent implements OnInit {
   activeFilter: "" | "active" | "inactive" = "";
   userPage = 1;
   readonly userPageSize = 5;
-  private readonly userNameCache = new Map<string, string>();
 
   setActiveFilter(value: "" | "active" | "inactive"): void {
     this.activeFilter = value;
@@ -168,6 +187,7 @@ export class AdminSchoolDetailComponent implements OnInit {
   ngOnInit(): void {
     this.schoolId = Number(this.route.snapshot.paramMap.get("id"));
     this.loadAll();
+    this.loadSpotlights();
   }
 
   loadAll(): void {
@@ -188,8 +208,9 @@ export class AdminSchoolDetailComponent implements OnInit {
         this.users = users;
         this.klassen = klassen;
         this.leeslijsten = leeslijsten;
-        this.leeslijsten = Array.isArray(leeslijsten) ? leeslijsten : (leeslijsten as any).data || [];
-        void this.enrichUserNames(users);
+        this.leeslijsten = Array.isArray(leeslijsten)
+          ? leeslijsten
+          : (leeslijsten as any).data || [];
 
         this.resetForm();
         this.isLoadingDetail = false;
@@ -331,9 +352,7 @@ export class AdminSchoolDetailComponent implements OnInit {
       .subscribe({
         next: (updated) => {
           this.users = this.users.map((u) =>
-            u.id === updated.id
-              ? { ...updated, displayName: u.displayName }
-              : u,
+            u.id === updated.id ? updated : u,
           );
           this.promotingUserId = null;
         },
@@ -351,9 +370,7 @@ export class AdminSchoolDetailComponent implements OnInit {
 
     this.adminSchoolService.toggleUserActive(this.schoolId, user.id).subscribe({
       next: (updated) => {
-        this.users = this.users.map((u) =>
-          u.id === updated.id ? { ...updated, displayName: u.displayName } : u,
-        );
+        this.users = this.users.map((u) => (u.id === updated.id ? updated : u));
         this.togglingUserId = null;
       },
       error: (err) => {
@@ -522,37 +539,6 @@ export class AdminSchoolDetailComponent implements OnInit {
     }
   }
 
-  private async enrichUserNames(users: AdminUserListItem[]): Promise<void> {
-    const enriched = await Promise.all(
-      users.map(async (user) => {
-        if (user.displayName?.trim()) {
-          return user;
-        }
-        const displayName = await this.getDisplayNameForSub(user.sub);
-        return { ...user, displayName };
-      }),
-    );
-
-    this.users = enriched;
-  }
-
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    if (this.userNameCache.has(sub)) {
-      return this.userNameCache.get(sub)!;
-    }
-
-    try {
-      const profile = await firstValueFrom(
-        this.http.get<any>(`/api/users/${encodeURIComponent(sub)}/profile`),
-      );
-      const displayName = formatUserInfoDisplayName(profile, sub);
-      this.userNameCache.set(sub, displayName);
-      return displayName;
-    } catch {
-      return sub;
-    }
-  }
-
   private buildVisiblePages(
     totalPages: number,
     currentPage: number,
@@ -611,6 +597,73 @@ export class AdminSchoolDetailComponent implements OnInit {
       );
     }
     this.router.navigate([route]);
+  }
+
+  loadSpotlights(): void {
+    this.spotlightLoading = true;
+    this.http
+      .get<{
+        maand: SpotlightBook | null;
+        thema: SpotlightBook | null;
+      }>(`/api/spotlight/${this.schoolId}`)
+      .subscribe({
+        next: (data) => {
+          this.spotlight = data;
+          this.spotlightLoading = false;
+        },
+        error: () => {
+          this.spotlightLoading = false;
+        },
+      });
+  }
+
+  setSpotlight(type: "MAAND" | "THEMA"): void {
+    const bookId =
+      type === "MAAND" ? this.maandBookIdInput : this.themaBookIdInput;
+    if (!bookId) return;
+    this.spotlightSaving = type;
+    this.spotlightError = "";
+    this.spotlightSuccess = "";
+    this.http
+      .put<SpotlightBook>(`/api/spotlight/${this.schoolId}/${type}`, { bookId })
+      .subscribe({
+        next: (book) => {
+          if (type === "MAAND") {
+            this.spotlight.maand = book;
+            this.maandBookIdInput = null;
+          } else {
+            this.spotlight.thema = book;
+            this.themaBookIdInput = null;
+          }
+          this.spotlightSaving = null;
+          this.spotlightSuccess = "Opgeslagen.";
+          setTimeout(() => (this.spotlightSuccess = ""), 3000);
+        },
+        error: (err) => {
+          this.spotlightError =
+            err?.error?.message || "Opslaan mislukt. Controleer het boek-ID.";
+          this.spotlightSaving = null;
+        },
+      });
+  }
+
+  clearSpotlight(type: "MAAND" | "THEMA"): void {
+    this.spotlightClearing = type;
+    this.spotlightError = "";
+    this.spotlightSuccess = "";
+    this.http.delete(`/api/spotlight/${this.schoolId}/${type}`).subscribe({
+      next: () => {
+        if (type === "MAAND") this.spotlight.maand = null;
+        else this.spotlight.thema = null;
+        this.spotlightClearing = null;
+        this.spotlightSuccess = "Gewist.";
+        setTimeout(() => (this.spotlightSuccess = ""), 3000);
+      },
+      error: (err) => {
+        this.spotlightError = err?.error?.message || "Wissen mislukt.";
+        this.spotlightClearing = null;
+      },
+    });
   }
 
   goBack(): void {

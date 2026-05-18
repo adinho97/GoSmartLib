@@ -99,6 +99,14 @@ public class LoanController {
         return loanService.getLoanHistoryForUser(userSub);
     }
 
+    @GetMapping("/mijn")
+    public List<LoanDto> getMyActiveLoans(Authentication authentication) {
+        if (authentication == null) {
+            return List.of();
+        }
+        return loanService.getActiveLoansForUser(authentication.getName());
+    }
+
     @GetMapping("/mijn/historiek")
     public List<LoanDto> getMyLoanHistory(Authentication authentication) {
         if (authentication == null) {

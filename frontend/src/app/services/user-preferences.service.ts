@@ -11,7 +11,7 @@ export type PreferenceKey =
   | "recommendationExcludeRead_author"
   | "recommendationExcludeRead_newArrivals"
   | "ui_darkMode"
-  | "ui_colorblind"     
+  | "ui_colorblind"
   | "dashboard_showWishlist"
   | "dashboard_showReadingHistory"
   | "dashboard_showBorrowed"
@@ -49,8 +49,13 @@ export class UserPreferencesService {
   }
 
   async loadPreferencesFromBackend(): Promise<void> {
-    // Skip if user is not authenticated to avoid 401 errors
-    if (!this.isUserAuthenticated()) {
+    // Skip if not authenticated or if user is a teacher/admin (only students have preference records currently)
+    const role = localStorage.getItem("role");
+    if (
+      !this.isUserAuthenticated() ||
+      role === "leerkracht" ||
+      role === "bibbeheerder"
+    ) {
       return;
     }
 
@@ -61,6 +66,12 @@ export class UserPreferencesService {
       this.preferencesSubject.next(merged);
       this.saveToLocalStorage(merged);
     } catch (error: any) {
+      // Silence 403 Forbidden - some roles don't have preferences enabled/configured
+      if (error.response?.status === 403 || error.status === 403) {
+        console.debug("Preferences are not enabled for this user role.");
+        return;
+      }
+
       // Handle 401 errors by clearing stale auth data and returning silently
       if (error.response?.status === 401 || error.status === 401) {
         console.debug(
@@ -132,10 +143,10 @@ export class UserPreferencesService {
     }
   }
   public async forceRefresh(): Promise<void> {
-  if (this.isUserAuthenticated()) {
-    await this.loadPreferencesFromBackend();
+    if (this.isUserAuthenticated()) {
+      await this.loadPreferencesFromBackend();
+    }
   }
-}
 
   private saveToLocalStorage(prefs: Record<string, boolean>): void {
     try {
