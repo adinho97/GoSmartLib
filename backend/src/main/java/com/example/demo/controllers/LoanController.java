@@ -135,8 +135,27 @@ public class LoanController {
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/inspectie/conditie")
-    public ResponseEntity<LoanConditionOverviewDto> getConditionOverview() {
-        return ResponseEntity.ok(loanService.getConditionOverview());
+    public ResponseEntity<LoanConditionOverviewDto> getConditionOverview(Authentication authentication) {
+        LoanConditionOverviewDto overview = loanService.getConditionOverview();
+
+        String currentSub = authentication != null ? authentication.getName() : null;
+        AppUser currentUser = currentSub == null ? null : appUserRepository.findBySub(currentSub).orElse(null);
+        Long schoolId = (currentUser != null && currentUser.getSchool() != null
+                && !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole()))
+                ? currentUser.getSchool().getId() : null;
+
+        if (overview.getWorsenedReturns() != null && !overview.getWorsenedReturns().isEmpty()) {
+            List<String> subs = overview.getWorsenedReturns().stream()
+                    .map(LoanConditionOverviewDto.WorsenedReturnDto::getUserSub)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.toList());
+            Map<String, String> names = displayNameResolver.resolveAll(schoolId, subs);
+            overview.getWorsenedReturns().forEach(row -> row.setUserDisplayName(
+                    names.getOrDefault(row.getUserSub(), row.getUserSub())));
+        }
+
+        return ResponseEntity.ok(overview);
     }
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")

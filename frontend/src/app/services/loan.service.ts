@@ -49,6 +49,7 @@ export interface WorsenedReturn {
   bookTitel: string;
   bookCover: string;
   userSub: string;
+  userDisplayName?: string;
   loanedAt: string;
   returnedAt: string;
   loanedCondition: "GOOD" | "MODERATE" | "BAD" | null;
