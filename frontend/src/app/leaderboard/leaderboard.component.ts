@@ -75,25 +75,14 @@ export class LeaderboardComponent implements OnInit {
     this.fetchLeaderboardData();
   }
 
-  /**
-   * Navigates back to the previous page or a default dashboard.
-   */
   goBack(): void {
-    // You might want to use `this.location.back()` from `@angular/common`
-    // or navigate to a specific route like '/dashboard'
-    this.router.navigate(["/dashboard"]); // Adjust this route as per your application's navigation
+    this.router.navigate(["/dashboard"]); 
   }
 
-  /**
-   * Checks if the current user's rank is within the top 10 for the class leaderboard.
-   */
   isUserInTopClass(userRank: LeaderboardEntry | undefined): boolean {
     return userRank !== undefined && userRank.rank > 0 && userRank.rank <= 10;
   }
 
-  /**
-   * Checks if the current user's rank is within the top 10 for the school leaderboard.
-   */
   isUserInTopSchool(userRank: LeaderboardEntry | undefined): boolean {
     return userRank !== undefined && userRank.rank > 0 && userRank.rank <= 10;
   }

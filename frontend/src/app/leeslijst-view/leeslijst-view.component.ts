@@ -81,7 +81,9 @@ export class LeeslijstViewComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(["/mijn-lijsten", { fragment: "klasleeslijst" }]);
+    this.router.navigate(["/mijn-lijsten"], {
+      fragment: "klasleeslijst",
+    });
   }
 
   goToDetail(bookId: number) {
