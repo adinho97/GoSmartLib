@@ -2,10 +2,17 @@ import { Component, OnInit } from "@angular/core";
 import {
   InfoContentService,
   InfoContentItem,
+  Sectie,
 } from "../services/info-content.service";
-import { Router } from "@angular/router";
+import { AuthContextService } from "../services/auth-context.service";
 
-type SiteFeature = { title: string; description: string };
+type Mode = "student" | "librarian" | "super_admin";
+type Scope = "school" | "global";
+
+interface Draft {
+  titel: string;
+  inhoud: string;
+}
 
 @Component({
   selector: "app-leerling-info",
@@ -14,139 +21,254 @@ type SiteFeature = { title: string; description: string };
   standalone: false,
 })
 export class LeerlingInfoComponent implements OnInit {
+  readonly sections: Sectie[] = ["STAP", "FEATURE", "TIP", "FAQ"];
+
+  items: Record<Sectie, InfoContentItem[]> = {
+    STAP: [],
+    FEATURE: [],
+    TIP: [],
+    FAQ: [],
+  };
+
   openFaqIndex: number | null = 0;
-  faqItems: InfoContentItem[] = [];
-  loanSteps: string[] = [];
-  siteFeatures: SiteFeature[] = [];
-  tips: string[] = [];
 
-  private readonly defaultLoanSteps: string[] = [
-    "Zoek een boek via Boekencatalogus en open de detailpagina.",
-    "Controleer of het boek beschikbaar is in de bibliotheek.",
-    "Vind het boek in de bibliotheek en ga naar de bib-verantwoordelijke om het te ontlenen.",
-    "Het boek verschijnt daarna bij Geleende boeken in je dashboardprofiel.",
-    "Lever op tijd in om boetes of blokkering te vermijden.",
-  ];
+  sectionOpen: Record<Sectie, boolean> = {
+    STAP: true,
+    FEATURE: true,
+    TIP: true,
+    FAQ: true,
+  };
 
-  private readonly defaultSiteFeatures: SiteFeature[] = [
-    { title: 'Dashboard', description: 'persoonlijke aanbevelingen en snelle toegang tot je profielblokken.' },
-    { title: 'Boekencatalogus', description: 'zoeken, filteren en boekdetails bekijken.' },
-    { title: 'Verlanglijst', description: 'bewaar boeken die je later wilt lezen.' },
-    { title: 'Ontleenhistoriek', description: 'bekijk welke boeken je eerder ontleende.' },
-  ];
+  mode: Mode = "student";
+  scopeSchoolId: number | null = null;
+  scopeSchoolName = "";
+  scopeMode: Scope = "global";
 
-  private readonly defaultTips: string[] = [
-    "Gebruik de filters in de catalogus op genre, taal en leesniveau om sneller een passend boek te vinden.",
-    "Voeg interessante titels toe aan je verlanglijst, zodat je ze later makkelijk terugvindt.",
-  ];
+  editingId: number | null = null;
+  editDraft: Draft = { titel: "", inhoud: "" };
 
-  private readonly defaultFaqItems: InfoContentItem[] = [
-    {
-      sectie: "FAQ",
-      titel: "Ik vind een boek online, maar niet in de bib. Wat nu?",
-      inhoud:
-        "Vraag aan de bib-verantwoordelijke of het boek momenteel uitgeleend, verplaatst of niet aanwezig is. Je kunt het boek intussen op je verlanglijst zetten.",
-    },
-    {
-      sectie: "FAQ",
-      titel: "Hoe zie ik wanneer ik een boek moet terugbrengen?",
-      inhoud:
-        "Open je dashboard en kijk bij Geleende boeken. Daar zie je je actieve uitleningen en de relevante datums.",
-    },
-  ];
+  addingTo: Sectie | null = null;
+  addDraft: Draft = { titel: "", inhoud: "" };
 
-  get isBibbeheerder(): boolean {
-    return localStorage.getItem("role") === "bibbeheerder";
-  }
+  saving = false;
+  errorMsg = "";
 
   constructor(
     private infoContentService: InfoContentService,
-    private router: Router,
+    private authContext: AuthContextService,
   ) {}
 
-  goToEdit(): void {
-    this.router.navigate(["/faq-beheer"]);
-  }
   ngOnInit(): void {
-    const schoolId = this.getSchoolId();
-    this.loadFaq(schoolId);
-    this.loadStappen(schoolId);
-    this.loadFeatures(schoolId);
-    this.loadTips(schoolId);
+    this.detectMode();
+    this.loadAll();
   }
 
-  private getSchoolId(): number | undefined {
-    const value = localStorage.getItem("selectedSchoolId");
-    if (!value) return undefined;
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
+  private detectMode(): void {
+    if (this.authContext.isAdminMode()) {
+      this.mode = "super_admin";
+      const raw = localStorage.getItem("adminLibrarySchoolId");
+      const id = raw ? Number(raw) : NaN;
+      if (Number.isFinite(id)) {
+        this.scopeSchoolId = id;
+        this.scopeSchoolName =
+          localStorage.getItem("adminLibrarySchoolName") || "Deze school";
+        this.scopeMode = "school";
+      } else {
+        this.scopeMode = "global";
+      }
+    } else if (localStorage.getItem("role") === "bibbeheerder") {
+      this.mode = "librarian";
+    } else {
+      this.mode = "student";
+    }
   }
 
-  private loadFaq(schoolId?: number): void {
-    this.infoContentService.hasContent("FAQ", schoolId).subscribe({
-      next: (hasContent) => {
-        if (!hasContent) {
-          this.faqItems = this.defaultFaqItems;
-          return;
-        }
-        this.infoContentService.getAll("FAQ", schoolId).subscribe({
-          next: (items) => (this.faqItems = items),
-          error: () => (this.faqItems = this.defaultFaqItems),
-        });
+  get hasSchoolScope(): boolean {
+    return this.scopeSchoolId != null;
+  }
+
+  private currentSchoolIdParam(): number | null {
+    if (this.mode === "super_admin") {
+      return this.scopeMode === "school" ? this.scopeSchoolId : null;
+    }
+    return null;
+  }
+
+  loadAll(): void {
+    const schoolId = this.currentSchoolIdParam();
+    for (const sectie of this.sections) {
+      this.infoContentService.getAll(sectie, schoolId).subscribe({
+        next: (items) => (this.items[sectie] = items),
+        error: () => (this.items[sectie] = []),
+      });
+    }
+  }
+
+  setScope(scope: Scope): void {
+    if (this.mode !== "super_admin" || !this.scopeSchoolId) return;
+    if (this.scopeMode === scope) return;
+    this.scopeMode = scope;
+    this.cancelEdit();
+    this.cancelAdd();
+    this.loadAll();
+  }
+
+  hasTitle(sectie: Sectie): boolean {
+    return sectie === "FEATURE" || sectie === "FAQ";
+  }
+
+  canAdd(sectie: Sectie): boolean {
+    if (this.mode === "super_admin") return true;
+    if (this.mode === "librarian") return sectie === "TIP" || sectie === "FAQ";
+    return false;
+  }
+
+  canEdit(item: InfoContentItem): boolean {
+    if (this.mode === "super_admin") return true;
+    if (this.mode === "librarian") return item.schoolId != null;
+    return false;
+  }
+
+  canRemove(item: InfoContentItem): boolean {
+    if (this.mode === "super_admin") return true;
+    if (this.mode === "librarian") {
+      if (item.schoolId != null) return true;
+      return item.sectie === "TIP" || item.sectie === "FAQ";
+    }
+    return false;
+  }
+
+  private removeKind(item: InfoContentItem): "delete" | "hide" {
+    if (item.schoolId != null) return "delete";
+    if (this.mode === "super_admin" && this.scopeMode === "global") return "delete";
+    return "hide";
+  }
+
+  removeLabel(item: InfoContentItem): string {
+    return this.removeKind(item) === "hide"
+      ? "Verwijder voor deze school"
+      : "Verwijder";
+  }
+
+  isGlobal(item: InfoContentItem): boolean {
+    return item.schoolId == null;
+  }
+
+  isSectionAllGlobal(sectie: Sectie): boolean {
+    const list = this.items[sectie];
+    return list.length > 0 && list.every((item) => this.isGlobal(item));
+  }
+
+  toggleSection(sectie: Sectie): void {
+    this.sectionOpen[sectie] = !this.sectionOpen[sectie];
+  }
+
+  startEdit(item: InfoContentItem): void {
+    if (!this.canEdit(item) || item.id == null) return;
+    this.cancelAdd();
+    this.editingId = item.id;
+    this.editDraft = {
+      titel: item.titel ?? "",
+      inhoud: item.inhoud,
+    };
+  }
+
+  cancelEdit(): void {
+    this.editingId = null;
+    this.editDraft = { titel: "", inhoud: "" };
+  }
+
+  saveEdit(item: InfoContentItem): void {
+    if (this.editingId == null || item.id !== this.editingId || item.id == null) return;
+    if (!this.editDraft.inhoud.trim()) return;
+    this.saving = true;
+    this.errorMsg = "";
+    this.infoContentService
+      .update(item.id, {
+        sectie: item.sectie,
+        titel: this.editDraft.titel?.trim() || null,
+        inhoud: this.editDraft.inhoud.trim(),
+        sortOrder: item.sortOrder ?? 0,
+        schoolId: item.schoolId ?? null,
+      })
+      .subscribe({
+        next: (updated) => {
+          const list = this.items[item.sectie];
+          const idx = list.findIndex((x) => x.id === updated.id);
+          if (idx >= 0) list[idx] = updated;
+          this.cancelEdit();
+          this.saving = false;
+        },
+        error: (err) => {
+          this.errorMsg = err?.error?.message || "Opslaan mislukt.";
+          this.saving = false;
+        },
+      });
+  }
+
+  startAdd(sectie: Sectie): void {
+    if (!this.canAdd(sectie)) return;
+    this.cancelEdit();
+    this.addingTo = sectie;
+    this.addDraft = { titel: "", inhoud: "" };
+  }
+
+  cancelAdd(): void {
+    this.addingTo = null;
+    this.addDraft = { titel: "", inhoud: "" };
+  }
+
+  saveNew(sectie: Sectie): void {
+    if (this.addingTo !== sectie) return;
+    if (!this.addDraft.inhoud.trim()) return;
+    this.saving = true;
+    this.errorMsg = "";
+    const payload: InfoContentItem = {
+      sectie,
+      titel: this.addDraft.titel?.trim() || null,
+      inhoud: this.addDraft.inhoud.trim(),
+      sortOrder: this.items[sectie].length,
+      schoolId:
+        this.mode === "super_admin" ? this.currentSchoolIdParam() : undefined,
+    };
+    this.infoContentService.create(payload).subscribe({
+      next: (created) => {
+        this.items[sectie] = [...this.items[sectie], created];
+        this.cancelAdd();
+        this.saving = false;
       },
-      error: () => (this.faqItems = this.defaultFaqItems),
+      error: (err) => {
+        this.errorMsg = err?.error?.message || "Toevoegen mislukt.";
+        this.saving = false;
+      },
     });
   }
 
-  private loadStappen(schoolId?: number): void {
-    this.infoContentService.hasContent("STAP", schoolId).subscribe({
-      next: (hasContent) => {
-        if (!hasContent) {
-          this.loanSteps = this.defaultLoanSteps;
-          return;
-        }
-        this.infoContentService.getAll("STAP", schoolId).subscribe({
-          next: (items) => (this.loanSteps = items.map((i) => i.inhoud)),
-          error: () => (this.loanSteps = this.defaultLoanSteps),
-        });
+  remove(item: InfoContentItem): void {
+    if (!this.canRemove(item) || item.id == null) return;
+    const kind = this.removeKind(item);
+    const msg =
+      kind === "delete"
+        ? "Permanent verwijderen?"
+        : "Verwijderen uit deze school?";
+    if (!confirm(msg)) return;
+    this.errorMsg = "";
+    const obs =
+      kind === "delete"
+        ? this.infoContentService.delete(item.id)
+        : this.infoContentService.hide(
+            item.id,
+            this.scopeMode === "school" ? this.scopeSchoolId : undefined,
+          );
+    obs.subscribe({
+      next: () => {
+        this.items[item.sectie] = this.items[item.sectie].filter(
+          (x) => x.id !== item.id,
+        );
       },
-      error: () => (this.loanSteps = this.defaultLoanSteps),
-    });
-  }
-
-  private loadFeatures(schoolId?: number): void {
-    this.infoContentService.hasContent("FEATURE", schoolId).subscribe({
-      next: (hasContent) => {
-        if (!hasContent) {
-          this.siteFeatures = this.defaultSiteFeatures;
-          return;
-        }
-        this.infoContentService.getAll("FEATURE", schoolId).subscribe({
-          next: (items) =>
-            (this.siteFeatures = items.map((i) => ({
-              title: i.titel ?? "",
-              description: i.inhoud,
-            }))),
-          error: () => (this.siteFeatures = this.defaultSiteFeatures),
-        });
+      error: (err) => {
+        this.errorMsg = err?.error?.message || "Verwijderen mislukt.";
       },
-      error: () => (this.siteFeatures = this.defaultSiteFeatures),
-    });
-  }
-
-  private loadTips(schoolId?: number): void {
-    this.infoContentService.hasContent("TIP", schoolId).subscribe({
-      next: (hasContent) => {
-        if (!hasContent) {
-          this.tips = this.defaultTips;
-          return;
-        }
-        this.infoContentService.getAll("TIP", schoolId).subscribe({
-          next: (items) => (this.tips = items.map((i) => i.inhoud)),
-          error: () => (this.tips = this.defaultTips),
-        });
-      },
-      error: () => (this.tips = this.defaultTips),
     });
   }
 

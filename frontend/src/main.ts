@@ -2,7 +2,7 @@ import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
 import { AppModule } from "./app/app.module";
 import axios from "axios";
 
-axios.interceptors.request.use((config) => {
+axios.interceptors.request.use((config: any) => {
   // Get user role from localStorage
   const userRole = localStorage.getItem("role");
 
@@ -14,9 +14,14 @@ axios.interceptors.request.use((config) => {
     token = localStorage.getItem("smartschoolToken");
   }
 
-  if (token && config.headers) {
+  if (!config.headers) {
+    config.headers = {};
+  }
+
+  if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
+
   return config;
 });
 

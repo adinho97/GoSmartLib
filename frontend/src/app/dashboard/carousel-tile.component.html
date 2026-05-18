@@ -1,0 +1,132 @@
+<section
+  class="hero-card carousel-tile"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
+>
+  <div class="carousel-stage">
+
+    <!-- Current page -->
+    @if (currentPage) {
+      <div class="carousel-page carousel-page-current">
+        <ng-container *ngTemplateOutlet="spotPage; context: { page: currentPage }"></ng-container>
+      </div>
+    }
+
+    <!-- Outgoing page (flip animation overlay) -->
+    @if (outgoing && outgoingPage) {
+      <div
+        class="carousel-page carousel-page-flip"
+        [class.carousel-page-flip-next]="outgoing.dir === 'next'"
+        [class.carousel-page-flip-prev]="outgoing.dir === 'prev'"
+      >
+        <ng-container *ngTemplateOutlet="spotPage; context: { page: outgoingPage }"></ng-container>
+      </div>
+    }
+
+  </div>
+
+  @if (pages.length > 1) {
+    <div class="carousel-nav">
+      <button class="carousel-arrow" type="button" (click)="goPrev()" aria-label="Vorige">&#8249;</button>
+      <div class="carousel-nav-center">
+        <div class="carousel-dots" role="tablist">
+          @for (p of pages; track p.id; let i = $index) {
+            <button
+              type="button"
+              class="carousel-dot"
+              [class.active]="i === currentIndex"
+              (click)="goToIndex(i)"
+              [attr.aria-label]="'Pagina ' + (i + 1)"
+              [attr.aria-selected]="i === currentIndex"
+            ></button>
+          }
+        </div>
+      </div>
+      <button class="carousel-arrow" type="button" (click)="goNext()" aria-label="Volgende">&#8250;</button>
+    </div>
+  }
+</section>
+
+<!-- ── Spotlight page template ── -->
+<ng-template #spotPage let-page="page">
+
+  <div class="hero-card-head">
+    <span class="hero-eyebrow" [style.color]="page.eyebrowColor || null">
+      @if (page.pulse) { <span class="pulse"></span> }
+      {{ page.eyebrow }}
+    </span>
+    <div class="hero-head-right">
+      @if (page.infoTitle) {
+        <app-info-button [title]="page.infoTitle" [description]="page.infoBody || ''"></app-info-button>
+      }
+      @if (page.headerCta) {
+        <button class="hero-header-cta" type="button" (click)="handleHeaderCta(page)">
+          {{ page.headerCta.label }}
+        </button>
+      }
+      @if (page.linkLabel) {
+        <a
+          class="hero-link"
+          role="button"
+          tabindex="0"
+          (click)="handleLinkClick(page)"
+          (keydown.enter)="handleLinkClick(page)"
+        >{{ page.linkLabel }}</a>
+      }
+    </div>
+  </div>
+
+  @if (page.empty) {
+    <div class="spot-empty">
+      <p>{{ page.emptyMessage }}</p>
+      @if (page.emptyCta) {
+        <a
+          class="empty-cta-link"
+          role="button"
+          tabindex="0"
+          (click)="handleEmptyCta(page)"
+          (keydown.enter)="handleEmptyCta(page)"
+        >{{ page.emptyCta.label }}</a>
+      }
+    </div>
+  } @else {
+    <div class="spot-stage">
+      <div
+        class="spot-cover-wrap"
+        (click)="handleCoverClick(page)"
+        role="button"
+        [attr.tabindex]="page.book.id ? 0 : null"
+        (keydown.enter)="handleCoverClick(page)"
+      >
+        @if (page.badge) {
+          <span
+            class="spot-badge"
+            [class.warn]="page.badge.tone === 'warn'"
+            [class.urgent]="page.badge.tone === 'urgent'"
+          >
+            @if (page.badge.calendar) {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>
+            }
+            {{ page.badge.label }}
+          </span>
+        }
+        @if (page.book.cover) {
+          <img class="spot-cover-img" [src]="page.book.cover" [alt]="page.book.title" />
+        } @else {
+          <div class="spot-cover" [ngClass]="tintClass(page.book.title)">{{ page.book.title }}</div>
+        }
+      </div>
+    </div>
+
+    <div class="spot-meta">
+      <h3 class="spot-title">{{ page.book.title }}</h3>
+      @if (page.book.author) {
+        <p class="spot-author">{{ page.book.author }}</p>
+      }
+    </div>
+
+  }
+
+</ng-template>

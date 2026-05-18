@@ -228,6 +228,7 @@ export class BookService {
 
     return books.map((book) => ({
       ...book,
+      titel: bookMap.get(book.bookId)?.titel || book.titel || null,
       cover: bookMap.get(book.bookId)?.cover || book.cover || null,
       auteur: bookMap.get(book.bookId)?.auteur || book.auteur || null,
       taal: bookMap.get(book.bookId)?.taal || book.taal || null,
@@ -245,6 +246,7 @@ export class BookService {
 
     const enrichBook = (book: any) => ({
       ...book,
+      titel: bookMap.get(book.bookId)?.titel || book.titel || null,
       cover: bookMap.get(book.bookId)?.cover || book.cover || null,
       auteur: bookMap.get(book.bookId)?.auteur || book.auteur || null,
       taal: bookMap.get(book.bookId)?.taal || book.taal || null,

@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.StatisticsService;
-
+import com.example.demo.dto.UpdateDefaultLoanDaysRequest;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +28,8 @@ public class SchoolController {
     private final KlasRepository klasRepository;
     private final StatisticsService statisticsService;
 
-    public SchoolController(SchoolRepository schoolRepository, KlasRepository klasRepository, StatisticsService statisticsService) {
+    public SchoolController(SchoolRepository schoolRepository, KlasRepository klasRepository,
+            StatisticsService statisticsService) {
         this.schoolRepository = schoolRepository;
         this.klasRepository = klasRepository;
         this.statisticsService = statisticsService;
@@ -62,5 +65,28 @@ public class SchoolController {
                 .stream()
                 .map(klas -> new KlasListItem(klas.getId(), klas.getGroupId(), klas.getNaam()))
                 .toList();
+    }
+
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/{schoolId}/default-loan-days")
+    public Map<String, Integer> getDefaultLoanDays(@PathVariable Long schoolId) {
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new IllegalArgumentException("School niet gevonden"));
+        return Map.of("defaultLoanDays", school.getDefaultLoanDays());
+    }
+
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PatchMapping("/{schoolId}/default-loan-days")
+    public Map<String, Integer> updateDefaultLoanDays(
+            @PathVariable Long schoolId,
+            @RequestBody UpdateDefaultLoanDaysRequest request) {
+        if (request.getDefaultLoanDays() < 1 || request.getDefaultLoanDays() > 365) {
+            throw new IllegalArgumentException("Aantal dagen moet tussen 1 en 365 liggen");
+        }
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new IllegalArgumentException("School niet gevonden"));
+        school.setDefaultLoanDays(request.getDefaultLoanDays());
+        schoolRepository.save(school);
+        return Map.of("defaultLoanDays", school.getDefaultLoanDays());
     }
 }

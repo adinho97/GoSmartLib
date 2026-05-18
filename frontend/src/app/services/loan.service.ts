@@ -144,6 +144,11 @@ export class LoanService {
     return res.data;
   }
 
+  async getMyActiveLoans(): Promise<Loan[]> {
+    const res = await axios.get(`${this.api}/mijn`, this.headers());
+    return res.data;
+  }
+
   async getMyLoanHistory(): Promise<Loan[]> {
     const res = await axios.get(`${this.api}/mijn/historiek`, this.headers());
     return res.data;

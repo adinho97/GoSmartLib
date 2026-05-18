@@ -129,9 +129,7 @@ export class MijnLijstenComponent implements OnInit {
   private async loadLoans(): Promise<void> {
     this.loansLoading = true;
     try {
-      if (this.userSub) {
-        this.loans = await this.loanService.getActiveLoans(this.userSub);
-      }
+      this.loans = await this.loanService.getMyActiveLoans();
     } catch {
       this.loans = [];
     } finally {

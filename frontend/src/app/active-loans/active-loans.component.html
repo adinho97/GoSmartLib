@@ -8,18 +8,36 @@
     <div class="loan-card" (click)="goToDetail(loan.bookId)">
       <div class="card-content">
         <div class="cover-wrapper">
-          <img [src]="loan.bookCover" [alt]="loan.bookTitel" class="mini-cover" />
+          <img
+            [src]="loan.bookCover"
+            [alt]="loan.bookTitel"
+            class="mini-cover"
+          />
         </div>
 
         <div class="book-details">
           <span class="genre-label">Lening</span>
           <h4 class="title">{{ loan.bookTitel }}</h4>
-          
+
           <p class="due-date" [class.overdue]="isOverdue(loan.dueDate)">
-            {{ isOverdue(loan.dueDate) ? 'TE LAAT' : 'Inleveren: ' + (loan.dueDate | date: 'dd/MM') }}
+            @if (isOverdue(loan.dueDate)) {
+              TE LAAT
+            } @else {
+              Inleveren: {{ loan.dueDate | date: "dd/MM" }}
+            }
           </p>
-          
-          <button class="btn-details">Details</button>
+
+          <div class="loan-actions">
+            <button class="btn-details">Details</button>
+            <button
+              class="btn-extend"
+              (click)="onExtendLoan(loan, $event)"
+              [disabled]="isOverdue(loan.dueDate)"
+              title="Verleng de lening met 1 week"
+            >
+              Verlengen
+            </button>
+          </div>
         </div>
       </div>
     </div>

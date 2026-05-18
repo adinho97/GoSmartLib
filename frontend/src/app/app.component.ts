@@ -12,6 +12,7 @@ import { Observable } from "rxjs";
 import { ExperienceService, LevelInfo } from "./services/experience.service";
 import { SchoolService } from "./services/school.service";
 import { UserPreferencesService } from "./services/user-preferences.service";
+import { DashboardConfigService } from "./services/dashboard-config.service";
 import { RecommendationService } from "./services/recommendation.service";
 import { BookService } from "./services/book.service";
 import { SuperAdminAuthService } from "./services/super-admin-auth.service";
@@ -47,6 +48,7 @@ export class AppComponent implements OnInit {
     private ngZone: NgZone,
     private bookService: BookService,
     private superAdminAuthService: SuperAdminAuthService,
+    private dashboardConfigService: DashboardConfigService,
   ) {
     this.levelInfo$ = this.experienceService.levelInfo$;
   }
@@ -54,6 +56,7 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Initialize preferences from cache (localStorage seed is synchronous)
     this.userPreferencesService.init();
+    this.dashboardConfigService.init();
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
@@ -285,6 +288,7 @@ export class AppComponent implements OnInit {
 
   private completeLogout(): void {
     this.userPreferencesService.clearCache();
+    this.dashboardConfigService.clearCache();
     this.recommendationService.clearCache();
     this.bookService.clearCache();
     localStorage.clear();

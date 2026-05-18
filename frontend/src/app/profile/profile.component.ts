@@ -355,9 +355,7 @@ export class ProfileComponent {
   }
   private async loadActiveLoans() {
     try {
-      const activeLoans = await this.loanService.getActiveLoans(
-        localStorage.getItem("sub") || "",
-      );
+      const activeLoans = await this.loanService.getMyActiveLoans();
       const enriched = await this.bookService.enrichBooksWithDetails(
         activeLoans.map((loan: any) => ({
           ...loan,

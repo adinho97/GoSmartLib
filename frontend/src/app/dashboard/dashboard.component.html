@@ -9,146 +9,189 @@
     </p>
   </header>
 
-  <!-- Hero row -->
-  <div class="hero-row">
+  <!-- Tile config bar -->
+  <div class="tiles-config-bar">
+    <div class="tile-config-wrap" #configWrap>
+      <button
+        class="tiles-config-btn"
+        type="button"
+        (click)="toggleConfigOpen()"
+        [attr.aria-expanded]="configOpen"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Tegels aanpassen
+      </button>
 
-    <!-- Verder lezen -->
-    <div class="hero-card verder-lezen">
-      <div class="hero-card-head">
-        <div class="hero-eyebrow-row">
-          <span class="pulse-dot" aria-hidden="true"></span>
-          <span class="hero-eyebrow">Verder lezen</span>
-          <app-info-button
-            title="Verder lezen"
-            description="Hier zie je het boek dat je momenteel ontleend hebt. Klik op 'Bekijk boek' om meer details te zien."
-          ></app-info-button>
-        </div>
-        <a class="hero-head-link" (click)="goToMijnLijsten('geleend')" role="button" tabindex="0">
-          Geleend ({{ myLoans.length }}) →
-        </a>
-      </div>
+      @if (configOpen) {
+        <div class="tiles-pop" role="dialog" aria-label="Tegels kiezen">
+          <div class="tiles-pop-head">
+            <h4>Pas je dashboard aan</h4>
+            <button class="tiles-pop-reset" type="button" (click)="resetConfig()">Standaard</button>
+          </div>
 
-      @if (loansLoading) {
-        <div class="hero-loader"><div class="spinner"></div></div>
-      } @else if (firstLoan) {
-        <div class="verder-lezen-body">
-          <div class="verder-cover-wrap">
-            @if (firstLoan.bookCover) {
-              <img [src]="firstLoan.bookCover" [alt]="firstLoan.bookTitel" class="verder-cover" />
-            } @else {
-              <div class="verder-cover placeholder-cover">COVER</div>
+          <!-- Tile toggles + drag-to-reorder -->
+          <div class="tiles-pop-section">
+            <div class="tiles-pop-section-label">
+              Tegels
+              <span class="tiles-pop-hint">· sleep om te herschikken</span>
+            </div>
+            @for (tile of orderedTiles; track tile.id) {
+              <label
+                class="tile-row"
+                [class.draggable]="isTileEnabled(tile.id)"
+                [class.dragging]="dragId === tile.id"
+                [class.drag-over]="dragOverId === tile.id && dragId !== tile.id"
+                [attr.draggable]="isTileEnabled(tile.id) ? true : null"
+                (dragstart)="isTileEnabled(tile.id) ? onDragStart(tile.id) : null"
+                (dragover)="onDragOver($event, tile.id)"
+                (drop)="onDrop($event, tile.id)"
+                (dragend)="onDragEnd()"
+                (dragleave)="dragOverId === tile.id ? (dragOverId = null) : null"
+              >
+                <svg
+                  class="tile-grip"
+                  [class.disabled]="!isTileEnabled(tile.id)"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <circle cx="6" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+                  <circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/>
+                  <circle cx="6" cy="13" r="1.2"/><circle cx="10" cy="13" r="1.2"/>
+                </svg>
+                <input
+                  type="checkbox"
+                  [checked]="isTileEnabled(tile.id)"
+                  (change)="toggleTile(tile.id)"
+                  (click)="$event.stopPropagation()"
+                />
+                <span class="tile-row-dot" [style.background]="tile.dot"></span>
+                <span class="tile-row-label">{{ tile.label }}</span>
+              </label>
             }
           </div>
-          <div class="verder-info">
-            <p class="verder-title">{{ firstLoan.bookTitel }}</p>
-            <p class="verder-deadline">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              @if (isOverdue(firstLoan.dueDate)) {
-                <span class="overdue-text">Verlopen!</span>
-              } @else {
-                Inleveren {{ formatDueDate(firstLoan.dueDate) }}
-                <span class="days-badge" [class.urgent]="isUrgent(firstLoan.dueDate)">
-                  {{ daysLeft(firstLoan.dueDate) }}d
-                </span>
-              }
-            </p>
-            <div class="verder-actions">
-              <button class="btn-primary" type="button" (click)="goToDetail(firstLoan.bookId)">Bekijk boek</button>
-            </div>
-          </div>
-        </div>
-      } @else {
-        <div class="hero-empty">
-          <p>Je hebt momenteel geen geleende boeken.</p>
-          <a class="hero-empty-link" routerLink="/books">Ontdek boeken →</a>
-        </div>
-      }
-    </div>
 
-    <!-- In de kijker -->
-    <div class="hero-card in-de-kijker">
-      <div class="hero-card-head">
-        <div class="hero-eyebrow-row">
-          <span class="hero-eyebrow star-eyebrow">★ In de kijker</span>
-          <app-info-button
-            title="In de kijker"
-            description="Boeken die de bibliothecaris heeft uitgelicht voor de hele school. Ideaal om nieuwe titels te ontdekken."
-          ></app-info-button>
-        </div>
-        <a class="hero-head-link" (click)="goToMijnLijsten('kijker')" role="button" tabindex="0">
-          Alles ({{ highlightedBooks.length }}) →
-        </a>
-      </div>
-
-      @if (highlightedLoading) {
-        <div class="hero-loader"><div class="spinner"></div></div>
-      } @else if (highlightedBooks.length === 0) {
-        <div class="hero-empty"><p>Geen uitgelichte boeken op dit moment.</p></div>
-      } @else {
-        <div class="kijker-grid">
-          @for (book of highlightedBooks.slice(0, 4); track book.bookId) {
-            <div class="kijker-mini-card" (click)="goToDetail(book.bookId)" role="button" tabindex="0">
-              <div class="kijker-cover-wrap">
-                @if (book.cover) {
-                  <img [src]="book.cover" [alt]="book.titel" class="kijker-cover" />
-                } @else {
-                  <div class="kijker-cover placeholder-cover">COVER</div>
+          <!-- Per-carousel page toggles -->
+          @for (tile of TILES; track tile.id) {
+            @if (tile.carousel && isTileEnabled(tile.id)) {
+              <div class="tiles-pop-section">
+                <div class="tiles-pop-section-label">{{ tile.label }} — pagina's</div>
+                @for (page of tile.pages; track page.id) {
+                  <label class="tile-row">
+                    <svg class="tile-grip disabled" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                      <circle cx="6" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+                      <circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/>
+                      <circle cx="6" cy="13" r="1.2"/><circle cx="10" cy="13" r="1.2"/>
+                    </svg>
+                    <input
+                      type="checkbox"
+                      [checked]="isPageEnabled(tile.id, page.id)"
+                      (change)="togglePage(tile.id, page.id)"
+                      (click)="$event.stopPropagation()"
+                    />
+                    <span class="tile-row-dot" [style.background]="tile.dot" style="opacity: 0.6"></span>
+                    <span class="tile-row-label">{{ page.label }}</span>
+                  </label>
                 }
               </div>
-              <p class="kijker-title">{{ book.titel }}</p>
-              <p class="kijker-author">{{ book.auteur }}</p>
-            </div>
+            }
           }
         </div>
       }
     </div>
+  </div>
 
-    <!-- Mijn Lijsten shortcuts -->
-    <div class="hero-card mijn-lijsten-card">
-      <div class="hero-card-head">
-        <div class="hero-eyebrow-row">
-          <span class="hero-eyebrow">Snelkoppelingen</span>
-          <app-info-button
-            title="Mijn lijsten"
-            description="Snelle toegang tot jouw persoonlijke lijsten: geleende boeken, verlanglijst, klasleeslijst en ontleenhistoriek."
-          ></app-info-button>
+  <!-- Hero row -->
+  <div class="hero-row" [style.--n]="config.tiles.length || 3">
+    @if (config.tiles.length === 0) {
+      <p class="hero-empty-state">
+        Geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er een paar te kiezen.
+      </p>
+    }
+
+    @for (tileId of config.tiles; track tileId) {
+      <div
+        class="hero-tile"
+        [class.dragging]="dragId === tileId"
+        [class.drag-over]="dragOverId === tileId && dragId !== tileId"
+        draggable="true"
+        (dragstart)="onDragStart(tileId)"
+        (dragover)="onDragOver($event, tileId)"
+        (drop)="onDrop($event, tileId)"
+        (dragend)="onDragEnd()"
+        (dragleave)="dragOverId === tileId ? (dragOverId = null) : null"
+      >
+
+      @if (tileId === 'mijn-boeken') {
+        @if (loansLoading) {
+          <div class="hero-card hero-card-loading">
+            <div class="hero-loader"><div class="spinner"></div></div>
+          </div>
+        } @else {
+          @let mijnBoekenPages = getMijnBoekenPages();
+          @if (mijnBoekenPages.length > 0) {
+            <app-carousel-tile [pages]="mijnBoekenPages"></app-carousel-tile>
+          }
+        }
+      }
+
+      @if (tileId === 'bibliotheek') {
+        @let bibliotheekPages = getBibliotheekPages();
+        @if (bibliotheekPages.length > 0) {
+          <app-carousel-tile [pages]="bibliotheekPages"></app-carousel-tile>
+        }
+      }
+
+      @if (tileId === 'snelkoppelingen') {
+        <div class="hero-card snelkoppelingen-card">
+          <div class="hero-card-head">
+            <div class="hero-eyebrow-row">
+              <span class="hero-eyebrow">Snelkoppelingen</span>
+              <app-info-button
+                title="Snelkoppelingen"
+                description="Snelle toegang tot jouw persoonlijke lijsten: geleende boeken, verlanglijst, klasleeslijst en ontleenhistoriek."
+              ></app-info-button>
+            </div>
+            <a class="hero-head-link" routerLink="/mijn-lijsten" role="button">Alles →</a>
+          </div>
+
+          <ul class="shortcut-list">
+            <li class="shortcut-item" (click)="goToMijnLijsten('geleend')" role="button" tabindex="0">
+              <span class="shortcut-dot" style="background: var(--brand)"></span>
+              <span class="shortcut-label">Geleend</span>
+              <span class="shortcut-count">{{ myLoans.length }}</span>
+            </li>
+            <li class="shortcut-item" (click)="goToMijnLijsten('verlanglijst')" role="button" tabindex="0">
+              <span class="shortcut-dot" style="background: #d4537e"></span>
+              <span class="shortcut-label">Verlanglijst</span>
+              <span class="shortcut-count">{{ wishlistCount }}</span>
+            </li>
+            <li class="shortcut-item" (click)="goToMijnLijsten('kijker')" role="button" tabindex="0">
+              <span class="shortcut-dot" style="background: #b86a17"></span>
+              <span class="shortcut-label">In de kijker</span>
+              <span class="shortcut-count">{{ highlightedBooks.length }}</span>
+            </li>
+            <li class="shortcut-item" (click)="goToMijnLijsten('klasleeslijst')" role="button" tabindex="0">
+              <span class="shortcut-dot" style="background: #2e6b3f"></span>
+              <span class="shortcut-label">Klasleeslijst</span>
+              <span class="shortcut-count">{{ klasleeslijstCount }}</span>
+            </li>
+            <li class="shortcut-item" (click)="goToMijnLijsten('historiek')" role="button" tabindex="0">
+              <span class="shortcut-dot" style="background: var(--ink-3)"></span>
+              <span class="shortcut-label">Historiek</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shortcut-arrow"><polyline points="9 18 15 12 9 6"/></svg>
+            </li>
+          </ul>
         </div>
-        <a class="hero-head-link" routerLink="/mijn-lijsten" role="button">Alles →</a>
+      }
+
       </div>
-
-      <ul class="shortcut-list">
-        <li class="shortcut-item" (click)="goToMijnLijsten('geleend')" role="button" tabindex="0">
-          <span class="shortcut-dot dot-brand"></span>
-          <span class="shortcut-label">Geleend</span>
-          <span class="shortcut-count">{{ myLoans.length }}</span>
-        </li>
-        <li class="shortcut-item" (click)="goToMijnLijsten('verlanglijst')" role="button" tabindex="0">
-          <span class="shortcut-dot dot-warn"></span>
-          <span class="shortcut-label">Verlanglijst</span>
-          <span class="shortcut-count">{{ wishlistCount }}</span>
-        </li>
-        <li class="shortcut-item" (click)="goToMijnLijsten('klasleeslijst')" role="button" tabindex="0">
-          <span class="shortcut-dot dot-good"></span>
-          <span class="shortcut-label">Klasleeslijst</span>
-          <span class="shortcut-count">{{ classReadingListBooks.length }}</span>
-        </li>
-        <li class="shortcut-item" (click)="goToMijnLijsten('kijker')" role="button" tabindex="0">
-          <span class="shortcut-dot dot-info"></span>
-          <span class="shortcut-label">In de kijker</span>
-          <span class="shortcut-count">{{ highlightedBooks.length }}</span>
-        </li>
-        <li class="shortcut-item" (click)="goToMijnLijsten('historiek')" role="button" tabindex="0">
-          <span class="shortcut-dot dot-ink"></span>
-          <span class="shortcut-label">Historiek</span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shortcut-arrow">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </li>
-      </ul>
-    </div>
-
+    }
   </div><!-- /hero-row -->
 
   <!-- Fun badges card -->
