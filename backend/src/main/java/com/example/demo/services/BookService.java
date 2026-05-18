@@ -28,9 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Optional;
-import com.example.demo.dto.UserDto; // Corrected import
 import java.util.stream.Collectors;
 
 @Service
@@ -54,9 +52,6 @@ public class BookService {
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService, 
             IsbnService isbnService, BulkImportService bulkImportService, ImportCoreService importCoreService, 
             LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
-            WishlistRepository wishlistRepository, HighlightedBookRepository highlightedBookRepository,
-            IsbnService isbnService, BulkImportService bulkImportService, ImportCoreService importCoreService,
-            LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository,
             HighlightedBookRepository highlightedBookRepository,
             ClassReadingListItemRepository classReadingListItemRepository) {
         this.bookRepository = bookRepository;
@@ -79,9 +74,9 @@ public class BookService {
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
-            ImportCoreService importCoreService) { // Removed LeeslijstRepository from this constructor
+            ImportCoreService importCoreService) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService,
-                isbnService, bulkImportService, importCoreService, null, null, null, null); // Pass null for all new dependencies
+                isbnService, bulkImportService, importCoreService, null, null, null, null);
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
@@ -345,18 +340,5 @@ public class BookService {
         // dummyLeeslijst.setGlobal(isGlobal);
         // dummyLeeslijst.setSharedWithUserSubs(sharedWithUserSubs);
         return dummyLeeslijst;
-    }
-
-    public List<UserDto> searchUsers(String searchTerm, Long schoolId) {
-        // Placeholder for user search logic.
-        // In a real application, this would query a UserRepository or an external Smartschool API.
-        List<UserDto> users = new ArrayList<>();
-        if (searchTerm.toLowerCase().contains("jan")) {
-            users.add(new UserDto("sub123", "Jan Jansen"));
-        }
-        if (searchTerm.toLowerCase().contains("piet")) {
-            users.add(new UserDto("sub456", "Piet Pieters"));
-        }
-        return users;
     }
 }
