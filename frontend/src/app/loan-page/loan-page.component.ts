@@ -96,11 +96,11 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   // Stap 3
   dueDate = "";
   today = new Date().toISOString().split("T")[0];
-  defaultDueDate = (() => {
+  private computeDefaultDueDate(days: number): string {
     const d = new Date();
-    d.setDate(d.getDate() + 14);
+    d.setDate(d.getDate() + days);
     return d.toISOString().split("T")[0];
-  })();
+  }
 
   isLoading = true;
   isLoaning = false;
@@ -128,6 +128,12 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   private copySelectionResolve: ((copyId: number | null) => void) | null = null;
   private booksLoadRequestId = 0;
 
+  defaultLoanDays = 14;
+  defaultDueDateEditOpen = false;
+  tempDefaultLoanDays = 14;
+  isSavingDefaultDays = false;
+  defaultDaysError = "";
+
   readonly role = localStorage.getItem("role") || "";
   private readonly currentUserSub =
     localStorage.getItem("sub") || localStorage.getItem("userId") || "";
@@ -150,13 +156,16 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       this.barcodeService.setupHiddenInput(this.scanContainer.nativeElement);
     }
 
-    await Promise.all([this.loadBooks(), this.loadLeerlingen()]);
-    this.dueDate = this.defaultDueDate;
-    // Setup hardware scanner listener
+    await Promise.all([
+      this.loadBooks(),
+      this.loadLeerlingen(),
+      this.loadDefaultLoanDays(),
+    ]);
+    this.dueDate = this.computeDefaultDueDate(this.defaultLoanDays);
+
     this.scanSubscription = this.barcodeService
       .getScans()
       .subscribe((barcode) => {
-        // Add a brief delay to ensure visual feedback, consistent with AddBarcodeComponent
         setTimeout(() => {
           void this.processScan(barcode);
         }, 200);
@@ -486,7 +495,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       this.bookTotalCount = 0;
       this.searchQuery = "";
       this.filteredLeerlingen = [...this.leerlingen];
-      this.dueDate = this.defaultDueDate;
+      this.dueDate = this.computeDefaultDueDate(this.defaultLoanDays);
       await this.loadBooks();
     } catch (e: any) {
       this.errorMessage =
@@ -923,5 +932,49 @@ export class LoanPageComponent implements OnInit, OnDestroy {
   closeBookUnavailableDialog() {
     this.bookUnavailableDialogOpen = false;
     this.pendingScannedBook = null;
+  }
+  async loadDefaultLoanDays() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+    this.defaultLoanDays =
+      await this.schoolService.getDefaultLoanDays(schoolId);
+  }
+
+  openDefaultDaysEdit() {
+    this.tempDefaultLoanDays = this.defaultLoanDays;
+    this.defaultDaysError = "";
+    this.defaultDueDateEditOpen = true;
+  }
+
+  closeDefaultDaysEdit() {
+    this.defaultDueDateEditOpen = false;
+    this.defaultDaysError = "";
+  }
+
+  async saveDefaultLoanDays() {
+    if (this.tempDefaultLoanDays < 1 || this.tempDefaultLoanDays > 365) {
+      this.defaultDaysError = "Voer een getal in tussen 1 en 365.";
+      return;
+    }
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    this.isSavingDefaultDays = true;
+    this.defaultDaysError = "";
+    try {
+      await this.schoolService.updateDefaultLoanDays(
+        schoolId,
+        this.tempDefaultLoanDays,
+      );
+      this.defaultLoanDays = this.tempDefaultLoanDays;
+      this.dueDate = this.computeDefaultDueDate(this.defaultLoanDays);
+      this.closeDefaultDaysEdit();
+      this.successMessage = `Standaard uitleentermijn bijgewerkt naar ${this.defaultLoanDays} dagen.`;
+      setTimeout(() => (this.successMessage = ""), 3000);
+    } catch {
+      this.defaultDaysError = "Opslaan mislukt. Probeer opnieuw.";
+    } finally {
+      this.isSavingDefaultDays = false;
+    }
   }
 }
