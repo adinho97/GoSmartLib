@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import axios from "axios";
-import { BehaviorSubject, Observable, defer } from "rxjs";
+import { BehaviorSubject, Observable, tap } from "rxjs";
 
 /**
  * Strongly typed preference keys to prevent typos at compile time
@@ -35,13 +35,21 @@ export class UserPreferencesService {
   /**
    * Lazy-syncing observable: if someone subscribes and we are authenticated
    * but haven't synced yet, trigger a background sync.
+   * We use a tap here so that even early subscribers (like DarkModeService)
+   * will trigger a sync the moment they receive an emission while logged in.
    */
-  public preferences$: Observable<Record<string, boolean>> = defer(() => {
-    if (this.isUserAuthenticated() && !this.hasSyncedWithBackend) {
-      this.syncWithBackendInBackground();
-    }
-    return this.preferencesSubject.asObservable();
-  });
+  public preferences$: Observable<Record<string, boolean>> =
+    this.preferencesSubject.asObservable().pipe(
+      tap(() => {
+        if (
+          this.isUserAuthenticated() &&
+          !this.hasSyncedWithBackend &&
+          !this.isSyncing
+        ) {
+          this.syncWithBackendInBackground();
+        }
+      }),
+    );
 
   /**
    * Initialize preferences from localStorage (synchronous, no flicker)
