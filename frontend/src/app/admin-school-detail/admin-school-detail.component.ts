@@ -104,7 +104,7 @@ export class AdminSchoolDetailComponent implements OnInit {
     {
       label: "FAQ & Inhoud",
       sub: "Inhoud & veelgestelde vragen",
-      route: "/faq-beheer",
+      route: "/info",
       icon: "faq",
     },
     {

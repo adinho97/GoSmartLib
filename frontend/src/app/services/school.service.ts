@@ -116,7 +116,9 @@ export class SchoolService {
    */
   async selectUserDefaultSchool(): Promise<void> {
     try {
-      const res = await fetch(`/api/gebruikers/me/school`);
+      const res = await fetch(`/api/gebruikers/me/school`, {
+        headers: this.buildAuthHeaders(),
+      });
       if (!res.ok) return;
       const payload = await res.json();
       const schoolId = payload?.schoolId ?? null;
@@ -134,13 +136,26 @@ export class SchoolService {
 
   async getSchools(): Promise<any[]> {
     try {
-      const res = await fetch(`/api/admin/schools`);
+      const res = await fetch(`/api/admin/schools`, {
+        headers: this.buildAuthHeaders(),
+      });
       if (!res.ok) return [];
       return await res.json();
     } catch (err) {
       console.error("getSchools failed:", err);
       return [];
     }
+  }
+
+  // The auth interceptor only attaches the bearer token to HttpClient requests;
+  // raw fetch() bypasses it, so we replicate the same role-based token lookup here.
+  private buildAuthHeaders(): Record<string, string> {
+    const role = localStorage.getItem("role");
+    const token =
+      role === "SUPER_ADMIN" || role === "super_admin"
+        ? localStorage.getItem("admin_jwt_token")
+        : localStorage.getItem("smartschoolToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   /**

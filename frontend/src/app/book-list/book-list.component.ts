@@ -327,6 +327,19 @@ export class BookListComponent implements OnInit {
   }
 
   async loadSchools() {
+    if (!this.isTeacherOrLibrarian) {
+      // Students don't have access to /api/admin/schools and don't need the
+      // full school list — they only ever see books from their own school.
+      try {
+        await this.schoolService.selectUserDefaultSchool();
+        this.schools = [];
+        this.selectedSchoolId = this.schoolService.getSelectedSchoolId();
+      } catch {
+        this.schools = [];
+        this.selectedSchoolId = null;
+      }
+      return;
+    }
     try {
       this.schools = await this.schoolService.getSchools();
       const storedSchoolId = this.schoolService.getSelectedSchoolId();

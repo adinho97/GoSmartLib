@@ -1,5 +1,7 @@
 package com.example.demo.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -12,8 +14,9 @@ public class InfoContent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id", nullable = false)
+    @JoinColumn(name = "school_id")
     private School school;
 
     @Enumerated(EnumType.STRING)
@@ -34,6 +37,11 @@ public class InfoContent {
     public Long getId() { return id; }
     public School getSchool() { return school; }
     public void setSchool(School school) { this.school = school; }
+
+    @JsonProperty("schoolId")
+    public Long getSchoolId() {
+        return school != null ? school.getId() : null;
+    }
     public Sectie getSectie() { return sectie; }
     public void setSectie(Sectie sectie) { this.sectie = sectie; }
     public String getTitel() { return titel; }
