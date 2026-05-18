@@ -153,38 +153,6 @@
         </div>
       </div>
 
-      <div class="klassen-selector">
-        <h3 class="card-title">Selecteer doelklassen</h3>
-        <div class="search-bar klas-search-bar">
-          <input
-            type="text"
-            placeholder="Zoek klas..."
-            [(ngModel)]="klasSearchQuery"
-            class="search-input"
-          />
-        </div>
-        @if (klassenLoading) {
-          <div class="loader-row">
-            <div class="spinner"></div>
-            <p>Klassen laden…</p>
-          </div>
-        } @else if (klassen.length === 0) {
-          <p class="empty-msg">Geen klassen beschikbaar.</p>
-        } @else {
-          <div class="grid-list">
-            @for (klas of filteredKlassen; track klas.id) {
-              <div
-                class="grid-item"
-                [class.selected]="selectedKlassenIds.has(klas.id)"
-                (click)="toggleKlasSelection(klas.id)"
-              >
-                <span class="item-name">{{ klas.naam }}</span>
-              </div>
-            }
-          </div>
-        }
-      </div>
-
       <div class="filters-panel">
         <h3 class="card-title">Boekfilters</h3>
         <div class="filters-grid">

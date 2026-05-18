@@ -99,10 +99,14 @@ public class LeeslijstService {
         AppUser user = userRepository.findBySub(userSub)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userSub));
 
-        // Bibbeheerders should see all lists for their school for management purposes
+        // Bibbeheerders should see:
+        // 1. All lists for their school
+        // 2. All global lists (for context)
         if ("bibbeheerder".equalsIgnoreCase(user.getRole()) && user.getSchool() != null) {
             Long schoolId = Objects.requireNonNull(user.getSchool().getId(), "School id is required");
-            return leeslijstRepository.findBySchool_Id(schoolId);
+            Set<Leeslijst> combined = new HashSet<>(leeslijstRepository.findBySchool_Id(schoolId));
+            combined.addAll(leeslijstRepository.findByIsGlobalTrue());
+            return new ArrayList<>(combined);
         }
 
         // For other users (Teachers/Students), combine:

@@ -58,7 +58,7 @@ public class LeeslijstController {
         return ResponseEntity.ok(result);
     }
 
-    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/mijn")
     public ResponseEntity<List<LeeslijstDTO>> getMijnLeeslisten(Authentication authentication) {
         List<LeeslijstDTO> result = leeslijstService.getLeeslistenForUser(authentication.getName())
