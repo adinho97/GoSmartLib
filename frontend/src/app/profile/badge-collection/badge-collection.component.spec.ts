@@ -51,19 +51,19 @@ describe("BadgeCollectionComponent", () => {
   });
 
   it("should use a 60 second background refresh interval", async () => {
-    const intervalSpy = spyOn(window, "setInterval").and.callFake(
-      () => 1 as any,
+    const intervalSpy = spyOn(window, "setInterval").and.returnValue(
+      1 as any
     );
 
     fixture.detectChanges();
     await fixture.whenStable();
 
     expect(intervalSpy).toHaveBeenCalled();
-    expect(intervalSpy.calls.mostRecent().args[1]).toBe(60000);
+    expect(intervalSpy).toHaveBeenCalledWith(jasmine.any(Function), 60000);
   });
 
   it("should avoid overlapping refresh requests", async () => {
-    let resolveLoanHistory: (() => void) | null = null;
+    let resolveLoanHistory: (() => void) | undefined;
 
     loanServiceSpy.getMyLoanHistory.and.returnValue(
       new Promise<any[]>((resolve) => {
@@ -76,7 +76,9 @@ describe("BadgeCollectionComponent", () => {
 
     expect(loanServiceSpy.getMyLoanHistory).toHaveBeenCalledTimes(1);
 
-    resolveLoanHistory?.();
+    if (resolveLoanHistory) {
+      resolveLoanHistory();
+    }
     await firstRefresh;
     await secondRefresh;
   });

@@ -1,9 +1,12 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule, NgForm } from "@angular/forms";
+import { HttpClientTestingModule } from "@angular/common/http/testing";
 import { AddBookComponent } from "./add-book-component";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
+import { AdminGenreService } from "../services/admin-genre.service";
 import { LEESNIVEAUS } from "./add-book-component";
+import { of } from "rxjs";
 
 class MockBookService {
   addBook = jasmine.createSpy("addBook").and.returnValue(Promise.resolve());
@@ -35,6 +38,15 @@ class MockSchoolService {
     .createSpy("getSelectedSchoolId")
     .and.returnValue(1);
   setSelectedSchoolId = jasmine.createSpy("setSelectedSchoolId");
+  selectUserDefaultSchool = jasmine
+    .createSpy("selectUserDefaultSchool")
+    .and.returnValue(Promise.resolve());
+}
+
+class MockAdminGenreService {
+  getAll = jasmine
+    .createSpy("getAll")
+    .and.returnValue(of([{ id: 1, naam: "Fictie" }]));  // Returns Observable, not Promise
 }
 
 describe("AddBookComponent", () => {
@@ -45,10 +57,11 @@ describe("AddBookComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AddBookComponent],
-      imports: [FormsModule],
+      imports: [FormsModule, HttpClientTestingModule],
       providers: [
         { provide: BookService, useClass: MockBookService },
         { provide: SchoolService, useClass: MockSchoolService },
+        { provide: AdminGenreService, useClass: MockAdminGenreService },
       ],
     }).compileComponents();
 

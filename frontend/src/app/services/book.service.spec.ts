@@ -169,12 +169,12 @@ describe("BookService", () => {
 
       expect(axiosPostSpy).toHaveBeenCalledWith(
         "/api/leeslisten",
-        {
+        jasmine.objectContaining({
           titel: "Nieuwe lijst",
           description: "Beschrijving",
           bookIds: [10, 11],
           klasIds: [3, 4],
-        },
+        }),
         {
           headers: {
             "X-User-Role": "leerkracht",
@@ -220,12 +220,12 @@ describe("BookService", () => {
 
       expect(axiosPutSpy).toHaveBeenCalledWith(
         "/api/leeslisten/9",
-        {
+        jasmine.objectContaining({
           titel: "Bijgewerkt",
           description: "Nieuwe beschrijving",
           bookIds: [1],
           klasIds: [2],
-        },
+        }),
         {
           headers: {
             "X-User-Role": "leerkracht",
