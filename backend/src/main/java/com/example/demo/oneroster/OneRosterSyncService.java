@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,12 @@ public class OneRosterSyncService {
     private final SchoolRepository schoolRepository;
     private final KlasRepository klasRepository;
     private final AppUserRepository appUserRepository;
+
+    // Tracks subdomains with an in-flight sync, so a cron firing while an
+    // admin clicks the sync button (or two clicks land at the same time)
+    // doesn't race on the (school_id, group_id) and app_users.sub unique
+    // constraints. Second concurrent call returns skippedEntirely=true.
+    private final Set<String> inFlightSubdomains = ConcurrentHashMap.newKeySet();
 
     public OneRosterSyncService(OneRosterProperties properties,
             OneRosterClient client,
@@ -82,6 +89,14 @@ public class OneRosterSyncService {
             return result;
         }
 
+        String guardKey = subdomain.toLowerCase(Locale.ROOT);
+        if (!inFlightSubdomains.add(guardKey)) {
+            logger.info("OneRoster sync for {} skipped: another sync is already in progress", subdomain);
+            result.setSkippedEntirely(true);
+            result.setSkipReason("sync already in progress");
+            return result;
+        }
+
         try {
             OneRosterOrg org = client.getOrg(subdomain).block();
             School school = upsertSchool(subdomain, org, result);
@@ -100,6 +115,8 @@ public class OneRosterSyncService {
         } catch (Exception e) {
             logger.warn("OneRoster sync failed for subdomain {}: {}", subdomain, e.getMessage(), e);
             result.addError(e.getClass().getSimpleName() + ": " + e.getMessage());
+        } finally {
+            inFlightSubdomains.remove(guardKey);
         }
 
         return result;
