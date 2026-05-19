@@ -331,7 +331,7 @@ describe("DetailComponent", () => {
     const sanitizer = TestBed.inject(DomSanitizer);
     spyOn(sanitizer, "bypassSecurityTrustResourceUrl").and.callThrough();
 
-    const getSpy = spyOn(axios, "get").and.callFake(async (url: string) => {
+    const getSpy = spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("api/books")) {
         return {
           data: {
@@ -343,7 +343,7 @@ describe("DetailComponent", () => {
         };
       }
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,
@@ -370,7 +370,7 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview resolves openlibrary edition to archive embed", async () => {
-    spyOn(axios, "get").and.callFake(async (url: string) => {
+    spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("api/books")) {
         return {
           data: {
@@ -391,7 +391,7 @@ describe("DetailComponent", () => {
       }
 
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,
@@ -416,7 +416,7 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview falls back to search ia embed when isbn lookup has no preview", async () => {
-    const getSpy = spyOn(axios, "get").and.callFake(async (url: string) => {
+    const getSpy = spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("api/books")) {
         return {
           data: {},
@@ -432,7 +432,7 @@ describe("DetailComponent", () => {
       }
 
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,
@@ -458,7 +458,7 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview rejects isbn-mismatched search hits and shows alert", async () => {
-    spyOn(axios, "get").and.callFake(async (url: string) => {
+    spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("api/books")) {
         return {
           data: {},
@@ -474,7 +474,7 @@ describe("DetailComponent", () => {
       }
 
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,
@@ -498,7 +498,7 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview ignores wrong title/author matches and returns no preview", async () => {
-    spyOn(axios, "get").and.callFake(async (url: string) => {
+    spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("search.json")) {
         return {
           data: {
@@ -514,7 +514,7 @@ describe("DetailComponent", () => {
       }
 
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,
@@ -538,7 +538,7 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview skips wrong search doc and uses later matching title/author doc", async () => {
-    spyOn(axios, "get").and.callFake(async (url: string) => {
+    spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("search.json")) {
         return {
           data: {
@@ -559,7 +559,7 @@ describe("DetailComponent", () => {
       }
 
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,
@@ -584,7 +584,7 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview rejects search doc when only title matches", async () => {
-    spyOn(axios, "get").and.callFake(async (url: string) => {
+    spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("search.json")) {
         return {
           data: {
@@ -600,7 +600,7 @@ describe("DetailComponent", () => {
       }
 
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,
@@ -624,7 +624,7 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview rejects search doc when only author matches", async () => {
-    spyOn(axios, "get").and.callFake(async (url: string) => {
+    spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("search.json")) {
         return {
           data: {
@@ -640,7 +640,7 @@ describe("DetailComponent", () => {
       }
 
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,
@@ -664,7 +664,7 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview shows preview alert when no readable preview exists", async () => {
-    spyOn(axios, "get").and.callFake(async (url: string) => {
+    spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
       if (url.includes("api/books")) {
         return {
           data: {
@@ -685,7 +685,7 @@ describe("DetailComponent", () => {
       }
 
       throw new Error(`Unexpected URL: ${url}`);
-    });
+    }) as any);
 
     component.book = {
       id: 1,

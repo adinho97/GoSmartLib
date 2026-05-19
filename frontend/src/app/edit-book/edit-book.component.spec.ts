@@ -5,6 +5,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { LoanService } from '../services/loan.service';
+import { AdminGenreService } from '../services/admin-genre.service';
 
 describe('EditBookComponent', () => {
   let component: EditBookComponent;
@@ -31,15 +34,25 @@ describe('EditBookComponent', () => {
     bookServiceSpy.getBookById.and.returnValue(of(mockBook));
     bookServiceSpy.updateBook.and.returnValue(Promise.resolve());
 
+    const loanServiceSpy = jasmine.createSpyObj('LoanService', ['getLoansByBookId']);
+    loanServiceSpy.getLoansByBookId.and.returnValue(Promise.resolve([]));
+
+    const adminGenreServiceSpy = jasmine.createSpyObj('AdminGenreService', ['getGenres', 'getAll']);
+    adminGenreServiceSpy.getGenres.and.returnValue(Promise.resolve([]));
+    adminGenreServiceSpy.getAll.and.returnValue(Promise.resolve([]));
+
     await TestBed.configureTestingModule({
       // EditBookComponent importeren (ervan uitgaande dat het een standalone component is)
       imports: [
         FormsModule, 
         RouterTestingModule, 
+        HttpClientTestingModule,
         EditBookComponent
       ],
       providers: [
         { provide: BookService, useValue: bookServiceSpy },
+        { provide: LoanService, useValue: loanServiceSpy },
+        { provide: AdminGenreService, useValue: adminGenreServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: {

@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule, NgForm } from "@angular/forms";
+import { HttpClientTestingModule } from "@angular/common/http/testing";
 import { AddBookComponent } from "./add-book-component";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
+import { AdminGenreService } from "../services/admin-genre.service";
 import { LEESNIVEAUS } from "./add-book-component";
 
 class MockBookService {
@@ -37,6 +39,12 @@ class MockSchoolService {
   setSelectedSchoolId = jasmine.createSpy("setSelectedSchoolId");
 }
 
+class MockAdminGenreService {
+  getAll = jasmine
+    .createSpy("getAll")
+    .and.returnValue(Promise.resolve([{ id: 1, naam: "Fictie" }]));
+}
+
 describe("AddBookComponent", () => {
   let component: AddBookComponent;
   let fixture: ComponentFixture<AddBookComponent>;
@@ -45,10 +53,11 @@ describe("AddBookComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AddBookComponent],
-      imports: [FormsModule],
+      imports: [FormsModule, HttpClientTestingModule],
       providers: [
         { provide: BookService, useClass: MockBookService },
         { provide: SchoolService, useClass: MockSchoolService },
+        { provide: AdminGenreService, useClass: MockAdminGenreService },
       ],
     }).compileComponents();
 

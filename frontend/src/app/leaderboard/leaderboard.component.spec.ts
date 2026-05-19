@@ -52,7 +52,7 @@ describe("LeaderboardComponent", () => {
     const routerSpy = jasmine.createSpyObj("Router", ["navigate"]);
 
     await TestBed.configureTestingModule({
-      declarations: [LeaderboardComponent],
+      imports: [LeaderboardComponent],
       providers: [
         { provide: LeaderboardService, useValue: lbServiceSpy },
         { provide: AuthContextService, useValue: authSpy },
