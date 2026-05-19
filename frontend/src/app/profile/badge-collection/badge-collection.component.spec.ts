@@ -1,4 +1,9 @@
-import { ComponentFixture, TestBed } from "@angular/core/testing";
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from "@angular/core/testing";
 import { BadgeCollectionComponent } from "./badge-collection.component";
 import { BookService } from "../../services/book.service";
 import { LoanService } from "../../services/loan.service";
@@ -15,6 +20,9 @@ describe("BadgeCollectionComponent", () => {
   let experienceServiceSpy: jasmine.SpyObj<ExperienceService>;
 
   beforeEach(async () => {
+    // Mock setInterval globally to prevent tests from hanging on async ngOnInit macrotasks
+    spyOn(window, "setInterval").and.returnValue(123 as any);
+
     bookServiceSpy = jasmine.createSpyObj("BookService", ["getMyReviewCount"]);
     loanServiceSpy = jasmine.createSpyObj("LoanService", ["getMyLoanHistory"]);
     badgeNotificationServiceSpy = jasmine.createSpyObj(
@@ -25,6 +33,7 @@ describe("BadgeCollectionComponent", () => {
       "addExperienceForBadge",
       "getBadgeExperienceWorth",
       "reconcileLoanExperienceFromHistory",
+      "reconcileReviewExperienceFromHistory",
     ]);
 
     bookServiceSpy.getMyReviewCount.and.resolveTo(0);
@@ -32,6 +41,7 @@ describe("BadgeCollectionComponent", () => {
     experienceServiceSpy.addExperienceForBadge.and.returnValue(0);
     experienceServiceSpy.getBadgeExperienceWorth.and.returnValue(20);
     experienceServiceSpy.reconcileLoanExperienceFromHistory.and.stub();
+    experienceServiceSpy.reconcileReviewExperienceFromHistory.and.stub();
 
     await TestBed.configureTestingModule({
       imports: [BadgeCollectionComponent],
@@ -51,15 +61,14 @@ describe("BadgeCollectionComponent", () => {
   });
 
   it("should use a 60 second background refresh interval", async () => {
-    const intervalSpy = spyOn(window, "setInterval").and.returnValue(
-      1 as any
-    );
-
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(intervalSpy).toHaveBeenCalled();
-    expect(intervalSpy).toHaveBeenCalledWith(jasmine.any(Function), 60000);
+    expect(window.setInterval).toHaveBeenCalled();
+    expect(window.setInterval).toHaveBeenCalledWith(
+      jasmine.any(Function),
+      60000,
+    );
   });
 
   it("should avoid overlapping refresh requests", async () => {
@@ -83,14 +92,15 @@ describe("BadgeCollectionComponent", () => {
     await secondRefresh;
   });
 
-  it("should reconcile loan XP from history on init", async () => {
+  it("should reconcile loan XP from history on init", fakeAsync(() => {
     loanServiceSpy.getMyLoanHistory.and.resolveTo([{} as any, {} as any]);
 
     fixture.detectChanges();
-    await fixture.whenStable();
+    tick(); // Process first batch of awaits in ngOnInit
+    tick(); // Process second batch
 
     expect(
       experienceServiceSpy.reconcileLoanExperienceFromHistory,
     ).toHaveBeenCalledWith(2);
-  });
+  }));
 });
