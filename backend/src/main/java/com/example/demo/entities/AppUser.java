@@ -1,6 +1,7 @@
 package com.example.demo.entities;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "app_users")
@@ -27,6 +28,12 @@ public class AppUser {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    // Set by OneRoster sync when this user no longer appears in their school's
+    // enrollments. Their data is retained for a grace window, then anonymized
+    // by the retention purge job. Cleared on re-appearance (within window).
+    @Column(name = "departed_at", nullable = true)
+    private LocalDateTime departedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id")
@@ -93,6 +100,14 @@ public class AppUser {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public LocalDateTime getDepartedAt() {
+        return departedAt;
+    }
+
+    public void setDepartedAt(LocalDateTime departedAt) {
+        this.departedAt = departedAt;
     }
 
     public School getSchool() {
