@@ -16,6 +16,7 @@ import com.example.demo.oneroster.dto.OneRosterUser;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.SchoolRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -197,7 +198,7 @@ class OneRosterSyncServiceTest {
     }
 
     @Test
-    @DisplayName("user safety: user not present in OneRoster is left intact")
+    @DisplayName("user safety: user not present in OneRoster keeps PII; only departure flags change")
     void userSafety_unmentionedUserPreserved() {
         School school = persistedSchool();
         Klas klas = persistKlas(school, "K1", "Klas 1");
@@ -217,9 +218,14 @@ class OneRosterSyncServiceTest {
         syncService.syncBySubdomain(SUBDOMAIN);
 
         AppUser after = appUserRepository.findBySub("ALUMNUS_SUB").orElseThrow();
-        assertEquals("alumnus-token", after.getAccessToken());
-        assertEquals("leerling", after.getRole());
-        assertTrue(after.isActive());
+        assertEquals("alumnus-token", after.getAccessToken(),
+                "accessToken must survive departure (PII retained for retention window)");
+        assertEquals("leerling", after.getRole(),
+                "role must not be rewritten by sync");
+        assertFalse(after.isActive(),
+                "absent user is marked inactive by slice 1 departure detection");
+        assertNotNull(after.getDepartedAt(),
+                "absent user gets departedAt timestamp");
     }
 
     @Test
@@ -339,6 +345,155 @@ class OneRosterSyncServiceTest {
 
         assertFalse(result.getErrors().isEmpty());
         assertEquals(0, result.getUsersCreated());
+    }
+
+    @Test
+    @DisplayName("departure detection: existing user absent from OneRoster gets departedAt + active=false")
+    void departureDetection_absentUserMarkedDeparted() {
+        School school = persistedSchool();
+        Klas klas = persistKlas(school, "K1", "Klas 1");
+
+        AppUser stayingStudent = new AppUser();
+        stayingStudent.setSub("STAYS_SUB");
+        stayingStudent.setRole("leerling");
+        stayingStudent.setActive(true);
+        stayingStudent.setSchool(school);
+        stayingStudent.setKlas(klas);
+        appUserRepository.save(stayingStudent);
+
+        AppUser departingStudent = new AppUser();
+        departingStudent.setSub("LEAVES_SUB");
+        departingStudent.setRole("leerling");
+        departingStudent.setActive(true);
+        departingStudent.setSchool(school);
+        departingStudent.setKlas(klas);
+        appUserRepository.save(departingStudent);
+
+        mockOrg("AP Hogeschool");
+        mockEnrollments(List.of(enrollment("student", "STAYS_SUB", "K1", "Klas 1")));
+
+        OneRosterSyncResult result = syncService.syncBySubdomain(SUBDOMAIN);
+
+        assertEquals(1, result.getUsersDeparted(),
+                "exactly one user departs (the one missing from this sync)");
+
+        AppUser leaver = appUserRepository.findBySub("LEAVES_SUB").orElseThrow();
+        assertNotNull(leaver.getDepartedAt(), "departedAt must be set on absent user");
+        assertFalse(leaver.isActive(), "active must be cleared on departed user");
+
+        AppUser stayer = appUserRepository.findBySub("STAYS_SUB").orElseThrow();
+        assertNull(stayer.getDepartedAt(), "present user must not get departedAt");
+        assertTrue(stayer.isActive(), "present user must stay active");
+    }
+
+    @Test
+    @DisplayName("departure detection: empty enrollment payload does NOT mass-depart the school")
+    void departureDetection_emptyPayloadIsSafe() {
+        School school = persistedSchool();
+        Klas klas = persistKlas(school, "K1", "Klas 1");
+
+        AppUser student = new AppUser();
+        student.setSub("STUDENT_SUB");
+        student.setRole("leerling");
+        student.setActive(true);
+        student.setSchool(school);
+        student.setKlas(klas);
+        appUserRepository.save(student);
+
+        mockOrg("AP Hogeschool");
+        mockEnrollments(List.of());
+
+        OneRosterSyncResult result = syncService.syncBySubdomain(SUBDOMAIN);
+
+        assertEquals(0, result.getUsersDeparted(),
+                "flaky empty-payload response must not mass-depart the school");
+        AppUser after = appUserRepository.findBySub("STUDENT_SUB").orElseThrow();
+        assertNull(after.getDepartedAt());
+        assertTrue(after.isActive());
+    }
+
+    @Test
+    @DisplayName("departure detection: already-departed user is not re-departed (timestamp not updated)")
+    void departureDetection_alreadyDepartedUserIsSkipped() {
+        School school = persistedSchool();
+        Klas klas = persistKlas(school, "K1", "Klas 1");
+
+        LocalDateTime priorDeparture = LocalDateTime.now().minusDays(10);
+        AppUser leftLast = new AppUser();
+        leftLast.setSub("PRIOR_LEAVER");
+        leftLast.setRole("leerling");
+        leftLast.setActive(false);
+        leftLast.setDepartedAt(priorDeparture);
+        leftLast.setSchool(school);
+        leftLast.setKlas(klas);
+        appUserRepository.save(leftLast);
+
+        mockOrg("AP Hogeschool");
+        mockEnrollments(List.of(enrollment("student", "OTHER", "K1", "Klas 1")));
+
+        OneRosterSyncResult result = syncService.syncBySubdomain(SUBDOMAIN);
+
+        assertEquals(0, result.getUsersDeparted(),
+                "already-departed users must not be counted again");
+        AppUser after = appUserRepository.findBySub("PRIOR_LEAVER").orElseThrow();
+        assertEquals(priorDeparture, after.getDepartedAt(),
+                "departedAt timestamp must not be overwritten on subsequent syncs");
+    }
+
+    @Test
+    @DisplayName("reactivation: returning user clears departedAt, restores active, gets new klas")
+    void reactivation_returningUserIsRestored() {
+        School school = persistedSchool();
+        Klas oldKlas = persistKlas(school, "OLD", "Old Klas");
+
+        AppUser returnee = new AppUser();
+        returnee.setSub("RETURNEE_SUB");
+        returnee.setRole("leerling");
+        returnee.setAccessToken("old-token");
+        returnee.setSmartschoolRefreshToken("old-refresh");
+        returnee.setActive(false);
+        returnee.setDepartedAt(LocalDateTime.now().minusDays(30));
+        returnee.setSchool(school);
+        returnee.setKlas(oldKlas);
+        appUserRepository.save(returnee);
+
+        mockOrg("AP Hogeschool");
+        mockEnrollments(List.of(enrollment("student", "RETURNEE_SUB", "NEW", "New Klas")));
+
+        syncService.syncBySubdomain(SUBDOMAIN);
+
+        AppUser after = appUserRepository.findBySub("RETURNEE_SUB").orElseThrow();
+        assertNull(after.getDepartedAt(), "departedAt must be cleared on reappearance");
+        assertTrue(after.isActive(), "active must be restored to true");
+        assertEquals("NEW", after.getKlas().getGroupId(), "klas re-assigned");
+        assertEquals("old-token", after.getAccessToken(),
+                "tokens must not be touched by reactivation");
+        assertEquals("old-refresh", after.getSmartschoolRefreshToken());
+    }
+
+    @Test
+    @DisplayName("reactivation: same-class returnee still gets departedAt cleared (reactivation flag is independent of klas change)")
+    void reactivation_sameKlasStillRestoresActive() {
+        School school = persistedSchool();
+        Klas klas = persistKlas(school, "K1", "Klas 1");
+
+        AppUser returnee = new AppUser();
+        returnee.setSub("RETURNEE_SUB");
+        returnee.setRole("leerling");
+        returnee.setActive(false);
+        returnee.setDepartedAt(LocalDateTime.now().minusDays(5));
+        returnee.setSchool(school);
+        returnee.setKlas(klas);
+        appUserRepository.save(returnee);
+
+        mockOrg("AP Hogeschool");
+        mockEnrollments(List.of(enrollment("student", "RETURNEE_SUB", "K1", "Klas 1")));
+
+        syncService.syncBySubdomain(SUBDOMAIN);
+
+        AppUser after = appUserRepository.findBySub("RETURNEE_SUB").orElseThrow();
+        assertNull(after.getDepartedAt());
+        assertTrue(after.isActive());
     }
 
     // ---------- helpers ----------

@@ -752,6 +752,88 @@ class BookControllerTest {
         }
 
         @Test
+        void getReviewsShouldShowOudLeerlingForDepartedAuthor() throws Exception {
+                Review review = new Review();
+                review.setId(7L);
+                review.setRating(4);
+                review.setComment("Goed boek");
+                review.setReviewerUserSub("departed-sub");
+                review.setCreatedAt(LocalDateTime.of(2026, 3, 18, 12, 30));
+
+                AppUser departed = new AppUser();
+                departed.setId(42L);
+                departed.setSub("departed-sub");
+                departed.setDepartedAt(LocalDateTime.of(2026, 2, 1, 0, 0));
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(1L))
+                                .thenReturn(List.of(review));
+                when(appUserRepository.findBySub("departed-sub"))
+                                .thenReturn(Optional.of(departed));
+
+                mockMvc.perform(get("/api/boeken/1/reviews"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(7))
+                                .andExpect(jsonPath("$[0].comment").value("Goed boek"))
+                                .andExpect(jsonPath("$[0].reviewerUserName").value("Oud-leerling"));
+
+                verify(authService, never()).getUserInfoBySub("departed-sub");
+        }
+
+        @Test
+        void getReviewsShouldKeepNormalNameForActiveAuthor() throws Exception {
+                Review review = new Review();
+                review.setId(8L);
+                review.setRating(5);
+                review.setComment("Topboek");
+                review.setReviewerUserSub("active-sub");
+                review.setCreatedAt(LocalDateTime.of(2026, 3, 18, 12, 30));
+
+                AppUser active = new AppUser();
+                active.setId(11L);
+                active.setSub("active-sub");
+                active.setDepartedAt(null);
+
+                SmartschoolUserInfo info = new SmartschoolUserInfo();
+                info.setSub("active-sub");
+                info.setFullName("Sara De Vos");
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(1L))
+                                .thenReturn(List.of(review));
+                when(appUserRepository.findBySub("active-sub"))
+                                .thenReturn(Optional.of(active));
+                when(authService.getUserInfoBySub("active-sub"))
+                                .thenReturn(Mono.just(info));
+
+                mockMvc.perform(get("/api/boeken/1/reviews"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].reviewerUserName").value("Sara De Vos"));
+        }
+
+        @Test
+        void getReviewsShouldShowAnoniemWhenDepartedAuthorChoseAnonymous() throws Exception {
+                Review review = new Review();
+                review.setId(9L);
+                review.setRating(3);
+                review.setComment("Ok");
+                review.setReviewerUserSub("departed-sub");
+                review.setAnonymous(true);
+                review.setCreatedAt(LocalDateTime.of(2026, 3, 18, 12, 30));
+
+                when(bookRepository.existsById(1L)).thenReturn(true);
+                when(reviewRepository.findByBook_IdOrderByCreatedAtDesc(1L))
+                                .thenReturn(List.of(review));
+
+                mockMvc.perform(get("/api/boeken/1/reviews"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].reviewerUserName").value("Anoniem"));
+
+                verify(appUserRepository, never()).findBySub("departed-sub");
+                verify(authService, never()).getUserInfoBySub("departed-sub");
+        }
+
+        @Test
         void createReviewShouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
                 when(bookRepository.findById(404L)).thenReturn(Optional.empty());
 
