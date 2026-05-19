@@ -39,7 +39,7 @@ describe('EditBookComponent', () => {
 
     const adminGenreServiceSpy = jasmine.createSpyObj('AdminGenreService', ['getGenres', 'getAll']);
     adminGenreServiceSpy.getGenres.and.returnValue(Promise.resolve([]));
-    adminGenreServiceSpy.getAll.and.returnValue(Promise.resolve([]));
+    adminGenreServiceSpy.getAll.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       // EditBookComponent importeren (ervan uitgaande dat het een standalone component is)

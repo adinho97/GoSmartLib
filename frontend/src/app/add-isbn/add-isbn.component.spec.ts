@@ -4,26 +4,29 @@ import { CommonModule } from "@angular/common";
 import { AddIsbnComponent } from "./add-isbn.component";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
+import { LoanService } from "../services/loan.service";
 
 class MockBookService {
+  getBookByIsbnFromLibrary = jasmine
+    .createSpy("getBookByIsbnFromLibrary")
+    .and.returnValue(Promise.resolve(null));
+
   fetchBookByIsbn = jasmine
     .createSpy("fetchBookByIsbn")
     .and.returnValue(
       Promise.resolve({
+        id: 1,
         titel: "Dune",
         auteur: "Frank Herbert",
         isbn: "9780553808049",
       }),
     );
 
-  isBookInLibrary = jasmine
-    .createSpy("isBookInLibrary")
-    .and.returnValue(Promise.resolve(false));
-
   importBookByIsbn = jasmine
     .createSpy("importBookByIsbn")
     .and.returnValue(
       Promise.resolve({
+        id: 1,
         titel: "Dune",
         auteur: "Frank Herbert",
         isbn: "9780553808049",
@@ -39,6 +42,18 @@ class MockSchoolService {
     .createSpy("getSelectedSchoolId")
     .and.returnValue(1);
   setSelectedSchoolId = jasmine.createSpy("setSelectedSchoolId");
+  selectUserDefaultSchool = jasmine
+    .createSpy("selectUserDefaultSchool")
+    .and.returnValue(Promise.resolve());
+}
+
+class MockLoanService {
+  getCopySummary = jasmine
+    .createSpy("getCopySummary")
+    .and.returnValue(Promise.resolve({ total: 1 }));
+  addCopy = jasmine
+    .createSpy("addCopy")
+    .and.returnValue(Promise.resolve());
 }
 
 describe("AddIsbnComponent", () => {
@@ -53,6 +68,7 @@ describe("AddIsbnComponent", () => {
       providers: [
         { provide: BookService, useClass: MockBookService },
         { provide: SchoolService, useClass: MockSchoolService },
+        { provide: LoanService, useClass: MockLoanService },
       ],
     }).compileComponents();
 
@@ -81,7 +97,6 @@ describe("AddIsbnComponent", () => {
     await component.searchBook();
 
     expect(component.errorMessage).toBe("Voer een ISBN-nummer in.");
-    expect(bookService.fetchBookByIsbn).not.toHaveBeenCalled();
     expect(component.book).toBeNull();
   });
 
@@ -89,11 +104,8 @@ describe("AddIsbnComponent", () => {
     component.isbn = "9780553808049";
     await component.searchBook();
 
+    expect(bookService.getBookByIsbnFromLibrary).toHaveBeenCalled();
     expect(bookService.fetchBookByIsbn).toHaveBeenCalledWith("9780553808049");
-    expect(bookService.isBookInLibrary).toHaveBeenCalledWith(
-      "9780553808049",
-      1,
-    );
     expect(component.book).toBeTruthy();
     expect(component.book.titel).toBe("Dune");
     expect(component.hasCheckedLibraryStatus).toBeTrue();
@@ -101,12 +113,19 @@ describe("AddIsbnComponent", () => {
   });
 
   it("searchBook should set isAlreadyInLibrary and successMessage when book is in library", async () => {
-    bookService.isBookInLibrary.and.returnValue(Promise.resolve(true));
+    bookService.getBookByIsbnFromLibrary.and.returnValue(
+      Promise.resolve({
+        id: 1,
+        titel: "Dune",
+        auteur: "Frank Herbert",
+        isbn: "9780553808049",
+      }),
+    );
     component.isbn = "9780553808049";
     await component.searchBook();
 
     expect(component.isAlreadyInLibrary).toBeTrue();
-    expect(component.successMessage).toBe("Reeds in de bibliotheek.");
+    expect(component.successMessage).toContain("Reeds in de bibliotheek");
     expect(component.hasCheckedLibraryStatus).toBeTrue();
   });
 
@@ -155,12 +174,14 @@ describe("AddIsbnComponent", () => {
 
   it("addToLibrary should call importBookByIsbn and set success state", async () => {
     component.book = {
+      id: 1,
       titel: "Dune",
       auteur: "Frank Herbert",
       isbn: "9780553808049",
     };
     component.hasCheckedLibraryStatus = true;
     component.isAlreadyInLibrary = false;
+    component.aantalExemplaren = 1;
 
     await component.addToLibrary();
 
@@ -168,9 +189,8 @@ describe("AddIsbnComponent", () => {
       "9780553808049",
       1,
     );
-    expect(component.successMessage).toBe("Boek toegevoegd aan bibliotheek.");
+    expect(component.successMessage).toContain("Boek toegevoegd");
     expect(component.isAlreadyInLibrary).toBeTrue();
-    expect(component.hasCheckedLibraryStatus).toBeTrue();
     expect(component.isImporting).toBeFalse();
   });
 

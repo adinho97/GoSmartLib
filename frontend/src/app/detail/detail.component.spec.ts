@@ -35,6 +35,8 @@ describe("DetailComponent", () => {
       "addBookReview",
       "updateBookReview",
       "deleteBookReview",
+      "isHighlighted",
+      "isClassReadingListItem",
     ]);
     loanServiceSpy = jasmine.createSpyObj<LoanService>("LoanService", [
       "getCopySummary",
@@ -74,6 +76,8 @@ describe("DetailComponent", () => {
       createdAt: "2026-03-18T10:00:00",
     });
     bookServiceSpy.deleteBookReview.and.resolveTo();
+    bookServiceSpy.isHighlighted.and.returnValue(Promise.resolve(false));
+    bookServiceSpy.isClassReadingListItem.and.returnValue(Promise.resolve(false));
     loanServiceSpy.getCopySummary.and.resolveTo({ total: 2, available: 1 });
 
     routerEvents$ = new Subject<NavigationEnd>();
@@ -95,6 +99,14 @@ describe("DetailComponent", () => {
           useValue: {
             events: routerEvents$.asObservable(),
             navigate: jasmine.createSpy("navigate"),
+          },
+        },
+        {
+          provide: DomSanitizer,
+          useValue: {
+            bypassSecurityTrustResourceUrl: jasmine
+              .createSpy("bypassSecurityTrustResourceUrl")
+              .and.returnValue("https://safe-url"),
           },
         },
         { provide: BookService, useValue: bookServiceSpy },
