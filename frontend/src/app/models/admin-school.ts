@@ -73,6 +73,7 @@ export interface OneRosterSyncResult {
   classesUpdated: number;
   usersCreated: number;
   usersUpdated: number;
+  usersDeparted: number;
   skipped: number;
   skippedEntirely: boolean;
   skipReason: string | null;
