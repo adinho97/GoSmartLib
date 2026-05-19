@@ -7,6 +7,7 @@ import {
   CreateAdminSchoolRequest,
   CreateAdminSchoolResponse,
   KlasListItem,
+  OneRosterSyncResult,
   SchoolDetail,
   SchoolStatus,
   UpdateSchoolInfoRequest,
@@ -103,5 +104,13 @@ export class AdminSchoolService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`, {
       headers: this.superAdminAuthService.getAuthHeaders(),
     });
+  }
+
+  triggerOneRosterSync(id: number): Observable<OneRosterSyncResult> {
+    return this.http.post<OneRosterSyncResult>(
+      `${this.apiUrl}/${id}/oneroster/sync`,
+      {},
+      { headers: this.superAdminAuthService.getAuthHeaders() },
+    );
   }
 }

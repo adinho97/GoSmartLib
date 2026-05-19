@@ -64,3 +64,17 @@ export interface KlasListItem {
   groupId: string;
   naam: string;
 }
+
+export interface OneRosterSyncResult {
+  subdomain: string;
+  schoolsCreated: number;
+  schoolsUpdated: number;
+  classesCreated: number;
+  classesUpdated: number;
+  usersCreated: number;
+  usersUpdated: number;
+  skipped: number;
+  skippedEntirely: boolean;
+  skipReason: string | null;
+  errors: string[];
+}
