@@ -99,7 +99,8 @@ export class AppComponent implements OnInit {
       url.startsWith("/login") ||
       url.startsWith("/auth/callback") ||
       url.startsWith("/super-admin-login");
-    return !!this.userRole && !isAuthPage;
+    const isAdminSession = !!localStorage.getItem("admin_jwt_token");
+    return !!this.userRole && !isAuthPage && !isAdminSession;
   }
 
   get showStudentNav(): boolean {
