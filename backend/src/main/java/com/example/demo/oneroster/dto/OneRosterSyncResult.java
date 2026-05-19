@@ -12,6 +12,7 @@ public class OneRosterSyncResult {
     private int classesUpdated;
     private int usersCreated;
     private int usersUpdated;
+    private int usersDeparted;
     private int skipped;
     private boolean skippedEntirely;
     private String skipReason;
@@ -71,6 +72,14 @@ public class OneRosterSyncResult {
 
     public void incrementUsersUpdated() {
         this.usersUpdated++;
+    }
+
+    public int getUsersDeparted() {
+        return usersDeparted;
+    }
+
+    public void incrementUsersDeparted() {
+        this.usersDeparted++;
     }
 
     public int getSkipped() {
