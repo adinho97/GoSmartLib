@@ -35,6 +35,12 @@ public class AppUser {
     @Column(name = "departed_at", nullable = true)
     private LocalDateTime departedAt;
 
+    // Set by the retention purge job after the row's PII has been wiped and
+    // related data deleted/anonymized. Non-null means the user has been
+    // through purge and should not be re-processed.
+    @Column(name = "data_purged_at", nullable = true)
+    private LocalDateTime dataPurgedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id")
     private School school;
@@ -108,6 +114,14 @@ public class AppUser {
 
     public void setDepartedAt(LocalDateTime departedAt) {
         this.departedAt = departedAt;
+    }
+
+    public LocalDateTime getDataPurgedAt() {
+        return dataPurgedAt;
+    }
+
+    public void setDataPurgedAt(LocalDateTime dataPurgedAt) {
+        this.dataPurgedAt = dataPurgedAt;
     }
 
     public School getSchool() {
