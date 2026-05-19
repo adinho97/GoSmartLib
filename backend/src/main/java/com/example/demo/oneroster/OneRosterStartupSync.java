@@ -7,15 +7,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Eager population on boot: walk every configured OneRoster school and upsert
- * its roster. Iterates the config map (not the DB) so a freshly configured
- * school with zero rows in {@code scholen} still gets created.
+ * Automated OneRoster sync triggers:
+ *   - on Spring boot ({@code ApplicationReadyEvent}) so a freshly configured
+ *     school with zero rows in {@code scholen} gets created/populated;
+ *   - on 31 August 03:00 Europe/Brussels to pick up the new school year
+ *     (class moves + new students) before users start using the app.
  *
- * Runs async on the {@code oneRosterTaskExecutor} thread pool, so a slow or
- * unreachable OneRoster endpoint cannot block Spring boot.
+ * Both triggers iterate the config map (not the DB) so brand-new schools are
+ * covered too. They run async on the {@code oneRosterTaskExecutor} thread
+ * pool, so a slow or unreachable OneRoster endpoint cannot block boot or the
+ * scheduler.
  */
 @Component
 public class OneRosterStartupSync {
@@ -33,9 +38,19 @@ public class OneRosterStartupSync {
     @Async("oneRosterTaskExecutor")
     @EventListener(ApplicationReadyEvent.class)
     public void runStartupSync() {
+        syncAllConfiguredSchools("startup");
+    }
+
+    @Async("oneRosterTaskExecutor")
+    @Scheduled(cron = "0 0 3 31 8 ?", zone = "Europe/Brussels")
+    public void runEndOfAugustSync() {
+        syncAllConfiguredSchools("end-of-august");
+    }
+
+    private void syncAllConfiguredSchools(String triggerLabel) {
         Map<String, OneRosterProperties.SchoolConfig> all = properties.getSchools();
         if (all == null || all.isEmpty()) {
-            logger.debug("No OneRoster schools configured, startup sync skipped");
+            logger.debug("No OneRoster schools configured, {} sync skipped", triggerLabel);
             return;
         }
 
@@ -43,18 +58,18 @@ public class OneRosterStartupSync {
             String subdomain = entry.getKey();
             OneRosterProperties.SchoolConfig cfg = entry.getValue();
             if (cfg == null || !cfg.isUsable()) {
-                logger.debug("OneRoster config for '{}' is missing or incomplete (likely no client_secret env var), skipping",
-                        subdomain);
+                logger.debug("OneRoster config for '{}' is missing or incomplete (likely no client_secret env var), skipping {} sync",
+                        subdomain, triggerLabel);
                 continue;
             }
             try {
                 OneRosterSyncResult result = syncService.syncBySubdomain(subdomain);
                 if (!result.getErrors().isEmpty()) {
-                    logger.warn("OneRoster startup sync for {} finished with errors: {}",
-                            subdomain, result.getErrors());
+                    logger.warn("OneRoster {} sync for {} finished with errors: {}",
+                            triggerLabel, subdomain, result.getErrors());
                 }
             } catch (Exception e) {
-                logger.warn("OneRoster startup sync threw for {}: {}", subdomain, e.getMessage(), e);
+                logger.warn("OneRoster {} sync threw for {}: {}", triggerLabel, subdomain, e.getMessage(), e);
             }
         }
     }
