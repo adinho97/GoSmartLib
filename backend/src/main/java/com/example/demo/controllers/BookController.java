@@ -872,12 +872,20 @@ public class BookController {
             }
             return "Anoniem";
         }
-        return reviewerSub.trim();
+        String trimmedSub = reviewerSub.trim();
+        boolean departed = appUserRepository.findBySub(trimmedSub)
+                .map(user -> user.getDepartedAt() != null)
+                .orElse(false);
+        if (departed) {
+            return "Oud-leerling";
+        }
+        return trimmedSub;
     }
 
     private void resolveReviewerNamesInPlace(List<ReviewDto> reviews) {
         List<ReviewDto> nonAnon = reviews.stream()
-                .filter(dto -> !"Anoniem".equals(dto.getReviewerUserName()))
+                .filter(dto -> !"Anoniem".equals(dto.getReviewerUserName())
+                        && !"Oud-leerling".equals(dto.getReviewerUserName()))
                 .collect(Collectors.toList());
         if (nonAnon.isEmpty()) return;
 
