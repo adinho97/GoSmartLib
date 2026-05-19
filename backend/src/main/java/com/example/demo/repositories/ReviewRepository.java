@@ -18,4 +18,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     long countByReviewerUserSub(String reviewerUserSub);
 
     long countByReviewerUserSubOrReviewerUserId(String reviewerUserSub, Long reviewerUserId);
+
+    List<Review> findByReviewerUserSubOrReviewerUserId(String reviewerUserSub, Long reviewerUserId);
 }

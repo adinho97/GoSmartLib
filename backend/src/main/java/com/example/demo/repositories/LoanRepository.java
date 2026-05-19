@@ -20,6 +20,8 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     List<Loan> findByUserSubAndReturnedAtIsNotNull(String userSub);
 
+    List<Loan> findByUserSub(String userSub);
+
     List<Loan> findByCopy_Book_IdAndReturnedAtIsNull(Long bookId);
 
     List<Loan> findByDueDateAndReturnedAtIsNull(LocalDate dueDate);
