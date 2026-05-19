@@ -155,10 +155,7 @@ export class AppComponent implements OnInit {
   }
 
   get isTakenMenuActive(): boolean {
-    return (
-      this.currentUrl.startsWith("/uitleen") ||
-      this.currentUrl.startsWith("/klasleeslijst-beheer")
-    );
+    return this.currentUrl.startsWith("/uitleen");
   }
 
   get isBooksListActive(): boolean {

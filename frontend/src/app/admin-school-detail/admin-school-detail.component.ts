@@ -98,7 +98,8 @@ export class AdminSchoolDetailComponent implements OnInit {
     {
       label: "Klasleeslijsten",
       sub: "Leeslijsten beheren",
-      route: "/klasleeslijst-beheer",
+      route: "/mijn-lijsten",
+      fragment: "klasleeslijst",
       icon: "list",
     },
     {
@@ -587,7 +588,7 @@ export class AdminSchoolDetailComponent implements OnInit {
     }
   }
 
-  navigateToLibrary(route: string): void {
+  navigateToLibrary(route: string, fragment?: string): void {
     if (this.detail) {
       localStorage.setItem("selectedSchoolId", String(this.detail.id));
       localStorage.setItem("adminLibrarySchoolId", String(this.detail.id));
@@ -596,7 +597,7 @@ export class AdminSchoolDetailComponent implements OnInit {
         this.detail.naam || this.detail.subdomain,
       );
     }
-    this.router.navigate([route]);
+    this.router.navigate([route], fragment ? { fragment } : undefined);
   }
 
   loadSpotlights(): void {
