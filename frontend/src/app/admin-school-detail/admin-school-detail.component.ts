@@ -7,6 +7,7 @@ import { BookService } from "../services/book.service";
 import {
   AdminUserListItem,
   KlasListItem,
+  OneRosterSyncResult,
   SchoolDetail,
   SchoolStatus,
 } from "../models/admin-school";
@@ -149,6 +150,11 @@ export class AdminSchoolDetailComponent implements OnInit {
   // Status toggle
   isTogglingStatus = false;
   statusError = "";
+
+  // OneRoster sync
+  isSyncing = false;
+  syncError = "";
+  syncResult: OneRosterSyncResult | null = null;
 
   // Delete school
   showDeleteConfirmation = false;
@@ -311,6 +317,28 @@ export class AdminSchoolDetailComponent implements OnInit {
       error: (err) => {
         this.statusError = err?.error?.message || "Status wijzigen mislukt.";
         this.isTogglingStatus = false;
+      },
+    });
+  }
+
+  triggerOneRosterSync(): void {
+    if (!this.detail || this.isSyncing) return;
+    this.isSyncing = true;
+    this.syncError = "";
+    this.syncResult = null;
+
+    this.adminSchoolService.triggerOneRosterSync(this.detail.id).subscribe({
+      next: (result) => {
+        this.syncResult = result;
+        this.isSyncing = false;
+        // Reload users + klassen so the new state is visible without refresh.
+        if (!result.skippedEntirely && result.errors.length === 0) {
+          this.loadAll();
+        }
+      },
+      error: (err) => {
+        this.syncError = err?.error?.message || "OneRoster sync mislukt.";
+        this.isSyncing = false;
       },
     });
   }

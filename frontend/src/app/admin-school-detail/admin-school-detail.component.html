@@ -195,6 +195,56 @@
               {{ isSaving ? "Opslaan..." : "Opslaan" }}
             </button>
           </div>
+
+          <!-- OneRoster sync -->
+          <hr class="card-divider" />
+          <div class="oneroster-sync">
+            <div class="oneroster-sync-header">
+              <h3 class="oneroster-sync-title">OneRoster synchronisatie</h3>
+              <p class="oneroster-sync-sub">
+                Haal de actuele klasindeling en gebruikers op uit Smartschool.
+                Bestaande gebruikers worden naar hun nieuwe klas verplaatst;
+                nieuwe gebruikers worden toegevoegd. Loopt automatisch op 31
+                augustus.
+              </p>
+            </div>
+            <div class="form-actions">
+              <button
+                type="button"
+                class="btn-primary"
+                (click)="triggerOneRosterSync()"
+                [disabled]="isSyncing"
+              >
+                {{ isSyncing ? "Bezig met synchroniseren..." : "Nu synchroniseren" }}
+              </button>
+            </div>
+            @if (syncError) {
+              <p class="inline-error">{{ syncError }}</p>
+            }
+            @if (syncResult) {
+              @if (syncResult.skippedEntirely) {
+                <p class="inline-warning">
+                  Sync overgeslagen ({{ syncResult.skipReason }}).
+                </p>
+              } @else if (syncResult.errors.length > 0) {
+                <p class="inline-error">
+                  Sync afgerond met fouten:
+                  {{ syncResult.errors.join("; ") }}
+                </p>
+              } @else {
+                <p class="inline-success">
+                  Sync klaar — gebruikers: +{{ syncResult.usersCreated }} nieuw,
+                  {{ syncResult.usersUpdated }} bijgewerkt · klassen: +{{
+                    syncResult.classesCreated
+                  }}
+                  nieuw, {{ syncResult.classesUpdated }} bijgewerkt · {{
+                    syncResult.skipped
+                  }}
+                  overgeslagen.
+                </p>
+              }
+            }
+          </div>
         </div>
       </div>
     </div>

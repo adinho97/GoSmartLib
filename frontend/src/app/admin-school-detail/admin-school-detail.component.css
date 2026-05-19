@@ -324,6 +324,43 @@
   font-weight: 600;
 }
 
+.inline-warning {
+  margin: 0;
+  font-size: 13px;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.card-divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 18px 0;
+}
+
+.oneroster-sync {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oneroster-sync-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.oneroster-sync-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.oneroster-sync-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #4b5563;
+}
+
 .form-actions {
   display: flex;
   gap: 10px;
