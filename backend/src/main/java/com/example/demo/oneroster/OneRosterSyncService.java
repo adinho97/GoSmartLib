@@ -13,6 +13,7 @@ import com.example.demo.oneroster.dto.OneRosterUser;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.SchoolRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,9 +35,13 @@ import org.springframework.transaction.annotation.Transactional;
  * Safety rules (do not relax without re-reading the plan):
  *   - School: never overwrite admin-curated fields (naam if non-blank, adres,
  *     latitude, longitude). Only flip PENDING -> ACTIVE; never touch INACTIVE.
- *   - AppUser (existing): only klas may change. Never touch accessToken,
- *     smartschoolRefreshToken, active, role, platform, sub, school.
- *   - AppUser (in DB, missing from OneRoster): leave alone (no delete).
+ *   - AppUser (existing): klas may change. departedAt is cleared and active
+ *     restored to true if the user reappears in a sync (in-window reactivation
+ *     before the retention purge anonymizes their sub). Never touch
+ *     accessToken, smartschoolRefreshToken, role, platform, sub, school.
+ *   - AppUser (in DB, NOT in this sync's enrollments): students/teachers get
+ *     departedAt=now and active=false. Skipped entirely if seenSubs is empty
+ *     (defensive against a flaky OneRoster response returning zero enrollments).
  *   - Klas (in DB, missing from OneRoster): leave alone (no delete).
  *   - Role mapping: student -> leerling, teacher -> leerkracht, anything else
  *     is logged and skipped (no defaulting).
@@ -108,10 +113,12 @@ public class OneRosterSyncService {
 
             applyEnrollments(school, enrollments, result);
             logger.info("OneRoster sync complete for {}: schoolsCreated={}, schoolsUpdated={}, "
-                    + "classesCreated={}, classesUpdated={}, usersCreated={}, usersUpdated={}, skipped={}",
+                    + "classesCreated={}, classesUpdated={}, usersCreated={}, usersUpdated={}, "
+                    + "usersDeparted={}, skipped={}",
                     subdomain, result.getSchoolsCreated(), result.getSchoolsUpdated(),
                     result.getClassesCreated(), result.getClassesUpdated(),
-                    result.getUsersCreated(), result.getUsersUpdated(), result.getSkipped());
+                    result.getUsersCreated(), result.getUsersUpdated(),
+                    result.getUsersDeparted(), result.getSkipped());
         } catch (Exception e) {
             logger.warn("OneRoster sync failed for subdomain {}: {}", subdomain, e.getMessage(), e);
             result.addError(e.getClass().getSimpleName() + ": " + e.getMessage());
@@ -228,17 +235,53 @@ public class OneRosterSyncService {
             } else {
                 // Existing user: only klas may change, and only the first
                 // enrollment in pagination order wins (matches AuthService.upsertKlasData).
+                // In-window reactivation: if previously departed (before retention
+                // purge anonymized the sub), clear departure and restore active.
+                boolean reactivated = false;
+                if (existing.getDepartedAt() != null) {
+                    existing.setDepartedAt(null);
+                    existing.setActive(true);
+                    reactivated = true;
+                }
+
+                boolean changed = reactivated;
                 if (!usersAlreadyAssigned.contains(row.userSub)) {
                     Klas currentKlas = existing.getKlas();
                     boolean klasChanged = currentKlas == null
                             || !Objects.equals(currentKlas.getId(), klas.getId());
                     if (klasChanged) {
                         existing.setKlas(klas);
-                        appUserRepository.save(existing);
-                        result.incrementUsersUpdated();
+                        changed = true;
                     }
                     usersAlreadyAssigned.add(row.userSub);
                 }
+
+                if (changed) {
+                    appUserRepository.save(existing);
+                    result.incrementUsersUpdated();
+                }
+            }
+        }
+
+        // Departure detection. A user in this school with departedAt=null whose
+        // sub is not in this sync's seenSubs has left (or graduated). Guarded by
+        // !seenSubs.isEmpty() so a flaky empty-enrollment response cannot
+        // mass-depart the whole school in one run.
+        if (!seenSubs.isEmpty()) {
+            LocalDateTime now = LocalDateTime.now();
+            List<AppUser> schoolUsers = appUserRepository.findBySchool_Id(school.getId());
+            for (AppUser user : schoolUsers) {
+                if (user.getDepartedAt() != null) {
+                    continue;
+                }
+                String userSub = user.getSub();
+                if (userSub == null || seenSubs.contains(userSub)) {
+                    continue;
+                }
+                user.setDepartedAt(now);
+                user.setActive(false);
+                appUserRepository.save(user);
+                result.incrementUsersDeparted();
             }
         }
     }
