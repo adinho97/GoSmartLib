@@ -479,6 +479,7 @@ export class LeeslijstCreateComponent implements OnInit {
   goToConfirmation() {
     const hasTarget =
       this.isGlobal ||
+      this.isSchool ||
       this.selectedKlassenIds.size > 0 ||
       this.sharedWithUserSubs.size > 0;
 
@@ -565,6 +566,4 @@ export class LeeslijstCreateComponent implements OnInit {
 
   setPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-  }
-}
+    
