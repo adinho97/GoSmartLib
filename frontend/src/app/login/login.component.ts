@@ -55,12 +55,6 @@ export class LoginComponent implements OnInit {
     window.location.href = authUrl;
   }
 
-  async loginAsRole(role: string): Promise<void> {
-    this.isLoading = true;
-    await this.setRole(role, true);
-    this.isLoading = false;
-  }
-
   private handleSmartschoolCode(code: string): void {
     if (this.isLoading) return;
     this.isLoading = true;
