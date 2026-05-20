@@ -171,7 +171,11 @@ export class BookService {
       ...book,
       schoolId: this.resolveSchoolId(schoolId) ?? book.schoolId,
     };
-    const res = await axios.post(this.apiUrl, payload);
+    const res = await axios.post(
+      this.apiUrl,
+      payload,
+      this.getFullAuthHeaders(),
+    );
     return res.data;
   }
 
@@ -182,7 +186,10 @@ export class BookService {
       return this.bookCache.get(cacheKey)!;
     }
 
-    const res = await axios.get(this.withSchoolId(this.apiUrl, schoolId));
+    const res = await axios.get(
+      this.withSchoolId(this.apiUrl, schoolId),
+      this.getFullAuthHeaders(),
+    );
     this.bookCache.set(cacheKey, res.data);
     return res.data;
   }
@@ -190,6 +197,7 @@ export class BookService {
   async getDidacticBooks(schoolId?: number) {
     const res = await axios.get(
       this.withSchoolId(`${this.apiUrl}/didactisch`, schoolId),
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
@@ -214,6 +222,7 @@ export class BookService {
 
     const res = await axios.get<PagedBooksResponse>(
       `${this.apiUrl}/paged?${params.toString()}`,
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
@@ -264,14 +273,14 @@ export class BookService {
   async deleteBook(id: number, schoolId?: number) {
     await axios.delete(
       this.withSchoolId(`${this.apiUrl}/${id}`, schoolId),
-      this.getRoleHeaders(),
+      this.getFullAuthHeaders(),
     );
   }
 
   async getBookReviews(bookId: number): Promise<Review[]> {
     const res = await axios.get<Review[]>(
       `${this.apiUrl}/${bookId}/reviews`,
-      this.getRoleHeaders(),
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
@@ -279,7 +288,7 @@ export class BookService {
   async getMyReviewCount(): Promise<number> {
     const res = await axios.get<{ count: number }>(
       `${this.apiUrl}/reviews/mijn/aantal`,
-      this.getRoleHeaders(),
+      this.getFullAuthHeaders(),
     );
     return res.data?.count ?? 0;
   }
@@ -295,7 +304,7 @@ export class BookService {
     const res = await axios.post<Review>(
       `${this.apiUrl}/${bookId}/reviews`,
       payload,
-      this.getRoleHeaders(),
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
@@ -303,7 +312,7 @@ export class BookService {
   async deleteBookReview(bookId: number, reviewId: number): Promise<void> {
     await axios.delete(
       `${this.apiUrl}/${bookId}/reviews/${reviewId}`,
-      this.getRoleHeaders(),
+      this.getFullAuthHeaders(),
     );
   }
 
@@ -315,7 +324,7 @@ export class BookService {
     const res = await axios.put<Review>(
       `${this.apiUrl}/${bookId}/reviews/${reviewId}`,
       payload,
-      this.getRoleHeaders(),
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
@@ -369,6 +378,7 @@ export class BookService {
     try {
       const res = await axios.get<Book>(
         this.withSchoolId(`${this.apiUrl}/go/${goNumber}`, schoolId),
+        this.getFullAuthHeaders(),
       );
       return res.data;
     } catch (err: any) {
@@ -382,6 +392,8 @@ export class BookService {
   async importBookByIsbn(isbn: string, schoolId?: number) {
     const res = await axios.post(
       this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
+      undefined,
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
@@ -396,6 +408,7 @@ export class BookService {
     const res = await axios.post<BulkImportResult>(
       this.withSchoolId(`${this.apiUrl}/isbn/bulk`, schoolId),
       formData,
+      this.getFullAuthHeaders(),
     );
     return res.data;
   }
@@ -404,6 +417,7 @@ export class BookService {
     try {
       await axios.get(
         this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
+        this.getFullAuthHeaders(),
       );
       return true;
     } catch (err: any) {
@@ -421,6 +435,7 @@ export class BookService {
     try {
       const res = await axios.get<Book>(
         this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
+        this.getFullAuthHeaders(),
       );
       return res.data;
     } catch (err: any) {
@@ -431,7 +446,11 @@ export class BookService {
     }
   }
   async updateBook(id: number, book: Book): Promise<Book> {
-    const res = await axios.put(`${this.apiUrl}/${id}`, book);
+    const res = await axios.put(
+      `${this.apiUrl}/${id}`,
+      book,
+      this.getFullAuthHeaders(),
+    );
     return res.data;
   }
 
