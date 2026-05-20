@@ -4,17 +4,15 @@ import {
   fakeAsync,
   tick,
 } from "@angular/core/testing";
-import { SchoolStatisticsComponent } from "./school-statistics.component";
-import { BookService } from "../services/book.service";
+import { StatistiekenComponent } from "./statistieken.component";
+import { BookService } from "../services/book.service"; // Corrected path
 import { SchoolService } from "../services/school.service";
-import { of, throwError } from "rxjs";
+import { of } from "rxjs";
 import { HttpClientTestingModule } from "@angular/common/http/testing";
-import { RouterTestingModule } from "@angular/router/testing";
-import axios from "axios";
 
-describe("SchoolStatisticsComponent", () => {
-  let component: SchoolStatisticsComponent;
-  let fixture: ComponentFixture<SchoolStatisticsComponent>;
+describe("StatistiekenComponent", () => {
+  let component: StatistiekenComponent;
+  let fixture: ComponentFixture<StatistiekenComponent>;
   let bookServiceSpy: jasmine.SpyObj<BookService>;
   let schoolServiceSpy: jasmine.SpyObj<SchoolService>;
 
@@ -44,22 +42,16 @@ describe("SchoolStatisticsComponent", () => {
     );
 
     await TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        SchoolStatisticsComponent,
-        RouterTestingModule,
-      ], // Assuming it's standalone
+      declarations: [StatistiekenComponent],
+      imports: [HttpClientTestingModule],
       providers: [
         { provide: BookService, useValue: bookServiceSpy },
         { provide: SchoolService, useValue: schoolServiceSpy },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(SchoolStatisticsComponent);
+    fixture = TestBed.createComponent(StatistiekenComponent);
     component = fixture.componentInstance;
-    spyOn(axios, "get").and.resolveTo({
-      data: { firstName: "Test", lastName: "User" },
-    });
     fixture.detectChanges();
     await fixture.whenStable(); // Wait for async operations in ngOnInit
   });
@@ -69,18 +61,14 @@ describe("SchoolStatisticsComponent", () => {
   });
 
   it("should load school statistics on init", () => {
-    // Initialization logic
+    expect(schoolServiceSpy.getSchools).toHaveBeenCalled();
     expect(bookServiceSpy.getSchoolStatistics).toHaveBeenCalledWith(1);
-    expect(component.stats).toEqual(
-      jasmine.objectContaining({ totalLoans: 100 }),
-    );
+    expect((component as any).schoolStatistics).toEqual(mockSchoolStats);
   });
 
   it("should update statistics when school changes", fakeAsync(() => {
-    // component.onSchoolChange doesn't exist, use ngOnInit to simulate re-load
-    component.ngOnInit();
+    (component as any).onSchoolChange({ target: { value: "1" } });
     tick();
-    fixture.detectChanges();
     expect(bookServiceSpy.getSchoolStatistics).toHaveBeenCalledWith(1);
   }));
 });

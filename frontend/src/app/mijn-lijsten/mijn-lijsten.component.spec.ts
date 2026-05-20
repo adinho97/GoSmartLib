@@ -1,0 +1,124 @@
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from "@angular/core/testing";
+import { FormsModule } from "@angular/forms";
+import { Router, ActivatedRoute } from "@angular/router"; // Corrected path
+import { MijnLijstenComponent } from "./mijn-lijsten.component";
+import { BookService } from "../services/book.service";
+import { LoanService } from "../services/loan.service";
+import { AuthContextService } from "../services/auth-context.service";
+import { SchoolService } from "../services/school.service";
+import { UserService } from "../services/user.service";
+import { of } from "rxjs";
+import { HttpClientTestingModule } from "@angular/common/http/testing";
+
+describe("MijnLijstenComponent", () => {
+  let component: MijnLijstenComponent;
+  let fixture: ComponentFixture<MijnLijstenComponent>;
+  let bookServiceSpy: jasmine.SpyObj<BookService>;
+  let loanServiceSpy: jasmine.SpyObj<LoanService>;
+  let authContextServiceSpy: jasmine.SpyObj<AuthContextService>;
+  let schoolServiceSpy: jasmine.SpyObj<SchoolService>;
+  let userServiceSpy: jasmine.SpyObj<UserService>;
+  let routerSpy: jasmine.SpyObj<Router>;
+  let activatedRouteSpy: any;
+
+  beforeEach(async () => {
+    bookServiceSpy = jasmine.createSpyObj("BookService", [
+      "getUserWishlist",
+      "enrichBooksWithDetails",
+      "getLeeslijst",
+      "getLeeslistenForKlas",
+      "getMyLeeslisten",
+      "getUserKlas",
+      "removeFromWishlist",
+      "updateWishlistNotification",
+    ]);
+    bookServiceSpy.getUserWishlist.and.returnValue(Promise.resolve([]));
+    bookServiceSpy.enrichBooksWithDetails.and.callFake((books: any[]) =>
+      Promise.resolve(books),
+    );
+    bookServiceSpy.getLeeslijst.and.returnValue(
+      Promise.resolve({ id: 1, titel: "Test Leeslijst", bookIds: [] }),
+    );
+    bookServiceSpy.getLeeslistenForKlas.and.returnValue(Promise.resolve([]));
+    bookServiceSpy.getMyLeeslisten.and.returnValue(Promise.resolve([]));
+    bookServiceSpy.getUserKlas.and.returnValue(
+      Promise.resolve({ klasId: 1, klasName: "1A", schoolId: 1 }),
+    );
+    bookServiceSpy.removeFromWishlist.and.returnValue(Promise.resolve());
+    bookServiceSpy.updateWishlistNotification.and.returnValue(
+      Promise.resolve({} as any),
+    );
+
+    loanServiceSpy = jasmine.createSpyObj("LoanService", [
+      "getMyActiveLoans",
+      "getMyLoanHistory",
+    ]);
+    loanServiceSpy.getMyActiveLoans.and.returnValue(Promise.resolve([]));
+    loanServiceSpy.getMyLoanHistory.and.returnValue(Promise.resolve([]));
+
+    authContextServiceSpy = jasmine.createSpyObj("AuthContextService", [
+      "getEffectiveRole",
+      "getEffectiveSub",
+    ]);
+    authContextServiceSpy.getEffectiveRole.and.returnValue("leerling");
+    authContextServiceSpy.getEffectiveSub.and.returnValue("test-sub");
+
+    schoolServiceSpy = jasmine.createSpyObj("SchoolService", [
+      "getSelectedSchoolId",
+    ]);
+    schoolServiceSpy.getSelectedSchoolId.and.returnValue(1);
+
+    userServiceSpy = jasmine.createSpyObj("UserService", ["getUserProfile"]);
+    userServiceSpy.getUserProfile.and.returnValue(Promise.resolve({}));
+
+    routerSpy = jasmine.createSpyObj("Router", ["navigate"]);
+    activatedRouteSpy = {
+      snapshot: { fragment: "verlanglijst" },
+      fragment: of("verlanglijst"), // Mock fragment for initial tab selection
+    };
+
+    await TestBed.configureTestingModule({
+      declarations: [MijnLijstenComponent],
+      imports: [FormsModule, HttpClientTestingModule],
+      providers: [
+        { provide: BookService, useValue: bookServiceSpy },
+        { provide: LoanService, useValue: loanServiceSpy },
+        { provide: AuthContextService, useValue: authContextServiceSpy },
+        { provide: SchoolService, useValue: schoolServiceSpy },
+        { provide: UserService, useValue: userServiceSpy },
+        { provide: Router, useValue: routerSpy },
+        { provide: ActivatedRoute, useValue: activatedRouteSpy },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(MijnLijstenComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable(); // Wait for async operations in ngOnInit
+  });
+
+  it("should create", () => {
+    expect(component).toBeTruthy();
+  });
+
+  it("should select tab based on fragment on init", async () => {
+    component.ngOnInit();
+    await fixture.whenStable(); // Wait for async operations in ngOnInit
+    expect(component.activeTab).toBe("verlanglijst"); // Expect 'verlanglijst' as per mock
+  });
+
+  it("should load wishlist books on init", () => {
+    expect(bookServiceSpy.getUserWishlist).toHaveBeenCalled();
+  });
+
+  it("should load my reading lists on init for non-student roles", () => {
+    authContextServiceSpy.getEffectiveRole.and.returnValue("leerkracht");
+    component.ngOnInit(); // Re-initialize component
+    expect(bookServiceSpy.getMyLeeslisten).toHaveBeenCalled();
+  });
+});
