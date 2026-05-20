@@ -566,4 +566,6 @@ export class LeeslijstCreateComponent implements OnInit {
 
   setPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
-    
+    this.currentPage = page;
+  }
+}
