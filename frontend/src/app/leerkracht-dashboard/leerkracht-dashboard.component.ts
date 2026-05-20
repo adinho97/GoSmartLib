@@ -260,10 +260,6 @@ export class LeerkrachtDashboardComponent implements OnInit {
     return this.loanHistory[0] ?? null;
   }
 
-  get kijkerBook(): RecommendedBook | null {
-    return this.highlightedBooks[0] ?? null;
-  }
-
   constructor(
     private router: Router,
     private http: HttpClient,
