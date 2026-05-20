@@ -74,6 +74,11 @@
   color: var(--info);
 }
 
+.mt-icon-warn {
+  background: rgba(180, 110, 20, 0.08);
+  color: var(--warn);
+}
+
 .mt-card-body {
   flex: 1;
   min-width: 0;
