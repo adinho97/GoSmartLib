@@ -5,36 +5,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* Top bar with back button */
-.page-top {
-  margin-bottom: 1rem;
-}
-
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border-radius: 999px;
-  padding: 0.5rem 1rem;
-  font-weight: 600;
-  font-size: 0.88rem;
-  text-decoration: none;
-  cursor: pointer;
-  border: 1px solid var(--brand);
-  color: var(--brand);
-  background: var(--surface);
-  transition:
-    background-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.12s ease;
-}
-
-.back-btn:hover {
-  background: rgba(135, 31, 66, 0.06);
-  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.15);
-  transform: translateY(-1px);
-}
-
 /* Header */
 .page-head {
   display: flex;
