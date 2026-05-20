@@ -143,7 +143,8 @@ export class SchoolService {
 
   async getSchools(): Promise<any[]> {
     try {
-      const res = await fetch(`/api/admin/schools`, {
+      // Use the public school list endpoint for regular teachers and librarians.
+      const res = await fetch(`/api/scholen`, {
         headers: this.buildAuthHeaders(),
       });
       if (!res.ok) return [];
@@ -193,7 +194,7 @@ export class SchoolService {
             "X-User-Role": this.authContext.getEffectiveRole(),
             "X-User-Sub": this.authContext.getEffectiveSub(),
           },
-        }
+        },
       );
       return res.data?.defaultLoanDays ?? 14;
     } catch {
@@ -212,7 +213,7 @@ export class SchoolService {
           "X-User-Role": this.authContext.getEffectiveRole(),
           "X-User-Sub": this.authContext.getEffectiveSub(),
         },
-      }
+      },
     );
   }
 }
