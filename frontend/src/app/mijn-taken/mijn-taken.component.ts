@@ -53,20 +53,17 @@ export class MijnTakenComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAvailableClasses();
-    // Load students from backend (includes klas)
-    void this.loadStudents();
   }
 
-  async openExtensionModal(): Promise<void> {
+  openExtensionModal(): void {
     this.extensionModalOpen = true;
     this.selectedStudentForExtension = null;
     this.studentSearchQuery = "";
     this.studentClassFilter = "";
     this.studentsError = "";
+    this.filteredStudents = [];
 
     this.loadAvailableClasses();
-    await this.loadStudents();
-    this.onSearchStudents();
   }
 
   private loadAvailableClasses(): void {
@@ -86,7 +83,6 @@ export class MijnTakenComponent implements OnInit {
     this.studentsError = "";
 
     try {
-      // Use BibbeheerderService to get users for the caller's school
       const users = await firstValueFrom(
         this.bibbeheerderService.getAllUsers(),
       );
@@ -96,8 +92,6 @@ export class MijnTakenComponent implements OnInit {
         displayName: u.displayName || u.sub,
         klas: u.klasNaam || "",
       }));
-
-      this.onSearchStudents();
     } catch (err) {
       console.error("Failed to load students for verlengen:", err);
       this.studentsError =
@@ -105,6 +99,10 @@ export class MijnTakenComponent implements OnInit {
     } finally {
       this.studentsLoading = false;
     }
+  }
+
+  get hasSearchInput(): boolean {
+    return this.studentSearchQuery.trim() !== "" || this.studentClassFilter !== "";
   }
 
   get isLibrarian(): boolean {
@@ -116,7 +114,16 @@ export class MijnTakenComponent implements OnInit {
     this.extensionModalOpen = false;
   }
 
-  onSearchStudents(): void {
+  async onSearchStudents(): Promise<void> {
+    if (!this.hasSearchInput) {
+      this.filteredStudents = [];
+      return;
+    }
+
+    if (this.allStudents.length === 0 && !this.studentsLoading) {
+      await this.loadStudents();
+    }
+
     this.filteredStudents = this.allStudents.filter((student) => {
       const matchesSearchQuery = student.displayName
         .toLowerCase()

@@ -19,9 +19,9 @@
   </div>
 
   <header class="page-head">
-    <h1 class="page-title">School Statistieken</h1>
+    <h1 class="page-title">School statistieken</h1>
     <p class="page-subtitle">
-      Trends, populairste boeken en de meest actieve lezers in uw schoolbibliotheek.
+      Trends, populairste boeken en de meest actieve lezers in uw schoolbibliotheek
     </p>
   </header>
 
@@ -51,7 +51,7 @@
         </svg>
       </div>
       <div class="hero-body">
-        <p class="hero-label">Totaal Uitleningen</p>
+        <p class="hero-label">Totaal uitleningen</p>
         <p class="hero-value">{{ stats.totalLoans }}</p>
         <p class="hero-subtext">{{ stats.school }}</p>
       </div>
@@ -83,7 +83,7 @@
             <span class="stat-pill">{{ stats.mostReadBook.count }}x uitgeleend</span>
           </p>
         } @else {
-          <p class="no-data">Geen gegevens beschikbaar voor deze periode.</p>
+          <p class="no-data">Geen gegevens beschikbaar voor deze periode</p>
         }
       </article>
 
@@ -104,14 +104,14 @@
             <circle cx="12" cy="7" r="4" />
           </svg>
         </div>
-        <p class="stat-label">Top Lezer</p>
+        <p class="stat-label">Top lezer</p>
         @if (stats.topReader) {
           <p class="stat-value">{{ stats.topReader.displayName }}</p>
           <p class="stat-subtext">
             <span class="stat-pill">{{ stats.topReader.count }} boeken gelezen</span>
           </p>
         } @else {
-          <p class="no-data">Geen gegevens beschikbaar voor deze periode.</p>
+          <p class="no-data">Geen gegevens beschikbaar voor deze periode</p>
         }
       </article>
 
@@ -140,7 +140,7 @@
             <span class="stat-pill">{{ stats.topClass.count }} uitleningen</span>
           </p>
         } @else {
-          <p class="no-data">Geen gegevens beschikbaar voor deze periode.</p>
+          <p class="no-data">Geen gegevens beschikbaar voor deze periode</p>
         }
       </article>
     </div>
