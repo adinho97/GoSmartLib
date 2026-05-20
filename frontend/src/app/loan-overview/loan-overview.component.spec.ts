@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
 import axios from "axios";
+import { DatePipe } from "@angular/common";
 
 import { LoanOverviewComponent } from "./loan-overview.component";
 import { Loan, LoanService } from "../services/loan.service";
@@ -9,39 +10,48 @@ import { Loan, LoanService } from "../services/loan.service";
 describe("LoanOverviewComponent", () => {
   let component: LoanOverviewComponent;
   let fixture: ComponentFixture<LoanOverviewComponent>;
+  let mockLoanService: jasmine.SpyObj<LoanService>;
 
-  const loans: Loan[] = [
-    {
-      id: 1,
-      copyId: 11,
-      bookId: 101,
-      bookTitel: "Dune",
-      bookCover: "",
-      userSub: "student-1",
-      loanedAt: "2026-04-10",
-      dueDate: "2026-04-24",
-      returnedAt: null,
-    },
-    {
-      id: 2,
-      copyId: 12,
-      bookId: 102,
-      bookTitel: "Clean Code",
-      bookCover: "",
-      userSub: "student-2",
-      loanedAt: "2026-04-20",
-      dueDate: "2026-05-05",
-      returnedAt: null,
-    },
-  ];
-
-  const mockLoanService = {
-    getAllActiveLoans: jasmine
-      .createSpy("getAllActiveLoans")
-      .and.returnValue(Promise.resolve(loans)),
-  } as Partial<LoanService> as LoanService;
+  const getRelativeDateString = (days: number): string => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
 
   beforeEach(async () => {
+    mockLoanService = jasmine.createSpyObj("LoanService", [
+      "getAllActiveLoans",
+    ]);
+    mockLoanService.getAllActiveLoans.and.callFake(() =>
+      Promise.resolve([
+        {
+          id: 1,
+          copyId: 11,
+          bookId: 101,
+          bookTitel: "Dune",
+          bookCover: "",
+          userSub: "student-1",
+          loanedAt: getRelativeDateString(-30),
+          dueDate: getRelativeDateString(-5), // Overdue
+          returnedAt: null,
+        },
+        {
+          id: 2,
+          copyId: 12,
+          bookId: 102,
+          bookTitel: "Clean Code",
+          bookCover: "",
+          userSub: "student-2",
+          loanedAt: getRelativeDateString(-10),
+          dueDate: getRelativeDateString(5), // On time
+          returnedAt: null,
+        },
+      ] as Loan[]),
+    );
+
     spyOn(axios, "get").and.callFake((url: string) => {
       if (url.includes("student-1")) {
         return Promise.resolve({
@@ -61,11 +71,15 @@ describe("LoanOverviewComponent", () => {
     await TestBed.configureTestingModule({
       imports: [CommonModule, FormsModule],
       declarations: [LoanOverviewComponent],
-      providers: [{ provide: LoanService, useValue: mockLoanService }],
+      providers: [
+        { provide: LoanService, useValue: mockLoanService },
+        DatePipe,
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoanOverviewComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it("should create", () => {

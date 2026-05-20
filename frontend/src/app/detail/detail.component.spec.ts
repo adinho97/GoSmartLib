@@ -13,6 +13,10 @@ import axios from "axios";
 import { DetailComponent } from "./detail.component";
 import { BookService } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
+import { BadgeNotificationService } from "../services/badge-notification.service";
+import { ExperienceService } from "../services/experience.service";
+import { SchoolService } from "../services/school.service";
+import { UiToastService } from "../services/ui-toast.service";
 
 describe("DetailComponent", () => {
   let component: DetailComponent;
@@ -37,11 +41,43 @@ describe("DetailComponent", () => {
       "deleteBookReview",
       "isHighlighted",
       "isClassReadingListItem",
+      "getMyReviewCount",
+      "getBookLestipDetails",
+      "isWishlisted",
+      "toggleHighlight",
+      "toggleClassReadingListItem",
+      "addToWishlist",
+      "removeFromWishlist",
     ]);
     loanServiceSpy = jasmine.createSpyObj<LoanService>("LoanService", [
+      "getMyActiveLoans", // Added missing mock
+      "getMyLoanHistory", // Added missing mock
       "getCopySummary",
     ]);
 
+    const badgeNotificationServiceSpy = jasmine.createSpyObj(
+      "BadgeNotificationService",
+      ["showBadgeNotification"],
+    );
+    const experienceServiceSpy = jasmine.createSpyObj("ExperienceService", [
+      "addExperienceForReview",
+      "removeExperienceForReview",
+    ]);
+    const schoolServiceSpy = jasmine.createSpyObj("SchoolService", [
+      "getSelectedSchoolId",
+    ]);
+    const uiToastServiceSpy = jasmine.createSpyObj("UiToastService", [
+      "success",
+      "error",
+    ]);
+
+    bookServiceSpy.isWishlisted.and.resolveTo(false);
+    bookServiceSpy.getBookLestipDetails.and.resolveTo({
+      lestip: "",
+      auteurNaam: "",
+      magVerwijderen: false,
+    });
+    bookServiceSpy.getMyReviewCount.and.resolveTo(0);
     bookServiceSpy.getBookById.and.returnValue(
       of({
         id: 1,
@@ -49,7 +85,7 @@ describe("DetailComponent", () => {
         auteur: "Auteur",
         isbn: "9780140328721",
         goNumber: "GO-12345678",
-        cover: "",
+        cover: "test-cover.jpg",
         beschrijving: "",
         genre: "Algemeen",
         uitgaveDatum: "2020-01-01",
@@ -59,14 +95,17 @@ describe("DetailComponent", () => {
       }),
     );
     bookServiceSpy.getBookReviews.and.resolveTo([]);
-    bookServiceSpy.addBookReview.and.resolveTo({
-      id: 77,
-      rating: 5,
-      comment: "Sterk boek",
-      reviewerUserId: 1,
-      anonymous: true,
-      createdAt: "2026-03-18T10:00:00",
-    });
+    bookServiceSpy.addBookReview.and.callFake((bookId, payload) =>
+      Promise.resolve({
+        id: 77,
+        rating: payload.rating,
+        comment: payload.comment,
+        reviewerUserId: 1,
+        anonymous: payload.anonymous,
+        createdAt: "2026-03-18T10:00:00",
+      }),
+    );
+    // The updateBookReview mock is fine as it is, as it's for a specific test case.
     bookServiceSpy.updateBookReview.and.resolveTo({
       id: 5,
       rating: 4,
@@ -77,8 +116,12 @@ describe("DetailComponent", () => {
     });
     bookServiceSpy.deleteBookReview.and.resolveTo();
     bookServiceSpy.isHighlighted.and.returnValue(Promise.resolve(false));
-    bookServiceSpy.isClassReadingListItem.and.returnValue(Promise.resolve(false));
+    bookServiceSpy.isClassReadingListItem.and.returnValue(
+      Promise.resolve(false),
+    );
     loanServiceSpy.getCopySummary.and.resolveTo({ total: 2, available: 1 });
+    experienceServiceSpy.addExperienceForReview.and.stub(); // Stub to prevent errors during review submission
+    experienceServiceSpy.removeExperienceForReview.and.stub(); // Stub to prevent errors during review deletion
 
     routerEvents$ = new Subject<NavigationEnd>();
 
@@ -104,26 +147,30 @@ describe("DetailComponent", () => {
         {
           provide: DomSanitizer,
           useValue: {
-            bypassSecurityTrustResourceUrl: jasmine
-              .createSpy("bypassSecurityTrustResourceUrl")
-              .and.returnValue("https://safe-url"),
+            bypassSecurityTrustResourceUrl: (url: string) => url, // Return the URL directly for testing
           },
         },
         { provide: BookService, useValue: bookServiceSpy },
         { provide: LoanService, useValue: loanServiceSpy },
+        {
+          provide: BadgeNotificationService,
+          useValue: badgeNotificationServiceSpy,
+        },
+        { provide: ExperienceService, useValue: experienceServiceSpy },
+        { provide: SchoolService, useValue: schoolServiceSpy },
+        { provide: UiToastService, useValue: uiToastServiceSpy },
       ],
     }).compileComponents();
 
     createComponent();
+    fixture.detectChanges(); // Ensure ngOnInit is called
   });
 
   afterEach(() => {
     localStorage.clear();
     routerEvents$.complete();
   });
-
   it("should create", () => {
-    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
@@ -139,7 +186,8 @@ describe("DetailComponent", () => {
       },
     ]);
 
-    fixture.detectChanges();
+    // Re-trigger load to use new mock data
+    await (component as any).loadReviews(1);
     await fixture.whenStable();
 
     expect(bookServiceSpy.getBookById).toHaveBeenCalledWith(1);
@@ -165,6 +213,7 @@ describe("DetailComponent", () => {
     component.newReviewComment = "  Nieuwe review  ";
 
     await component.submitReview();
+    await fixture.whenStable();
 
     expect(bookServiceSpy.addBookReview).toHaveBeenCalledWith(1, {
       rating: 5,
@@ -343,8 +392,11 @@ describe("DetailComponent", () => {
     const sanitizer = TestBed.inject(DomSanitizer);
     spyOn(sanitizer, "bypassSecurityTrustResourceUrl").and.callThrough();
 
-    const getSpy = spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
-      if (url.includes("api/books")) {
+    const getSpy = spyOn(axios, "get").and.callFake((async (
+      url: string,
+      config?: any,
+    ) => {
+      if (url.includes("jscmd=viewapi")) {
         return {
           data: {
             "ISBN:9780140328721": {
@@ -372,6 +424,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(getSpy).toHaveBeenCalled();
     expect(component.previewModalOpen).toBeTrue();
@@ -383,7 +436,7 @@ describe("DetailComponent", () => {
 
   it("openPreview resolves openlibrary edition to archive embed", async () => {
     spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
-      if (url.includes("api/books")) {
+      if (url.includes("jscmd=viewapi")) {
         return {
           data: {
             "ISBN:9780140328721": {
@@ -420,6 +473,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(component.previewModalOpen).toBeTrue();
     expect(component.previewUrl).toBe(
@@ -428,8 +482,11 @@ describe("DetailComponent", () => {
   });
 
   it("openPreview falls back to search ia embed when isbn lookup has no preview", async () => {
-    const getSpy = spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
-      if (url.includes("api/books")) {
+    const getSpy = spyOn(axios, "get").and.callFake((async (
+      url: string,
+      config?: any,
+    ) => {
+      if (url.includes("jscmd=viewapi") && !url.includes("OLID")) {
         return {
           data: {},
         };
@@ -461,6 +518,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(getSpy).toHaveBeenCalled();
     expect(component.previewModalOpen).toBeTrue();
@@ -471,7 +529,7 @@ describe("DetailComponent", () => {
 
   it("openPreview rejects isbn-mismatched search hits and shows alert", async () => {
     spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
-      if (url.includes("api/books")) {
+      if (url.includes("jscmd=viewapi")) {
         return {
           data: {},
         };
@@ -503,6 +561,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(component.previewModalOpen).toBeFalse();
     expect(component.previewAlertOpen).toBeTrue();
@@ -543,6 +602,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(component.previewModalOpen).toBeFalse();
     expect(component.previewAlertOpen).toBeTrue();
@@ -551,7 +611,10 @@ describe("DetailComponent", () => {
 
   it("openPreview skips wrong search doc and uses later matching title/author doc", async () => {
     spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
-      if (url.includes("search.json")) {
+      if (
+        url.includes("search.json") ||
+        url.includes("proxy/openlibrary/search")
+      ) {
         return {
           data: {
             docs: [
@@ -588,6 +651,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(component.previewModalOpen).toBeTrue();
     expect(component.previewUrl).toBe(
@@ -603,8 +667,8 @@ describe("DetailComponent", () => {
             docs: [
               {
                 ia: ["title-only-id"],
-                title: "Boek",
-                author_name: ["Andere Auteur"],
+                title: "Test Boek",
+                author_name: ["Totaal Andere Schrijver"],
               },
             ],
           },
@@ -616,8 +680,8 @@ describe("DetailComponent", () => {
 
     component.book = {
       id: 1,
-      titel: "Boek",
-      auteur: "Auteur",
+      titel: "Test Boek",
+      auteur: "Originele Auteur",
       isbn: "",
       cover: "",
       beschrijving: "",
@@ -629,6 +693,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(component.previewModalOpen).toBeFalse();
     expect(component.previewAlertOpen).toBeTrue();
@@ -643,8 +708,8 @@ describe("DetailComponent", () => {
             docs: [
               {
                 ia: ["author-only-id"],
-                title: "Ander Boek",
-                author_name: ["Auteur"],
+                title: "Totaal Andere Titel",
+                author_name: ["Schrijver"],
               },
             ],
           },
@@ -656,8 +721,8 @@ describe("DetailComponent", () => {
 
     component.book = {
       id: 1,
-      titel: "Boek",
-      auteur: "Auteur",
+      titel: "Originele Titel",
+      auteur: "Schrijver",
       isbn: "",
       cover: "",
       beschrijving: "",
@@ -669,6 +734,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(component.previewModalOpen).toBeFalse();
     expect(component.previewAlertOpen).toBeTrue();
@@ -677,7 +743,7 @@ describe("DetailComponent", () => {
 
   it("openPreview shows preview alert when no readable preview exists", async () => {
     spyOn(axios, "get").and.callFake((async (url: string, config?: any) => {
-      if (url.includes("api/books")) {
+      if (url.includes("jscmd=viewapi")) {
         return {
           data: {
             "ISBN:9780140328721": {
@@ -714,6 +780,7 @@ describe("DetailComponent", () => {
     };
 
     await component.openPreview();
+    await fixture.whenStable();
 
     expect(component.previewModalOpen).toBeFalse();
     expect(component.previewAlertOpen).toBeTrue();
