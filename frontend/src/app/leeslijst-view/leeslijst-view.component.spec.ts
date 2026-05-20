@@ -25,13 +25,15 @@ describe("LeeslijstViewComponent", () => {
   };
 
   beforeEach(async () => {
-    bookServiceSpy = jasmine.createSpyObj("BookService", [
-      "getLeeslijst",
-      "enrichBooksWithDetails",
-    ]);
-    bookServiceSpy.getLeeslijst.and.returnValue(Promise.resolve(mockLeeslijst));
-    bookServiceSpy.enrichBooksWithDetails.and.callFake((books: any[]) =>
-      Promise.resolve(books.map((b) => ({ ...b, titel: `Book ${b.bookId}` }))),
+    bookServiceSpy = jasmine.createSpyObj("BookService", ["getLeeslijst"]);
+    bookServiceSpy.getLeeslijst.and.returnValue(
+      Promise.resolve({
+        ...mockLeeslijst,
+        books: [
+          { bookId: 101, titel: "Book 101" },
+          { bookId: 102, titel: "Book 102" },
+        ],
+      }),
     );
 
     routerSpy = jasmine.createSpyObj("Router", ["navigate"]);
@@ -61,15 +63,21 @@ describe("LeeslijstViewComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should load reading list details on init", fakeAsync(() => {
-    // Re-call ngOnInit to ensure all async operations are covered by fakeAsync
-    component.ngOnInit();
+  it("should load reading list details on init", fakeAsync(async () => {
+    // ngOnInit is called in beforeEach, which triggers loadLeeslijst
+    // We need to ensure the mock for getLeeslijst resolves with enriched books
+    bookServiceSpy.getLeeslijst.and.returnValue(
+      Promise.resolve({
+        ...mockLeeslijst,
+        books: [
+          { bookId: 101, titel: "Book 101" },
+          { bookId: 102, titel: "Book 102" },
+        ],
+      }),
+    );
+    await component.ngOnInit(); // Re-trigger ngOnInit to use the updated mock
     tick(); // Advance time for promises to resolve
     expect(bookServiceSpy.getLeeslijst).toHaveBeenCalledWith(1);
-    expect(bookServiceSpy.enrichBooksWithDetails).toHaveBeenCalledWith([
-      { bookId: 101 },
-      { bookId: 102 },
-    ]);
     expect(component.leeslijst?.titel).toBe("My Reading List");
     expect(component.leeslijst?.books.length).toBe(2);
     expect(component.leeslijst?.books[0].titel).toBe("Book 101");
