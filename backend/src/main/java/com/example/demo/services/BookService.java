@@ -337,7 +337,8 @@ public class BookService {
 
         // Handle klasIds or isGlobal
         if (isGlobal) {
-            // If global, assign to all classes in the school
+            leeslijst.setIsGlobal(true);
+            leeslijst.setIsSchool(true);
             if (schoolId == null) {
                 throw new ApiException("School ID is required for global reading list.", HttpStatus.BAD_REQUEST, "SCHOOL_ID_REQUIRED");
             }

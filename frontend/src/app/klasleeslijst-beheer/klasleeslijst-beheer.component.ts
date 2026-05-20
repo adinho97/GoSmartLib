@@ -15,7 +15,7 @@ export class KlasleeslijstBeheerComponent implements OnInit {
 
   titel: string = "";
   beschrijving: string = "";
-  assignToEntireSchool: boolean = false;
+  toewijzingType: "KLAS" | "SCHOOL" | "GLOBAL" | "USER" = "KLAS";
   selectedKlasId: number | null = null;
 
   isLoading: boolean = false;
@@ -52,14 +52,17 @@ export class KlasleeslijstBeheerComponent implements OnInit {
       return;
     }
 
-    if (!this.assignToEntireSchool && !this.selectedKlasId) {
-      this.error = "Selecteer een klas of kies voor de gehele school.";
+    if (this.toewijzingType === "KLAS" && !this.selectedKlasId) {
+      this.error = "Selecteer een klas.";
       return;
     }
 
-    const targetKlasIds = this.assignToEntireSchool
-      ? null
-      : [this.selectedKlasId!];
+    // Map 'SCHOOL' or 'GLOBAL' to isGlobal for the current bookService implementation
+    const isGlobal =
+      this.toewijzingType === "GLOBAL" || this.toewijzingType === "SCHOOL";
+    const targetKlasIds =
+      this.toewijzingType === "KLAS" ? [this.selectedKlasId!] : null;
+
     const schoolId = this.schoolService.getSelectedSchoolId();
 
     try {
@@ -68,7 +71,7 @@ export class KlasleeslijstBeheerComponent implements OnInit {
         this.beschrijving,
         [], // Currently no book selection in this view
         targetKlasIds,
-        this.assignToEntireSchool,
+        isGlobal,
         [], // No specific user sharing
         schoolId,
       );
@@ -94,7 +97,7 @@ export class KlasleeslijstBeheerComponent implements OnInit {
   private resetForm() {
     this.titel = "";
     this.beschrijving = "";
-    this.assignToEntireSchool = false;
+    this.toewijzingType = "KLAS";
     this.selectedKlasId = null;
     this.error = "";
   }

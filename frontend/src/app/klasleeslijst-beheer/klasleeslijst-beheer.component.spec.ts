@@ -79,7 +79,7 @@ describe("KlasleeslijstBeheerComponent", () => {
 
   it("should save a new reading list for the entire school", async () => {
     component.titel = "Schoolbrede Lijst";
-    component.assignToEntireSchool = true;
+    component.toewijzingType = "SCHOOL";
     component.selectedKlasId = null;
 
     await component.saveLeeslijst();
@@ -95,7 +95,7 @@ describe("KlasleeslijstBeheerComponent", () => {
     );
     expect(bookServiceSpy.getLeeslisten).toHaveBeenCalled();
     expect(component.titel).toBe("");
-    expect(component.assignToEntireSchool).toBeFalse();
+    expect(component.toewijzingType).toBe("KLAS");
     expect(component.selectedKlasId).toBeNull();
   });
 
@@ -109,12 +109,10 @@ describe("KlasleeslijstBeheerComponent", () => {
 
   it("should show error if no class is selected and not assigning to entire school", async () => {
     component.titel = "Test Lijst";
-    component.assignToEntireSchool = false;
+    component.toewijzingType = "KLAS";
     component.selectedKlasId = null;
     await component.saveLeeslijst();
-    expect(component.error).toBe(
-      "Selecteer een klas of kies voor de gehele school.",
-    );
+    expect(component.error).toBe("Selecteer een klas.");
     expect(bookServiceSpy.createLeeslijst).not.toHaveBeenCalled();
   });
 });
