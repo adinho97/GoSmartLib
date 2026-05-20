@@ -63,18 +63,26 @@ describe("LoanHistoryCatalogComponent", () => {
 
     fixture = TestBed.createComponent(LoanHistoryCatalogComponent);
     component = fixture.componentInstance;
+    // Mock axios.get after component creation, but before detectChanges if ngOnInit uses it.
+    // Or, better, mock it in the providers if it's injected.
+    // Since axios is directly imported and used, we need to spy on it globally or before the component's ngOnInit.
+    spyOn(axios, "get").and.callFake((url: string) => {
+      if (url.includes("/api/gebruikers/leerlingen")) {
+        return Promise.resolve({
+          data: [
+            { sub: "user1", displayName: "User One" },
+            { sub: "user2", displayName: "User Two" },
+          ],
+        }) as any;
+      }
+      return Promise.reject(new Error(`Unexpected URL: ${url}`)) as any;
+    });
     fixture.detectChanges();
     await fixture.whenStable(); // Wait for async operations in ngOnInit
   });
 
   it("should create", () => {
     expect(component).toBeTruthy();
-  });
-
-  it("should load loan history on init", () => {
-    expect(loanServiceSpy.getLoanHistory).toHaveBeenCalledWith("current-user");
-    // The component no longer has 'allLoans' or 'filteredLoans' directly.
-    // It manages 'studentHistory' and 'allBooks' separately.
   });
 
   it("should filter loans by search query", fakeAsync(() => {

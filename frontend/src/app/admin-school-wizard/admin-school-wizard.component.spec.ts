@@ -60,7 +60,8 @@ describe("AdminSchoolWizardComponent", () => {
     expect(adminSchoolServiceSpy.createSchool).toHaveBeenCalledWith(
       jasmine.objectContaining({ subdomain: "test", naam: "Test School" }),
     );
-    expect(routerSpy.navigate).toHaveBeenCalledWith(["/admin/schools", 1]);
+    expect(component.step).toBe(3);
+    expect(component.createdSchool?.id).toBe(1);
     expect(component.errorMessage).toBe("");
   }));
 
@@ -76,6 +77,8 @@ describe("AdminSchoolWizardComponent", () => {
 
     expect(adminSchoolServiceSpy.createSchool).toHaveBeenCalled();
     expect(routerSpy.navigate).not.toHaveBeenCalled();
-    expect(component.errorMessage).toBe("Fout bij het aanmaken van de school.");
+    expect(component.errorMessage).toBe(
+      "School aanmaken is mislukt. Probeer opnieuw.",
+    );
   }));
 });

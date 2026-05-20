@@ -24,6 +24,7 @@ describe("SuperAdminDashboardComponent", () => {
   beforeEach(async () => {
     adminSchoolServiceSpy = jasmine.createSpyObj("AdminSchoolService", [
       "getSchools",
+      "getSchoolDetail",
     ]);
     adminSchoolServiceSpy.getSchools.and.returnValue(
       of([
@@ -45,6 +46,7 @@ describe("SuperAdminDashboardComponent", () => {
         },
       ]),
     );
+    adminSchoolServiceSpy.getSchoolDetail.and.returnValue(of({} as any));
     routerSpy = jasmine.createSpyObj("Router", ["navigate"]);
 
     await TestBed.configureTestingModule({
@@ -59,7 +61,6 @@ describe("SuperAdminDashboardComponent", () => {
     fixture = TestBed.createComponent(SuperAdminDashboardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    await fixture.whenStable(); // Wait for async operations in ngOnInit
   });
 
   it("should create", () => {
@@ -74,7 +75,7 @@ describe("SuperAdminDashboardComponent", () => {
 
   it("should navigate to school detail on viewSchool", () => {
     const schoolId = 1;
-    (component as any).viewSchool(schoolId);
+    component.goToSchoolDetail(schoolId);
     expect(routerSpy.navigate).toHaveBeenCalledWith([
       "/admin/schools",
       schoolId,

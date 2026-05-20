@@ -107,7 +107,7 @@ describe("MijnLijstenComponent", () => {
   });
 
   it("should select tab based on fragment on init", async () => {
-    component.ngOnInit();
+    // ngOnInit is already called in beforeEach, which handles the fragment.
     await fixture.whenStable(); // Wait for async operations in ngOnInit
     expect(component.activeTab).toBe("verlanglijst"); // Expect 'verlanglijst' as per mock
   });

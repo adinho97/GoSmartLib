@@ -7,72 +7,31 @@ import {
 import { FormsModule } from "@angular/forms";
 import { BoekTerugbrengenComponent } from "../boek-terugbrengen/boek-terugbrengen.component";
 import { LoanService } from "../services/loan.service";
-import { BookService } from "../services/book.service";
-import { SchoolService } from "../services/school.service";
-import { BarcodeService } from "../services/barcode.service";
-import { of, Subject } from "rxjs";
+import { of } from "rxjs";
 import { HttpClientTestingModule } from "@angular/common/http/testing";
+import axios from "axios";
 
 describe("BoekTerugbrengenComponent", () => {
   let component: BoekTerugbrengenComponent;
   let fixture: ComponentFixture<BoekTerugbrengenComponent>;
   let loanServiceSpy: jasmine.SpyObj<LoanService>;
-  let bookServiceSpy: jasmine.SpyObj<BookService>;
-  let schoolServiceSpy: jasmine.SpyObj<SchoolService>;
-  let barcodeServiceSpy: jasmine.SpyObj<BarcodeService>;
-  let barcodeScanSubject: Subject<string>;
 
   beforeEach(async () => {
-    barcodeScanSubject = new Subject<string>();
-
     loanServiceSpy = jasmine.createSpyObj("LoanService", [
-      "getLoansForBook",
+      "getActiveLoans",
       "returnLoan",
+      "getCopiesForBook",
     ]);
-    loanServiceSpy.getLoansForBook.and.returnValue(
-      Promise.resolve([
-        {
-          id: 1,
-          bookTitel: "Scanned Book",
-          userSub: "student1",
-          copyId: 101,
-        } as any,
-      ]),
-    );
-    loanServiceSpy.returnLoan.and.returnValue(Promise.resolve({} as any));
+    loanServiceSpy.getActiveLoans.and.resolveTo([]);
+    loanServiceSpy.returnLoan.and.resolveTo({} as any);
+    loanServiceSpy.getCopiesForBook.and.resolveTo([]);
 
-    bookServiceSpy = jasmine.createSpyObj("BookService", [
-      "getBookByGoNumberFromLibrary",
-    ]);
-    bookServiceSpy.getBookByGoNumberFromLibrary.and.returnValue(
-      Promise.resolve({ id: 1, titel: "Scanned Book" } as any),
-    );
-
-    schoolServiceSpy = jasmine.createSpyObj("SchoolService", [
-      "getSelectedSchoolId",
-    ]);
-    schoolServiceSpy.getSelectedSchoolId.and.returnValue(1);
-
-    barcodeServiceSpy = jasmine.createSpyObj("BarcodeService", [
-      "setupHiddenInput",
-      "activateScanMode",
-      "deactivateScanMode",
-      "getScans",
-      "cleanup",
-    ]);
-    barcodeServiceSpy.getScans.and.returnValue(
-      barcodeScanSubject.asObservable(),
-    );
+    spyOn(axios, "get").and.resolveTo({ data: [] });
 
     await TestBed.configureTestingModule({
       declarations: [BoekTerugbrengenComponent],
       imports: [FormsModule, HttpClientTestingModule],
-      providers: [
-        { provide: LoanService, useValue: loanServiceSpy },
-        { provide: BookService, useValue: bookServiceSpy },
-        { provide: SchoolService, useValue: schoolServiceSpy },
-        { provide: BarcodeService, useValue: barcodeServiceSpy },
-      ],
+      providers: [{ provide: LoanService, useValue: loanServiceSpy }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BoekTerugbrengenComponent);
@@ -85,30 +44,9 @@ describe("BoekTerugbrengenComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should activate scan mode on init", () => {
-    component.ngOnInit();
-    expect(barcodeServiceSpy.setupHiddenInput).toHaveBeenCalled();
-    expect(barcodeServiceSpy.activateScanMode).toHaveBeenCalled();
-  });
-
-  it("should process scan and load loans for book", fakeAsync(() => {
-    barcodeScanSubject.next("GO-123");
-    tick(300); // Simulate buffer timeout in BarcodeService
-    fixture.detectChanges();
-    tick(); // Resolve promises
-
-    expect(bookServiceSpy.getBookByGoNumberFromLibrary).toHaveBeenCalledWith(
-      "GO-123",
-      1,
-    );
-    expect(loanServiceSpy.getLoansForBook).toHaveBeenCalledWith(1);
-    expect((component as any).scannedLoans.length).toBe(1);
-    expect((component as any).scannedLoans[0].bookTitel).toBe("Scanned Book");
-  }));
-
-  it("should open return dialog for a loan", fakeAsync(() => {
+  it("should open return dialog for a loan", fakeAsync(async () => {
     const loan = { id: 1, bookTitel: "Test Book" } as any;
-    component.openReturnDialog(loan);
+    await component.openReturnDialog(loan);
     tick();
     fixture.detectChanges();
     expect(component.returnDialogLoan).toEqual(loan);
@@ -116,8 +54,14 @@ describe("BoekTerugbrengenComponent", () => {
   }));
 
   it("should return loan and clear scanned loans on confirmReturnLoan", fakeAsync(() => {
-    const loan = { id: 1, bookTitel: "Test Book" } as any;
-    (component as any).scannedLoans = [loan];
+    const loan = {
+      id: 1,
+      bookTitel: "Test Book",
+      userSub: "student1",
+      bookId: 101,
+      copyId: 1,
+    } as any;
+    component.activeLoans = [loan];
     component.returnDialogLoan = loan;
     component.returnCondition = "GOOD";
     component.returnLostBook = false;
@@ -129,7 +73,7 @@ describe("BoekTerugbrengenComponent", () => {
       condition: "GOOD",
       lost: false,
     });
-    expect((component as any).scannedLoans.length).toBe(0);
+    expect(component.activeLoans.length).toBe(0);
     expect(component.returnDialogOpen).toBeFalse();
     expect(component.successMessage).toContain("teruggebracht");
   }));

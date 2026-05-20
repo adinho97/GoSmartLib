@@ -5,13 +5,17 @@ import {
   tick,
 } from "@angular/core/testing";
 import { FormsModule } from "@angular/forms";
-import { Router, ActivatedRoute } from "@angular/router"; // Corrected path
+import { Router, ActivatedRoute, convertToParamMap } from "@angular/router";
 import { AdminSchoolDetailComponent } from "./admin-school-detail.component";
 import { AdminSchoolService } from "../services/admin-school.service";
 import { SchoolService } from "../services/school.service"; // Corrected path
 import { of, throwError } from "rxjs";
-import { HttpClientTestingModule } from "@angular/common/http/testing";
+import {
+  HttpClientTestingModule,
+  HttpTestingController,
+} from "@angular/common/http/testing";
 import { SchoolStatus } from "../models/admin-school"; // Import SchoolStatus
+import { BookService } from "../services/book.service";
 
 describe("AdminSchoolDetailComponent", () => {
   let component: AdminSchoolDetailComponent;
@@ -19,6 +23,8 @@ describe("AdminSchoolDetailComponent", () => {
   let adminSchoolServiceSpy: jasmine.SpyObj<AdminSchoolService>;
   let schoolServiceSpy: jasmine.SpyObj<SchoolService>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let bookServiceSpy: jasmine.SpyObj<BookService>;
+  let httpMock: HttpTestingController;
   let activatedRouteSpy: any;
 
   const mockSchoolDetail = {
@@ -63,11 +69,12 @@ describe("AdminSchoolDetailComponent", () => {
       "setSelectedSchoolId",
     ]);
 
+    bookServiceSpy = jasmine.createSpyObj("BookService", ["getLeeslisten"]);
+    bookServiceSpy.getLeeslisten.and.returnValue(Promise.resolve([]));
+
     routerSpy = jasmine.createSpyObj("Router", ["navigate"]);
     activatedRouteSpy = {
-      snapshot: {
-        paramMap: { get: (key: string) => (key === "id" ? "1" : null) },
-      },
+      snapshot: { paramMap: convertToParamMap({ id: "1" }) },
     };
 
     await TestBed.configureTestingModule({
@@ -76,6 +83,7 @@ describe("AdminSchoolDetailComponent", () => {
       providers: [
         { provide: AdminSchoolService, useValue: adminSchoolServiceSpy },
         { provide: SchoolService, useValue: schoolServiceSpy },
+        { provide: BookService, useValue: bookServiceSpy },
         { provide: Router, useValue: routerSpy },
         { provide: ActivatedRoute, useValue: activatedRouteSpy },
       ],
@@ -83,20 +91,32 @@ describe("AdminSchoolDetailComponent", () => {
 
     fixture = TestBed.createComponent(AdminSchoolDetailComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
-    await fixture.whenStable(); // Wait for async operations in ngOnInit
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
   });
 
   it("should create", () => {
+    fixture.detectChanges();
+    httpMock.expectOne("/api/spotlight/1").flush({ maand: null, thema: null });
     expect(component).toBeTruthy();
   });
 
-  it("should load school details on init", () => {
-    // fixture.detectChanges() is already called in beforeEach
+  it("should load school details on init", fakeAsync(() => {
+    fixture.detectChanges(); // Triggers ngOnInit -> loadAll() and loadSpotlights()
+
+    // Handle the HTTP request from loadSpotlights()
+    httpMock.expectOne("/api/spotlight/1").flush({ maand: null, thema: null });
+
+    // Advance microtasks to resolve Promise (getLeeslisten) and forkJoin
+    tick();
+
     expect(adminSchoolServiceSpy.getSchoolDetail).toHaveBeenCalledWith(1);
     expect(component.detail).toEqual(mockSchoolDetail);
     expect(component.isLoadingDetail).toBeFalse();
-  });
+  }));
 
   it("should set selectedSchoolId in SchoolService when school is loaded", () => {
     // The component uses the ID from the route directly and doesn't call setSelectedSchoolId
@@ -104,6 +124,10 @@ describe("AdminSchoolDetailComponent", () => {
   });
 
   it("should update school info on saveInfo", fakeAsync(() => {
+    fixture.detectChanges();
+    httpMock.expectOne("/api/spotlight/1").flush({ maand: null, thema: null });
+    tick();
+
     component.editNaam = "Updated Name";
     component.saveInfo();
     tick();
