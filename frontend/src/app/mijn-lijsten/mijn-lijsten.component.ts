@@ -260,7 +260,7 @@ export class MijnLijstenComponent implements OnInit {
     }
   }
 
-  private readonly PAGE_SIZE = 12;
+  private readonly PAGE_SIZE = 10;
   visibleCount = this.PAGE_SIZE;
 
   selectTab(tab: Tab): void {
