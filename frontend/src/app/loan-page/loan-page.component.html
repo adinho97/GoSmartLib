@@ -53,6 +53,10 @@
 
     @if (leerlingenLoading) {
     <p class="info-msg">Leerlingen laden...</p>
+    } @else if (!hasLeerlingSearchInput) {
+    <p class="info-msg">
+      Typ een naam om een leerling te zoeken.
+    </p>
     } @else if (filteredLeerlingen.length === 0) {
     <p class="info-msg">
       Geen leerlingen gevonden. Leerlingen verschijnen hier nadat ze

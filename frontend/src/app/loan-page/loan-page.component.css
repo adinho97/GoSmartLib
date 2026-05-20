@@ -339,17 +339,21 @@
 
 /* Actieve uitleningen */
 .active-loans-section {
-  background: #fff8fb;
+  background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
   border: 1px solid #f0dde5;
+  border-left: 4px solid #871f42;
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px 20px;
   margin-bottom: 20px;
+  box-shadow: 0 4px 14px rgba(135, 31, 66, 0.06);
 }
 
 .active-loans-section h3 {
-  margin: 0 0 12px;
-  font-size: 0.9rem;
-  color: #871f42;
+  margin: 0 0 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
 }
 
 .loans-list {
@@ -437,21 +441,31 @@
 
 .show-history-btn,
 .hide-history-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 16px;
-  background: transparent;
+  background: #ffffff;
   color: #871f42;
-  border: 1.5px solid #871f42;
-  border-radius: 6px;
+  border: 1px solid #d4c1c9;
+  border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-family: Arial, sans-serif;
   transition: all 0.2s;
 }
 
 .show-history-btn:hover,
 .hide-history-btn:hover {
-  background: #fff0f4;
+  background: #871f42;
+  border-color: #871f42;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.18);
+}
+
+.hide-history-btn {
+  margin-bottom: 12px;
 }
 
 .return-modal-backdrop {
