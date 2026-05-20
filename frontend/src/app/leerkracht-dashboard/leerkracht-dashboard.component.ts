@@ -378,8 +378,9 @@ export class LeerkrachtDashboardComponent implements OnInit {
     }
     const next = [...this.config.tiles];
     const from = next.indexOf(this.dragId);
+    const to = next.indexOf(targetId);
     next.splice(from, 1);
-    next.splice(next.indexOf(targetId), 0, this.dragId);
+    next.splice(to, 0, this.dragId);
     this.updateConfig({ ...this.config, tiles: next });
     this.dragId = null;
     this.dragOverId = null;
