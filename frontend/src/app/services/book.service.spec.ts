@@ -83,6 +83,58 @@ describe("BookService", () => {
         service.getBookByGoNumberFromLibrary("GO-00000000", 1),
       ).toBeRejected();
     });
+
+    it("should create a book with full auth headers", async () => {
+      const axiosPostSpy = spyOn(axios, "post").and.resolveTo({
+        data: { id: 123, titel: "Nieuw boek" },
+      } as any);
+
+      const newBook = {
+        titel: "Nieuw boek",
+        auteur: "Auteur",
+        cover: "cover.jpg",
+        beschrijving: "Beschrijving",
+        genre: "Fictie",
+        uitgaveDatum: "2026-05-20",
+        paginas: 120,
+        taal: "NL",
+        uitgeverij: "Uitgever",
+      } as any;
+
+      const result = await service.addBook(newBook);
+
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        "/api/boeken",
+        jasmine.objectContaining({ titel: "Nieuw boek" }),
+        {
+          headers: {
+            "X-User-Role": "leerkracht",
+            "X-User-Sub": "test-sub-123",
+            "X-User-Name": "Gebruiker",
+            Authorization: "Bearer test-token",
+          },
+        },
+      );
+      expect(result).toEqual({ id: 123, titel: "Nieuw boek" });
+    });
+
+    it("should fetch book reviews with full auth headers", async () => {
+      const axiosGetSpy = spyOn(axios, "get").and.resolveTo({
+        data: [{ id: 1, rating: 5, comment: "Goed" }],
+      } as any);
+
+      const result = await service.getBookReviews(42);
+
+      expect(axiosGetSpy).toHaveBeenCalledWith("/api/boeken/42/reviews", {
+        headers: {
+          "X-User-Role": "leerkracht",
+          "X-User-Sub": "test-sub-123",
+          "X-User-Name": "Gebruiker",
+          Authorization: "Bearer test-token",
+        },
+      });
+      expect(result).toEqual([{ id: 1, rating: 5, comment: "Goed" }]);
+    });
   });
 
   describe("Leeslijst functionality", () => {
