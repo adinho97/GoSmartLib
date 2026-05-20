@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, HostListener, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
@@ -139,6 +139,7 @@ export class BookListComponent implements OnInit {
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   userOwnSchoolId: number | null = null;
+  schoolDropdownOpen = false;
   currentPage = 1;
   searchInput = "";
   searchQuery = "";
@@ -621,6 +622,27 @@ export class BookListComponent implements OnInit {
     }
 
     await this.loadBooks();
+  }
+
+  get selectedSchoolName(): string {
+    const match = this.schools.find((s) => s.id === this.selectedSchoolId);
+    return match?.naam ?? "Selecteer school";
+  }
+
+  toggleSchoolDropdown(event: MouseEvent) {
+    event.stopPropagation();
+    this.schoolDropdownOpen = !this.schoolDropdownOpen;
+  }
+
+  async selectSchoolFromDropdown(schoolId: number) {
+    this.schoolDropdownOpen = false;
+    if (schoolId === this.selectedSchoolId) return;
+    await this.onSchoolChange(String(schoolId));
+  }
+
+  @HostListener("document:click")
+  closeSchoolDropdown() {
+    this.schoolDropdownOpen = false;
   }
 
   private async loadWishlistState() {

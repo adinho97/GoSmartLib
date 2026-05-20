@@ -5,19 +5,48 @@
       <p>Ontdek en beheer alle beschikbare boeken op één plek.</p>
     </div>
     @if (isTeacherOrLibrarian && schools.length > 0) {
-      <div class="school-selector-bar">
-        <label for="schoolFilter">School</label>
-        <select
-          id="schoolFilter"
-          [ngModel]="selectedSchoolId"
-          (ngModelChange)="onSchoolChange($event)"
-        >
-          @for (school of schools; track school) {
-            <option [value]="school.id">
-              {{ school.naam }}
-            </option>
+      <div class="school-selector-bar" (click)="$event.stopPropagation()">
+        <span class="school-selector-label">School</span>
+        <div class="school-dropdown">
+          <button
+            type="button"
+            class="school-dropdown-trigger"
+            (click)="toggleSchoolDropdown($event)"
+            [attr.aria-expanded]="schoolDropdownOpen"
+            aria-haspopup="listbox"
+          >
+            <span class="school-dropdown-value">{{ selectedSchoolName }}</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              [class.rotated]="schoolDropdownOpen"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          @if (schoolDropdownOpen) {
+            <ul class="school-dropdown-menu" role="listbox">
+              @for (school of schools; track school.id) {
+                <li
+                  class="school-dropdown-item"
+                  [class.selected]="school.id === selectedSchoolId"
+                  role="option"
+                  [attr.aria-selected]="school.id === selectedSchoolId"
+                  (click)="selectSchoolFromDropdown(school.id)"
+                >
+                  {{ school.naam }}
+                </li>
+              }
+            </ul>
           }
-        </select>
+        </div>
       </div>
     }
   </header>
