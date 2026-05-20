@@ -26,7 +26,11 @@
 
     <div class="form-group" *ngIf="!assignToEntireSchool">
       <label for="klas">Selecteer Klas/Leerjaar</label>
-      <select id="klas" [(ngModel)]="selectedKlasId">
+      <select
+        id="klas"
+        [(ngModel)]="selectedKlasId"
+        [required]="!assignToEntireSchool"
+      >
         <option [ngValue]="null">-- Selecteer een klas --</option>
         <option *ngFor="let klas of klassen" [value]="klas.id">
           {{ klas.naam }}

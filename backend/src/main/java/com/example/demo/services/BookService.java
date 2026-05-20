@@ -5,6 +5,7 @@ import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.LeeslijstRepository;
 import com.example.demo.repositories.WishlistRepository;
+import com.example.demo.repositories.KlasRepository;
 import com.example.demo.config.HighlightedBookRepository;
 import com.example.demo.config.ClassReadingListItemRepository;
 import com.example.demo.dto.BookDto;
@@ -15,6 +16,7 @@ import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
 import com.example.demo.exception.ApiException;
+import com.example.demo.entities.Klas;
 import com.example.demo.mappers.BookMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,7 @@ public class BookService {
     private final OpenLibraryService openLibraryService;
     private final IsbnService isbnService;
     private final BulkImportService bulkImportService;
+    private final KlasRepository klasRepository;
     private final ImportCoreService importCoreService;
     private final LeeslijstRepository leeslijstRepository;
     private final WishlistRepository wishlistRepository;
@@ -51,9 +54,8 @@ public class BookService {
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService, 
             IsbnService isbnService, BulkImportService bulkImportService, ImportCoreService importCoreService, 
-            LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
-            HighlightedBookRepository highlightedBookRepository,
-            ClassReadingListItemRepository classReadingListItemRepository) {
+            KlasRepository klasRepository, LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
+            HighlightedBookRepository highlightedBookRepository, ClassReadingListItemRepository classReadingListItemRepository) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.loanRepository = loanRepository;
@@ -61,6 +63,7 @@ public class BookService {
         this.openLibraryService = openLibraryService;
         this.isbnService = isbnService;
         this.bulkImportService = bulkImportService;
+        this.klasRepository = klasRepository;
         this.importCoreService = importCoreService;
         this.leeslijstRepository = leeslijstRepository;
         this.wishlistRepository = wishlistRepository;
@@ -75,8 +78,19 @@ public class BookService {
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
             ImportCoreService importCoreService) {
-        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService,
-                isbnService, bulkImportService, importCoreService, null, null, null, null);
+        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
+                bulkImportService, importCoreService, null);
+    }
+
+    /**
+     * Overloaded constructor for backwards compatibility with existing tests.
+     */
+    public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
+            LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
+            IsbnService isbnService, BulkImportService bulkImportService,
+            ImportCoreService importCoreService, KlasRepository klasRepository) {
+        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
+                bulkImportService, importCoreService, klasRepository, null, null, null, null);
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
@@ -312,33 +326,53 @@ public class BookService {
     }
 
     @Transactional
-    public Leeslijst createLeeslijst(String titel, String description, List<Long> bookIds, List<Long> klasIds, boolean isGlobal, List<String> sharedWithUserSubs) {
-        // Placeholder for actual Leeslijst creation logic
-        // In a real scenario, you would create a Leeslijst entity, set its properties
-        // including isGlobal and sharedWithUserSubs, and save it.
-        // For now, we just return a dummy Leeslijst.
-        Leeslijst dummyLeeslijst = new Leeslijst();
-        dummyLeeslijst.setTitel(titel);
-        dummyLeeslijst.setDescription(description);
-        // Assume other fields are set
-        // dummyLeeslijst.setGlobal(isGlobal);
-        // dummyLeeslijst.setSharedWithUserSubs(sharedWithUserSubs);
-        return dummyLeeslijst;
+    public Leeslijst createLeeslijst(String titel, String beschrijving, List<Long> bookIds, List<Long> klasIds, boolean isGlobal, List<String> sharedWithUserSubs, Long schoolId) {
+        Leeslijst leeslijst = new Leeslijst();
+        leeslijst.setTitel(titel);
+        leeslijst.setDescription(beschrijving);
+
+        // Fetch books
+        List<Book> books = bookRepository.findAllById(bookIds);
+        leeslijst.setBooks(new HashSet<>(books));
+
+        // Handle klasIds or isGlobal
+        if (isGlobal) {
+            // If global, assign to all classes in the school
+            if (schoolId == null) {
+                throw new ApiException("School ID is required for global reading list.", HttpStatus.BAD_REQUEST, "SCHOOL_ID_REQUIRED");
+            }
+            List<Klas> allKlassenInSchool = klasRepository.findBySchool_Id(schoolId);
+            leeslijst.setKlassen(new HashSet<>(allKlassenInSchool));
+        } else if (klasIds != null && !klasIds.isEmpty()) {
+            // Assign to specific classes
+            List<Klas> selectedKlassen = klasRepository.findAllById(klasIds);
+            leeslijst.setKlassen(new HashSet<>(selectedKlassen));
+        } else {
+            // If not global and no klasIds, it's an invalid state for this use case
+            throw new ApiException("Either specific classes must be selected or 'assign to entire school' must be true.", HttpStatus.BAD_REQUEST, "KLAS_SELECTION_REQUIRED");
+        }
+
+        // Handle sharedWithUserSubs (if applicable, currently not used in frontend)
+        // leeslijst.setSharedWithUserSubs(sharedWithUserSubs);
+
+        return leeslijstRepository.save(leeslijst);
     }
 
     @Transactional
-    public Leeslijst updateLeeslijst(Long id, String titel, String description, List<Long> bookIds, List<Long> klasIds, boolean isGlobal, List<String> sharedWithUserSubs) {
-        // Placeholder for actual Leeslijst update logic
-        // In a real scenario, you would fetch the existing Leeslijst, update its properties
-        // including isGlobal and sharedWithUserSubs, and save it.
-        // For now, we just return a dummy Leeslijst.
-        Leeslijst dummyLeeslijst = new Leeslijst();
-        dummyLeeslijst.setId(id);
-        dummyLeeslijst.setTitel(titel);
-        dummyLeeslijst.setDescription(description);
-        // Assume other fields are set
-        // dummyLeeslijst.setGlobal(isGlobal);
-        // dummyLeeslijst.setSharedWithUserSubs(sharedWithUserSubs);
-        return dummyLeeslijst;
+    public Leeslijst updateLeeslijst(Long id, String titel, String beschrijving, List<Long> bookIds, List<Long> klasIds, boolean isGlobal, List<String> sharedWithUserSubs, Long schoolId) {
+        Leeslijst existingLeeslijst = leeslijstRepository.findById(id)
+                .orElseThrow(() -> new ApiException("Leeslijst niet gevonden", HttpStatus.NOT_FOUND, "LEESLIJST_NOT_FOUND"));
+
+        existingLeeslijst.setTitel(titel);
+        existingLeeslijst.setDescription(beschrijving);
+        existingLeeslijst.setBooks(new HashSet<>(bookRepository.findAllById(bookIds)));
+
+        if (isGlobal) {
+            existingLeeslijst.setKlassen(new HashSet<>(klasRepository.findBySchool_Id(schoolId)));
+        } else {
+            existingLeeslijst.setKlassen(new HashSet<>(klasRepository.findAllById(klasIds)));
+        }
+
+        return leeslijstRepository.save(existingLeeslijst);
     }
 }

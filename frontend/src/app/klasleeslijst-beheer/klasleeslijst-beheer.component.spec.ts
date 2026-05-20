@@ -19,6 +19,7 @@ describe("KlasleeslijstBeheerComponent", () => {
     bookServiceSpy = jasmine.createSpyObj("BookService", [
       "getLeeslisten",
       "deleteLeeslijst",
+      "createLeeslijst",
     ]);
     bookServiceSpy.getLeeslisten.and.returnValue(
       Promise.resolve([
@@ -27,6 +28,9 @@ describe("KlasleeslijstBeheerComponent", () => {
       ]),
     );
     bookServiceSpy.deleteLeeslijst.and.returnValue(Promise.resolve());
+    bookServiceSpy.createLeeslijst.and.returnValue(
+      Promise.resolve({ id: 3, titel: "Nieuwe Lijst", klasIds: [] }),
+    );
 
     schoolServiceSpy = jasmine.createSpyObj("SchoolService", [
       "getSelectedSchoolId",
@@ -71,5 +75,46 @@ describe("KlasleeslijstBeheerComponent", () => {
   it("should load reading lists and classes on init", () => {
     expect(schoolServiceSpy.getKlassenBySchool).toHaveBeenCalledWith(1);
     expect(component.klassen.length).toBe(2);
+  });
+
+  it("should save a new reading list for the entire school", async () => {
+    component.titel = "Schoolbrede Lijst";
+    component.assignToEntireSchool = true;
+    component.selectedKlasId = null;
+
+    await component.saveLeeslijst();
+
+    expect(bookServiceSpy.createLeeslijst).toHaveBeenCalledWith(
+      "Schoolbrede Lijst",
+      "",
+      [],
+      null,
+      true,
+      [],
+      1,
+    );
+    expect(bookServiceSpy.getLeeslisten).toHaveBeenCalled();
+    expect(component.titel).toBe("");
+    expect(component.assignToEntireSchool).toBeFalse();
+    expect(component.selectedKlasId).toBeNull();
+  });
+
+  it("should show error if title is empty", async () => {
+    component.titel = "";
+    await component.saveLeeslijst();
+
+    expect(component.error).toBe("Titel is verplicht.");
+    expect(bookServiceSpy.createLeeslijst).not.toHaveBeenCalled();
+  });
+
+  it("should show error if no class is selected and not assigning to entire school", async () => {
+    component.titel = "Test Lijst";
+    component.assignToEntireSchool = false;
+    component.selectedKlasId = null;
+    await component.saveLeeslijst();
+    expect(component.error).toBe(
+      "Selecteer een klas of kies voor de gehele school.",
+    );
+    expect(bookServiceSpy.createLeeslijst).not.toHaveBeenCalled();
   });
 });
