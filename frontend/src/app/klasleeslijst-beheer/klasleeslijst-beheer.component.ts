@@ -57,13 +57,22 @@ export class KlasleeslijstBeheerComponent implements OnInit {
       return;
     }
 
-    // If assignToEntireSchool is checked, we map all class IDs automatically
     const targetKlasIds = this.assignToEntireSchool
-      ? this.klassen.map((k) => k.id)
-      : [this.selectedKlasId];
+      ? null
+      : [this.selectedKlasId!];
+    const schoolId = this.schoolService.getSelectedSchoolId();
 
     try {
-      // Logic to send targetKlasIds to the backend via bookService
+      await this.bookService.createLeeslijst(
+        this.titel,
+        this.beschrijving,
+        [], // Currently no book selection in this view
+        targetKlasIds,
+        this.assignToEntireSchool,
+        [], // No specific user sharing
+        schoolId,
+      );
+
       this.resetForm();
       this.leeslisten = await this.bookService.getLeeslisten();
     } catch (err) {
