@@ -207,7 +207,7 @@
   overflow-y: auto;
 }
 
-/* Search bar */
+/* Search bar — shared look with Boek terugbrengen / Boek uitlenen */
 .ext-search-bar {
   display: grid;
   grid-template-columns: 1fr 180px;
@@ -216,43 +216,58 @@
 }
 
 .ext-input-wrap {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0 14px;
+  color: #6b7280;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.ext-input-wrap:focus-within {
+  border-color: var(--brand);
+  color: var(--ink);
 }
 
 .ext-search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: #6b7280;
-  pointer-events: none;
-}
-
-.ext-search-input,
-.ext-class-select {
-  width: 100%;
-  border: 1px solid #f0dde5;
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-size: 0.92rem;
-  font-family: inherit;
-  background: #fff9fb;
-  color: var(--ink);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .ext-search-input {
-  padding-left: 40px;
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+  outline: none;
 }
 
-.ext-search-input:focus,
+.ext-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.ext-class-select {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #ffffff;
+  color: var(--ink);
+  transition: border-color 0.15s;
+}
+
 .ext-class-select:focus {
   outline: none;
   border-color: var(--brand);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(135, 31, 66, 0.12);
 }
 
 /* States: loading / empty / error */
@@ -304,15 +319,15 @@
   margin: 0;
 }
 
-/* Leerling list */
+/* Leerling list — shared look with Boek terugbrengen / Boek uitlenen */
 .ext-leerling-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 420px;
+  gap: 2px;
+  max-height: 340px;
   overflow-y: auto;
 }
 
@@ -320,43 +335,40 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
-  background: #ffffff;
-  border: 1px solid #f0dde5;
-  border-radius: 12px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
-  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition: background 0.12s;
 }
 
 .ext-leerling-item:hover {
-  border-color: var(--brand);
-  background: #fff9fb;
-  box-shadow: 0 6px 16px rgba(135, 31, 66, 0.1);
-  transform: translateY(-1px);
+  background: #f5f7fa;
 }
 
 /* Avatar circle */
 .ext-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #871f42;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 13px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(135, 31, 66, 0.25);
   text-transform: uppercase;
-  letter-spacing: 0;
 }
 
 .ext-avatar-lg {
   width: 52px;
   height: 52px;
   font-size: 1.2rem;
+  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
+  box-shadow: 0 2px 8px rgba(135, 31, 66, 0.25);
 }
 
 .ext-leerling-info {
@@ -368,8 +380,8 @@
 }
 
 .ext-leerling-name {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -383,7 +395,7 @@
 }
 
 .ext-chevron {
-  color: #d4c1c9;
+  color: #9ca3af;
   font-size: 1.1rem;
   flex-shrink: 0;
   transition: color 0.15s ease, transform 0.12s ease;

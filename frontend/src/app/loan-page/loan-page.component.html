@@ -43,8 +43,28 @@
   <div class="step-card">
     <h2>Wie leent uit?</h2>
 
-    <div class="search-bar search-grid">
-      <input type="text" placeholder="Zoek op naam..." [(ngModel)]="leerlingSearch" (input)="onLeerlingSearch()" />
+    <div class="lp-search">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        class="lp-search-input"
+        placeholder="Zoek op naam..."
+        [(ngModel)]="leerlingSearch"
+        (input)="onLeerlingSearch()"
+      />
     </div>
 
     @if (leerlingError) {
@@ -72,7 +92,20 @@
         </div>
         <span class="leerling-username">{{ leerling.displayName }}</span>
         @if (selectedLeerling?.sub === leerling.sub) {
-        <span class="selected-check">✓</span>
+        <svg
+          class="leerling-check"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
         }
       </li>
       }

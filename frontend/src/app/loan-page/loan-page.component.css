@@ -1080,14 +1080,49 @@
   font-style: italic;
   padding: 8px 0;
 }
+
+/* Shared search list look (matches Boek terugbrengen / Boek verlengen) */
+.lp-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0 14px;
+  color: #6b7280;
+  margin-bottom: 12px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.lp-search:focus-within {
+  border-color: #871f42;
+  color: #1a1a1a;
+}
+
+.lp-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-family: inherit;
+  outline: none;
+}
+
+.lp-search-input::placeholder {
+  color: #9ca3af;
+}
+
 .leerling-list {
   list-style: none;
   padding: 0;
   margin: 0 0 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 380px;
+  gap: 2px;
+  max-height: 340px;
   overflow-y: auto;
 }
 
@@ -1095,21 +1130,20 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-radius: 10px;
-  border: 2px solid #eee;
   cursor: pointer;
-  transition: all 0.15s;
-  background: white;
+  transition: background 0.12s;
+  background: transparent;
+  border: none;
 }
 
 .leerling-item:hover {
-  border-color: #871f42;
+  background: #f5f7fa;
 }
 
 .leerling-item.selected {
-  border-color: #871f42;
-  background: #fff8fb;
+  background: rgba(135, 31, 66, 0.06);
 }
 
 .leerling-avatar {
@@ -1119,7 +1153,7 @@
   background: #871f42;
   color: white;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1128,9 +1162,14 @@
 
 .leerling-username {
   flex: 1;
-  font-weight: 600;
+  font-weight: 500;
   color: #1a1a1a;
-  font-size: 0.95rem;
+  font-size: 14px;
+}
+
+.leerling-check {
+  color: #2e6b3f;
+  flex-shrink: 0;
 }
 
 .step-footer {
