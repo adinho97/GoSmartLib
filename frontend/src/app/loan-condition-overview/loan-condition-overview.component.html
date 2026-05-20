@@ -76,12 +76,18 @@
                 </td>
                 <td>#{{ item.copyNumber ?? "..." }}</td>
                 <td>{{ getUserName(item) }}</td>
-                <td>{{ conditionLabel(item.loanedCondition) }}</td>
+                <td>
+                  <span [class]="conditionClass(item.loanedCondition)">
+                    {{ conditionLabel(item.loanedCondition) }}
+                  </span>
+                </td>
                 <td>
                   @if (isLostReturn(item)) {
-                    Vermist
+                    <span class="cond-badge cond-lost">Vermist</span>
                   } @else {
-                    {{ conditionLabel(item.returnedCondition) }}
+                    <span [class]="conditionClass(item.returnedCondition)">
+                      {{ conditionLabel(item.returnedCondition) }}
+                    </span>
                   }
                 </td>
                 <td>{{ item.returnedAt | date: "dd/MM/yyyy" }}</td>
@@ -119,9 +125,9 @@
               <th>Uitgeleend</th>
               <th>Beschadigd</th>
               <th>Vermist</th>
-              <th>Goed</th>
-              <th>Matig</th>
-              <th>Slecht</th>
+              <th><span class="cond-badge cond-good">Goed</span></th>
+              <th><span class="cond-badge cond-moderate">Matig</span></th>
+              <th><span class="cond-badge cond-bad">Slecht</span></th>
             </tr>
           </thead>
           <tbody>
@@ -238,7 +244,11 @@
                   </div>
                 </td>
                 <td>#{{ lost.copyNumber ?? "..." }}</td>
-                <td>{{ conditionLabel(lost.condition) }}</td>
+                <td>
+                  <span [class]="conditionClass(lost.condition)">
+                    {{ conditionLabel(lost.condition) }}
+                  </span>
+                </td>
                 <td>
                   <button
                     type="button"

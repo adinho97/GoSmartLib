@@ -142,6 +142,15 @@ export class LoanConditionOverviewComponent implements OnInit {
     return "Onbekend";
   }
 
+  conditionClass(
+    condition: "GOOD" | "MODERATE" | "BAD" | null | undefined,
+  ): string {
+    if (condition === "GOOD") return "cond-badge cond-good";
+    if (condition === "MODERATE") return "cond-badge cond-moderate";
+    if (condition === "BAD") return "cond-badge cond-bad";
+    return "cond-badge cond-unknown";
+  }
+
   statusLabel(
     status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST" | null | undefined,
   ): string {

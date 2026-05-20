@@ -134,6 +134,53 @@ th {
   gap: 0.5rem;
 }
 
+/* Condition badges: green = Goed, orange = Matig, red = Slecht */
+.cond-badge {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.cond-good {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+.cond-moderate {
+  background: #ffedd5;
+  color: #c2410c;
+  border-color: #fdba74;
+}
+
+.cond-bad {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.cond-lost {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.cond-unknown {
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+/* When used inside a table header, drop the header's heavy weight inheritance */
+th .cond-badge {
+  font-size: 0.8rem;
+}
+
 .book-cover {
   width: 32px;
   height: 46px;
