@@ -16,7 +16,12 @@
           </p>
         </div>
       </div>
-      <div class="streak-flame">🔥 Lees verder</div>
+      <span class="lvl-streak" aria-label="Streak">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2s4 4 4 8a4 4 0 1 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-2-5 0-7z"/>
+        </svg>
+        Lees verder
+      </span>
     </div>
 
     <div
@@ -34,12 +39,16 @@
     </div>
 
     <div class="badge-section">
-      <p class="badge-section-label">Uitleenbadges</p>
-      <div class="badge-row">
+      <div class="badge-section-head">
+        <span class="badge-section-label">Uitleen</span>
+        <span class="badge-section-count">{{ loanUnlockedCount }} / {{ loanBadges.length }} behaald</span>
+      </div>
+      <div class="badge-grid">
         @for (badge of displayedLoanBadges; track badge.key) {
           <div
-            class="badge-chip"
-            [ngClass]="{ locked: !badge.unlocked }"
+            class="badge-card"
+            [class.locked]="!badge.unlocked"
+            [ngClass]="badge.cssClass"
             [attr.title]="
               badge.unlocked
                 ? badge.label + ' behaald'
@@ -53,31 +62,62 @@
                 : ' (nog niet behaald — ' + badge.hint + ')')
             "
           >
-            <div class="badge-icon">{{ badge.icon }}</div>
-            <span class="badge-name">{{ badge.label }}</span>
-            <span class="badge-hint">{{ badge.hint }}</span>
+            <span class="ico" [attr.data-icon]="badge.iconKey">
+              @switch (badge.iconKey) {
+                @case ('boek') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7a3 3 0 0 1 3 3v14"/><path d="M20 4h-7a3 3 0 0 0-3 3v14"/></svg>
+                }
+                @case ('rij') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13h16M4 8h16M4 18h16"/><circle cx="7" cy="8" r="1.3" fill="currentColor"/><circle cx="11" cy="13" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/><circle cx="19" cy="13" r="1.3" fill="currentColor"/><circle cx="9" cy="18" r="1.3" fill="currentColor"/></svg>
+                }
+                @case ('nacht') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13a8 8 0 1 1-9-9 6 6 0 0 0 9 9z"/></svg>
+                }
+                @case ('klas') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21h16M5 21V9M9 21V9M15 21V9M19 21V9M3 9h18L12 3z"/></svg>
+                }
+                @case ('bib') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                }
+                @case ('leg') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>
+                }
+              }
+            </span>
+            <div class="meta">
+              <div class="name">{{ badge.label }}</div>
+              <div class="qual">{{ progressLabel(badge) }}</div>
+            </div>
+            @if (!badge.unlocked) {
+              <span class="badge-lock" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+              </span>
+            }
           </div>
         }
         <button
-          class="badge-chip badge-more"
+          class="badge-more"
           type="button"
           (click)="toggleLoan()"
           [attr.aria-expanded]="showAllLoan"
           aria-label="Bekijk alle uitleenbadges"
         >
-          <div class="badge-icon">{{ showAllLoan ? "−" : "+" }}</div>
-          <span class="badge-name">{{ showAllLoan ? "Minder" : "Meer" }}</span>
+          {{ showAllLoan ? '− Minder' : '+ ' + (loanBadges.length - displayedLoanBadges.length) + ' meer →' }}
         </button>
       </div>
     </div>
 
     <div class="badge-section">
-      <p class="badge-section-label">Reviewbadges</p>
-      <div class="badge-row">
+      <div class="badge-section-head">
+        <span class="badge-section-label">Reviews</span>
+        <span class="badge-section-count">{{ reviewUnlockedCount }} / {{ reviewBadges.length }} behaald</span>
+      </div>
+      <div class="badge-grid">
         @for (badge of displayedReviewBadges; track badge.key) {
           <div
-            class="badge-chip"
-            [ngClass]="{ locked: !badge.unlocked }"
+            class="badge-card"
+            [class.locked]="!badge.unlocked"
+            [ngClass]="badge.cssClass"
             [attr.title]="
               badge.unlocked
                 ? badge.label + ' behaald'
@@ -91,22 +131,47 @@
                 : ' (nog niet behaald — ' + badge.hint + ')')
             "
           >
-            <div class="badge-icon">{{ badge.icon }}</div>
-            <span class="badge-name">{{ badge.label }}</span>
-            <span class="badge-hint">{{ badge.hint }}</span>
+            <span class="ico" [attr.data-icon]="badge.iconKey">
+              @switch (badge.iconKey) {
+                @case ('rev') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1 9.5-9.5a2.1 2.1 0 0 0-3-3L5 16l-1 4z"/></svg>
+                }
+                @case ('recens') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>
+                }
+                @case ('crit') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/></svg>
+                }
+                @case ('schr') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4l5 5-9 9-5 1 1-5z"/><path d="M3 21h7"/></svg>
+                }
+                @case ('lit') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/></svg>
+                }
+                @case ('master') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 19h20l-2-9-5 3-3-7-3 7-5-3z"/><path d="M2 22h20"/></svg>
+                }
+              }
+            </span>
+            <div class="meta">
+              <div class="name">{{ badge.label }}</div>
+              <div class="qual">{{ progressLabel(badge) }}</div>
+            </div>
+            @if (!badge.unlocked) {
+              <span class="badge-lock" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+              </span>
+            }
           </div>
         }
         <button
-          class="badge-chip badge-more"
+          class="badge-more"
           type="button"
           (click)="toggleReview()"
           [attr.aria-expanded]="showAllReview"
           aria-label="Bekijk alle reviewbadges"
         >
-          <div class="badge-icon">{{ showAllReview ? "−" : "+" }}</div>
-          <span class="badge-name">{{
-            showAllReview ? "Minder" : "Meer"
-          }}</span>
+          {{ showAllReview ? '− Minder' : '+ ' + (reviewBadges.length - displayedReviewBadges.length) + ' meer →' }}
         </button>
       </div>
     </div>

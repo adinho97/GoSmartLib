@@ -68,18 +68,24 @@
   margin: 2px 0 0;
 }
 
-.streak-flame {
+/* Streak — SVG flame on tinted pill */
+.lvl-streak {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
+  gap: 6px;
+  padding: 6px 10px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #ff7a3d, #f04545);
-  color: #fff;
-  font-weight: 700;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-weight: 600;
   font-size: 12px;
-  box-shadow: 0 2px 6px rgba(240, 69, 69, 0.3);
   white-space: nowrap;
+}
+.lvl-streak svg {
+  width: 13px;
+  height: 13px;
+  color: #d4537e;
 }
 
 .xp-track {
@@ -146,151 +152,203 @@
 
 /* ── Badge sections ── */
 .badge-section {
-  margin-top: var(--s-4);
+  margin-top: 18px;
+}
+
+.badge-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
 .badge-section-label {
   font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.14em;
   color: var(--ink-3);
-  margin: 0 0 8px;
 }
 
-.badge-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.badge-section-count {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── Chip base ── */
-.badge-chip {
-  display: flex;
-  flex-direction: column;
+/* ── Grid layout ── */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+/* ── Card (horizontal: icon left, meta right) ── */
+.badge-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 4px;
-  flex: 1;
-  min-width: 56px;
-  padding: 10px 6px;
-  background: var(--bg);
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  transition: transform 0.15s;
-  cursor: default;
+  border-radius: 10px;
   position: relative;
+  cursor: default;
+  transition:
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 
-.badge-chip:hover {
-  transform: translateY(-2px);
-}
-.badge-chip:focus {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
+.badge-card:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-1);
 }
 
-.badge-chip.locked::after {
-  content: "🔒";
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  font-size: 12px;
-  line-height: 1;
-  font-family:
-    "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
-    "Twemoji Mozilla", "Segoe UI Symbol", "Arial", sans-serif;
-  font-variant-emoji: emoji;
-}
-
-.badge-icon {
-  width: 32px;
-  height: 32px;
+.badge-card .ico {
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  line-height: 1;
-  color: #1a1614;
-  font-family:
-    "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
-    "Twemoji Mozilla", "Segoe UI Symbol", "Arial", sans-serif;
-  font-variant-emoji: emoji;
   border-radius: 999px;
-  background: linear-gradient(160deg, #fff 0%, #f3efeb 100%);
-  border: 2px solid var(--line);
+  flex: none;
+  color: #fff;
+}
+.badge-card .ico svg {
+  width: 15px;
+  height: 15px;
 }
 
-/* ── Loan badge colours (lb1–lb6) ── */
-.badge-chip.lb1 .badge-icon {
-  background: linear-gradient(160deg, #ffd97a, #f5b820);
-  border-color: #f5b820;
+.badge-card .meta {
+  min-width: 0;
 }
-.badge-chip.lb2 .badge-icon {
-  background: linear-gradient(160deg, #c8dde8, #6ba3c4);
-  border-color: #6ba3c4;
-}
-.badge-chip.lb3 .badge-icon {
-  background: linear-gradient(160deg, #f5e3eb, #d4537e);
-  border-color: #d4537e;
-}
-.badge-chip.lb4 .badge-icon {
-  background: linear-gradient(160deg, #d4e6d8, #6ba87e);
-  border-color: #6ba87e;
-}
-.badge-chip.lb5 .badge-icon {
-  background: linear-gradient(160deg, #d0f0f4, #3aabbf);
-  border-color: #3aabbf;
-}
-.badge-chip.lb6 .badge-icon {
-  background: linear-gradient(160deg, #fff8c0, #f5c800);
-  border-color: #c9a800;
-}
-
-/* ── Review badge colours (rb1–rb6) ── */
-.badge-chip.rb1 .badge-icon {
-  background: linear-gradient(160deg, #fde8d0, #e07d30);
-  border-color: #e07d30;
-}
-.badge-chip.rb2 .badge-icon {
-  background: linear-gradient(160deg, #ece3f8, #9b6dcf);
-  border-color: #9b6dcf;
-}
-.badge-chip.rb3 .badge-icon {
-  background: linear-gradient(160deg, #d4ecd8, #4caf70);
-  border-color: #4caf70;
-}
-.badge-chip.rb4 .badge-icon {
-  background: linear-gradient(160deg, #fde8f0, #e05580);
-  border-color: #e05580;
-}
-.badge-chip.rb5 .badge-icon {
-  background: linear-gradient(160deg, #fff3c0, #f0b429);
-  border-color: #f0b429;
-}
-.badge-chip.rb6 .badge-icon {
-  background: linear-gradient(160deg, #e0d4f8, #7c4ddb);
-  border-color: #7c4ddb;
-}
-
-.badge-more .badge-icon {
-  font-size: 14px;
+.badge-card .name {
+  font-size: 12.5px;
   font-weight: 700;
-  color: var(--ink-2);
-}
-
-.badge-name {
-  font-size: 10.5px;
-  color: var(--ink-2);
-  font-weight: 600;
-  text-align: center;
+  color: var(--ink);
   line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.badge-card .qual {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
-.badge-hint {
-  font-size: 9.5px;
+/* ── Locked state ── */
+.badge-card.locked {
+  background: transparent;
+}
+.badge-card.locked .name {
+  color: var(--ink-3);
+}
+.badge-card.locked .ico {
+  background: var(--surface-2) !important;
   color: var(--ink-4);
-  font-weight: 500;
-  text-align: center;
-  line-height: 1.1;
-  margin-top: 1px;
+  box-shadow: none;
+}
+.badge-lock {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: var(--ink-4);
+}
+.badge-lock svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ── B2 palette: solid gradient circles, white glyph ── */
+.badge-card.lb1 .ico {
+  background: linear-gradient(160deg, #f5c542, #c9890e);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.lb2 .ico {
+  background: linear-gradient(160deg, #ef8a55, #c25a1f);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.lb3 .ico {
+  background: linear-gradient(160deg, #6f83cc, #3e519a);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.lb4 .ico {
+  background: linear-gradient(160deg, #b08949, #7a5824);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.lb5 .ico {
+  background: linear-gradient(160deg, #d4537e, #7a2840);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.lb6 .ico {
+  background: linear-gradient(160deg, #ffd166, #b27800);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+
+.badge-card.rb1 .ico {
+  background: linear-gradient(160deg, #c2476f, #871f42);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.rb2 .ico {
+  background: linear-gradient(160deg, #6ea071, #3e6b42);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.rb3 .ico {
+  background: linear-gradient(160deg, #9a72bd, #6b3e92);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.rb4 .ico {
+  background: linear-gradient(160deg, #3a9292, #1a5a5a);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.rb5 .ico {
+  background: linear-gradient(160deg, #c08aff, #6a3aa0);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.badge-card.rb6 .ico {
+  background: linear-gradient(160deg, #ffe28a, #b27800);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* ── More / Less button ── */
+.badge-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 12px;
+  font-family: inherit;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+.badge-more:hover {
+  background: var(--surface);
+  color: var(--ink-2);
+  border-color: var(--brand);
+}
+
+/* ── Responsive ── */
+@media (max-width: 720px) {
+  .badge-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .badge-grid {
+    grid-template-columns: 1fr;
+  }
 }
