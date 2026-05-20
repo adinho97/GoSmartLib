@@ -8,15 +8,6 @@
   margin-bottom: var(--s-7);
 }
 
-.mt-eyebrow {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-  color: var(--brand);
-  margin: 0 0 6px;
-}
-
 .mt-title {
   font-size: 30px;
   font-weight: 700;

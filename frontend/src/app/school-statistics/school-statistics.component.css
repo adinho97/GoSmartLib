@@ -45,15 +45,6 @@
   margin-bottom: 2rem;
 }
 
-.page-eyebrow {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--brand);
-}
-
 .page-title {
   margin: 0;
   font-size: 2rem;

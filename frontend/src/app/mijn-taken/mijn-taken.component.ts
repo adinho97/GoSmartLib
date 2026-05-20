@@ -111,10 +111,6 @@ export class MijnTakenComponent implements OnInit {
     return localStorage.getItem("role") === "bibbeheerder";
   }
 
-  get eyebrow(): string {
-    return this.isLibrarian ? "Bibliotheekbeheerder" : "Leerkracht";
-  }
-
   // Methods for the "Leningen verlengen" modal
   closeExtensionModal(): void {
     this.extensionModalOpen = false;
