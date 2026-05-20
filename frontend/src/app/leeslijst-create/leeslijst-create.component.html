@@ -13,11 +13,33 @@
   </header>
 
   <div class="stepper">
-    <div class="step-pill" [class.active]="step === 'titel'">1. Titel</div>
-    <div class="step-pill" [class.active]="step === 'boeken'">2. Boeken</div>
-    <div class="step-pill" [class.active]="step === 'bevestiging'">
+    <button
+      type="button"
+      class="step-pill"
+      [class.active]="step === 'titel'"
+      [class.clickable]="step !== 'titel'"
+      (click)="goToStep('titel')"
+    >
+      1. Titel
+    </button>
+    <button
+      type="button"
+      class="step-pill"
+      [class.active]="step === 'boeken'"
+      [class.clickable]="step === 'bevestiging'"
+      (click)="goToStep('boeken')"
+      [disabled]="step === 'titel'"
+    >
+      2. Boeken
+    </button>
+    <button
+      type="button"
+      class="step-pill"
+      [class.active]="step === 'bevestiging'"
+      [disabled]="step !== 'bevestiging'"
+    >
       3. Bevestigen
-    </div>
+    </button>
   </div>
 
   <!-- Step 1: Title -->
@@ -110,7 +132,7 @@
           </div>
 
           <div class="users-selector">
-            <h4 class="card-subtitle">Individuele Gebruikers</h4>
+            <h4 class="card-subtitle">Individuele gebruikers</h4>
             <div class="search-bar">
               <input
                 type="text"
@@ -120,17 +142,25 @@
                 class="search-input"
               />
             </div>
-            <div class="grid-list small-grid">
-              @for (user of foundUsers; track user.sub) {
-                <div
-                  class="grid-item"
-                  [class.selected]="sharedWithUserSubs.has(user.sub)"
-                  (click)="toggleUserSelection(user)"
-                >
-                  <span class="item-name">{{ user.displayName }}</span>
-                </div>
-              }
-            </div>
+            @if (!hasUserSearchInput) {
+              <p class="empty-msg">
+                Typ een naam om een collega te zoeken.
+              </p>
+            } @else if (foundUsers.length === 0) {
+              <p class="empty-msg">Geen gebruikers gevonden.</p>
+            } @else {
+              <div class="grid-list small-grid">
+                @for (user of foundUsers; track user.sub) {
+                  <div
+                    class="grid-item"
+                    [class.selected]="sharedWithUserSubs.has(user.sub)"
+                    (click)="toggleUserSelection(user)"
+                  >
+                    <span class="item-name">{{ user.displayName }}</span>
+                  </div>
+                }
+              </div>
+            }
             @if (selectedUsers.length > 0) {
               <div class="selected-tags">
                 @for (user of selectedUsers; track user.sub) {
@@ -287,6 +317,10 @@
           <div class="spinner"></div>
           <p>Laden…</p>
         </div>
+      } @else if (!booksLoaded) {
+        <p class="empty-msg">
+          Klik op <strong>Zoeken</strong> om de boeken te laden en te filteren.
+        </p>
       } @else if (filteredBooks.length === 0) {
         <p class="empty-msg">Geen boeken gevonden.</p>
       } @else {
@@ -330,7 +364,8 @@
         </div>
       }
 
-      <div class="actions">
+      <div class="actions actions-split">
+        <button class="btn btn-outline" (click)="goBack()">← Vorige</button>
         <button
           class="btn btn-primary"
           (click)="goToConfirmation()"
@@ -372,8 +407,8 @@
         </p>
       </div>
 
-      <div class="actions">
-        <button class="btn btn-outline" (click)="goBack()">Terug</button>
+      <div class="actions actions-split">
+        <button class="btn btn-outline" (click)="goBack()">← Vorige</button>
         <button
           class="btn btn-success"
           (click)="saveLeeslijst()"
