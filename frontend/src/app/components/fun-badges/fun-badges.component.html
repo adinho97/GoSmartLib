@@ -95,15 +95,6 @@
             }
           </div>
         }
-        <button
-          class="badge-more"
-          type="button"
-          (click)="toggleLoan()"
-          [attr.aria-expanded]="showAllLoan"
-          aria-label="Bekijk alle uitleenbadges"
-        >
-          {{ showAllLoan ? '− Minder' : '+ ' + (loanBadges.length - displayedLoanBadges.length) + ' meer →' }}
-        </button>
       </div>
     </div>
 
@@ -164,15 +155,6 @@
             }
           </div>
         }
-        <button
-          class="badge-more"
-          type="button"
-          (click)="toggleReview()"
-          [attr.aria-expanded]="showAllReview"
-          aria-label="Bekijk alle reviewbadges"
-        >
-          {{ showAllReview ? '− Minder' : '+ ' + (reviewBadges.length - displayedReviewBadges.length) + ' meer →' }}
-        </button>
       </div>
     </div>
   </div>

@@ -60,8 +60,6 @@ export class FunBadgesComponent implements OnInit {
 
   loanBadges: BadgeChip[] = LOAN_BADGES.map(b => ({ ...b, unlocked: false }));
   reviewBadges: BadgeChip[] = REVIEW_BADGES.map(b => ({ ...b, unlocked: false }));
-  showAllLoan = false;
-  showAllReview = false;
   loanCount = 0;
   reviewCount = 0;
 
@@ -81,11 +79,11 @@ export class FunBadgesComponent implements OnInit {
   }
 
   get displayedLoanBadges(): BadgeChip[] {
-    return this.showAllLoan ? this.loanBadges : this.loanBadges.slice(0, 4);
+    return this.loanBadges;
   }
 
   get displayedReviewBadges(): BadgeChip[] {
-    return this.showAllReview ? this.reviewBadges : this.reviewBadges.slice(0, 4);
+    return this.reviewBadges;
   }
 
   constructor(
@@ -134,6 +132,4 @@ export class FunBadgesComponent implements OnInit {
     return 'Beginner';
   }
 
-  toggleLoan(): void { this.showAllLoan = !this.showAllLoan; }
-  toggleReview(): void { this.showAllReview = !this.showAllReview; }
 }
