@@ -53,7 +53,16 @@
 }
 
 .section-head {
-  margin: 0 0 0.7rem;
+  margin: 0;
+}
+
+.info-card > ol,
+.info-card > ul,
+.info-card > .faq-list,
+.info-card > .add-row,
+.info-card > .edit-row,
+.info-card > .add-btn {
+  margin-top: 0.7rem;
 }
 
 .section-toggle {
@@ -260,16 +269,26 @@
   border: 1px solid transparent;
   background: transparent;
   border-radius: 6px;
-  padding: 2px 6px;
+  padding: 4px;
   cursor: pointer;
-  font-size: 0.95rem;
-  line-height: 1;
+  line-height: 0;
   color: #4b5563;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
 }
 
 .icon-btn:hover {
   background: #f3f4f6;
   border-color: #d1d5db;
+  color: #871f42;
 }
 
 .icon-btn.icon-danger:hover {

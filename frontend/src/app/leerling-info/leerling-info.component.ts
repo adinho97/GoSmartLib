@@ -33,10 +33,10 @@ export class LeerlingInfoComponent implements OnInit {
   openFaqIndex: number | null = 0;
 
   sectionOpen: Record<Sectie, boolean> = {
-    STAP: true,
-    FEATURE: true,
-    TIP: true,
-    FAQ: true,
+    STAP: false,
+    FEATURE: false,
+    TIP: false,
+    FAQ: false,
   };
 
   mode: Mode = "student";
