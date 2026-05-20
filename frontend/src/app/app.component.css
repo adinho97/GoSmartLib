@@ -358,6 +358,12 @@
   margin: 4px 0 8px;
 }
 
+.profile-toggles app-dark-mode-toggle,
+.profile-toggles app-colorblind-toggle {
+  display: block;
+  width: 100%;
+}
+
 .profile-toggles .dm-toggle-btn,
 .profile-toggles .cb-toggle-btn {
   width: 100% !important;
