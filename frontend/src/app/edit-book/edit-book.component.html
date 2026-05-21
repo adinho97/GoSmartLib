@@ -137,20 +137,36 @@
           <!-- DIDACTIEK modus -->
           @if (isDidacticMode) {
             <div class="form-group full-width">
-              <label for="didacticSubgenres">Subgenres (didactiek)</label>
-              <select
-                id="didacticSubgenres"
-                name="didacticSubgenres"
-                [(ngModel)]="selectedDidacticSubgenres"
-                multiple
-              >
-                @for (sg of didacticSubgenres; track sg) {
-                  <option [value]="sg">{{ sg }}</option>
+              <label>Subgenres (didactiek)</label>
+              <div class="dropdown-multiselect">
+                <div
+                  class="multiselect-trigger"
+                  (click)="showDidacticDropdown = !showDidacticDropdown"
+                >
+                  {{
+                    selectedDidacticSubgenres.length
+                      ? selectedDidacticSubgenres.join(", ")
+                      : "Kies subgenres..."
+                  }}
+                  <span class="arrow">▼</span>
+                </div>
+                @if (showDidacticDropdown) {
+                  <div class="multiselect-menu">
+                    @for (sg of didacticSubgenres; track sg) {
+                      <div
+                        class="multiselect-item"
+                        [class.selected]="isDidacticSubgenreSelected(sg)"
+                        (click)="toggleDidacticSubgenre(sg)"
+                      >
+                        {{ sg }}
+                      </div>
+                    }
+                  </div>
                 }
-              </select>
+              </div>
               <small class="helper-note"
-                >Genre staat vast op "Didactiek" voor de lerarencollectie. Houd
-                Ctrl (of Cmd) ingedrukt om meerdere te selecteren.</small
+                >Klik om subgenres te selecteren voor de
+                lerarencollectie.</small
               >
             </div>
           }
@@ -188,19 +204,35 @@
           <!-- NORMAAL genre modus -->
           @if (!isDidacticMode) {
             <div class="form-group full-width">
-              <label for="nonDidacticGenres">Genres</label>
-              <select
-                id="nonDidacticGenres"
-                name="nonDidacticGenres"
-                [(ngModel)]="selectedNonDidacticGenres"
-                multiple
-              >
-                @for (g of availableNonDidacticGenres; track g) {
-                  <option [value]="g">{{ g }}</option>
+              <label>Genres</label>
+              <div class="dropdown-multiselect">
+                <div
+                  class="multiselect-trigger"
+                  (click)="showGenreDropdown = !showGenreDropdown"
+                >
+                  {{
+                    selectedNonDidacticGenres.length
+                      ? selectedNonDidacticGenres.join(", ")
+                      : "Kies genres..."
+                  }}
+                  <span class="arrow">▼</span>
+                </div>
+                @if (showGenreDropdown) {
+                  <div class="multiselect-menu">
+                    @for (g of availableNonDidacticGenres; track g) {
+                      <div
+                        class="multiselect-item"
+                        [class.selected]="isSelected(g)"
+                        (click)="toggleGenre(g)"
+                      >
+                        {{ g }}
+                      </div>
+                    }
+                  </div>
                 }
-              </select>
+              </div>
               <small class="helper-note"
-                >Houd Ctrl (of Cmd) ingedrukt om meerdere te selecteren.</small
+                >Klik om een of meerdere genres te selecteren.</small
               >
             </div>
           }
