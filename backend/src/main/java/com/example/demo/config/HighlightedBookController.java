@@ -18,7 +18,7 @@ public class HighlightedBookController {
 
     @GetMapping("/school/{schoolId}")
     public List<Long> getHighlightedBookIds(@PathVariable Long schoolId) {
-        return repository.findBySchoolId(schoolId).stream()
+        return repository.findBySchoolIdOrderByIdDesc(schoolId).stream()
                 .map(HighlightedBook::getBookId)
                 .collect(Collectors.toList());
     }

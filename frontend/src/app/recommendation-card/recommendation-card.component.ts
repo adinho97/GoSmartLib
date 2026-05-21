@@ -19,6 +19,7 @@ export class RecommendationCardComponent {
   @Input() showRemoveBtn: boolean = false;
   @Input() isUnavailable: boolean = false;
   @Input() loanDate: string | null = null;
+  @Input() loanReturned: boolean = false;
 
   @Output() toggleWishlist = new EventEmitter<MouseEvent>();
   @Output() viewDetails = new EventEmitter<void>();

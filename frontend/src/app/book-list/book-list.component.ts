@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, HostListener, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
@@ -78,8 +78,9 @@ export class BookListComponent implements OnInit {
   readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
   readonly isLibrarian = this.userRole.includes("bibbeheerder");
   readonly isTeacher = this.userRole.includes("leerkracht");
+  readonly isAdmin = this.userRole.includes("super_admin");
   readonly isTeacherOrLibrarian =
-    this.isTeacher || this.isLibrarian || this.userRole.includes("super_admin");
+    this.isTeacher || this.isLibrarian || this.isAdmin;
 
   get availableGenres(): string[] {
     if (this.isTeacherOrLibrarian) {
@@ -92,6 +93,7 @@ export class BookListComponent implements OnInit {
   schools: School[] = [];
   selectedSchoolId: number | null = null;
   userOwnSchoolId: number | null = null;
+  schoolDropdownOpen = false;
   currentPage = 1;
   searchInput = "";
   searchQuery = "";
@@ -118,7 +120,6 @@ export class BookListComponent implements OnInit {
   maxAvailablePages = this.maxPageFilterLimit;
   wishlistedBookIds = new Set<number>();
   highlightedBookIds = new Set<number>(); // New: Track highlighted books
-  classReadingListItemIds = new Set<number>(); // New: Track class reading list books
   openMenuId: number | null = null;
 
   constructor(
@@ -156,7 +157,6 @@ export class BookListComponent implements OnInit {
       this.loadSchools().then(() => this.loadBooks()), // Sequential dependency: books need school selection
       this.loadWishlistState(), // Independent
       this.loadHighlightedBookIds(), // New: Load highlighted books
-      this.loadClassReadingListItemIds(), // New: Load class reading list items
     ]);
 
     this.applyFilters();
@@ -600,6 +600,27 @@ export class BookListComponent implements OnInit {
     await this.loadBooks();
   }
 
+  get selectedSchoolName(): string {
+    const match = this.schools.find((s) => s.id === this.selectedSchoolId);
+    return match?.naam ?? "Selecteer school";
+  }
+
+  toggleSchoolDropdown(event: MouseEvent) {
+    event.stopPropagation();
+    this.schoolDropdownOpen = !this.schoolDropdownOpen;
+  }
+
+  async selectSchoolFromDropdown(schoolId: number) {
+    this.schoolDropdownOpen = false;
+    if (schoolId === this.selectedSchoolId) return;
+    await this.onSchoolChange(String(schoolId));
+  }
+
+  @HostListener("document:click")
+  closeSchoolDropdown() {
+    this.schoolDropdownOpen = false;
+  }
+
   private async loadWishlistState() {
     try {
       const wishlist = await this.bookService.getUserWishlist();
@@ -621,24 +642,8 @@ export class BookListComponent implements OnInit {
     }
   }
 
-  private async loadClassReadingListItemIds() {
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    if (!schoolId) return;
-    try {
-      const ids = await this.bookService.getClassReadingListItemIds(schoolId);
-      this.classReadingListItemIds = new Set(ids);
-    } catch (error) {
-      console.error("Failed to load class reading list item IDs:", error);
-      this.classReadingListItemIds = new Set();
-    }
-  }
-
   isBookHighlighted(bookId?: number): boolean {
     return !!bookId && this.highlightedBookIds.has(bookId);
-  }
-
-  isBookInClassReadingList(bookId?: number): boolean {
-    return !!bookId && this.classReadingListItemIds.has(bookId);
   }
 
   async toggleWishlist(event: MouseEvent, bookId?: number) {
@@ -679,26 +684,6 @@ export class BookListComponent implements OnInit {
       }
     } catch {
       this.uiToastService.error("Fout bij bijwerken markering.");
-    }
-  }
-
-  async toggleClassReadingList(event: MouseEvent, bookId?: number) {
-    event.stopPropagation();
-    event.preventDefault();
-    if (!bookId) return;
-
-    try {
-      const isNowInList =
-        await this.bookService.toggleClassReadingListItem(bookId);
-      if (isNowInList) this.classReadingListItemIds.add(bookId);
-      else this.classReadingListItemIds.delete(bookId);
-      this.uiToastService.success(
-        isNowInList
-          ? "Toegevoegd aan Klasleeslijst."
-          : "Verwijderd uit Klasleeslijst.",
-      );
-    } catch {
-      this.uiToastService.error("Fout bij bijwerken Klasleeslijst.");
     }
   }
 

@@ -33,10 +33,10 @@ export class LeerlingInfoComponent implements OnInit {
   openFaqIndex: number | null = 0;
 
   sectionOpen: Record<Sectie, boolean> = {
-    STAP: true,
-    FEATURE: true,
-    TIP: true,
-    FAQ: true,
+    STAP: false,
+    FEATURE: false,
+    TIP: false,
+    FAQ: false,
   };
 
   mode: Mode = "student";
@@ -49,6 +49,12 @@ export class LeerlingInfoComponent implements OnInit {
 
   addingTo: Sectie | null = null;
   addDraft: Draft = { titel: "", inhoud: "" };
+
+  pendingRemoval: {
+    item: InfoContentItem;
+    kind: "delete" | "hide";
+  } | null = null;
+  isRemoving = false;
 
   saving = false;
   errorMsg = "";
@@ -246,12 +252,19 @@ export class LeerlingInfoComponent implements OnInit {
 
   remove(item: InfoContentItem): void {
     if (!this.canRemove(item) || item.id == null) return;
-    const kind = this.removeKind(item);
-    const msg =
-      kind === "delete"
-        ? "Permanent verwijderen?"
-        : "Verwijderen uit deze school?";
-    if (!confirm(msg)) return;
+    this.pendingRemoval = { item, kind: this.removeKind(item) };
+  }
+
+  cancelRemove(): void {
+    if (this.isRemoving) return;
+    this.pendingRemoval = null;
+  }
+
+  confirmRemove(): void {
+    if (!this.pendingRemoval || this.isRemoving) return;
+    const { item, kind } = this.pendingRemoval;
+    if (item.id == null) return;
+    this.isRemoving = true;
     this.errorMsg = "";
     const obs =
       kind === "delete"
@@ -265,11 +278,28 @@ export class LeerlingInfoComponent implements OnInit {
         this.items[item.sectie] = this.items[item.sectie].filter(
           (x) => x.id !== item.id,
         );
+        this.isRemoving = false;
+        this.pendingRemoval = null;
       },
       error: (err) => {
         this.errorMsg = err?.error?.message || "Verwijderen mislukt.";
+        this.isRemoving = false;
+        this.pendingRemoval = null;
       },
     });
+  }
+
+  get pendingRemovalTitle(): string {
+    if (!this.pendingRemoval) return "";
+    return this.pendingRemoval.kind === "delete"
+      ? "Permanent verwijderen"
+      : "Verwijderen uit deze school";
+  }
+
+  get pendingRemovalPreview(): string {
+    if (!this.pendingRemoval) return "";
+    const item = this.pendingRemoval.item;
+    return item.titel?.trim() || item.inhoud;
   }
 
   toggleFaq(index: number): void {

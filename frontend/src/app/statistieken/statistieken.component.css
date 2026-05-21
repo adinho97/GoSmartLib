@@ -8,15 +8,6 @@
   margin-bottom: var(--s-7);
 }
 
-.mt-eyebrow {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-  color: var(--brand);
-  margin: 0 0 6px;
-}
-
 .mt-title {
   font-size: 30px;
   font-weight: 700;
@@ -81,6 +72,11 @@
 .mt-icon-info {
   background: rgba(45, 90, 120, 0.08);
   color: var(--info);
+}
+
+.mt-icon-warn {
+  background: rgba(180, 110, 20, 0.08);
+  color: var(--warn);
 }
 
 .mt-card-body {

@@ -305,20 +305,32 @@
 .sp-modal-close {
   width: 32px;
   height: 32px;
-  border: none;
-  background: #f3f4f6;
+  background: #e5e7eb;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #374151;
-  transition: background 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1;
+  /* Beat the global `button { ... }` rule in styles.css */
+  color: #1f2937 !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.sp-modal-close svg {
+  stroke: currentColor;
 }
 
 .sp-modal-close:hover {
-  background: #e5e7eb;
+  background: #d1d5db !important;
+  color: #111827 !important;
 }
 
 .sp-modal-search {

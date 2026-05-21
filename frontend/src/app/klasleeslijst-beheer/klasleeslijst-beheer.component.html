@@ -1,0 +1,102 @@
+<div class="beheer-container">
+  <h2>Klasleeslijsten Beheren</h2>
+
+  <div class="form-card">
+    <h3>Nieuwe leeslijst aanmaken</h3>
+
+    <div *ngIf="error" class="error-msg">{{ error }}</div>
+
+    <div class="form-group">
+      <label for="titel">Titel</label>
+      <input
+        id="titel"
+        [(ngModel)]="titel"
+        placeholder="Bijv. Vakantieboeken 2024"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Toewijzing Type</label>
+      <div class="radio-options">
+        <label>
+          <input
+            type="radio"
+            [(ngModel)]="toewijzingType"
+            value="KLAS"
+            name="type"
+          />
+          Klas
+        </label>
+        <label>
+          <input
+            type="radio"
+            [(ngModel)]="toewijzingType"
+            value="SCHOOL"
+            name="type"
+          />
+          Hele School
+        </label>
+        <label>
+          <input
+            type="radio"
+            [(ngModel)]="toewijzingType"
+            value="GLOBAL"
+            name="type"
+          />
+          Globaal
+        </label>
+        <label>
+          <input
+            type="radio"
+            [(ngModel)]="toewijzingType"
+            value="USER"
+            name="type"
+          />
+          Gebruiker
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group" *ngIf="toewijzingType === 'KLAS'">
+      <label for="klas">Selecteer Klas/Leerjaar</label>
+      <select
+        id="klas"
+        [(ngModel)]="selectedKlasId"
+        [required]="toewijzingType === 'KLAS'"
+      >
+        <option [ngValue]="null">-- Selecteer een klas --</option>
+        <option *ngFor="let klas of klassen" [value]="klas.id">
+          {{ klas.naam }}
+        </option>
+      </select>
+    </div>
+
+    <button class="btn-save" (click)="saveLeeslijst()" [disabled]="isLoading">
+      Leeslijst Opslaan
+    </button>
+  </div>
+
+  <div class="list-card">
+    <h3>Bestaande Leeslijsten</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Titel</th>
+          <th>Toegewezen aan</th>
+          <th>Acties</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let lijst of leeslisten">
+          <td>{{ lijst.titel }}</td>
+          <td>{{ lijst.klasIds.length }} klassen</td>
+          <td>
+            <button class="btn-delete" (click)="deleteLeeslijst(lijst.id)">
+              Verwijderen
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -151,11 +151,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       this.barcodeService.setupHiddenInput(this.scanContainer.nativeElement);
     }
 
-    await Promise.all([
-      this.loadBooks(),
-      this.loadLeerlingen(),
-      this.loadDefaultLoanDays(),
-    ]);
+    await Promise.all([this.loadBooks(), this.loadDefaultLoanDays()]);
     this.dueDate = this.computeDefaultDueDate(this.defaultLoanDays);
 
     this.scanSubscription = this.barcodeService
@@ -188,7 +184,6 @@ export class LoanPageComponent implements OnInit, OnDestroy {
         sub: l.sub,
         displayName: l.displayName || l.sub,
       }));
-      this.filteredLeerlingen = [...this.leerlingen];
     } catch (err) {
       console.error("loadLeerlingen error", err);
       this.leerlingError = "Leerlingen laden mislukt.";
@@ -197,15 +192,24 @@ export class LoanPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  onLeerlingSearch() {
+  get hasLeerlingSearchInput(): boolean {
+    return this.leerlingSearch.trim().length > 0;
+  }
+
+  async onLeerlingSearch() {
     const q = this.leerlingSearch.trim().toLowerCase();
-    this.filteredLeerlingen = q
-      ? this.leerlingen.filter(
-          (l) =>
-            l.displayName.toLowerCase().includes(q) ||
-            l.sub.toLowerCase().includes(q),
-        )
-      : [...this.leerlingen];
+    if (!q) {
+      this.filteredLeerlingen = [];
+      return;
+    }
+    if (this.leerlingen.length === 0 && !this.leerlingenLoading) {
+      await this.loadLeerlingen();
+    }
+    this.filteredLeerlingen = this.leerlingen.filter(
+      (l) =>
+        l.displayName.toLowerCase().includes(q) ||
+        l.sub.toLowerCase().includes(q),
+    );
   }
 
   selectLeerling(leerling: Leerling) {
@@ -476,7 +480,7 @@ export class LoanPageComponent implements OnInit, OnDestroy {
       this.bookPage = 1;
       this.bookTotalCount = 0;
       this.searchQuery = "";
-      this.filteredLeerlingen = [...this.leerlingen];
+      this.filteredLeerlingen = [];
       this.dueDate = this.computeDefaultDueDate(this.defaultLoanDays);
       await this.loadBooks();
     } catch (e: any) {

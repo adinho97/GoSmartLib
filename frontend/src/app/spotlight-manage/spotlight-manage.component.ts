@@ -110,15 +110,27 @@ export class SpotlightManageComponent {
     this.pickerDebounce = setTimeout(() => this.searchBooks(), 300);
   }
 
-  private searchBooks(): void {
+  private async searchBooks(): Promise<void> {
     if (!this.schoolId || !this.pickerQuery.trim()) return;
     this.pickerSearching = true;
-    this.http.get<{ items: BookSearchResult[]; total: number }>(
-      `/api/books/paged?schoolId=${this.schoolId}&query=${encodeURIComponent(this.pickerQuery.trim())}&size=8&page=0`
-    ).subscribe({
-      next: (res) => { this.pickerResults = res.items; this.pickerSearching = false; },
-      error: () => { this.pickerResults = []; this.pickerSearching = false; },
-    });
+    try {
+      const res = await this.bookService.getBooksPage(
+        0,
+        8,
+        this.pickerQuery.trim(),
+        this.schoolId,
+      );
+      this.pickerResults = (res.items || []).map((book) => ({
+        id: book.id,
+        titel: book.titel,
+        auteur: book.auteur,
+        cover: book.cover || null,
+      }));
+    } catch {
+      this.pickerResults = [];
+    } finally {
+      this.pickerSearching = false;
+    }
   }
 
   selectBook(book: BookSearchResult): void {
@@ -176,21 +188,27 @@ export class SpotlightManageComponent {
     this.highlightDebounce = setTimeout(() => this.searchHighlightBooks(), 300);
   }
 
-  private searchHighlightBooks(): void {
+  private async searchHighlightBooks(): Promise<void> {
     if (!this.schoolId || !this.highlightQuery.trim()) return;
     this.highlightSearching = true;
-    this.http.get<{ items: BookSearchResult[]; total: number }>(
-      `/api/books/paged?schoolId=${this.schoolId}&query=${encodeURIComponent(this.highlightQuery.trim())}&size=8&page=0`
-    ).subscribe({
-      next: (res) => {
-        this.highlightResults = res.items;
-        this.highlightSearching = false;
-      },
-      error: () => {
-        this.highlightResults = [];
-        this.highlightSearching = false;
-      },
-    });
+    try {
+      const res = await this.bookService.getBooksPage(
+        0,
+        8,
+        this.highlightQuery.trim(),
+        this.schoolId,
+      );
+      this.highlightResults = (res.items || []).map((book) => ({
+        id: book.id,
+        titel: book.titel,
+        auteur: book.auteur,
+        cover: book.cover || null,
+      }));
+    } catch {
+      this.highlightResults = [];
+    } finally {
+      this.highlightSearching = false;
+    }
   }
 
   isHighlightLocked(bookId?: number): boolean {
@@ -218,13 +236,14 @@ export class SpotlightManageComponent {
   }
 
   async confirmHighlightAdd(): Promise<void> {
+    if (!this.schoolId) return;
     const ids = Array.from(this.highlightSelectedIds).filter((id) => !this.highlightedBookIds.has(id));
     if (ids.length === 0) return;
     this.highlightSaving = true;
     this.highlightError = '';
     try {
       for (const id of ids) {
-        await this.bookService.toggleHighlight(id);
+        await this.bookService.toggleHighlight(id, this.schoolId);
         this.highlightedBookIds.add(id);
       }
       this.highlightsAdded.emit();

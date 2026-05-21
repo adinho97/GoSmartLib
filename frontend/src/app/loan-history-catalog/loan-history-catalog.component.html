@@ -1,62 +1,116 @@
 <div class="history-catalog-page">
-  <div class="page-header">
-    <h1>Uitleenhistoriek catalogus</h1>
-    <p>Zoek en bekijk uitleenhistoriek per student of boek</p>
-  </div>
+  <header class="page-head">
+    <h1 class="page-title">Uitleenhistoriek</h1>
+    <p class="page-subtitle">
+      Zoek en bekijk de volledige uitleenhistoriek per leerling of per boek.
+    </p>
+  </header>
 
-  <!-- Tab Navigation -->
-  <div class="tab-navigation">
+  <!-- Tabs -->
+  <div class="hc-tabs" role="tablist">
     <button
       type="button"
-      class="tab-btn"
+      class="hc-tab"
+      role="tab"
       [class.active]="currentTab === 'students'"
+      [attr.aria-selected]="currentTab === 'students'"
       (click)="switchTab('students')"
     >
-      Leerlingen
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      Per leerling
     </button>
     <button
       type="button"
-      class="tab-btn"
+      class="hc-tab"
+      role="tab"
       [class.active]="currentTab === 'books'"
+      [attr.aria-selected]="currentTab === 'books'"
       (click)="switchTab('books')"
     >
-      Boeken
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z" />
+        <path d="M4 19.5A2.5 2.5 0 016.5 22H20v-5" />
+      </svg>
+      Per boek
     </button>
   </div>
 
   <!-- Students Tab -->
   @if (currentTab === "students") {
-    <div class="tab-content">
-      <div class="search-section">
-        <h2>Zoek leerling</h2>
+    <div class="hc-tab-content">
+      <section class="hc-card hc-search-card">
+        <h2 class="hc-card-title">Zoek leerling</h2>
+        <p class="hc-card-sub">Voer een naam of student ID in om de uitleningen op te halen.</p>
+
         @if (studentsLoadingError) {
-          <div class="error-message">{{ studentsLoadingError }}</div>
+          <div class="hc-error">{{ studentsLoadingError }}</div>
         }
-        <div class="search-row">
-          <div class="search-input-wrapper">
+
+        <div class="hc-search-row">
+          <div class="hc-search-input-wrap">
+            <svg
+              class="hc-search-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
             <input
               type="text"
-              placeholder="Voer naam of student ID in..."
+              placeholder="Zoek op naam of student ID..."
               [(ngModel)]="studentSearch"
               (input)="onStudentSearchInput()"
-              class="search-input"
+              class="hc-search-input"
+              autocomplete="off"
             />
             @if (showStudentDropdown) {
-              <div class="student-dropdown">
+              <div class="hc-student-dropdown">
                 @for (
                   student of filteredStudents.slice(0, 10);
                   track student.sub
                 ) {
                   <button
                     type="button"
-                    class="dropdown-item"
+                    class="hc-dropdown-item"
                     (click)="selectStudent(student)"
                   >
-                    {{ student.displayName }}
+                    <div class="hc-dropdown-avatar">
+                      {{ student.displayName.charAt(0).toUpperCase() }}
+                    </div>
+                    <span class="hc-dropdown-name">{{ student.displayName }}</span>
                   </button>
                 }
                 @if (filteredStudents.length > 10) {
-                  <div class="dropdown-more">
+                  <div class="hc-dropdown-more">
                     +{{ filteredStudents.length - 10 }} meer resultaten
                   </div>
                 }
@@ -64,177 +118,218 @@
             }
           </div>
         </div>
-      </div>
+      </section>
 
       @if (selectedStudent) {
-        <div class="results-section">
-          <div class="result-header">
-            <h3>Historiek van {{ selectedStudent.displayName }}</h3>
+        <section class="hc-card hc-results-card">
+          <header class="hc-result-header">
+            <div class="hc-result-title-wrap">
+              <div class="hc-result-avatar">
+                {{ selectedStudent.displayName.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <p class="hc-result-eyebrow">Historiek van</p>
+                <h3 class="hc-result-name">{{ selectedStudent.displayName }}</h3>
+              </div>
+            </div>
             @if (studentLoading) {
-              <span class="loading-text">Laden...</span>
+              <div class="hc-state-inline">
+                <div class="hc-spinner"></div>
+                <span>Laden...</span>
+              </div>
             }
-          </div>
+          </header>
 
           @if (studentError && studentHistory.length === 0) {
-            <div class="error-message">{{ studentError }}</div>
+            <div class="hc-error">{{ studentError }}</div>
           }
 
           @if (studentHistory.length > 0) {
-            <div>
-              <ul class="history-list">
-                @for (loan of pagedStudentHistory; track loan.id) {
-                  <li class="history-item">
-                    <div class="item-book-info">
-                      @if (loan.bookCover) {
-                        <img
-                          [src]="loan.bookCover"
-                          [alt]="loan.bookTitel"
-                          class="book-cover"
-                        />
-                      }
-                      <div class="item-details">
-                        <div class="item-title">{{ loan.bookTitel }}</div>
-                        <div class="item-dates">
-                          Uitgeleend: {{ loan.loanedAt | date: "dd/MM/yyyy" }}
-                        </div>
-                        <div class="item-dates">
-                          Teruggegeven:
-                          {{ loan.returnedAt | date: "dd/MM/yyyy" }}
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                }
-              </ul>
-
-              @if (totalHistoryPages > 1) {
-                <div class="history-pagination">
-                  <button
-                    type="button"
-                    class="page-btn page-nav-btn"
-                    [disabled]="currentHistoryPage === 1"
-                    (click)="goToHistoryPage(1)"
-                  >
-                    &lt;&lt;
-                  </button>
-                  <button
-                    type="button"
-                    class="page-btn page-nav-btn"
-                    [disabled]="currentHistoryPage === 1"
-                    (click)="goToPreviousHistoryPage()"
-                  >
-                    &lt;
-                  </button>
-                  @for (page of visibleHistoryPages; track $index) {
-                    @if (page === "...") {
-                      <span class="page-ellipsis">...</span>
-                    } @else {
-                      <button
-                        type="button"
-                        class="page-btn"
-                        [class.active]="page === currentHistoryPage"
-                        (click)="goToHistoryPage(page)"
-                      >
-                        {{ page }}
-                      </button>
-                    }
+            <ul class="hc-history-list">
+              @for (loan of pagedStudentHistory; track loan.id) {
+                <li class="hc-history-item">
+                  @if (loan.bookCover) {
+                    <img
+                      [src]="loan.bookCover"
+                      [alt]="loan.bookTitel"
+                      class="hc-cover"
+                    />
+                  } @else {
+                    <div class="hc-cover hc-cover-placeholder">📖</div>
                   }
-                  <button
-                    type="button"
-                    class="page-btn page-nav-btn"
-                    [disabled]="currentHistoryPage === totalHistoryPages"
-                    (click)="goToNextHistoryPage()"
-                  >
-                    &gt;
-                  </button>
-                  <button
-                    type="button"
-                    class="page-btn page-nav-btn"
-                    [disabled]="currentHistoryPage === totalHistoryPages"
-                    (click)="goToHistoryPage(totalHistoryPages)"
-                  >
-                    &gt;&gt;
-                  </button>
-                </div>
+                  <div class="hc-item-body">
+                    <p class="hc-item-title">{{ loan.bookTitel }}</p>
+                    <div class="hc-item-dates">
+                      <span class="hc-date-chip">
+                        <span class="hc-date-label">Uit</span>
+                        {{ loan.loanedAt | date: "dd/MM/yyyy" }}
+                      </span>
+                      <span class="hc-date-chip hc-date-returned">
+                        <span class="hc-date-label">Terug</span>
+                        {{ loan.returnedAt | date: "dd/MM/yyyy" }}
+                      </span>
+                    </div>
+                  </div>
+                </li>
               }
-            </div>
+            </ul>
+
+            @if (totalHistoryPages > 1) {
+              <div class="pagination">
+                <button
+                  type="button"
+                  class="page-btn page-nav-btn"
+                  [disabled]="currentHistoryPage === 1"
+                  (click)="goToHistoryPage(1)"
+                >
+                  &lt;&lt;
+                </button>
+                <button
+                  type="button"
+                  class="page-btn page-nav-btn"
+                  [disabled]="currentHistoryPage === 1"
+                  (click)="goToPreviousHistoryPage()"
+                >
+                  &lt;
+                </button>
+                @for (page of visibleHistoryPages; track $index) {
+                  @if (page === "...") {
+                    <span class="page-ellipsis">...</span>
+                  } @else {
+                    <button
+                      type="button"
+                      class="page-btn"
+                      [class.active]="page === currentHistoryPage"
+                      (click)="goToHistoryPage(page)"
+                    >
+                      {{ page }}
+                    </button>
+                  }
+                }
+                <button
+                  type="button"
+                  class="page-btn page-nav-btn"
+                  [disabled]="currentHistoryPage === totalHistoryPages"
+                  (click)="goToNextHistoryPage()"
+                >
+                  &gt;
+                </button>
+                <button
+                  type="button"
+                  class="page-btn page-nav-btn"
+                  [disabled]="currentHistoryPage === totalHistoryPages"
+                  (click)="goToHistoryPage(totalHistoryPages)"
+                >
+                  &gt;&gt;
+                </button>
+              </div>
+            }
           }
-        </div>
+        </section>
       }
     </div>
   }
 
   <!-- Books Tab -->
   @if (currentTab === "books") {
-    <div class="tab-content">
-      <div class="search-section">
-        <h2>Populairste boeken</h2>
-        <p class="section-subtitle">Overzicht van meest uitgeleende boeken</p>
-        <div class="search-row">
-          <input
-            type="text"
-            placeholder="Zoek op titel of auteur..."
-            [(ngModel)]="bookSearch"
-            (input)="onBooksSearchInput()"
-            class="search-input"
-          />
+    <div class="hc-tab-content">
+      <section class="hc-card hc-search-card">
+        <h2 class="hc-card-title">Populairste boeken</h2>
+        <p class="hc-card-sub">Overzicht van de meest uitgeleende boeken in jouw schoolbibliotheek.</p>
+
+        <div class="hc-search-row">
+          <div class="hc-search-input-wrap">
+            <svg
+              class="hc-search-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Zoek op titel of auteur..."
+              [(ngModel)]="bookSearch"
+              (input)="onBooksSearchInput()"
+              class="hc-search-input"
+              autocomplete="off"
+            />
+          </div>
         </div>
+
         @if (booksError) {
-          <div class="error-message">{{ booksError }}</div>
+          <div class="hc-error">{{ booksError }}</div>
         }
-      </div>
+      </section>
 
       @if (booksLoading) {
-        <div class="loading-section">
-          <span class="loading-text">Boeken laden...</span>
+        <div class="hc-state">
+          <div class="hc-spinner"></div>
+          <p>Boeken laden...</p>
         </div>
       }
 
       @if (!booksLoading && allBooks.length > 0) {
-        <div class="results-section">
-          <ul class="books-list">
+        <section class="hc-card hc-results-card">
+          <ul class="hc-books-list">
             @for (book of pagedBooks; track book.id) {
-              <li class="book-item">
-                <div class="book-header">
-                  <div class="book-info">
-                    @if (book.cover) {
-                      <img
-                        [src]="book.cover"
-                        [alt]="book.titel"
-                        class="book-cover"
-                      />
-                    }
-                    <div class="book-details">
-                      <div class="book-title">{{ book.titel }}</div>
-                      <div class="book-author">{{ book.auteur }}</div>
+              <li class="hc-book-item">
+                <div class="hc-book-row">
+                  @if (book.cover) {
+                    <img
+                      [src]="book.cover"
+                      [alt]="book.titel"
+                      class="hc-cover hc-cover-lg"
+                    />
+                  } @else {
+                    <div class="hc-cover hc-cover-lg hc-cover-placeholder">📚</div>
+                  }
+                  <div class="hc-book-body">
+                    <p class="hc-book-title">{{ book.titel }}</p>
+                    <p class="hc-book-author">{{ book.auteur }}</p>
+                    <div class="hc-book-meta">
+                      <span class="hc-meta-chip">
+                        <span class="hc-meta-label">Exemplaren</span>
+                        {{ book.availableCopies }}/{{ book.totalCopies }}
+                      </span>
+                      <span class="hc-meta-chip hc-meta-loans">
+                        <span class="hc-meta-label">Uitleningen</span>
+                        {{ book.loanCount }}
+                      </span>
                     </div>
-                  </div>
-                  <div class="book-copies">
-                    <span class="copies-label">Exemplaren:</span>
-                    <span class="copies-count"
-                      >{{ book.availableCopies }}/{{ book.totalCopies }}</span
-                    >
                   </div>
                 </div>
 
-                <div class="popularity-section">
-                  <div class="popularity-label">
-                    Uitleningen: {{ book.loanCount }}
-                  </div>
-                  <div class="popularity-bar-container">
+                <div class="hc-popularity">
+                  <div class="hc-popularity-bar">
                     <div
-                      class="popularity-bar"
+                      class="hc-popularity-fill"
                       [style.width.%]="getBarWidth(book.loanCount)"
                     ></div>
                   </div>
                 </div>
 
                 @if (shouldShowRecommendation(book)) {
-                  <div class="recommendation-box">
-                    <span class="recommendation-text"
-                      >Overweeg om meer exemplaren aan te schaffen. Dit boek is
-                      populair.</span
+                  <div class="hc-recommendation">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
                     >
+                      <path d="M12 9v4M12 17h.01" />
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    </svg>
+                    <span>Overweeg om extra exemplaren aan te schaffen — dit boek is populair.</span>
                   </div>
                 }
               </li>
@@ -242,7 +337,7 @@
           </ul>
 
           @if (totalBooksPages > 1) {
-            <div class="books-pagination">
+            <div class="pagination">
               <button
                 type="button"
                 class="page-btn page-nav-btn"
@@ -291,11 +386,23 @@
               </button>
             </div>
           }
-        </div>
+        </section>
       }
 
       @if (!booksLoading && allBooks.length === 0 && !booksError) {
-        <div class="empty-state">
+        <div class="hc-state hc-empty">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z" />
+            <line x1="9" y1="9" x2="15" y2="9" />
+          </svg>
           <p>Geen boeken gevonden.</p>
         </div>
       }

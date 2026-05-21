@@ -2,7 +2,7 @@
   <main class="info-content">
     <header class="info-head">
       <div class="info-head-text">
-        <h1 class="info-title">Info voor Leerlingen</h1>
+        <h1 class="info-title">Info voor leerlingen</h1>
         <p class="info-sub">Zo leen je boeken uit en haal je het meeste uit GO!SmartLib.</p>
       </div>
       @if (mode === "super_admin" && hasSchoolScope) {
@@ -59,10 +59,40 @@
                 <span class="item-body">{{ item.inhoud }}</span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">✎</button>
+                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">🗑</button>
+                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
+                    </button>
                   }
                 </span>
               }
@@ -133,10 +163,40 @@
                 </span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">✎</button>
+                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">🗑</button>
+                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
+                    </button>
                   }
                 </span>
               }
@@ -204,10 +264,40 @@
                 <span class="item-body">{{ item.inhoud }}</span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">✎</button>
+                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">🗑</button>
+                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
+                    </button>
                   }
                 </span>
               }
@@ -287,10 +377,40 @@
                 }
                 <span class="faq-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">✎</button>
+                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">🗑</button>
+                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
+                    </button>
                   }
                 </span>
               }
@@ -324,4 +444,55 @@
       }
     </section>
   </main>
+
+  @if (pendingRemoval) {
+    <div class="confirm-overlay" (click)="cancelRemove()">
+      <div
+        class="confirm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmRemoveTitle"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="confirm-header">
+          <h2 id="confirmRemoveTitle" class="confirm-title">
+            {{ pendingRemovalTitle }}
+          </h2>
+        </div>
+        <div class="confirm-body">
+          @if (pendingRemoval.kind === "delete") {
+            <p class="confirm-warning">
+              Je staat op het punt dit item <strong>permanent</strong> te
+              verwijderen.
+            </p>
+          } @else {
+            <p class="confirm-warning">
+              Dit item wordt verborgen voor deze school. De globale versie
+              blijft behouden.
+            </p>
+          }
+          <p class="confirm-preview">"{{ pendingRemovalPreview }}"</p>
+          <p class="confirm-note">Deze actie kan niet ongedaan gemaakt worden.</p>
+        </div>
+        <div class="confirm-footer">
+          <button
+            type="button"
+            class="btn-ghost"
+            (click)="cancelRemove()"
+            [disabled]="isRemoving"
+          >
+            Annuleer
+          </button>
+          <button
+            type="button"
+            class="btn-danger"
+            (click)="confirmRemove()"
+            [disabled]="isRemoving"
+          >
+            {{ isRemoving ? "Bezig…" : "Ja, verwijderen" }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

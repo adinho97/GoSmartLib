@@ -54,6 +54,7 @@ export class LeeslijstCreateComponent implements OnInit {
   searchQuery = "";
   currentPage = 1;
   pageSize = 10;
+  booksLoaded = false;
   readonly ratingStars = [0, 1, 2, 3, 4];
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
@@ -193,8 +194,23 @@ export class LeeslijstCreateComponent implements OnInit {
     }
     this.step = "boeken";
     this.loadKlassen();
-    this.loadBooks();
-    this.loadAllUsers();
+  }
+
+  private async ensureBooksLoaded() {
+    if (this.booksLoaded || this.isLoading) return;
+    await this.loadBooks();
+    this.booksLoaded = true;
+  }
+
+  goToStep(target: Step) {
+    const order: Step[] = ["titel", "boeken", "bevestiging"];
+    if (order.indexOf(target) < order.indexOf(this.step)) {
+      this.step = target;
+    }
+  }
+
+  get hasUserSearchInput(): boolean {
+    return this.userSearchQuery.trim().length > 0;
   }
 
   async loadKlassen() {
@@ -249,24 +265,11 @@ export class LeeslijstCreateComponent implements OnInit {
     });
   }
 
-  async loadAllUsers() {
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    if (!schoolId) return;
-
-    try {
-      // Pass empty string to get all users
-      this.foundUsers = await this.bookService.searchUsers("", schoolId);
-    } catch (error) {
-      console.error("Failed to load users", error);
-    }
-  }
-
   async onUserSearch() {
     const query = this.userSearchQuery.trim();
 
-    // If query is empty, show all users
     if (query.length === 0) {
-      await this.loadAllUsers();
+      this.foundUsers = [];
       return;
     }
 
@@ -327,9 +330,10 @@ export class LeeslijstCreateComponent implements OnInit {
     }
   }
 
-  onSearch() {
+  async onSearch() {
     this.currentPage = 1;
     this.searchQuery = this.searchInput.trim();
+    await this.ensureBooksLoaded();
   }
 
   onGenreChange() {
@@ -353,7 +357,7 @@ export class LeeslijstCreateComponent implements OnInit {
     this.maxPages = Math.max(parsed, this.minPages);
   }
 
-  clearFilters() {
+  async clearFilters() {
     this.searchInput = "";
     this.searchQuery = "";
     this.selectedGenre = "";
@@ -365,11 +369,13 @@ export class LeeslijstCreateComponent implements OnInit {
     this.minPages = this.minAvailablePages;
     this.maxPages = this.maxAvailablePages;
     this.currentPage = 1;
+    await this.ensureBooksLoaded();
   }
 
-  applyFilters() {
+  async applyFilters() {
     this.searchQuery = this.searchInput.trim();
     this.currentPage = 1;
+    await this.ensureBooksLoaded();
   }
 
   get filteredKlassen(): KlasListItem[] {
@@ -453,6 +459,7 @@ export class LeeslijstCreateComponent implements OnInit {
   goToConfirmation() {
     const hasTarget =
       this.isGlobal ||
+      this.isSchool ||
       this.selectedKlassenIds.size > 0 ||
       this.sharedWithUserSubs.size > 0;
 

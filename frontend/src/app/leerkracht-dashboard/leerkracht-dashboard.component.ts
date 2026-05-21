@@ -156,6 +156,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   // Spotlight data (read-only for the dashboard; managed by <app-spotlight-manage>)
   spotlight: SpotlightState = { maand: null, thema: null };
   spotlightLoading = true;
+  ownSchoolId: number | null = null;
 
   private readonly RECOMMENDATION_LIMIT = 20;
   today = new Date().toISOString().split('T')[0];
@@ -260,10 +261,6 @@ export class LeerkrachtDashboardComponent implements OnInit {
     return this.loanHistory[0] ?? null;
   }
 
-  get kijkerBook(): RecommendedBook | null {
-    return this.highlightedBooks[0] ?? null;
-  }
-
   constructor(
     private router: Router,
     private http: HttpClient,
@@ -275,11 +272,10 @@ export class LeerkrachtDashboardComponent implements OnInit {
     private dashboardConfigService: DashboardConfigService,
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.fetchAllLoans();
     this.fetchMyLoans();
     this.fetchLoanHistory();
-    this.fetchHighlightedBooks();
     this.userPreferencesService.preferences$.subscribe(prefs => {
       this.fetchRecommendations(
         prefs['recommendationExcludeRead_trending'] ?? true,
@@ -289,6 +285,8 @@ export class LeerkrachtDashboardComponent implements OnInit {
     this.dashboardConfigService.config$.subscribe(cfg => {
       this.config = cfg;
     });
+    await this.ensureOwnSchoolId();
+    this.fetchHighlightedBooks();
     this.fetchSpotlights();
   }
 
@@ -378,8 +376,9 @@ export class LeerkrachtDashboardComponent implements OnInit {
     }
     const next = [...this.config.tiles];
     const from = next.indexOf(this.dragId);
+    const to = next.indexOf(targetId);
     next.splice(from, 1);
-    next.splice(next.indexOf(targetId), 0, this.dragId);
+    next.splice(to, 0, this.dragId);
     this.updateConfig({ ...this.config, tiles: next });
     this.dragId = null;
     this.dragOverId = null;
@@ -417,7 +416,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   private async fetchHighlightedBooks(): Promise<void> {
-    const schoolId = this.schoolService.getSelectedSchoolId();
+    const schoolId = this.ownSchoolId;
     if (!schoolId) {
       this.booksLoading = false;
       return;
@@ -732,12 +731,8 @@ export class LeerkrachtDashboardComponent implements OnInit {
     this.fetchRecommendations(true, excludeRead);
   }
 
-  get schoolId(): number | null {
-    return this.schoolService.getSelectedSchoolId();
-  }
-
   private fetchSpotlights(): void {
-    const schoolId = this.schoolId;
+    const schoolId = this.ownSchoolId;
     if (!schoolId) {
       this.spotlightLoading = false;
       return;
@@ -771,6 +766,14 @@ export class LeerkrachtDashboardComponent implements OnInit {
 
   onHighlightsAdded(): void {
     this.fetchHighlightedBooks();
+  }
+
+  private async ensureOwnSchoolId(): Promise<void> {
+    if (this.ownSchoolId) return;
+    this.ownSchoolId = this.schoolService.getUserOwnSchoolId();
+    if (this.ownSchoolId) return;
+    await this.schoolService.selectUserDefaultSchool();
+    this.ownSchoolId = this.schoolService.getUserOwnSchoolId();
   }
 
   goToBooks(): void {
