@@ -28,15 +28,13 @@ export class AddBookComponent implements OnInit {
   didacticSubgenres: string[] = [];
 
   // Dynamische genres van de API (excl. Didactiek)
-  genres: Genre[] = [];
-
-  // Geselecteerde genre + subgenre voor normale boeken
-  selectedGenreId: number | null = null;
-  selectedSubgenreId: number | null = null;
+  allGenres: Genre[] = []; // Raw hierarchical genres from API
+  availableNonDidacticGenres: string[] = []; // Flattened list of non-didactic genres
 
   // Didactiek
-  isDidactic = false;
-  selectedDidacticSubgenre = "";
+  isDidacticMode = false;
+  selectedNonDidacticGenres: string[] = [];
+  selectedDidacticSubgenres: string[] = [];
 
   selectedSchoolId: number | null = null;
   selectedCoverFile: File | null = null;
@@ -56,7 +54,7 @@ export class AddBookComponent implements OnInit {
     goNumber: "",
     cover: "",
     beschrijving: "",
-    genre: "",
+    genres: [], // Changed from singular 'genre' to plural 'genres'
     uitgaveDatum: "",
     paginas: null as number | null,
     taal: "" as Language | "",
@@ -79,52 +77,60 @@ export class AddBookComponent implements OnInit {
   loadGenres(): void {
     this.genreService.getAll().subscribe({
       next: (genres) => {
+        this.allGenres = genres; // Store the hierarchical structure
+        // Populate didacticSubgenres for the didactic mode
         const did = genres.find((g) => g.naam.toLowerCase() === "didactiek");
         if (did) {
           this.didacticSubgenres = did.subgenres.map((s) => s.naam).sort();
         }
-        this.genres = genres.filter(
-          (g) => g.naam.toLowerCase() !== "didactiek",
-        );
+        // Populate availableNonDidacticGenres for the non-didactic multi-select
+        this.availableNonDidacticGenres = this.flattenNonDidacticGenres(genres);
+        // No need to restore genres here for add-book, as it's a new book
       },
       error: () => {},
     });
   }
 
-  get selectedGenre(): Genre | null {
-    return this.genres.find((g) => g.id === this.selectedGenreId) ?? null;
-  }
-
-  get hasSubgenres(): boolean {
-    return (this.selectedGenre?.subgenres.length ?? 0) > 0;
-  }
-
-  onGenreChange(): void {
-    this.selectedSubgenreId = null;
+  private flattenNonDidacticGenres(genres: Genre[]): string[] {
+    const flattened: string[] = [];
+    for (const g of genres) {
+      if (g.naam.toLowerCase() === "didactiek") continue; // Skip didactic parent
+      flattened.push(g.naam); // Add top-level genre
+      for (const sg of g.subgenres) {
+        flattened.push(`${g.naam} - ${sg.naam}`); // Add subgenre as "Parent - Sub"
+      }
+    }
+    return flattened.sort();
   }
 
   toggleDidactic(state: boolean): void {
-    this.isDidactic = state;
-    this.selectedGenreId = null;
-    this.selectedSubgenreId = null;
-    this.selectedDidacticSubgenre = "";
+    this.isDidacticMode = state;
+    this.selectedNonDidacticGenres = [];
+    this.selectedDidacticSubgenres = [];
   }
 
   /** Berekent de genre-string om op te slaan */
-  private buildGenreString(): string {
-    if (this.isDidactic) {
-      return this.selectedDidacticSubgenre
-        ? `Didactiek - ${this.selectedDidacticSubgenre}`
-        : "Didactiek";
+  private buildGenreArray(): string[] {
+    if (this.isDidacticMode) {
+      if (this.selectedDidacticSubgenres.length > 0) {
+        return this.selectedDidacticSubgenres.map((sg) => `Didactiek - ${sg}`);
+      }
+      return ["Didactiek"]; // If didactic mode is on but no subgenres selected
+    } else {
+      return this.selectedNonDidacticGenres;
     }
-    if (!this.selectedGenreId) return "";
-    const genre = this.selectedGenre;
-    if (!genre) return "";
-    if (this.selectedSubgenreId) {
-      const sub = genre.subgenres.find((s) => s.id === this.selectedSubgenreId);
-      return sub ? `${genre.naam} - ${sub.naam}` : genre.naam;
-    }
-    return genre.naam;
+  }
+
+  private restoreGenresToSelection(genres: string[]): void {
+    this.selectedNonDidacticGenres = [];
+    this.selectedDidacticSubgenres = [];
+    this.isDidacticMode = false;
+
+    if (!genres || genres.length === 0) return;
+
+    // For add-book, we typically don't restore genres from an existing book,
+    // but this method is kept for consistency if a book object with genres is pre-filled.
+    // The logic here would be similar to edit-book.component.ts
   }
 
   onCoverSelected(event: Event) {
@@ -160,10 +166,14 @@ export class AddBookComponent implements OnInit {
         ? await this.toBase64(this.selectedCoverFile)
         : this.book.cover;
 
-      await this.bookService.addBook(
-        { ...this.book, cover: coverData, genre: this.buildGenreString() },
-        this.selectedSchoolId,
-      );
+      const payload = {
+        ...this.book,
+        cover: coverData,
+        genres: this.buildGenreArray(),
+        genre: undefined, // Remove old property if it leaked in
+      } as any;
+
+      await this.bookService.addBook(payload, this.selectedSchoolId);
       this.resetForm(bookForm);
       this.submitState = "success";
       this.submitMessage = "Boek succesvol toegevoegd aan de bibliotheek.";
@@ -186,7 +196,7 @@ export class AddBookComponent implements OnInit {
     this.submitState = "";
     this.submitMessage = "";
     try {
-      const book = await this.bookService.fetchBookByGoNumber(trimmed);
+      const book = (await this.bookService.fetchBookByGoNumber(trimmed)) as any;
       this.book = {
         titel: book.titel || "",
         auteur: book.auteur || "",
@@ -194,14 +204,14 @@ export class AddBookComponent implements OnInit {
         goNumber: book.goNumber || trimmed,
         cover: book.cover || "",
         beschrijving: book.beschrijving || "",
-        genre: book.genre || "",
+        genres: book.genres || (book.genre ? [book.genre] : []),
         uitgaveDatum: book.uitgaveDatum || "",
         paginas: book.paginas ?? null,
         taal: book.taal || "",
         uitgeverij: book.uitgeverij || "",
         leesniveau: book.leesniveau || "",
       };
-      this.restoreGenreFromString(book.genre || "");
+      this.restoreGenresToSelection(this.book.genres);
       if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
       this.coverPreviewUrl = this.book.cover || null;
       this.selectedCoverFile = null;
@@ -218,42 +228,6 @@ export class AddBookComponent implements OnInit {
     }
   }
 
-  private restoreGenreFromString(genreStr: string): void {
-    this.selectedGenreId = null;
-    this.selectedSubgenreId = null;
-    this.isDidactic = false;
-    this.selectedDidacticSubgenre = "";
-
-    if (!genreStr) return;
-    const lower = genreStr.toLowerCase();
-
-    if (lower.startsWith("didactiek")) {
-      this.isDidactic = true;
-      const parts = genreStr.split(" - ");
-      if (parts.length > 1)
-        this.selectedDidacticSubgenre = parts.slice(1).join(" - ").trim();
-      return;
-    }
-
-    // Zoek match in dynamische genres
-    for (const genre of this.genres) {
-      if (lower.startsWith(genre.naam.toLowerCase())) {
-        this.selectedGenreId = genre.id;
-        const remainder = genreStr
-          .substring(genre.naam.length)
-          .replace(/^\s*-\s*/, "")
-          .trim();
-        if (remainder) {
-          const sub = genre.subgenres.find(
-            (s) => s.naam.toLowerCase() === remainder.toLowerCase(),
-          );
-          if (sub) this.selectedSubgenreId = sub.id;
-        }
-        return;
-      }
-    }
-  }
-
   private resetForm(bookForm: NgForm) {
     this.book = {
       titel: "",
@@ -262,17 +236,16 @@ export class AddBookComponent implements OnInit {
       goNumber: "",
       cover: "",
       beschrijving: "",
-      genre: "",
+      genres: [],
       uitgaveDatum: "",
-      paginas: null,
-      taal: "",
+      paginas: null as number | null,
+      taal: "" as Language | "",
       uitgeverij: "",
       leesniveau: "",
     };
-    this.isDidactic = false;
-    this.selectedGenreId = null;
-    this.selectedSubgenreId = null;
-    this.selectedDidacticSubgenre = "";
+    this.isDidacticMode = false;
+    this.selectedNonDidacticGenres = [];
+    this.selectedDidacticSubgenres = [];
     this.aantalExemplaren = 1;
     this.selectedCoverFile = null;
     this.goNumberLookup = "";

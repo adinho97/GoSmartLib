@@ -40,16 +40,15 @@ export class EditBookComponent implements OnInit {
   readonly languages = Object.values(Language);
   readonly leesniveaus = LEESNIVEAUS;
   didacticSubgenres: string[] = [];
+  availableNonDidacticGenres: string[] = []; // Flattened list of non-didactic genres
 
-  // Dynamische genres van API
-  genres: Genre[] = [];
+  allGenres: Genre[] = []; // Raw hierarchical genres from API
   genresLoaded = false;
 
   // Geselecteerde waarden
-  isDidactic = false;
-  selectedGenreId: number | null = null;
-  selectedSubgenreId: number | null = null;
-  selectedDidacticSubgenre = "";
+  isDidacticMode = false;
+  selectedNonDidacticGenres: string[] = [];
+  selectedDidacticSubgenres: string[] = [];
 
   book: Book = {
     id: 0,
@@ -57,7 +56,7 @@ export class EditBookComponent implements OnInit {
     auteur: "",
     cover: "",
     beschrijving: "",
-    genre: "",
+    genres: [], // Changed from singular 'genre' to plural 'genres'
     uitgaveDatum: "",
     paginas: 0,
     taal: "",
@@ -86,100 +85,87 @@ export class EditBookComponent implements OnInit {
     if (idParam) {
       this.bookId = Number(idParam);
       this.loadCopyData();
-      // Laad genres én boek tegelijk, herstel selectie als beide klaar zijn
-      this.genreService.getAll().subscribe({
-        next: (genres) => {
-          const did = genres.find((g) => g.naam.toLowerCase() === "didactiek");
-          if (did) {
-            this.didacticSubgenres = did.subgenres.map((s) => s.naam).sort();
-          }
-          this.genres = genres.filter(
-            (g) => g.naam.toLowerCase() !== "didactiek",
-          );
-
-          this.genresLoaded = true;
-          if (!this.isLoading) {
-            // boek was al geladen
-            this.restoreGenreFromString(this.book.genre || "");
-          }
-        },
-        error: () => {
-          this.genresLoaded = true;
-        },
-      });
+      this.loadGenres();
       this.loadBook();
     }
   }
 
   // ── Genre helpers ──────────────────────────────────────────────────────────
 
-  get selectedGenre(): Genre | null {
-    return this.genres.find((g) => g.id === this.selectedGenreId) ?? null;
+  loadGenres(): void {
+    this.genreService.getAll().subscribe({
+      next: (genres) => {
+        this.allGenres = genres;
+        const didacticParent = genres.find(
+          (g) => g.naam.toLowerCase() === "didactiek",
+        );
+        if (didacticParent) {
+          this.didacticSubgenres = didacticParent.subgenres
+            .map((s) => s.naam)
+            .sort();
+        }
+        this.availableNonDidacticGenres = this.flattenNonDidacticGenres(genres);
+        this.genresLoaded = true;
+        if (!this.isLoading && this.book.genres) {
+          this.restoreGenresToSelection(this.book.genres);
+        }
+      },
+      error: () => {
+        this.genresLoaded = true;
+      },
+    });
   }
 
-  get hasSubgenres(): boolean {
-    return (this.selectedGenre?.subgenres.length ?? 0) > 0;
-  }
-
-  onGenreChange(): void {
-    this.selectedSubgenreId = null;
+  private flattenNonDidacticGenres(genres: Genre[]): string[] {
+    const flattened: string[] = [];
+    for (const g of genres) {
+      if (g.naam.toLowerCase() === "didactiek") continue;
+      flattened.push(g.naam);
+      for (const sg of g.subgenres) {
+        flattened.push(`${g.naam} - ${sg.naam}`);
+      }
+    }
+    return flattened.sort();
   }
 
   toggleDidactic(state: boolean): void {
-    this.isDidactic = state;
-    this.selectedGenreId = null;
-    this.selectedSubgenreId = null;
-    this.selectedDidacticSubgenre = "";
+    this.isDidacticMode = state;
+    this.selectedNonDidacticGenres = [];
+    this.selectedDidacticSubgenres = [];
   }
 
-  private buildGenreString(): string {
-    if (this.isDidactic) {
-      return this.selectedDidacticSubgenre
-        ? `Didactiek - ${this.selectedDidacticSubgenre}`
-        : "Didactiek";
-    }
-    if (!this.selectedGenreId) return "";
-    const genre = this.selectedGenre;
-    if (!genre) return "";
-    if (this.selectedSubgenreId) {
-      const sub = genre.subgenres.find((s) => s.id === this.selectedSubgenreId);
-      return sub ? `${genre.naam} - ${sub.naam}` : genre.naam;
-    }
-    return genre.naam;
-  }
-
-  private restoreGenreFromString(genreStr: string): void {
-    this.selectedGenreId = null;
-    this.selectedSubgenreId = null;
-    this.isDidactic = false;
-    this.selectedDidacticSubgenre = "";
-
-    if (!genreStr) return;
-    const lower = genreStr.toLowerCase();
-
-    if (lower.startsWith("didactiek")) {
-      this.isDidactic = true;
-      const parts = genreStr.split(" - ");
-      if (parts.length > 1)
-        this.selectedDidacticSubgenre = parts.slice(1).join(" - ").trim();
-      return;
-    }
-
-    for (const genre of this.genres) {
-      if (lower.startsWith(genre.naam.toLowerCase())) {
-        this.selectedGenreId = genre.id;
-        const remainder = genreStr
-          .substring(genre.naam.length)
-          .replace(/^\s*-\s*/, "")
-          .trim();
-        if (remainder) {
-          const sub = genre.subgenres.find(
-            (s) => s.naam.toLowerCase() === remainder.toLowerCase(),
-          );
-          if (sub) this.selectedSubgenreId = sub.id;
-        }
-        return;
+  private buildGenreArray(): string[] {
+    if (this.isDidacticMode) {
+      if (this.selectedDidacticSubgenres.length > 0) {
+        return this.selectedDidacticSubgenres.map((sg) => `Didactiek - ${sg}`);
       }
+      return ["Didactiek"];
+    } else {
+      return this.selectedNonDidacticGenres;
+    }
+  }
+
+  private restoreGenresToSelection(genres: string[]): void {
+    this.selectedNonDidacticGenres = [];
+    this.selectedDidacticSubgenres = [];
+    this.isDidacticMode = false;
+
+    if (!genres || genres.length === 0) return;
+
+    const didacticGenre = genres.find((g) =>
+      g.toLowerCase().startsWith("didactiek"),
+    );
+    if (didacticGenre) {
+      this.isDidacticMode = true;
+      this.selectedDidacticSubgenres = genres
+        .filter((g) => g.toLowerCase().startsWith("didactiek"))
+        .map((g) => {
+          const parts = g.split(" - ");
+          return parts.length > 1 ? parts.slice(1).join(" - ").trim() : "";
+        })
+        .filter((s) => s !== "");
+    } else {
+      this.selectedNonDidacticGenres = [...genres];
     }
   }
 
@@ -187,11 +173,11 @@ export class EditBookComponent implements OnInit {
 
   loadBook() {
     this.bookService.getBookById(this.bookId).subscribe({
-      next: (data) => {
+      next: (data: Book) => {
         this.book = data;
         this.isLoading = false;
         if (this.genresLoaded) {
-          this.restoreGenreFromString(data.genre || "");
+          this.restoreGenresToSelection(data.genres || []);
         }
       },
       error: () => {
@@ -203,7 +189,7 @@ export class EditBookComponent implements OnInit {
 
   // ── Exemplaren ─────────────────────────────────────────────────────────────
 
-  async loadCopySummary() {
+  async loadCopySummary(): Promise<void> {
     try {
       this.copySummary = await this.loanService.getCopySummary(this.bookId);
     } catch {
@@ -211,11 +197,11 @@ export class EditBookComponent implements OnInit {
     }
   }
 
-  async loadCopyData() {
+  async loadCopyData(): Promise<void> {
     await Promise.all([this.loadCopySummary(), this.loadCopies()]);
   }
 
-  async loadCopies() {
+  async loadCopies(): Promise<void> {
     try {
       const copies = await this.loanService.getCopiesForBook(this.bookId);
       this.copies = copies
@@ -231,7 +217,7 @@ export class EditBookComponent implements OnInit {
     }
   }
 
-  async addCopy() {
+  async addCopy(): Promise<void> {
     this.isAddingCopy = true;
     this.copyMessage = "";
     this.copyError = "";
@@ -246,7 +232,7 @@ export class EditBookComponent implements OnInit {
     }
   }
 
-  async removeCopy(copyId: number) {
+  async removeCopy(copyId: number): Promise<void> {
     this.copyMessage = "";
     this.copyError = "";
     try {
@@ -261,7 +247,7 @@ export class EditBookComponent implements OnInit {
     }
   }
 
-  async updateCopyState(copy: CopyView) {
+  async updateCopyState(copy: CopyView): Promise<void> {
     this.copyMessage = "";
     this.copyError = "";
     copy.isUpdating = true;
@@ -312,12 +298,10 @@ export class EditBookComponent implements OnInit {
     return this.leesniveaus.some((n) => n.toLowerCase() === l);
   }
 
-  async onSubmit() {
+  async onSubmit(): Promise<void> {
     try {
-      await this.bookService.updateBook(this.bookId, {
-        ...this.book,
-        genre: this.buildGenreString(),
-      });
+      this.book.genres = this.buildGenreArray();
+      await this.bookService.updateBook(this.bookId, this.book);
       this.router.navigate(["/detail", this.bookId]);
     } catch {
       this.errorMessage = "Fout bij het opslaan van wijzigingen.";

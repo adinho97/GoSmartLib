@@ -398,7 +398,9 @@ export class LeeslijstCreateComponent implements OnInit {
 
       const matchesGenre =
         !this.selectedGenre ||
-        (book.genre || "").toLowerCase() === this.selectedGenre.toLowerCase();
+        (book.genres || []).some((g) =>
+          g.toLowerCase().includes(this.selectedGenre.toLowerCase()),
+        );
 
       const matchesLanguage =
         !this.selectedLanguage ||
@@ -409,22 +411,27 @@ export class LeeslijstCreateComponent implements OnInit {
         (book.leesniveau || "").toLowerCase() ===
           this.selectedLeesniveau.toLowerCase();
 
-      const averageRating = Number((book as any).averageRating ?? 0);
+      const averageRating = Number(book.averageRating ?? 0);
       const minRating = Number(this.selectedMinAverageRating || 0);
       const matchesMinRating =
         !this.selectedMinAverageRating || averageRating >= minRating;
 
-      const pages = typeof book.paginas === "number" ? book.paginas : null;
+      const pages = book.paginas;
       const matchesPages =
         pages === null || (pages >= this.minPages && pages <= this.maxPages);
 
-      const subgenre = ((book as any).subgenre || "").toLowerCase();
       const matchesNonFictionSubgenre =
         !this.selectedNonFictionSubgenre ||
-        subgenre === this.selectedNonFictionSubgenre.toLowerCase();
+        (book.genres || []).some((g) =>
+          g
+            .toLowerCase()
+            .includes(this.selectedNonFictionSubgenre.toLowerCase()),
+        );
       const matchesDidacticSubgenre =
         !this.selectedDidacticSubgenre ||
-        subgenre === this.selectedDidacticSubgenre.toLowerCase();
+        (book.genres || []).some((g) =>
+          g.toLowerCase().includes(this.selectedDidacticSubgenre.toLowerCase()),
+        );
 
       return (
         matchesQuery &&

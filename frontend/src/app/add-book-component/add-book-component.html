@@ -4,7 +4,6 @@
   </div>
   <div class="main-card">
     <form (ngSubmit)="onSubmit(bookForm)" #bookForm="ngForm" class="book-form">
-
       <!-- GO-nummer -->
       <div class="form-row">
         <label for="goNumberLookup">GO-nummer</label>
@@ -24,40 +23,74 @@
             {{ isLookupLoading ? "Laden..." : "Boek laden" }}
           </button>
         </div>
-        <small class="helper-text">Gebruik dit om boekgegevens automatisch in te vullen op basis van een bestaand GO-nummer.</small>
+        <small class="helper-text"
+          >Gebruik dit om boekgegevens automatisch in te vullen op basis van een
+          bestaand GO-nummer.</small
+        >
       </div>
 
       <!-- Titel -->
       <div class="form-row">
         <label for="titel">Titel</label>
-        <input id="titel" name="titel" #titel="ngModel" [(ngModel)]="book.titel" required maxlength="255" />
+        <input
+          id="titel"
+          name="titel"
+          #titel="ngModel"
+          [(ngModel)]="book.titel"
+          required
+          maxlength="255"
+        />
       </div>
 
       <!-- Auteur -->
       <div class="form-row">
         <label for="auteur">Auteur</label>
-        <input id="auteur" name="auteur" #auteur="ngModel" [(ngModel)]="book.auteur" required maxlength="255" />
+        <input
+          id="auteur"
+          name="auteur"
+          #auteur="ngModel"
+          [(ngModel)]="book.auteur"
+          required
+          maxlength="255"
+        />
       </div>
 
       <!-- Cover -->
       <div class="form-row">
         <label for="cover">Cover</label>
-        <input id="cover" name="cover" class="cover-file-input" type="file" accept="image/*" (change)="onCoverSelected($event)" />
+        <input
+          id="cover"
+          name="cover"
+          class="cover-file-input"
+          type="file"
+          accept="image/*"
+          (change)="onCoverSelected($event)"
+        />
         <div class="cover-upload-row">
           <label for="cover" class="cover-upload-button">Kies afbeelding</label>
-          <span class="cover-file-name">{{ selectedCoverFile?.name || "Geen bestand geselecteerd" }}</span>
+          <span class="cover-file-name"
+            >{{ selectedCoverFile?.name || "Geen bestand geselecteerd" }}</span
+          >
         </div>
         @if (coverPreviewUrl) {
-          <div class="cover-preview-wrapper">
-            <img [src]="coverPreviewUrl" alt="Cover preview" class="cover-preview" />
-          </div>
+        <div class="cover-preview-wrapper">
+          <img
+            [src]="coverPreviewUrl"
+            alt="Cover preview"
+            class="cover-preview"
+          />
+        </div>
         }
       </div>
 
       <!-- Beschrijving -->
       <div class="form-row">
         <label for="beschrijving">Beschrijving</label>
-        <textarea id="beschrijving" name="beschrijving" [(ngModel)]="book.beschrijving"></textarea>
+        <textarea
+          id="beschrijving"
+          name="beschrijving"
+          [(ngModel)]="book.beschrijving"
+        ></textarea>
       </div>
 
       <!-- Didactisch toggle -->
@@ -66,68 +99,76 @@
           <input
             type="checkbox"
             name="isDidactic"
-            [(ngModel)]="isDidactic"
-            (change)="toggleDidactic(isDidactic)"
+            [(ngModel)]="isDidacticMode"
+            (change)="toggleDidactic(isDidacticMode)"
           />
           Didactisch boek (lerarencollectie)
         </label>
       </div>
 
       <!-- DIDACTIEK modus -->
-      @if (isDidactic) {
-        <div class="form-row">
-          <label for="didacticSubgenre">Subgenre (didactiek)</label>
-          <select id="didacticSubgenre" name="didacticSubgenre" [(ngModel)]="selectedDidacticSubgenre">
-            <option value="">Kies een subgenre</option>
-            @for (sg of didacticSubgenres; track sg) {
-              <option [value]="sg">{{ sg }}</option>
-            }
-          </select>
-          <small class="helper-text">Genre staat vast op "Didactiek" voor de lerarencollectie.</small>
-        </div>
+      @if (isDidacticMode) {
+      <div class="form-row">
+        <label for="didacticSubgenres">Subgenres (didactiek)</label>
+        <select
+          id="didacticSubgenres"
+          name="didacticSubgenres"
+          [(ngModel)]="selectedDidacticSubgenres"
+          multiple
+        >
+          <option value="">Kies subgenres</option>
+          @for (sg of didacticSubgenres; track sg) {
+          <option [value]="sg">{{ sg }}</option>
+          }
+        </select>
+        <small class="helper-text"
+          >Genre staat vast op "Didactiek" voor de lerarencollectie. Houd Ctrl
+          (of Cmd) ingedrukt om meerdere te selecteren.</small
+        >
+      </div>
       }
 
       <!-- NORMAAL Genre modus -->
-      @if (!isDidactic) {
-        <div class="form-row">
-          <label for="genre">Genre</label>
-          <select
-            id="genre"
-            name="genre"
-            [(ngModel)]="selectedGenreId"
-            (ngModelChange)="onGenreChange()"
-          >
-            <option [value]="null">Kies een genre</option>
-            @for (g of genres; track g.id) {
-              <option [ngValue]="g.id">{{ g.naam }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Subgenre (dynamisch, enkel als het gekozen genre subgenres heeft) -->
-        @if (hasSubgenres) {
-          <div class="form-row">
-            <label for="subgenre">Subgenre</label>
-            <select id="subgenre" name="subgenre" [(ngModel)]="selectedSubgenreId">
-              <option [value]="null">Alle subgenres / geen keuze</option>
-              @for (sg of selectedGenre!.subgenres; track sg.id) {
-                <option [ngValue]="sg.id">{{ sg.naam }}</option>
-              }
-            </select>
-          </div>
-        }
+      @if (!isDidacticMode) {
+      <div class="form-row">
+        <label for="nonDidacticGenres">Genres</label>
+        <select
+          id="nonDidacticGenres"
+          name="nonDidacticGenres"
+          [(ngModel)]="selectedNonDidacticGenres"
+          multiple
+        >
+          <option value="">Kies genres</option>
+          @for (g of availableNonDidacticGenres; track g) {
+          <option [value]="g">{{ g }}</option>
+          }
+        </select>
+      </div>
+      <small class="helper-text"
+        >Houd Ctrl (of Cmd) ingedrukt om meerdere te selecteren.</small
+      >
       }
 
       <!-- Uitgavedatum -->
       <div class="form-row">
         <label for="uitgaveDatum">Uitgave datum</label>
-        <input id="uitgaveDatum" name="uitgaveDatum" type="date" [(ngModel)]="book.uitgaveDatum" />
+        <input
+          id="uitgaveDatum"
+          name="uitgaveDatum"
+          type="date"
+          [(ngModel)]="book.uitgaveDatum"
+        />
       </div>
 
       <!-- Pagina's -->
       <div class="form-row">
         <label for="paginas">Pagina's</label>
-        <input id="paginas" name="paginas" type="number" [(ngModel)]="book.paginas" />
+        <input
+          id="paginas"
+          name="paginas"
+          type="number"
+          [(ngModel)]="book.paginas"
+        />
       </div>
 
       <!-- Taal -->
@@ -136,7 +177,7 @@
         <select id="taal" name="taal" [(ngModel)]="book.taal">
           <option value="">Kies een taal</option>
           @for (language of languages; track language) {
-            <option [value]="language">{{ language }}</option>
+          <option [value]="language">{{ language }}</option>
           }
         </select>
       </div>
@@ -147,7 +188,7 @@
         <select id="leesniveau" name="leesniveau" [(ngModel)]="book.leesniveau">
           <option value="">Kies een leesniveau</option>
           @for (leesniveau of leesniveaus; track leesniveau) {
-            <option [value]="leesniveau">{{ leesniveau }}</option>
+          <option [value]="leesniveau">{{ leesniveau }}</option>
           }
         </select>
       </div>
@@ -155,7 +196,11 @@
       <!-- Uitgeverij -->
       <div class="form-row">
         <label for="uitgeverij">Uitgeverij</label>
-        <input id="uitgeverij" name="uitgeverij" [(ngModel)]="book.uitgeverij" />
+        <input
+          id="uitgeverij"
+          name="uitgeverij"
+          [(ngModel)]="book.uitgeverij"
+        />
       </div>
 
       <!-- Aantal exemplaren -->
@@ -169,17 +214,26 @@
           max="99"
           [(ngModel)]="aantalExemplaren"
         />
-        <small class="helper-text">Hoeveel fysieke exemplaren voeg je toe?</small>
+        <small class="helper-text"
+          >Hoeveel fysieke exemplaren voeg je toe?</small
+        >
       </div>
 
-      <button type="submit" class="submit-btn" [disabled]="isSaving || bookForm.invalid">
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="isSaving || bookForm.invalid"
+      >
         {{ isSaving ? "Opslaan..." : "Boek toevoegen" }}
       </button>
 
       @if (submitMessage) {
-        <p [class.success-message]="submitState === 'success'" [class.error-message]="submitState === 'error'">
-          {{ submitMessage }}
-        </p>
+      <p
+        [class.success-message]="submitState === 'success'"
+        [class.error-message]="submitState === 'error'"
+      >
+        {{ submitMessage }}
+      </p>
       }
     </form>
   </div>
