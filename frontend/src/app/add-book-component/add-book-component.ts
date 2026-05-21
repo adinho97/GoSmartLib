@@ -30,6 +30,8 @@ export class AddBookComponent implements OnInit {
   // Dynamische genres van de API (excl. Didactiek)
   allGenres: Genre[] = []; // Raw hierarchical genres from API
   availableNonDidacticGenres: string[] = []; // Flattened list of non-didactic genres
+  showGenreDropdown = false;
+  showDidacticDropdown = false;
 
   // Didactiek
   isDidacticMode = false;
@@ -120,6 +122,31 @@ export class AddBookComponent implements OnInit {
       return this.selectedNonDidacticGenres;
     }
   }
+  isSelected(genre: string): boolean {
+    return this.selectedNonDidacticGenres.includes(genre);
+  }
+
+  toggleGenre(genre: string): void {
+    const index = this.selectedNonDidacticGenres.indexOf(genre);
+    if (index >= 0) {
+      this.selectedNonDidacticGenres.splice(index, 1);
+    } else {
+      this.selectedNonDidacticGenres.push(genre);
+    }
+  }
+
+  isDidacticSubgenreSelected(sub: string): boolean {
+    return this.selectedDidacticSubgenres.includes(sub);
+  }
+
+  toggleDidacticSubgenre(sub: string): void {
+    const index = this.selectedDidacticSubgenres.indexOf(sub);
+    if (index >= 0) {
+      this.selectedDidacticSubgenres.splice(index, 1);
+    } else {
+      this.selectedDidacticSubgenres.push(sub);
+    }
+  }
 
   private restoreGenresToSelection(genres: string[]): void {
     this.selectedNonDidacticGenres = [];
@@ -128,9 +155,21 @@ export class AddBookComponent implements OnInit {
 
     if (!genres || genres.length === 0) return;
 
-    // For add-book, we typically don't restore genres from an existing book,
-    // but this method is kept for consistency if a book object with genres is pre-filled.
-    // The logic here would be similar to edit-book.component.ts
+    const didacticGenre = genres.find((g) =>
+      g.toLowerCase().startsWith("didactiek"),
+    );
+    if (didacticGenre) {
+      this.isDidacticMode = true;
+      this.selectedDidacticSubgenres = genres
+        .filter((g) => g.toLowerCase().startsWith("didactiek"))
+        .map((g) => {
+          const parts = g.split(" - ");
+          return parts.length > 1 ? parts.slice(1).join(" - ").trim() : "";
+        })
+        .filter((s) => s !== "");
+    } else {
+      this.selectedNonDidacticGenres = [...genres];
+    }
   }
 
   onCoverSelected(event: Event) {

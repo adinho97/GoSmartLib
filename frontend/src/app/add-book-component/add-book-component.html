@@ -109,44 +109,63 @@
       <!-- DIDACTIEK modus -->
       @if (isDidacticMode) {
       <div class="form-row">
-        <label for="didacticSubgenres">Subgenres (didactiek)</label>
-        <select
-          id="didacticSubgenres"
-          name="didacticSubgenres"
-          [(ngModel)]="selectedDidacticSubgenres"
-          multiple
-        >
-          <option value="">Kies subgenres</option>
-          @for (sg of didacticSubgenres; track sg) {
-          <option [value]="sg">{{ sg }}</option>
+        <label>Subgenres (didactiek)</label>
+        <div class="dropdown-multiselect">
+          <div
+            class="multiselect-trigger"
+            (click)="showDidacticDropdown = !showDidacticDropdown"
+          >
+            {{ selectedDidacticSubgenres.length ?
+            selectedDidacticSubgenres.join(', ') : 'Kies subgenres...' }}
+            <span class="arrow">▼</span>
+          </div>
+          @if (showDidacticDropdown) {
+          <div class="multiselect-menu">
+            @for (sg of didacticSubgenres; track sg) {
+            <div
+              class="multiselect-item"
+              [class.selected]="isDidacticSubgenreSelected(sg)"
+              (click)="toggleDidacticSubgenre(sg)"
+            >
+              {{ sg }}
+            </div>
+            }
+          </div>
           }
-        </select>
-        <small class="helper-text"
-          >Genre staat vast op "Didactiek" voor de lerarencollectie. Houd Ctrl
-          (of Cmd) ingedrukt om meerdere te selecteren.</small
-        >
+        </div>
+        <small class="helper-text">Klik om subgenres te selecteren.</small>
       </div>
       }
 
       <!-- NORMAAL Genre modus -->
       @if (!isDidacticMode) {
       <div class="form-row">
-        <label for="nonDidacticGenres">Genres</label>
-        <select
-          id="nonDidacticGenres"
-          name="nonDidacticGenres"
-          [(ngModel)]="selectedNonDidacticGenres"
-          multiple
-        >
-          <option value="">Kies genres</option>
-          @for (g of availableNonDidacticGenres; track g) {
-          <option [value]="g">{{ g }}</option>
+        <label>Genres</label>
+        <div class="dropdown-multiselect">
+          <div
+            class="multiselect-trigger"
+            (click)="showGenreDropdown = !showGenreDropdown"
+          >
+            {{ selectedNonDidacticGenres.length ?
+            selectedNonDidacticGenres.join(', ') : 'Kies genres...' }}
+            <span class="arrow">▼</span>
+          </div>
+          @if (showGenreDropdown) {
+          <div class="multiselect-menu">
+            @for (g of availableNonDidacticGenres; track g) {
+            <div
+              class="multiselect-item"
+              [class.selected]="isSelected(g)"
+              (click)="toggleGenre(g)"
+            >
+              {{ g }}
+            </div>
+            }
+          </div>
           }
-        </select>
+        </div>
+        <small class="helper-text">Klik om genres te selecteren.</small>
       </div>
-      <small class="helper-text"
-        >Houd Ctrl (of Cmd) ingedrukt om meerdere te selecteren.</small
-      >
       }
 
       <!-- Uitgavedatum -->

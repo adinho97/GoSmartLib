@@ -41,9 +41,10 @@ export class EditBookComponent implements OnInit {
   readonly leesniveaus = LEESNIVEAUS;
   didacticSubgenres: string[] = [];
   availableNonDidacticGenres: string[] = []; // Flattened list of non-didactic genres
-
   allGenres: Genre[] = []; // Raw hierarchical genres from API
   genresLoaded = false;
+  showGenreDropdown = false;
+  showDidacticDropdown = false;
 
   // Geselecteerde waarden
   isDidacticMode = false;
@@ -132,6 +133,32 @@ export class EditBookComponent implements OnInit {
     this.isDidacticMode = state;
     this.selectedNonDidacticGenres = [];
     this.selectedDidacticSubgenres = [];
+  }
+
+  isSelected(genre: string): boolean {
+    return this.selectedNonDidacticGenres.includes(genre);
+  }
+
+  toggleGenre(genre: string): void {
+    const index = this.selectedNonDidacticGenres.indexOf(genre);
+    if (index >= 0) {
+      this.selectedNonDidacticGenres.splice(index, 1);
+    } else {
+      this.selectedNonDidacticGenres.push(genre);
+    }
+  }
+
+  isDidacticSubgenreSelected(sub: string): boolean {
+    return this.selectedDidacticSubgenres.includes(sub);
+  }
+
+  toggleDidacticSubgenre(sub: string): void {
+    const index = this.selectedDidacticSubgenres.indexOf(sub);
+    if (index >= 0) {
+      this.selectedDidacticSubgenres.splice(index, 1);
+    } else {
+      this.selectedDidacticSubgenres.push(sub);
+    }
   }
 
   private buildGenreArray(): string[] {
