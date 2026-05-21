@@ -3,9 +3,30 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthContextService } from './auth-context.service';
 
+export interface SchoolMessage {
+  id: string;
+  title: string;
+  body: string;
+  accent: "info" | "warn" | "good" | "brand";
+  enabled: boolean;
+  startsAt: string;
+  endsAt: string;
+}
+
+export interface DayHours {
+  open: boolean;
+  from: string;
+  to: string;
+}
+
+export interface SchoolHours {
+  mon: DayHours; tue: DayHours; wed: DayHours; thu: DayHours; 
+  fri: DayHours; sat: DayHours; sun: DayHours;
+}
+
 export interface SchoolSettings {
-  messages: any[];
-  hours: any;
+  messages: SchoolMessage[];
+  hours: SchoolHours;
   levels: any[];
 }
 
