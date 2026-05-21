@@ -60,17 +60,19 @@ public class BookController {
     private final SchoolService schoolService;
     private final ReviewModerationService reviewModerationService;
     private final AuthService authService;
+    private final BookMapper bookMapper;
 
     public BookController(BookRepository repo, ReviewRepository reviewRepository,
             AppUserRepository appUserRepository, BookService bookService,
             SchoolService schoolService, ReviewModerationService reviewModerationService,
-            AuthService authService) {
+            AuthService authService, BookMapper bookMapper) {
         this.repo = repo;
         this.reviewRepository = reviewRepository;
         this.appUserRepository = appUserRepository;
         this.bookService = bookService;
         this.schoolService = schoolService;
         this.reviewModerationService = reviewModerationService;
+        this.bookMapper = bookMapper;
         this.authService = authService;
     }
 
@@ -85,9 +87,9 @@ public class BookController {
         if (isStudentRole(authentication, roleHeader) && effectiveSchoolId != null) {
             books = repo.findNonDidacticBySchool_Id(effectiveSchoolId);
         } else {
-            books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
+            books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId); // Changed from BookMapper::toDto
         }
-        return books.stream().map(BookMapper::toDto).collect(Collectors.toList());
+        return books.stream().map(bookMapper::toDto).collect(Collectors.toList());
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
@@ -98,10 +100,11 @@ public class BookController {
             @RequestHeader(value = "X-User-Sub", required = false) String subHeader) {
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
         List<Book> books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId);
-        return books.stream()
-                .filter(book -> StringUtils.hasText(book.getGenre()))
-                .filter(book -> book.getGenre().toLowerCase(Locale.ROOT).contains("didactiek"))
-                .map(BookMapper::toDto)
+        return books.stream() // Changed from BookMapper::toDto
+                .filter(book -> book.getGenres() != null && !book.getGenres().isEmpty())
+                .filter(book -> book.getGenres().stream()
+                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).contains("didactiek")))
+                .map(bookMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -127,7 +130,7 @@ public class BookController {
                 PageRequest.of(safePage, safeSize));
 
         List<BookDto> items = books.stream()
-                .map(BookMapper::toDto)
+                .map(bookMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(new PagedBookResponse(items, books.getTotalElements()));
     }
@@ -148,11 +151,14 @@ public class BookController {
         var bookOpt = effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId);
         if (bookOpt.isEmpty()) return ResponseEntity.notFound().build();
         Book book = bookOpt.get();
-        if (isStudentRole(authentication, roleHeader) && book.getGenre() != null
-                && book.getGenre().toLowerCase(Locale.ROOT).startsWith("didactiek")) {
+        if (isStudentRole(authentication, roleHeader)
+                && book.getGenres() != null
+                && book.getGenres().stream()
+                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).startsWith("didactiek"))) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(BookMapper.toDto(book));
+        // Changed from BookMapper::toDto
+        return ResponseEntity.ok(bookMapper.toDto(book));
     }
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
@@ -177,17 +183,17 @@ public class BookController {
         }
 
         try {
-            Book entity = BookMapper.toEntity(bookDto);
+            Book entity = bookMapper.toEntity(bookDto);
             entity.setId(null);
             entity.setGoNumber(null);
             entity.setSchool(school);
             assignGoNumberIfNeeded(entity);
             Book saved = repo.save(entity);
             logger.info("Book saved with id: {}", saved.getId());
-
+            // Changed from BookMapper::toDto
             BookDto result = repo.findById(saved.getId())
-                    .map(BookMapper::toDto)
-                    .orElse(BookMapper.toDto(saved));
+                    .map(bookMapper::toDto)
+                    .orElse(bookMapper.toDto(saved));
 
             return ResponseEntity.ok(result);
         } catch (Exception ex) {
@@ -222,20 +228,21 @@ public class BookController {
         return (effectiveSchoolId == null
                 ? repo.findByGoNumber(trimmedGoNumber)
                 : repo.findByGoNumberAndSchool_Id(trimmedGoNumber, effectiveSchoolId))
-                .map(BookMapper::toDto)
+                .map(bookMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/preview/{isbn}")
-    public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
-        BookDto dto;
+    public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) { // Removed 'fetched' variable from here
+        BookDto dto = null; // Initialize dto to null
         try {
             dto = bookService.fetchPreviewByIsbn(isbn);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();
         }
 
+        // Use dto directly, as it's already mapped in bookService.fetchPreviewByIsbn
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
@@ -305,7 +312,7 @@ public class BookController {
         existing.setIsbn(bookDto.getIsbn());
         existing.setCover(bookDto.getCover());
         existing.setBeschrijving(bookDto.getBeschrijving());
-        existing.setGenre(bookDto.getGenre());
+        existing.setGenres(bookMapper.toEntity(bookDto).getGenres()); // Update genres
         existing.setUitgaveDatum(bookDto.getUitgaveDatum());
         existing.setPaginas(bookDto.getPaginas());
         existing.setTaal(bookDto.getTaal());
@@ -321,7 +328,7 @@ public class BookController {
         repo.save(existing);
 
         return repo.findById(id)
-                .map(BookMapper::toDto)
+                .map(bookMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

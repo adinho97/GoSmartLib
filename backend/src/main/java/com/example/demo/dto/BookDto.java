@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import com.example.demo.entities.Leesniveau;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BookDto {
     private Long id;
@@ -32,8 +34,7 @@ public class BookDto {
     @Size(max = 5000)
     private String beschrijving;
 
-    @Size(max = 100)
-    private String genre;
+    private List<String> genres = new ArrayList<>();
 
     private LocalDate uitgaveDatum;
 
@@ -135,12 +136,12 @@ public class BookDto {
         this.beschrijving = beschrijving;
     }
 
-    public String getGenre() {
-        return genre;
+    public List<String> getGenres() {
+        return genres;
     }
 
-    public void setGenre(String genre) {
-        this.genre = genre;
+    public void setGenres(List<String> genres) {
+        this.genres = genres;
     }
 
     public LocalDate getUitgaveDatum() {

@@ -3,6 +3,7 @@ package com.example.demo.strategies;
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.Genre;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
@@ -51,9 +52,11 @@ public class GenreBasedStrategy implements RecommendationStrategy {
         // Extract genres from loans and count frequency
         Map<String, Integer> genreFrequency = new HashMap<>();
         for (var loan : loans) {
-            String genre = loan.getCopy().getBook().getGenre();
-            if (genre != null && !genre.isBlank()) {
-                genreFrequency.put(genre, genreFrequency.getOrDefault(genre, 0) + 1);
+            Set<Genre> genres = loan.getCopy().getBook().getGenres();
+            if (genres != null && !genres.isEmpty()) {
+                for (Genre genre : genres) {
+                    genreFrequency.put(genre.getNaam(), genreFrequency.getOrDefault(genre.getNaam(), 0) + 1);
+                }
             }
         }
 
@@ -75,22 +78,32 @@ public class GenreBasedStrategy implements RecommendationStrategy {
                 continue;
             }
 
-            // Skip if book has no genre
-            if (book.getGenre() == null || book.getGenre().isBlank()) {
+            // Skip if book has no genres
+            if (book.getGenres() == null || book.getGenres().isEmpty()) {
                 continue;
             }
 
-            // Score: how often this genre appears in user's loan history
-            Integer genreCount = genreFrequency.get(book.getGenre());
-            if (genreCount != null) {
-                double score = (genreCount.doubleValue() / loans.size()) * 100;
+            // Score: sum of frequencies of all genres in the book
+            double totalGenreScore = 0;
+            String matchedGenres = "";
+            for (Genre genre : book.getGenres()) {
+                Integer count = genreFrequency.get(genre.getNaam());
+                if (count != null) {
+                    totalGenreScore += count;
+                    if (!matchedGenres.isEmpty()) matchedGenres += ", ";
+                    matchedGenres += genre.getNaam();
+                }
+            }
+
+            if (totalGenreScore > 0) {
+                double score = (totalGenreScore / loans.size()) * 100;
                 RecommendedBook rec = new RecommendedBook(
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenre(),
+                        book.getGenres().stream().map(Genre::getNaam).collect(Collectors.toList()), // Pass List<String>
                         score,
-                        "Matches your reading history: " + book.getGenre());
+                        "Matches your reading history: " + matchedGenres);
                 scored.add(rec);
             }
         }
@@ -118,9 +131,11 @@ public class GenreBasedStrategy implements RecommendationStrategy {
         // Extract genres from loans and count frequency
         Map<String, Integer> genreFrequency = new HashMap<>();
         for (var loan : loans) {
-            String genre = loan.getCopy().getBook().getGenre();
-            if (genre != null && !genre.isBlank()) {
-                genreFrequency.put(genre, genreFrequency.getOrDefault(genre, 0) + 1);
+            Set<Genre> genres = loan.getCopy().getBook().getGenres();
+            if (genres != null && !genres.isEmpty()) {
+                for (Genre genre : genres) {
+                    genreFrequency.put(genre.getNaam(), genreFrequency.getOrDefault(genre.getNaam(), 0) + 1);
+                }
             }
         }
 
@@ -141,22 +156,32 @@ public class GenreBasedStrategy implements RecommendationStrategy {
                 continue;
             }
 
-            // Skip if book has no genre
-            if (book.getGenre() == null || book.getGenre().isBlank()) {
+            // Skip if book has no genres
+            if (book.getGenres() == null || book.getGenres().isEmpty()) {
                 continue;
             }
 
-            // Score: how often this genre appears in user's loan history
-            Integer genreCount = genreFrequency.get(book.getGenre());
-            if (genreCount != null) {
-                double score = (genreCount.doubleValue() / loans.size()) * 100;
+            // Score: sum of frequencies of all genres in the book
+            double totalGenreScore = 0;
+            String matchedGenres = "";
+            for (Genre genre : book.getGenres()) {
+                Integer count = genreFrequency.get(genre.getNaam());
+                if (count != null) {
+                    totalGenreScore += count;
+                    if (!matchedGenres.isEmpty()) matchedGenres += ", ";
+                    matchedGenres += genre.getNaam();
+                }
+            }
+
+            if (totalGenreScore > 0) {
+                double score = (totalGenreScore / loans.size()) * 100;
                 RecommendedBook rec = new RecommendedBook(
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenre(),
+                        book.getGenres().stream().map(Genre::getNaam).collect(Collectors.toList()), // Pass List<String>
                         score,
-                        "Matches your reading history: " + book.getGenre());
+                        "Matches your reading history: " + matchedGenres);
                 scored.add(rec);
             }
         }

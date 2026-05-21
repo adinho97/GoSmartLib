@@ -20,7 +20,7 @@ class MockBookService {
         goNumber: "GO-12345678",
         cover: "data:image/png;base64,abc",
         beschrijving: "Beschrijving",
-        genre: "Fantasy",
+        genres: ["Fantasy"], // Changed from singular 'genre' to plural 'genres'
         uitgaveDatum: "2020-01-01",
         paginas: 123,
         taal: "Nederlands",
@@ -46,7 +46,7 @@ class MockSchoolService {
 class MockAdminGenreService {
   getAll = jasmine
     .createSpy("getAll")
-    .and.returnValue(of([{ id: 1, naam: "Fictie" }]));  // Returns Observable, not Promise
+    .and.returnValue(of([{ id: 1, naam: "Fictie" }])); // Returns Observable, not Promise
 }
 
 describe("AddBookComponent", () => {

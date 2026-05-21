@@ -95,19 +95,19 @@ public class LeeslijstDTO {
         private String titel;
         private String auteur;
         private String cover;
-        private String genre;
+        private List<String> genres;
         private Integer paginas;
         private String isbn;
 
         public LeeslijstBookDTO() {}
 
         public LeeslijstBookDTO(Long bookId, String titel, String auteur, String cover, 
-                               String genre, Integer paginas, String isbn) {
+                               List<String> genres, Integer paginas, String isbn) {
             this.bookId = bookId;
             this.titel = titel;
             this.auteur = auteur;
             this.cover = cover;
-            this.genre = genre;
+            this.genres = genres;
             this.paginas = paginas;
             this.isbn = isbn;
         }
@@ -125,8 +125,8 @@ public class LeeslijstDTO {
         public String getCover() { return cover; }
         public void setCover(String cover) { this.cover = cover; }
 
-        public String getGenre() { return genre; }
-        public void setGenre(String genre) { this.genre = genre; }
+        public List<String> getGenres() { return genres; }
+        public void setGenres(List<String> genres) { this.genres = genres; }
 
         public Integer getPaginas() { return paginas; }
         public void setPaginas(Integer paginas) { this.paginas = paginas; }

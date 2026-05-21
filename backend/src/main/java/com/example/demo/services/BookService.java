@@ -43,6 +43,7 @@ public class BookService {
     private final OpenLibraryService openLibraryService;
     private final IsbnService isbnService;
     private final BulkImportService bulkImportService;
+    private final BookMapper bookMapper;
     private final KlasRepository klasRepository;
     private final ImportCoreService importCoreService;
     private final LeeslijstRepository leeslijstRepository;
@@ -53,6 +54,10 @@ public class BookService {
     @Autowired
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService, 
+            IsbnService isbnService, BulkImportService bulkImportService, BookMapper bookMapper, ImportCoreService importCoreService,
+            LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
+            HighlightedBookRepository highlightedBookRepository,
+            ClassReadingListItemRepository classReadingListItemRepository) {
             IsbnService isbnService, BulkImportService bulkImportService, ImportCoreService importCoreService, 
             KlasRepository klasRepository, LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
             HighlightedBookRepository highlightedBookRepository, ClassReadingListItemRepository classReadingListItemRepository) {
@@ -62,6 +67,7 @@ public class BookService {
         this.schoolService = schoolService;
         this.openLibraryService = openLibraryService;
         this.isbnService = isbnService;
+        this.bookMapper = bookMapper;
         this.bulkImportService = bulkImportService;
         this.klasRepository = klasRepository;
         this.importCoreService = importCoreService;
@@ -74,6 +80,12 @@ public class BookService {
     /**
      * Overloaded constructor for backwards compatibility with existing tests.
      */
+    public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository, LoanRepository loanRepository,
+                       SchoolService schoolService, OpenLibraryService openLibraryService, IsbnService isbnService,
+                       BulkImportService bulkImportService, BookMapper bookMapper, ImportCoreService importCoreService) {
+        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService, 
+                bulkImportService, bookMapper, importCoreService, null, null, null, null);
+
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
@@ -91,6 +103,7 @@ public class BookService {
             ImportCoreService importCoreService, KlasRepository klasRepository) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
                 bulkImportService, importCoreService, klasRepository, null, null, null, null);
+
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
@@ -98,11 +111,11 @@ public class BookService {
 
         if (schoolId == null) {
             return bookRepository.findByIsbn(normalizedIsbn)
-                    .map(BookMapper::toDto);
+                    .map(bookMapper::toDto);
         }
 
         return bookRepository.findByIsbnAndSchool_Id(normalizedIsbn, schoolId)
-                .map(BookMapper::toDto);
+                .map(bookMapper::toDto);
     }
 
     public BookDto fetchPreviewByIsbn(String isbn) {
@@ -111,7 +124,7 @@ public class BookService {
         if (fetched == null) {
             return null;
         }
-        return BookMapper.toDto(fetched);
+        return bookMapper.toDto(fetched);
     }
 
     @Transactional
@@ -234,7 +247,7 @@ public class BookService {
         Map<Long, Long> loanCountMap = buildLoanCountMap();
 
         return books.stream()
-                .map(BookMapper::toDto)
+                .map(bookMapper::toDto)
                 .peek(dto -> dto.setLoanCount(loanCountMap.getOrDefault(dto.getId(), 0L)))
                 .sorted((a, b) -> Long.compare(b.getLoanCount(), a.getLoanCount()))
                 .collect(Collectors.toList());

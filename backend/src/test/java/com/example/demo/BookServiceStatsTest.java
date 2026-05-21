@@ -4,10 +4,14 @@ import com.example.demo.dto.BookDto;
 import com.example.demo.entities.Book;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.repositories.GenreRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.BookService;
+import com.example.demo.mappers.BookMapper;
+import com.example.demo.services.ImportCoreService;
 import com.example.demo.services.IsbnService;
 import com.example.demo.services.OpenLibraryService;
+import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,22 +30,33 @@ class BookServiceStatsTest {
     private BookRepository bookRepository;
     private LoanRepository loanRepository;
     private BookService bookService;
+    private GenreRepository genreRepository;
+    private IsbnService isbnService;
+    private BookMapper bookMapper;
+    private ImportCoreService importCoreService;
+    private SchoolService schoolService;
 
     @BeforeEach
     void setUp() {
         bookRepository = mock(BookRepository.class);
         loanRepository = mock(LoanRepository.class);
         BookCopyRepository bookCopyRepository = mock(BookCopyRepository.class);
+        genreRepository = mock(GenreRepository.class);
+        isbnService = mock(IsbnService.class);
+        bookMapper = mock(BookMapper.class);
+        importCoreService = mock(ImportCoreService.class);
+        schoolService = mock(SchoolService.class);
 
         bookService = new BookService(
                 bookRepository,
                 bookCopyRepository,
                 loanRepository,
+                schoolService,
+                new OpenLibraryService(genreRepository, isbnService),
+                isbnService,
                 null,
-                new OpenLibraryService(),
-                new IsbnService(),
-                null,
-                null);
+                bookMapper,
+                importCoreService);
     }
 
     @Test

@@ -43,8 +43,13 @@ public class Book {
     @Size(max = 5000)
     private String beschrijving;
 
-    @Size(max = 100)
-    private String genre;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "book_genres",
+        joinColumns = @JoinColumn(name = "book_id"),
+        inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private Set<Genre> genres = new HashSet<>();
 
     @PastOrPresent
     private LocalDate uitgaveDatum;
@@ -143,12 +148,12 @@ public class Book {
         this.beschrijving = beschrijving;
     }
 
-    public String getGenre() {
-        return genre;
+    public Set<Genre> getGenres() {
+        return genres;
     }
 
-    public void setGenre(String genre) {
-        this.genre = genre;
+    public void setGenres(Set<Genre> genres) {
+        this.genres = genres;
     }
 
     public LocalDate getUitgaveDatum() {
