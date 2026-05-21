@@ -82,7 +82,9 @@ public class TrendingStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenre(),
+                        book.getGenres() != null
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
+                            : "",
                         score,
                         "Popular in our library (" + loanCount + " loans)");
                 scored.add(rec);
@@ -145,7 +147,9 @@ public class TrendingStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenre(),
+                        book.getGenres() != null
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
+                            : "",
                         score,
                         "Popular in our library (" + loanCount + " loans)");
                 scored.add(rec);

@@ -3,6 +3,8 @@ package com.example.demo.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.Genre;
+import com.example.demo.repositories.GenreRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -18,11 +20,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class OpenLibraryService {
 
+    private final GenreRepository genreRepository;
+    private final IsbnService isbnService; // Re-inject IsbnService
+
+    public OpenLibraryService(GenreRepository genreRepository, IsbnService isbnService) {
+        this.genreRepository = genreRepository;
+        this.isbnService = isbnService;
+    }
     private static final String LANGUAGE_MAPPING_RESOURCE = "language-mapping.json";
     private static final Map<String, String> LANGUAGE_TRANSLATIONS = loadLanguageTranslations();
 
@@ -101,7 +111,10 @@ public class OpenLibraryService {
             book.setAuteur(fetchAuthorName(body, restTemplate));
 
             // Genre: derived from subjects on edition or work
-            book.setGenre(resolveGenre(body, restTemplate));
+            book.setGenres(resolveGenres(body, restTemplate));
+
+            // Normalize and validate ISBN
+            book.setIsbn(isbnService.normalizeAndValidateIsbn(book.getIsbn()).orElse(book.getIsbn()));
 
             return book;
         } catch (HttpClientErrorException.NotFound e) {
@@ -182,7 +195,7 @@ public class OpenLibraryService {
      * Resolves the book genre from OpenLibrary subjects.
      * First tries edition-level subjects, then falls back to work-level subjects.
      */
-    private String resolveGenre(Map<String, Object> body, RestTemplate restTemplate) {
+    private Set<Genre> resolveGenres(Map<String, Object> body, RestTemplate restTemplate) {
         List<String> subjects = extractSubjects(body);
 
         if (subjects.isEmpty()) {
@@ -207,13 +220,16 @@ public class OpenLibraryService {
         }
 
         if (subjects.isEmpty())
-            return null;
+            return Collections.emptySet();
 
-        String genre = subjects.stream()
+        return subjects.stream()
                 .limit(3)
                 .map(this::translateSubject)
-                .collect(Collectors.joining(", "));
-        return genre.length() > 100 ? genre.substring(0, 100) : genre;
+                .map(genreName -> genreRepository.findByNaamIgnoreCase(genreName)
+                                                 .orElseGet(() -> {
+                                                     Genre newGenre = new Genre(); newGenre.setNaam(genreName); return genreRepository.save(newGenre);
+                                                 }))
+                .collect(Collectors.toSet());
     }
 
     /**

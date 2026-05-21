@@ -50,14 +50,14 @@ public class BookService {
     @Autowired
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService, 
-            IsbnService isbnService, BulkImportService bulkImportService, ImportCoreService importCoreService, 
+            IsbnService isbnService, BulkImportService bulkImportService, ImportCoreService importCoreService,
             LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
             HighlightedBookRepository highlightedBookRepository,
             ClassReadingListItemRepository classReadingListItemRepository) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.loanRepository = loanRepository;
-        this.schoolService = schoolService;
+        this.schoolService = schoolService; // Keep schoolService
         this.openLibraryService = openLibraryService;
         this.isbnService = isbnService;
         this.bulkImportService = bulkImportService;
@@ -71,12 +71,11 @@ public class BookService {
     /**
      * Overloaded constructor for backwards compatibility with existing tests.
      */
-    public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
-            LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
-            IsbnService isbnService, BulkImportService bulkImportService,
-            ImportCoreService importCoreService) {
-        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService,
-                isbnService, bulkImportService, importCoreService, null, null, null, null);
+    public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository, LoanRepository loanRepository,
+                       SchoolService schoolService, OpenLibraryService openLibraryService, IsbnService isbnService,
+                       BulkImportService bulkImportService, ImportCoreService importCoreService) {
+        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
+                bulkImportService, importCoreService, null, null, null, null);
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {

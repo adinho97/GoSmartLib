@@ -3,6 +3,7 @@ package com.example.demo.strategies;
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.Genre;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
@@ -88,7 +89,9 @@ public class AuthorBasedStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenre(),
+                        book.getGenres() != null
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
+                            : "", // Join genre names for display
                         score,
                         "By an author you read before: " + book.getAuteur());
                 scored.add(rec);
@@ -154,7 +157,9 @@ public class AuthorBasedStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenre(),
+                        book.getGenres() != null
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
+                            : "", // Join genre names for display
                         score,
                         "By an author you read before: " + book.getAuteur());
                 scored.add(rec);
