@@ -38,6 +38,7 @@ import { SchoolStatisticsComponent } from "./school-statistics/school-statistics
 import { LeaderboardComponent } from "./leaderboard/leaderboard.component";
 import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
 import { TeacherPromotionComponent } from "./teacher-promotion/teacher-promotion.component";
+import { SettingsComponent } from "./settings/settings.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -238,6 +239,12 @@ export const appRoutes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
+  {
+    path: "settings",
+    component: SettingsComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"]}
+  }
 ];
 
 @NgModule({

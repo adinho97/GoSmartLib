@@ -395,48 +395,8 @@
         <span class="confirm-label">Terugbrengdatum</span>
         <div class="due-date-row">
           <input type="date" [(ngModel)]="dueDate" [min]="today" class="date-input" />
-          @if (role === 'bibbeheerder') {
-          <button type="button" class="edit-default-days-btn" (click)="openDefaultDaysEdit()"
-            title="Standaard uitleentermijn aanpassen">
-            ⚙ Standaard: {{ defaultLoanDays }} dagen
-          </button>
-          }
         </div>
       </div>
-
-      @if (defaultDueDateEditOpen) {
-      <div class="return-modal-backdrop" role="dialog" aria-modal="true" (click)="closeDefaultDaysEdit()">
-        <div class="return-modal" (click)="$event.stopPropagation()">
-          <header class="return-modal-header">
-            <h3>Standaard uitleentermijn</h3>
-            <button type="button" class="return-modal-close" (click)="closeDefaultDaysEdit()">×</button>
-          </header>
-          <div class="return-modal-content">
-            <p class="return-modal-intro">
-              Stel het standaard aantal dagen in dat leerlingen boeken mogen houden.
-              Dit geldt voor alle nieuwe uitleningen van deze school.
-            </p>
-            <div class="return-modal-field">
-              <label for="default-days">Aantal dagen</label>
-              <input type="number" id="default-days" [(ngModel)]="tempDefaultLoanDays" min="1" max="365"
-                class="date-input" />
-            </div>
-            @if (defaultDaysError) {
-            <p class="field-error">{{ defaultDaysError }}</p>
-            }
-          </div>
-          <footer class="return-modal-actions">
-            <button type="button" class="cancel-return-btn" (click)="closeDefaultDaysEdit()">
-              Annuleren
-            </button>
-            <button type="button" class="confirm-return-btn" [disabled]="isSavingDefaultDays"
-              (click)="saveDefaultLoanDays()">
-              {{ isSavingDefaultDays ? 'Bezig...' : 'Opslaan' }}
-            </button>
-          </footer>
-        </div>
-      </div>
-      }
     </div>
 
     <h3 class="books-header">Geselecteerde boeken</h3>
