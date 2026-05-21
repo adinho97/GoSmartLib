@@ -3,7 +3,9 @@
     <header class="info-head">
       <div class="info-head-text">
         <h1 class="info-title">Info voor Leerlingen</h1>
-        <p class="info-sub">Zo leen je boeken uit en haal je het meeste uit GO!SmartLib.</p>
+        <p class="info-sub">
+          Zo leen je boeken uit en haal je het meeste uit GO!SmartLib.
+        </p>
       </div>
       @if (mode === "super_admin" && hasSchoolScope) {
         <div class="scope-toggle" role="group" aria-label="Scope">
@@ -11,12 +13,16 @@
             type="button"
             [class.active]="scopeMode === 'school'"
             (click)="setScope('school')"
-          >{{ scopeSchoolName }}</button>
+          >
+            {{ scopeSchoolName }}
+          </button>
           <button
             type="button"
             [class.active]="scopeMode === 'global'"
             (click)="setScope('global')"
-          >Alle scholen</button>
+          >
+            Alle scholen
+          </button>
         </div>
       }
     </header>
@@ -35,8 +41,15 @@
           (click)="toggleSection('STAP')"
         >
           <span class="section-title">Hoe wordt een boek uitgeleend?</span>
-          @if (isSectionAllGlobal("STAP")) { <span class="badge">globaal</span> }
-          <span class="fold-arrow" [class.open]="sectionOpen.STAP" aria-hidden="true">▾</span>
+          @if (isSectionAllGlobal("STAP")) {
+            <span class="badge">globaal</span>
+          }
+          <span
+            class="fold-arrow"
+            [class.open]="sectionOpen.STAP"
+            aria-hidden="true"
+            >▾</span
+          >
         </button>
       </h2>
       @if (sectionOpen.STAP) {
@@ -51,18 +64,45 @@
                     [(ngModel)]="editDraft.inhoud"
                   ></textarea>
                   <div class="edit-actions">
-                    <button type="button" class="btn-primary" [disabled]="saving" (click)="saveEdit(item)">Opslaan</button>
-                    <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuleer</button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="saving"
+                      (click)="saveEdit(item)"
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="cancelEdit()"
+                    >
+                      Annuleer
+                    </button>
                   </div>
                 </div>
               } @else {
                 <span class="item-body">{{ item.inhoud }}</span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">✎</button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Bewerken"
+                      (click)="startEdit(item)"
+                    >
+                      ✎
+                    </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">🗑</button>
+                    <button
+                      type="button"
+                      class="icon-btn icon-danger"
+                      [title]="removeLabel(item)"
+                      (click)="remove(item)"
+                    >
+                      🗑
+                    </button>
                   }
                 </span>
               }
@@ -79,12 +119,23 @@
                 [(ngModel)]="addDraft.inhoud"
               ></textarea>
               <div class="edit-actions">
-                <button type="button" class="btn-primary" [disabled]="saving" (click)="saveNew('STAP')">Toevoegen</button>
-                <button type="button" class="btn-ghost" (click)="cancelAdd()">Annuleer</button>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="saving"
+                  (click)="saveNew('STAP')"
+                >
+                  Toevoegen
+                </button>
+                <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                  Annuleer
+                </button>
               </div>
             </div>
           } @else {
-            <button type="button" class="add-btn" (click)="startAdd('STAP')">+ Stap toevoegen</button>
+            <button type="button" class="add-btn" (click)="startAdd('STAP')">
+              + Stap toevoegen
+            </button>
           }
         }
       }
@@ -100,8 +151,15 @@
           (click)="toggleSection('FEATURE')"
         >
           <span class="section-title">Hoe werkt de website?</span>
-          @if (isSectionAllGlobal("FEATURE")) { <span class="badge">globaal</span> }
-          <span class="fold-arrow" [class.open]="sectionOpen.FEATURE" aria-hidden="true">▾</span>
+          @if (isSectionAllGlobal("FEATURE")) {
+            <span class="badge">globaal</span>
+          }
+          <span
+            class="fold-arrow"
+            [class.open]="sectionOpen.FEATURE"
+            aria-hidden="true"
+            >▾</span
+          >
         </button>
       </h2>
       @if (sectionOpen.FEATURE) {
@@ -123,8 +181,21 @@
                     [(ngModel)]="editDraft.inhoud"
                   ></textarea>
                   <div class="edit-actions">
-                    <button type="button" class="btn-primary" [disabled]="saving" (click)="saveEdit(item)">Opslaan</button>
-                    <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuleer</button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="saving"
+                      (click)="saveEdit(item)"
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="cancelEdit()"
+                    >
+                      Annuleer
+                    </button>
                   </div>
                 </div>
               } @else {
@@ -133,10 +204,24 @@
                 </span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">✎</button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Bewerken"
+                      (click)="startEdit(item)"
+                    >
+                      ✎
+                    </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">🗑</button>
+                    <button
+                      type="button"
+                      class="icon-btn icon-danger"
+                      [title]="removeLabel(item)"
+                      (click)="remove(item)"
+                    >
+                      🗑
+                    </button>
                   }
                 </span>
               }
@@ -159,12 +244,23 @@
                 [(ngModel)]="addDraft.inhoud"
               ></textarea>
               <div class="edit-actions">
-                <button type="button" class="btn-primary" [disabled]="saving" (click)="saveNew('FEATURE')">Toevoegen</button>
-                <button type="button" class="btn-ghost" (click)="cancelAdd()">Annuleer</button>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="saving"
+                  (click)="saveNew('FEATURE')"
+                >
+                  Toevoegen
+                </button>
+                <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                  Annuleer
+                </button>
               </div>
             </div>
           } @else {
-            <button type="button" class="add-btn" (click)="startAdd('FEATURE')">+ Feature toevoegen</button>
+            <button type="button" class="add-btn" (click)="startAdd('FEATURE')">
+              + Feature toevoegen
+            </button>
           }
         }
       }
@@ -180,8 +276,15 @@
           (click)="toggleSection('TIP')"
         >
           <span class="section-title">Handige tips</span>
-          @if (isSectionAllGlobal("TIP")) { <span class="badge">globaal</span> }
-          <span class="fold-arrow" [class.open]="sectionOpen.TIP" aria-hidden="true">▾</span>
+          @if (isSectionAllGlobal("TIP")) {
+            <span class="badge">globaal</span>
+          }
+          <span
+            class="fold-arrow"
+            [class.open]="sectionOpen.TIP"
+            aria-hidden="true"
+            >▾</span
+          >
         </button>
       </h2>
       @if (sectionOpen.TIP) {
@@ -196,18 +299,45 @@
                     [(ngModel)]="editDraft.inhoud"
                   ></textarea>
                   <div class="edit-actions">
-                    <button type="button" class="btn-primary" [disabled]="saving" (click)="saveEdit(item)">Opslaan</button>
-                    <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuleer</button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="saving"
+                      (click)="saveEdit(item)"
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="cancelEdit()"
+                    >
+                      Annuleer
+                    </button>
                   </div>
                 </div>
               } @else {
                 <span class="item-body">{{ item.inhoud }}</span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">✎</button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Bewerken"
+                      (click)="startEdit(item)"
+                    >
+                      ✎
+                    </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">🗑</button>
+                    <button
+                      type="button"
+                      class="icon-btn icon-danger"
+                      [title]="removeLabel(item)"
+                      (click)="remove(item)"
+                    >
+                      🗑
+                    </button>
                   }
                 </span>
               }
@@ -224,12 +354,23 @@
                 [(ngModel)]="addDraft.inhoud"
               ></textarea>
               <div class="edit-actions">
-                <button type="button" class="btn-primary" [disabled]="saving" (click)="saveNew('TIP')">Toevoegen</button>
-                <button type="button" class="btn-ghost" (click)="cancelAdd()">Annuleer</button>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="saving"
+                  (click)="saveNew('TIP')"
+                >
+                  Toevoegen
+                </button>
+                <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                  Annuleer
+                </button>
               </div>
             </div>
           } @else {
-            <button type="button" class="add-btn" (click)="startAdd('TIP')">+ Tip toevoegen</button>
+            <button type="button" class="add-btn" (click)="startAdd('TIP')">
+              + Tip toevoegen
+            </button>
           }
         }
       }
@@ -245,8 +386,15 @@
           (click)="toggleSection('FAQ')"
         >
           <span class="section-title">Veelgestelde vragen</span>
-          @if (isSectionAllGlobal("FAQ")) { <span class="badge">globaal</span> }
-          <span class="fold-arrow" [class.open]="sectionOpen.FAQ" aria-hidden="true">▾</span>
+          @if (isSectionAllGlobal("FAQ")) {
+            <span class="badge">globaal</span>
+          }
+          <span
+            class="fold-arrow"
+            [class.open]="sectionOpen.FAQ"
+            aria-hidden="true"
+            >▾</span
+          >
         </button>
       </h2>
       @if (sectionOpen.FAQ) {
@@ -268,8 +416,21 @@
                     [(ngModel)]="editDraft.inhoud"
                   ></textarea>
                   <div class="edit-actions">
-                    <button type="button" class="btn-primary" [disabled]="saving" (click)="saveEdit(item)">Opslaan</button>
-                    <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuleer</button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="saving"
+                      (click)="saveEdit(item)"
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="cancelEdit()"
+                    >
+                      Annuleer
+                    </button>
                   </div>
                 </div>
               } @else {
@@ -280,17 +441,33 @@
                   (click)="toggleFaq(i)"
                 >
                   <span>{{ item.titel }}</span>
-                  <span class="faq-indicator">{{ isFaqOpen(i) ? "-" : "+" }}</span>
+                  <span class="faq-indicator">{{
+                    isFaqOpen(i) ? "-" : "+"
+                  }}</span>
                 </button>
                 @if (isFaqOpen(i)) {
                   <p class="faq-answer">{{ item.inhoud }}</p>
                 }
                 <span class="faq-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">✎</button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Bewerken"
+                      (click)="startEdit(item)"
+                    >
+                      ✎
+                    </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">🗑</button>
+                    <button
+                      type="button"
+                      class="icon-btn icon-danger"
+                      [title]="removeLabel(item)"
+                      (click)="remove(item)"
+                    >
+                      🗑
+                    </button>
                   }
                 </span>
               }
@@ -313,15 +490,194 @@
                 [(ngModel)]="addDraft.inhoud"
               ></textarea>
               <div class="edit-actions">
-                <button type="button" class="btn-primary" [disabled]="saving" (click)="saveNew('FAQ')">Toevoegen</button>
-                <button type="button" class="btn-ghost" (click)="cancelAdd()">Annuleer</button>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="saving"
+                  (click)="saveNew('FAQ')"
+                >
+                  Toevoegen
+                </button>
+                <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                  Annuleer
+                </button>
               </div>
             </div>
           } @else {
-            <button type="button" class="add-btn" (click)="startAdd('FAQ')">+ Vraag toevoegen</button>
+            <button type="button" class="add-btn" (click)="startAdd('FAQ')">
+              + Vraag toevoegen
+            </button>
           }
         }
       }
     </section>
+
+    <!-- CUSTOM Sections -->
+    @for (section of customSections; track section.title) {
+      <section class="info-card">
+        <h2 class="section-head">
+          <button
+            type="button"
+            class="section-toggle"
+            [attr.aria-expanded]="sectionOpen.CUSTOM"
+            (click)="toggleSection('CUSTOM')"
+          >
+            <span class="section-title">{{ section.title }}</span>
+            <span
+              class="fold-arrow"
+              [class.open]="sectionOpen.CUSTOM"
+              aria-hidden="true"
+              >▾</span
+            >
+          </button>
+          @if (mode !== "student" && section.items.length === 0) {
+            <button
+              type="button"
+              class="icon-btn icon-danger"
+              title="Rubriek verwijderen"
+              (click)="removeCustomSection(section.title)"
+            >
+              ×
+            </button>
+          }
+        </h2>
+
+        @if (sectionOpen.CUSTOM) {
+          <ul>
+            @for (item of section.items; track item.id) {
+              <li class="info-item">
+                @if (editingId === item.id) {
+                  <div class="edit-row">
+                    <input
+                      class="edit-input"
+                      type="text"
+                      placeholder="Titel"
+                      [(ngModel)]="editDraft.titel"
+                    />
+                    <textarea
+                      class="edit-input"
+                      rows="2"
+                      placeholder="Beschrijving"
+                      [(ngModel)]="editDraft.inhoud"
+                    ></textarea>
+                    <div class="edit-actions">
+                      <button
+                        type="button"
+                        class="btn-primary"
+                        [disabled]="saving"
+                        (click)="saveEdit(item)"
+                      >
+                        Opslaan
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-ghost"
+                        (click)="cancelEdit()"
+                      >
+                        Annuleer
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <span class="item-body">
+                    @if (item.titel) {
+                      <strong>{{ item.titel }}:</strong>
+                    }
+                    {{ item.inhoud }}
+                  </span>
+                  <span class="item-actions">
+                    @if (canEdit(item)) {
+                      <button
+                        type="button"
+                        class="icon-btn"
+                        title="Bewerken"
+                        (click)="startEdit(item)"
+                      >
+                        ✎
+                      </button>
+                    }
+                    @if (canRemove(item)) {
+                      <button
+                        type="button"
+                        class="icon-btn icon-danger"
+                        [title]="removeLabel(item)"
+                        (click)="remove(item)"
+                      >
+                        🗑
+                      </button>
+                    }
+                  </span>
+                }
+              </li>
+            }
+          </ul>
+
+          @if (canAdd("CUSTOM")) {
+            @if (
+              addingTo === "CUSTOM" && addingToCustomTitle === section.title
+            ) {
+              <div class="add-row">
+                <input
+                  class="edit-input"
+                  type="text"
+                  placeholder="Titel (optioneel)"
+                  [(ngModel)]="addDraft.titel"
+                />
+                <textarea
+                  class="edit-input"
+                  rows="2"
+                  placeholder="Beschrijving"
+                  [(ngModel)]="addDraft.inhoud"
+                ></textarea>
+                <div class="edit-actions">
+                  <button
+                    type="button"
+                    class="btn-primary"
+                    [disabled]="saving"
+                    (click)="saveNew('CUSTOM')"
+                  >
+                    Toevoegen
+                  </button>
+                  <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                    Annuleer
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="add-btn"
+                (click)="startAdd('CUSTOM', section.title)"
+              >
+                + Item toevoegen aan {{ section.title }}
+              </button>
+            }
+          }
+        }
+      </section>
+    }
+
+    @if (mode !== "student") {
+      <div
+        class="admin-rubriek-add"
+        style="margin-top: 2rem; display: flex; gap: 10px"
+      >
+        <input
+          class="input"
+          style="flex: 1"
+          type="text"
+          placeholder="Nieuwe rubrieknaam (bv. Boetes)..."
+          [(ngModel)]="newCustomSectionTitle"
+        />
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="!newCustomSectionTitle.trim()"
+          (click)="addCustomSection()"
+        >
+          Rubriek toevoegen
+        </button>
+      </div>
+    }
   </main>
 </div>

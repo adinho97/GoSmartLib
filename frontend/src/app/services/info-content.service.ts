@@ -1,27 +1,31 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Injectable } from "@angular/core";
+import { HttpClient, HttpParams } from "@angular/common/http";
+import { Observable } from "rxjs";
 
-export type Sectie = 'STAP' | 'FEATURE' | 'TIP' | 'FAQ';
+export type Sectie = "STAP" | "FEATURE" | "TIP" | "FAQ" | "CUSTOM";
 
 export type InfoContentItem = {
   id?: number;
   sectie: Sectie;
   titel?: string | null;
   inhoud: string;
+  customSectionTitle?: string | null;
   sortOrder?: number;
   schoolId?: number | null;
 };
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class InfoContentService {
-  private readonly apiUrl = '/api/info-content';
+  private readonly apiUrl = "/api/info-content";
 
   constructor(private http: HttpClient) {}
 
-  getAll(sectie: Sectie, schoolId?: number | null): Observable<InfoContentItem[]> {
-    let params = new HttpParams().set('sectie', sectie);
-    if (schoolId != null) params = params.set('schoolId', schoolId.toString());
+  getAll(
+    sectie: Sectie,
+    schoolId?: number | null,
+  ): Observable<InfoContentItem[]> {
+    let params = new HttpParams().set("sectie", sectie);
+    if (schoolId != null) params = params.set("schoolId", schoolId.toString());
     return this.http.get<InfoContentItem[]>(this.apiUrl, { params });
   }
 
@@ -39,7 +43,7 @@ export class InfoContentService {
 
   hide(id: number, schoolId?: number | null): Observable<void> {
     let params = new HttpParams();
-    if (schoolId != null) params = params.set('schoolId', schoolId.toString());
+    if (schoolId != null) params = params.set("schoolId", schoolId.toString());
     return this.http.post<void>(`${this.apiUrl}/${id}/hide`, null, { params });
   }
 }

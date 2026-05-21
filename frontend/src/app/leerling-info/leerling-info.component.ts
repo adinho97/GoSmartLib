@@ -12,6 +12,7 @@ type Scope = "school" | "global";
 interface Draft {
   titel: string;
   inhoud: string;
+  customSectionTitle?: string | null;
 }
 
 @Component({
@@ -21,13 +22,14 @@ interface Draft {
   standalone: false,
 })
 export class LeerlingInfoComponent implements OnInit {
-  readonly sections: Sectie[] = ["STAP", "FEATURE", "TIP", "FAQ"];
+  readonly sections: Sectie[] = ["STAP", "FEATURE", "TIP", "FAQ", "CUSTOM"];
 
   items: Record<Sectie, InfoContentItem[]> = {
     STAP: [],
     FEATURE: [],
     TIP: [],
     FAQ: [],
+    CUSTOM: [],
   };
 
   openFaqIndex: number | null = 0;
@@ -37,7 +39,11 @@ export class LeerlingInfoComponent implements OnInit {
     FEATURE: true,
     TIP: true,
     FAQ: true,
+    CUSTOM: true,
   };
+
+  customSections: { title: string; items: InfoContentItem[] }[] = [];
+  newCustomSectionTitle = "";
 
   mode: Mode = "student";
   scopeSchoolId: number | null = null;
@@ -48,6 +54,7 @@ export class LeerlingInfoComponent implements OnInit {
   editDraft: Draft = { titel: "", inhoud: "" };
 
   addingTo: Sectie | null = null;
+  addingToCustomTitle: string | null = null;
   addDraft: Draft = { titel: "", inhoud: "" };
 
   saving = false;
@@ -98,10 +105,44 @@ export class LeerlingInfoComponent implements OnInit {
     const schoolId = this.currentSchoolIdParam();
     for (const sectie of this.sections) {
       this.infoContentService.getAll(sectie, schoolId).subscribe({
-        next: (items) => (this.items[sectie] = items),
+        next: (items) => {
+          this.items[sectie] = items;
+          if (sectie === "CUSTOM") {
+            this.processCustomItems(items);
+          }
+        },
         error: () => (this.items[sectie] = []),
       });
     }
+  }
+
+  private processCustomItems(items: InfoContentItem[]): void {
+    const grouped: Record<string, InfoContentItem[]> = {};
+    items.forEach((item) => {
+      const title = item.customSectionTitle || "Overige";
+      if (!grouped[title]) grouped[title] = [];
+      grouped[title].push(item);
+    });
+    this.customSections = Object.keys(grouped).map((title) => ({
+      title,
+      items: grouped[title],
+    }));
+  }
+
+  addCustomSection(): void {
+    const title = this.newCustomSectionTitle.trim();
+    if (!title || this.customSections.some((s) => s.title === title)) return;
+    this.customSections.push({ title, items: [] });
+    this.newCustomSectionTitle = "";
+  }
+
+  removeCustomSection(title: string): void {
+    const section = this.customSections.find((s) => s.title === title);
+    if (section && section.items.length > 0) {
+      this.errorMsg = "Verwijder eerst alle items uit deze rubriek.";
+      return;
+    }
+    this.customSections = this.customSections.filter((s) => s.title !== title);
   }
 
   setScope(scope: Scope): void {
@@ -114,12 +155,13 @@ export class LeerlingInfoComponent implements OnInit {
   }
 
   hasTitle(sectie: Sectie): boolean {
-    return sectie === "FEATURE" || sectie === "FAQ";
+    return sectie === "FEATURE" || sectie === "FAQ" || sectie === "CUSTOM";
   }
 
   canAdd(sectie: Sectie): boolean {
     if (this.mode === "super_admin") return true;
-    if (this.mode === "librarian") return sectie === "TIP" || sectie === "FAQ";
+    if (this.mode === "librarian")
+      return sectie === "TIP" || sectie === "FAQ" || sectie === "CUSTOM";
     return false;
   }
 
@@ -140,7 +182,8 @@ export class LeerlingInfoComponent implements OnInit {
 
   private removeKind(item: InfoContentItem): "delete" | "hide" {
     if (item.schoolId != null) return "delete";
-    if (this.mode === "super_admin" && this.scopeMode === "global") return "delete";
+    if (this.mode === "super_admin" && this.scopeMode === "global")
+      return "delete";
     return "hide";
   }
 
@@ -170,6 +213,7 @@ export class LeerlingInfoComponent implements OnInit {
     this.editDraft = {
       titel: item.titel ?? "",
       inhoud: item.inhoud,
+      customSectionTitle: item.customSectionTitle,
     };
   }
 
@@ -179,7 +223,8 @@ export class LeerlingInfoComponent implements OnInit {
   }
 
   saveEdit(item: InfoContentItem): void {
-    if (this.editingId == null || item.id !== this.editingId || item.id == null) return;
+    if (this.editingId == null || item.id !== this.editingId || item.id == null)
+      return;
     if (!this.editDraft.inhoud.trim()) return;
     this.saving = true;
     this.errorMsg = "";
@@ -190,12 +235,17 @@ export class LeerlingInfoComponent implements OnInit {
         inhoud: this.editDraft.inhoud.trim(),
         sortOrder: item.sortOrder ?? 0,
         schoolId: item.schoolId ?? null,
+        customSectionTitle: this.editDraft.customSectionTitle,
       })
       .subscribe({
         next: (updated) => {
-          const list = this.items[item.sectie];
-          const idx = list.findIndex((x) => x.id === updated.id);
-          if (idx >= 0) list[idx] = updated;
+          if (item.sectie === "CUSTOM") {
+            this.loadAll(); // Herladen om groepering te herstellen
+          } else {
+            const list = this.items[item.sectie];
+            const idx = list.findIndex((x) => x.id === updated.id);
+            if (idx >= 0) list[idx] = updated;
+          }
           this.cancelEdit();
           this.saving = false;
         },
@@ -206,15 +256,17 @@ export class LeerlingInfoComponent implements OnInit {
       });
   }
 
-  startAdd(sectie: Sectie): void {
+  startAdd(sectie: Sectie, customTitle?: string): void {
     if (!this.canAdd(sectie)) return;
     this.cancelEdit();
     this.addingTo = sectie;
+    this.addingToCustomTitle = customTitle || null;
     this.addDraft = { titel: "", inhoud: "" };
   }
 
   cancelAdd(): void {
     this.addingTo = null;
+    this.addingToCustomTitle = null;
     this.addDraft = { titel: "", inhoud: "" };
   }
 
@@ -227,13 +279,18 @@ export class LeerlingInfoComponent implements OnInit {
       sectie,
       titel: this.addDraft.titel?.trim() || null,
       inhoud: this.addDraft.inhoud.trim(),
-      sortOrder: this.items[sectie].length,
+      sortOrder: sectie === "CUSTOM" ? 0 : this.items[sectie].length,
+      customSectionTitle: this.addingToCustomTitle,
       schoolId:
         this.mode === "super_admin" ? this.currentSchoolIdParam() : undefined,
     };
     this.infoContentService.create(payload).subscribe({
       next: (created) => {
-        this.items[sectie] = [...this.items[sectie], created];
+        if (sectie === "CUSTOM") {
+          this.loadAll(); // Refresh grouping
+        } else {
+          this.items[sectie] = [...this.items[sectie], created];
+        }
         this.cancelAdd();
         this.saving = false;
       },
