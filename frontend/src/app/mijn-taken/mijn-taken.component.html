@@ -233,6 +233,10 @@
       </header>
 
       <div class="return-modal-content">
+        @if (extensionSuccessMessage) {
+          <div class="ext-success" role="status">{{ extensionSuccessMessage }}</div>
+        }
+
         @if (!selectedStudentForExtension) {
           <!-- Stap 1: Leerling Zoeken -->
           <div class="ext-search-bar">

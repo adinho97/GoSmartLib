@@ -120,91 +120,74 @@
 .return-modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(20, 8, 16, 0.55);
-  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: var(--s-4);
 }
 
 .return-modal {
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 20px 48px rgba(135, 31, 66, 0.22);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 600px;
+  max-width: 460px;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
 .return-modal.modal-large {
-  max-width: 760px;
+  max-width: 720px;
 }
 
 .return-modal-header {
-  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
-  color: #ffffff;
-  padding: 1.1rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.return-modal-header::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at 100% 0%,
-    rgba(255, 255, 255, 0.14) 0%,
-    transparent 60%
-  );
-  pointer-events: none;
+  padding: 20px var(--s-5);
+  border-bottom: 1px solid var(--line);
 }
 
 .return-modal-header h3 {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  color: #ffffff;
-  position: relative;
+  color: var(--ink);
 }
 
 .return-modal-close {
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
-  width: 32px;
-  height: 32px;
-  font-size: 1.2rem;
-  color: #ffffff;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 20px;
   cursor: pointer;
   line-height: 1;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  transition: background 0.15s ease, transform 0.12s ease;
-  position: relative;
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
+  transition: background 0.12s;
 }
 
 .return-modal-close:hover {
-  background: rgba(255, 255, 255, 0.32);
-  transform: scale(1.05);
+  background: var(--surface-2);
 }
 
 .return-modal-content {
-  padding: 1.5rem;
+  padding: var(--s-5);
   flex-grow: 1;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
 }
 
 /* Search bar — shared look with Boek terugbrengen / Boek uitlenen */
@@ -212,19 +195,20 @@
   display: grid;
   grid-template-columns: 1fr 180px;
   gap: 10px;
-  margin-bottom: 1.1rem;
 }
 
 .ext-input-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
   padding: 0 14px;
-  color: #6b7280;
-  transition: border-color 0.15s, color 0.15s;
+  color: var(--ink-3);
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .ext-input-wrap:focus-within {
@@ -250,17 +234,17 @@
 }
 
 .ext-search-input::placeholder {
-  color: #9ca3af;
+  color: var(--ink-4);
 }
 
 .ext-class-select {
   width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
   padding: 10px 14px;
   font-size: 14px;
   font-family: inherit;
-  background: #ffffff;
+  background: var(--bg);
   color: var(--ink);
   transition: border-color 0.15s;
 }
@@ -276,29 +260,29 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 2.5rem 1rem;
-  color: #6b7280;
+  gap: var(--s-3);
+  padding: var(--s-6) var(--s-4);
+  color: var(--ink-3);
   text-align: center;
 }
 
 .ext-state p {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 13px;
 }
 
 .ext-empty svg {
-  width: 38px;
-  height: 38px;
-  color: #d4537e;
-  opacity: 0.55;
+  width: 36px;
+  height: 36px;
+  color: var(--ink-3);
+  opacity: 0.6;
 }
 
 .ext-spinner {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
-  border: 3px solid #f0dde5;
+  border: 3px solid var(--surface-2);
   border-top-color: var(--brand);
   animation: ext-spin 0.8s linear infinite;
 }
@@ -310,13 +294,19 @@
 }
 
 .ext-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 13px;
+  color: #c0392b;
   margin: 0;
+}
+
+.ext-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--r);
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: var(--good);
+  font-weight: 600;
 }
 
 /* Leerling list — shared look with Boek terugbrengen / Boek uitlenen */
@@ -338,13 +328,13 @@
   padding: 10px 12px;
   background: transparent;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--r);
   cursor: pointer;
   transition: background 0.12s;
 }
 
 .ext-leerling-item:hover {
-  background: #f5f7fa;
+  background: var(--surface-2);
 }
 
 /* Avatar circle */
@@ -352,8 +342,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #871f42;
-  color: #ffffff;
+  background: var(--brand);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -364,11 +354,9 @@
 }
 
 .ext-avatar-lg {
-  width: 52px;
-  height: 52px;
-  font-size: 1.2rem;
-  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
-  box-shadow: 0 2px 8px rgba(135, 31, 66, 0.25);
+  width: 48px;
+  height: 48px;
+  font-size: 18px;
 }
 
 .ext-leerling-info {
@@ -389,28 +377,27 @@
 }
 
 .ext-leerling-klas {
-  font-size: 0.78rem;
-  color: #6b7280;
+  font-size: 12px;
+  color: var(--ink-3);
   font-weight: 500;
 }
 
 .ext-chevron {
-  color: #9ca3af;
-  font-size: 1.1rem;
+  color: var(--ink-3);
+  font-size: 16px;
   flex-shrink: 0;
-  transition: color 0.15s ease, transform 0.12s ease;
+  transition: color 0.15s;
 }
 
 .ext-leerling-item:hover .ext-chevron {
-  color: var(--brand);
-  transform: translateX(3px);
+  color: var(--ink);
 }
 
 /* Extension view (step 2) */
 .extension-view {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--s-4);
 }
 
 .ext-back-btn {
@@ -418,36 +405,35 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--brand);
-  background: #ffffff;
-  color: var(--brand);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.12s ease;
   font-family: inherit;
+  transition: background 0.15s;
 }
 
 .ext-back-btn:hover {
-  background: rgba(135, 31, 66, 0.06);
-  transform: translateY(-1px);
+  background: var(--surface-2);
 }
 
 .ext-student-header {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
-  border: 1px solid #f0dde5;
-  border-radius: 14px;
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
 }
 
 .ext-student-name {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 16px;
   font-weight: 700;
   color: var(--ink);
   line-height: 1.2;
@@ -455,18 +441,16 @@
 
 .ext-student-klas {
   margin: 4px 0 0;
-  font-size: 0.82rem;
-  color: #6b7280;
+  font-size: 12px;
+  color: var(--ink-3);
   font-weight: 500;
 }
 
 .ext-section-label {
-  margin: 4px 0 -2px;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+  margin: 0;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--brand);
+  color: var(--ink);
 }
 
 /* Loans list */
@@ -476,25 +460,21 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 2px;
 }
 
 .ext-loan-row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--s-3);
   flex-wrap: wrap;
-  padding: 14px 16px;
-  background: #ffffff;
-  border: 1px solid #f0dde5;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 10px 8px;
+  border-radius: var(--r);
+  transition: background 0.12s;
 }
 
 .ext-loan-row:hover {
-  border-color: #e0c5d3;
-  box-shadow: 0 8px 20px rgba(135, 31, 66, 0.08);
+  background: var(--surface-2);
 }
 
 .ext-loan-info {
@@ -502,25 +482,24 @@
   min-width: 200px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .ext-loan-title {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--ink);
   line-height: 1.3;
 }
 
 .ext-loan-due {
-  font-size: 0.82rem;
-  color: #6b7280;
-  font-weight: 500;
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 .ext-loan-due.overdue {
-  color: #b91c1c;
-  font-weight: 700;
+  color: var(--warn);
+  font-weight: 600;
 }
 
 .ext-loan-actions {
@@ -531,49 +510,44 @@
 }
 
 .ext-date-input {
-  border: 1px solid #f0dde5;
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 0.88rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 7px 10px;
+  font-size: 13px;
   font-family: inherit;
-  background: #fff9fb;
+  background: var(--surface);
   color: var(--ink);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s;
 }
 
 .ext-date-input:focus {
   outline: none;
   border-color: var(--brand);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(135, 31, 66, 0.12);
 }
 
 .ext-primary-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 7px 16px;
+  background: var(--ink);
+  color: #fff;
   border: none;
-  border-radius: 999px;
-  padding: 9px 18px;
-  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 700;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.15s ease, opacity 0.15s ease;
   font-family: inherit;
-  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.25);
+  transition: background 0.15s;
 }
 
 .ext-primary-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(135, 31, 66, 0.35);
+  background: var(--brand);
 }
 
 .ext-primary-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 /* Mobile tweaks for modal */

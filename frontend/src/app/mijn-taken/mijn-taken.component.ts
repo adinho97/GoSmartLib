@@ -33,6 +33,9 @@ export class MijnTakenComponent implements OnInit {
   loansLoading = false;
   loansError = "";
 
+  extensionSuccessMessage = "";
+  private successMessageTimeout: ReturnType<typeof setTimeout> | null = null;
+
   selectedStudentForExtension: {
     sub: string;
     displayName: string;
@@ -62,8 +65,17 @@ export class MijnTakenComponent implements OnInit {
     this.studentClassFilter = "";
     this.studentsError = "";
     this.filteredStudents = [];
+    this.clearSuccessMessage();
 
     this.loadAvailableClasses();
+  }
+
+  private clearSuccessMessage(): void {
+    this.extensionSuccessMessage = "";
+    if (this.successMessageTimeout !== null) {
+      clearTimeout(this.successMessageTimeout);
+      this.successMessageTimeout = null;
+    }
   }
 
   private loadAvailableClasses(): void {
@@ -173,16 +185,36 @@ export class MijnTakenComponent implements OnInit {
     tempNewDueDate?: string;
   }): void {
     if (loan.tempNewDueDate) {
+      const newDueDate = loan.tempNewDueDate;
       void this.loanService
-        .updateLoanDueDate(Number(loan.id), loan.tempNewDueDate!)
+        .updateLoanDueDate(Number(loan.id), newDueDate)
         .then(() => {
-          loan.dueDate = loan.tempNewDueDate!;
+          loan.dueDate = newDueDate;
           delete loan.tempNewDueDate;
+          this.showSuccessMessage(
+            `"${loan.bookTitel}" verlengd tot ${this.formatDutchDate(newDueDate)}.`,
+          );
         })
         .catch((err) => {
           console.error("Failed to extend loan:", err);
-          // Could show an error toast here
+          this.loansError = "Verlengen mislukt. Probeer opnieuw.";
         });
     }
+  }
+
+  private showSuccessMessage(message: string): void {
+    this.extensionSuccessMessage = message;
+    if (this.successMessageTimeout !== null) {
+      clearTimeout(this.successMessageTimeout);
+    }
+    this.successMessageTimeout = setTimeout(() => {
+      this.extensionSuccessMessage = "";
+      this.successMessageTimeout = null;
+    }, 3500);
+  }
+
+  private formatDutchDate(iso: string): string {
+    const [year, month, day] = iso.split("-");
+    return `${day}/${month}/${year}`;
   }
 }
