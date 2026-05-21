@@ -3,6 +3,7 @@ import { ActivatedRoute } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 import { School } from "../models/school";
+import { AdminGenreService, Genre } from "../services/admin-genre.service";
 import { UiToastService } from "../services/ui-toast.service";
 
 type PaginationItem = number | "...";
@@ -57,26 +58,7 @@ export class BookListComponent implements OnInit {
   readonly ratingStars = [0, 1, 2, 3, 4];
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
-  readonly genres = [
-    "Didactiek",
-    "Fictie algemeen",
-    "Literaire roman",
-    "Spanning / thriller",
-    "Detective / misdaad",
-    "Fantasy",
-    "Sciencefiction",
-    "Dystopie",
-    "Historische roman",
-    "Romantiek",
-    "Coming-of-age",
-    "Avontuur",
-    "Oorlog & conflict",
-    "Horror",
-    "Humor",
-    "Graphic novel / strip",
-    "Poëzie",
-    "Non-fictie algemeen",
-  ];
+  genres: string[] = [];
   readonly languages = [
     "Nederlands",
     "Engels",
@@ -88,36 +70,8 @@ export class BookListComponent implements OnInit {
     "Latijn",
   ];
   readonly leesniveaus = ["A", "B", "C", "D"];
-  readonly nonFictionSubgenres = [
-    "Biografie / autobiografie",
-    "Wetenschap & technologie",
-    "Filosofie",
-    "Maatschappij & politiek",
-    "Psychologie",
-    "Geschiedenis",
-    "Kunst & cultuur",
-  ];
-  readonly didacticSubgenres = [
-    "Wiskunde",
-    "Taal",
-    "Geschiedenis",
-    "Kleuteronderwijs",
-    "Lager onderwijs",
-    "Secundair onderwijs",
-    "Volwasseneneducatie",
-    "Geheugen",
-    "Begrip",
-    "Denkprocessen",
-    "Samenwerking",
-    "Interactie",
-    "Dialoog",
-    "Online leren",
-    "E-learning platforms",
-    "Educatieve apps",
-    "Creativiteit",
-    "Zelfexpressie",
-    "Ervaringsgericht leren",
-  ];
+  nonFictionSubgenres: string[] = [];
+  didacticSubgenres: string[] = [];
   books: BookItem[] = [];
   isLoading = true;
   error = "";
@@ -172,6 +126,7 @@ export class BookListComponent implements OnInit {
     private route: ActivatedRoute,
     private bookService: BookService,
     private schoolService: SchoolService,
+    private genreService: AdminGenreService,
     private uiToastService: UiToastService,
   ) {
     // Close menu when clicking outside
@@ -198,12 +153,33 @@ export class BookListComponent implements OnInit {
     });
 
     await Promise.all([
+      this.loadGenres(),
       this.loadSchools().then(() => this.loadBooks()), // Sequential dependency: books need school selection
       this.loadWishlistState(), // Independent
       this.loadHighlightedBookIds(), // New: Load highlighted books
     ]);
 
     this.applyFilters();
+  }
+
+  async loadGenres() {
+    return new Promise<void>((resolve) => {
+      this.genreService.getAll().subscribe({
+        next: (genres: Genre[]) => {
+          this.genres = genres.map((g) => g.naam).sort();
+          const nf = genres.find(
+            (g) => g.naam.toLowerCase() === "non-fictie algemeen",
+          );
+          if (nf)
+            this.nonFictionSubgenres = nf.subgenres.map((s) => s.naam).sort();
+          const did = genres.find((g) => g.naam.toLowerCase() === "didactiek");
+          if (did)
+            this.didacticSubgenres = did.subgenres.map((s) => s.naam).sort();
+          resolve();
+        },
+        error: () => resolve(),
+      });
+    });
   }
 
   private initializeFiltersFromQueryParams() {

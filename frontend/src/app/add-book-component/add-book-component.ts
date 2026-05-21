@@ -16,15 +16,6 @@ export enum Language {
 }
 export const LEESNIVEAUS = ["A", "B", "C", "D"] as const;
 
-// Didactiek blijft hard-coded en apart
-const DIDACTIC_SUBGENRES = [
-  "Wiskunde", "Taal", "Geschiedenis", "Kleuteronderwijs",
-  "Lager onderwijs", "Secundair onderwijs", "Volwasseneneducatie",
-  "Geheugen", "Begrip", "Denkprocessen", "Samenwerking",
-  "Interactie", "Dialoog", "Online leren", "E-learning platforms",
-  "Educatieve apps", "Creativiteit", "Zelfexpressie", "Ervaringsgericht leren",
-];
-
 @Component({
   selector: "app-add-book",
   templateUrl: "./add-book-component.html",
@@ -34,7 +25,7 @@ const DIDACTIC_SUBGENRES = [
 export class AddBookComponent implements OnInit {
   readonly languages = Object.values(Language);
   readonly leesniveaus = LEESNIVEAUS;
-  readonly didacticSubgenres = DIDACTIC_SUBGENRES;
+  didacticSubgenres: string[] = [];
 
   // Dynamische genres van de API (excl. Didactiek)
   genres: Genre[] = [];
@@ -59,10 +50,18 @@ export class AddBookComponent implements OnInit {
   aantalExemplaren: number = 1;
 
   book = {
-    titel: "", auteur: "", isbn: "", goNumber: "", cover: "",
-    beschrijving: "", genre: "", uitgaveDatum: "",
-    paginas: null as number | null, taal: "" as Language | "",
-    uitgeverij: "", leesniveau: "",
+    titel: "",
+    auteur: "",
+    isbn: "",
+    goNumber: "",
+    cover: "",
+    beschrijving: "",
+    genre: "",
+    uitgaveDatum: "",
+    paginas: null as number | null,
+    taal: "" as Language | "",
+    uitgeverij: "",
+    leesniveau: "",
   };
 
   constructor(
@@ -79,13 +78,21 @@ export class AddBookComponent implements OnInit {
 
   loadGenres(): void {
     this.genreService.getAll().subscribe({
-      next: (genres) => { this.genres = genres; },
+      next: (genres) => {
+        const did = genres.find((g) => g.naam.toLowerCase() === "didactiek");
+        if (did) {
+          this.didacticSubgenres = did.subgenres.map((s) => s.naam).sort();
+        }
+        this.genres = genres.filter(
+          (g) => g.naam.toLowerCase() !== "didactiek",
+        );
+      },
       error: () => {},
     });
   }
 
   get selectedGenre(): Genre | null {
-    return this.genres.find(g => g.id === this.selectedGenreId) ?? null;
+    return this.genres.find((g) => g.id === this.selectedGenreId) ?? null;
   }
 
   get hasSubgenres(): boolean {
@@ -114,7 +121,7 @@ export class AddBookComponent implements OnInit {
     const genre = this.selectedGenre;
     if (!genre) return "";
     if (this.selectedSubgenreId) {
-      const sub = genre.subgenres.find(s => s.id === this.selectedSubgenreId);
+      const sub = genre.subgenres.find((s) => s.id === this.selectedSubgenreId);
       return sub ? `${genre.naam} - ${sub.naam}` : genre.naam;
     }
     return genre.naam;
@@ -170,18 +177,29 @@ export class AddBookComponent implements OnInit {
 
   async loadBookFromGoNumber(): Promise<void> {
     const trimmed = this.goNumberLookup.trim().toUpperCase();
-    if (!trimmed) { this.submitState = "error"; this.submitMessage = "Voer een GO-nummer in."; return; }
+    if (!trimmed) {
+      this.submitState = "error";
+      this.submitMessage = "Voer een GO-nummer in.";
+      return;
+    }
     this.isLookupLoading = true;
-    this.submitState = ""; this.submitMessage = "";
+    this.submitState = "";
+    this.submitMessage = "";
     try {
       const book = await this.bookService.fetchBookByGoNumber(trimmed);
       this.book = {
-        titel: book.titel || "", auteur: book.auteur || "",
-        isbn: book.isbn || "", goNumber: book.goNumber || trimmed,
-        cover: book.cover || "", beschrijving: book.beschrijving || "",
-        genre: book.genre || "", uitgaveDatum: book.uitgaveDatum || "",
-        paginas: book.paginas ?? null, taal: book.taal || "",
-        uitgeverij: book.uitgeverij || "", leesniveau: book.leesniveau || "",
+        titel: book.titel || "",
+        auteur: book.auteur || "",
+        isbn: book.isbn || "",
+        goNumber: book.goNumber || trimmed,
+        cover: book.cover || "",
+        beschrijving: book.beschrijving || "",
+        genre: book.genre || "",
+        uitgaveDatum: book.uitgaveDatum || "",
+        paginas: book.paginas ?? null,
+        taal: book.taal || "",
+        uitgeverij: book.uitgeverij || "",
+        leesniveau: book.leesniveau || "",
       };
       this.restoreGenreFromString(book.genre || "");
       if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);
@@ -191,9 +209,10 @@ export class AddBookComponent implements OnInit {
       this.submitMessage = `Boekgegevens geladen voor ${trimmed}.`;
     } catch (error: any) {
       this.submitState = "error";
-      this.submitMessage = error?.response?.status === 404
-        ? "Geen boek gevonden met dit GO-nummer."
-        : "Fout bij het ophalen van het boek.";
+      this.submitMessage =
+        error?.response?.status === 404
+          ? "Geen boek gevonden met dit GO-nummer."
+          : "Fout bij het ophalen van het boek.";
     } finally {
       this.isLookupLoading = false;
     }
@@ -211,7 +230,8 @@ export class AddBookComponent implements OnInit {
     if (lower.startsWith("didactiek")) {
       this.isDidactic = true;
       const parts = genreStr.split(" - ");
-      if (parts.length > 1) this.selectedDidacticSubgenre = parts.slice(1).join(" - ").trim();
+      if (parts.length > 1)
+        this.selectedDidacticSubgenre = parts.slice(1).join(" - ").trim();
       return;
     }
 
@@ -219,9 +239,14 @@ export class AddBookComponent implements OnInit {
     for (const genre of this.genres) {
       if (lower.startsWith(genre.naam.toLowerCase())) {
         this.selectedGenreId = genre.id;
-        const remainder = genreStr.substring(genre.naam.length).replace(/^\s*-\s*/, "").trim();
+        const remainder = genreStr
+          .substring(genre.naam.length)
+          .replace(/^\s*-\s*/, "")
+          .trim();
         if (remainder) {
-          const sub = genre.subgenres.find(s => s.naam.toLowerCase() === remainder.toLowerCase());
+          const sub = genre.subgenres.find(
+            (s) => s.naam.toLowerCase() === remainder.toLowerCase(),
+          );
           if (sub) this.selectedSubgenreId = sub.id;
         }
         return;
@@ -231,9 +256,18 @@ export class AddBookComponent implements OnInit {
 
   private resetForm(bookForm: NgForm) {
     this.book = {
-      titel: "", auteur: "", isbn: "", goNumber: "", cover: "",
-      beschrijving: "", genre: "", uitgaveDatum: "", paginas: null,
-      taal: "", uitgeverij: "", leesniveau: "",
+      titel: "",
+      auteur: "",
+      isbn: "",
+      goNumber: "",
+      cover: "",
+      beschrijving: "",
+      genre: "",
+      uitgaveDatum: "",
+      paginas: null,
+      taal: "",
+      uitgeverij: "",
+      leesniveau: "",
     };
     this.isDidactic = false;
     this.selectedGenreId = null;
