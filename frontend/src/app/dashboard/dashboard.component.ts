@@ -13,6 +13,7 @@ import {
   DashboardConfigService,
   DEFAULT_DASHBOARD_CONFIG,
 } from "../services/dashboard-config.service";
+import { SettingsService, SchoolSettings, SchoolMessage, DayHours } from "../services/settings.service";
 import { SchoolService } from "../services/school.service";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
 import { CarouselPageDef } from "./carousel-tile.component";
@@ -87,6 +88,11 @@ export class DashboardComponent implements OnInit {
   wishlistCount = 0;
   klasleeslijstCount = 0;
 
+  schoolSettings: SchoolSettings | null = null;
+  activeMessages: SchoolMessage[] = [];
+  currentMessageIdx = 0;
+  private messageRotationTimer: any;
+
   spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
 
   // Tile config
@@ -105,6 +111,13 @@ export class DashboardComponent implements OnInit {
 
   get firstLoan(): Loan | null {
     return this.myLoans[0] ?? null;
+  }
+
+  get greeting(): string {
+    const h = new Date().getHours();
+    if (h < 12) return 'Goeiemorgen';
+    if (h < 18) return 'Goedemiddag';
+    return 'Goeienavond';
   }
 
   get lastReturnedLoan(): Loan | null {
@@ -168,6 +181,7 @@ export class DashboardComponent implements OnInit {
     private userPreferencesService: UserPreferencesService,
     private schoolService: SchoolService,
     private dashboardConfigService: DashboardConfigService,
+    private settingsService: SettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -196,6 +210,13 @@ export class DashboardComponent implements OnInit {
     this.fetchSpotlights();
     this.fetchWishlistCount();
     this.fetchKlasleeslijstCount();
+    this.fetchSchoolSettings();
+  }
+
+  ngOnDestroy(): void {
+    if (this.messageRotationTimer) {
+      clearInterval(this.messageRotationTimer);
+    }
   }
 
   // ── Config management ──
@@ -582,6 +603,51 @@ export class DashboardComponent implements OnInit {
     } finally {
       this.spotlightLoading = false;
     }
+  }
+
+  private fetchSchoolSettings() {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) return;
+
+    this.settingsService.getSettings(schoolId).subscribe({
+      next: (settings) => {
+        this.schoolSettings = settings;
+        const today = new Date().toISOString().slice(0, 10);
+        this.activeMessages = (settings.messages || []).filter(m => 
+          m.enabled && (!m.startsAt || m.startsAt <= today) && (!m.endsAt || m.endsAt >= today)
+        );
+        this.startMessageRotation();
+      },
+      error: (err) => console.error("Fout bij ophalen schoolinstellingen:", err)
+    });
+  }
+
+  private startMessageRotation() {
+    if (this.activeMessages.length < 2) return;
+    this.messageRotationTimer = setInterval(() => {
+      if (this.activeMessages.length > 0) {
+        this.currentMessageIdx = (this.currentMessageIdx + 1) % this.activeMessages.length;
+      } else {
+        this.currentMessageIdx = 0;
+      }
+    }, 20000);
+  }
+
+  get currentMessage(): SchoolMessage | null {
+    return this.activeMessages[this.currentMessageIdx] || null;
+  }
+
+  get todayHours(): DayHours | null {
+    if (!this.schoolSettings?.hours) return null;
+    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const todayKey = days[new Date().getDay()] as keyof typeof this.schoolSettings.hours;
+    return this.schoolSettings.hours[todayKey] || null;
+  }
+
+  get todayHoursDisplay(): string {
+    const h = this.todayHours;
+    if (!h) return '';
+    return h.open ? `Open: ${h.from} – ${h.to}` : 'Vandaag gesloten';
   }
 
   private async fetchWishlistCount() {

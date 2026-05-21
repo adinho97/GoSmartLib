@@ -2,8 +2,10 @@
   <main class="info-content">
     <header class="info-head">
       <div class="info-head-text">
-        <h1 class="info-title">Info voor leerlingen</h1>
-        <p class="info-sub">Zo leen je boeken uit en haal je het meeste uit GO!SmartLib.</p>
+        <h1 class="info-title">Info voor Leerlingen</h1>
+        <p class="info-sub">
+          Zo leen je boeken uit en haal je het meeste uit GO!SmartLib.
+        </p>
       </div>
       @if (mode === "super_admin" && hasSchoolScope) {
         <div class="scope-toggle" role="group" aria-label="Scope">
@@ -11,12 +13,16 @@
             type="button"
             [class.active]="scopeMode === 'school'"
             (click)="setScope('school')"
-          >{{ scopeSchoolName }}</button>
+          >
+            {{ scopeSchoolName }}
+          </button>
           <button
             type="button"
             [class.active]="scopeMode === 'global'"
             (click)="setScope('global')"
-          >Alle scholen</button>
+          >
+            Alle scholen
+          </button>
         </div>
       }
     </header>
@@ -35,8 +41,15 @@
           (click)="toggleSection('STAP')"
         >
           <span class="section-title">Hoe wordt een boek uitgeleend?</span>
-          @if (isSectionAllGlobal("STAP")) { <span class="badge">globaal</span> }
-          <span class="fold-arrow" [class.open]="sectionOpen.STAP" aria-hidden="true">▾</span>
+          @if (isSectionAllGlobal("STAP")) {
+            <span class="badge">globaal</span>
+          }
+          <span
+            class="fold-arrow"
+            [class.open]="sectionOpen.STAP"
+            aria-hidden="true"
+            >▾</span
+          >
         </button>
       </h2>
       @if (sectionOpen.STAP) {
@@ -51,47 +64,44 @@
                     [(ngModel)]="editDraft.inhoud"
                   ></textarea>
                   <div class="edit-actions">
-                    <button type="button" class="btn-primary" [disabled]="saving" (click)="saveEdit(item)">Opslaan</button>
-                    <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuleer</button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="saving"
+                      (click)="saveEdit(item)"
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="cancelEdit()"
+                    >
+                      Annuleer
+                    </button>
                   </div>
                 </div>
               } @else {
                 <span class="item-body">{{ item.inhoud }}</span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Bewerken"
+                      (click)="startEdit(item)"
+                    >
+                      ✎
                     </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        <line x1="10" y1="11" x2="10" y2="17" />
-                        <line x1="14" y1="11" x2="14" y2="17" />
-                      </svg>
+                    <button
+                      type="button"
+                      class="icon-btn icon-danger"
+                      [title]="removeLabel(item)"
+                      (click)="remove(item)"
+                    >
+                      🗑
                     </button>
                   }
                 </span>
@@ -109,12 +119,23 @@
                 [(ngModel)]="addDraft.inhoud"
               ></textarea>
               <div class="edit-actions">
-                <button type="button" class="btn-primary" [disabled]="saving" (click)="saveNew('STAP')">Toevoegen</button>
-                <button type="button" class="btn-ghost" (click)="cancelAdd()">Annuleer</button>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="saving"
+                  (click)="saveNew('STAP')"
+                >
+                  Toevoegen
+                </button>
+                <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                  Annuleer
+                </button>
               </div>
             </div>
           } @else {
-            <button type="button" class="add-btn" (click)="startAdd('STAP')">+ Stap toevoegen</button>
+            <button type="button" class="add-btn" (click)="startAdd('STAP')">
+              + Stap toevoegen
+            </button>
           }
         }
       }
@@ -130,8 +151,15 @@
           (click)="toggleSection('FEATURE')"
         >
           <span class="section-title">Hoe werkt de website?</span>
-          @if (isSectionAllGlobal("FEATURE")) { <span class="badge">globaal</span> }
-          <span class="fold-arrow" [class.open]="sectionOpen.FEATURE" aria-hidden="true">▾</span>
+          @if (isSectionAllGlobal("FEATURE")) {
+            <span class="badge">globaal</span>
+          }
+          <span
+            class="fold-arrow"
+            [class.open]="sectionOpen.FEATURE"
+            aria-hidden="true"
+            >▾</span
+          >
         </button>
       </h2>
       @if (sectionOpen.FEATURE) {
@@ -153,8 +181,21 @@
                     [(ngModel)]="editDraft.inhoud"
                   ></textarea>
                   <div class="edit-actions">
-                    <button type="button" class="btn-primary" [disabled]="saving" (click)="saveEdit(item)">Opslaan</button>
-                    <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuleer</button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="saving"
+                      (click)="saveEdit(item)"
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="cancelEdit()"
+                    >
+                      Annuleer
+                    </button>
                   </div>
                 </div>
               } @else {
@@ -163,39 +204,23 @@
                 </span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Bewerken"
+                      (click)="startEdit(item)"
+                    >
+                      ✎
                     </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        <line x1="10" y1="11" x2="10" y2="17" />
-                        <line x1="14" y1="11" x2="14" y2="17" />
-                      </svg>
+                    <button
+                      type="button"
+                      class="icon-btn icon-danger"
+                      [title]="removeLabel(item)"
+                      (click)="remove(item)"
+                    >
+                      🗑
                     </button>
                   }
                 </span>
@@ -219,12 +244,23 @@
                 [(ngModel)]="addDraft.inhoud"
               ></textarea>
               <div class="edit-actions">
-                <button type="button" class="btn-primary" [disabled]="saving" (click)="saveNew('FEATURE')">Toevoegen</button>
-                <button type="button" class="btn-ghost" (click)="cancelAdd()">Annuleer</button>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="saving"
+                  (click)="saveNew('FEATURE')"
+                >
+                  Toevoegen
+                </button>
+                <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                  Annuleer
+                </button>
               </div>
             </div>
           } @else {
-            <button type="button" class="add-btn" (click)="startAdd('FEATURE')">+ Feature toevoegen</button>
+            <button type="button" class="add-btn" (click)="startAdd('FEATURE')">
+              + Feature toevoegen
+            </button>
           }
         }
       }
@@ -240,8 +276,15 @@
           (click)="toggleSection('TIP')"
         >
           <span class="section-title">Handige tips</span>
-          @if (isSectionAllGlobal("TIP")) { <span class="badge">globaal</span> }
-          <span class="fold-arrow" [class.open]="sectionOpen.TIP" aria-hidden="true">▾</span>
+          @if (isSectionAllGlobal("TIP")) {
+            <span class="badge">globaal</span>
+          }
+          <span
+            class="fold-arrow"
+            [class.open]="sectionOpen.TIP"
+            aria-hidden="true"
+            >▾</span
+          >
         </button>
       </h2>
       @if (sectionOpen.TIP) {
@@ -256,47 +299,44 @@
                     [(ngModel)]="editDraft.inhoud"
                   ></textarea>
                   <div class="edit-actions">
-                    <button type="button" class="btn-primary" [disabled]="saving" (click)="saveEdit(item)">Opslaan</button>
-                    <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuleer</button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="saving"
+                      (click)="saveEdit(item)"
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="cancelEdit()"
+                    >
+                      Annuleer
+                    </button>
                   </div>
                 </div>
               } @else {
                 <span class="item-body">{{ item.inhoud }}</span>
                 <span class="item-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Bewerken"
+                      (click)="startEdit(item)"
+                    >
+                      ✎
                     </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        <line x1="10" y1="11" x2="10" y2="17" />
-                        <line x1="14" y1="11" x2="14" y2="17" />
-                      </svg>
+                    <button
+                      type="button"
+                      class="icon-btn icon-danger"
+                      [title]="removeLabel(item)"
+                      (click)="remove(item)"
+                    >
+                      🗑
                     </button>
                   }
                 </span>
@@ -314,12 +354,23 @@
                 [(ngModel)]="addDraft.inhoud"
               ></textarea>
               <div class="edit-actions">
-                <button type="button" class="btn-primary" [disabled]="saving" (click)="saveNew('TIP')">Toevoegen</button>
-                <button type="button" class="btn-ghost" (click)="cancelAdd()">Annuleer</button>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="saving"
+                  (click)="saveNew('TIP')"
+                >
+                  Toevoegen
+                </button>
+                <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                  Annuleer
+                </button>
               </div>
             </div>
           } @else {
-            <button type="button" class="add-btn" (click)="startAdd('TIP')">+ Tip toevoegen</button>
+            <button type="button" class="add-btn" (click)="startAdd('TIP')">
+              + Tip toevoegen
+            </button>
           }
         }
       }
@@ -335,8 +386,15 @@
           (click)="toggleSection('FAQ')"
         >
           <span class="section-title">Veelgestelde vragen</span>
-          @if (isSectionAllGlobal("FAQ")) { <span class="badge">globaal</span> }
-          <span class="fold-arrow" [class.open]="sectionOpen.FAQ" aria-hidden="true">▾</span>
+          @if (isSectionAllGlobal("FAQ")) {
+            <span class="badge">globaal</span>
+          }
+          <span
+            class="fold-arrow"
+            [class.open]="sectionOpen.FAQ"
+            aria-hidden="true"
+            >▾</span
+          >
         </button>
       </h2>
       @if (sectionOpen.FAQ) {
@@ -358,8 +416,21 @@
                     [(ngModel)]="editDraft.inhoud"
                   ></textarea>
                   <div class="edit-actions">
-                    <button type="button" class="btn-primary" [disabled]="saving" (click)="saveEdit(item)">Opslaan</button>
-                    <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuleer</button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="saving"
+                      (click)="saveEdit(item)"
+                    >
+                      Opslaan
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ghost"
+                      (click)="cancelEdit()"
+                    >
+                      Annuleer
+                    </button>
                   </div>
                 </div>
               } @else {
@@ -370,46 +441,32 @@
                   (click)="toggleFaq(i)"
                 >
                   <span>{{ item.titel }}</span>
-                  <span class="faq-indicator">{{ isFaqOpen(i) ? "-" : "+" }}</span>
+                  <span class="faq-indicator">{{
+                    isFaqOpen(i) ? "-" : "+"
+                  }}</span>
                 </button>
                 @if (isFaqOpen(i)) {
                   <p class="faq-answer">{{ item.inhoud }}</p>
                 }
                 <span class="faq-actions">
                   @if (canEdit(item)) {
-                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEdit(item)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Bewerken"
+                      (click)="startEdit(item)"
+                    >
+                      ✎
                     </button>
                   }
                   @if (canRemove(item)) {
-                    <button type="button" class="icon-btn icon-danger" [title]="removeLabel(item)" (click)="remove(item)">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        <line x1="10" y1="11" x2="10" y2="17" />
-                        <line x1="14" y1="11" x2="14" y2="17" />
-                      </svg>
+                    <button
+                      type="button"
+                      class="icon-btn icon-danger"
+                      [title]="removeLabel(item)"
+                      (click)="remove(item)"
+                    >
+                      🗑
                     </button>
                   }
                 </span>
@@ -433,16 +490,195 @@
                 [(ngModel)]="addDraft.inhoud"
               ></textarea>
               <div class="edit-actions">
-                <button type="button" class="btn-primary" [disabled]="saving" (click)="saveNew('FAQ')">Toevoegen</button>
-                <button type="button" class="btn-ghost" (click)="cancelAdd()">Annuleer</button>
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="saving"
+                  (click)="saveNew('FAQ')"
+                >
+                  Toevoegen
+                </button>
+                <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                  Annuleer
+                </button>
               </div>
             </div>
           } @else {
-            <button type="button" class="add-btn" (click)="startAdd('FAQ')">+ Vraag toevoegen</button>
+            <button type="button" class="add-btn" (click)="startAdd('FAQ')">
+              + Vraag toevoegen
+            </button>
           }
         }
       }
     </section>
+
+    <!-- CUSTOM Sections -->
+    @for (section of customSections; track section.title) {
+      <section class="info-card">
+        <h2 class="section-head">
+          <button
+            type="button"
+            class="section-toggle"
+            [attr.aria-expanded]="customSectionOpen[section.title]"
+            (click)="toggleSection('CUSTOM', section.title)"
+          >
+            <span class="section-title">{{ section.title }}</span>
+            <span
+              class="fold-arrow"
+              [class.open]="customSectionOpen[section.title]"
+              aria-hidden="true"
+              >▾</span
+            >
+          </button>
+          @if (mode !== "student" && section.items.length === 0) {
+            <button
+              type="button"
+              class="icon-btn icon-danger"
+              title="Rubriek verwijderen"
+              (click)="removeCustomSection(section.title)"
+            >
+              ×
+            </button>
+          }
+        </h2>
+
+        @if (customSectionOpen[section.title]) {
+          <ul>
+            @for (item of section.items; track item.id) {
+              <li class="info-item">
+                @if (editingId === item.id) {
+                  <div class="edit-row">
+                    <input
+                      class="edit-input"
+                      type="text"
+                      placeholder="Titel"
+                      [(ngModel)]="editDraft.titel"
+                    />
+                    <textarea
+                      class="edit-input"
+                      rows="2"
+                      placeholder="Beschrijving"
+                      [(ngModel)]="editDraft.inhoud"
+                    ></textarea>
+                    <div class="edit-actions">
+                      <button
+                        type="button"
+                        class="btn-primary"
+                        [disabled]="saving"
+                        (click)="saveEdit(item)"
+                      >
+                        Opslaan
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-ghost"
+                        (click)="cancelEdit()"
+                      >
+                        Annuleer
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <span class="item-body">
+                    @if (item.titel) {
+                      <strong>{{ item.titel }}:</strong>
+                    }
+                    {{ item.inhoud }}
+                  </span>
+                  <span class="item-actions">
+                    @if (canEdit(item)) {
+                      <button
+                        type="button"
+                        class="icon-btn"
+                        title="Bewerken"
+                        (click)="startEdit(item)"
+                      >
+                        ✎
+                      </button>
+                    }
+                    @if (canRemove(item)) {
+                      <button
+                        type="button"
+                        class="icon-btn icon-danger"
+                        [title]="removeLabel(item)"
+                        (click)="remove(item)"
+                      >
+                        🗑
+                      </button>
+                    }
+                  </span>
+                }
+              </li>
+            }
+          </ul>
+
+          @if (canAdd("CUSTOM")) {
+            @if (
+              addingTo === "CUSTOM" && addingToCustomTitle === section.title
+            ) {
+              <div class="add-row">
+                <input
+                  class="edit-input"
+                  type="text"
+                  placeholder="Titel (optioneel)"
+                  [(ngModel)]="addDraft.titel"
+                />
+                <textarea
+                  class="edit-input"
+                  rows="2"
+                  placeholder="Beschrijving"
+                  [(ngModel)]="addDraft.inhoud"
+                ></textarea>
+                <div class="edit-actions">
+                  <button
+                    type="button"
+                    class="btn-primary"
+                    [disabled]="saving"
+                    (click)="saveNew('CUSTOM')"
+                  >
+                    Toevoegen
+                  </button>
+                  <button type="button" class="btn-ghost" (click)="cancelAdd()">
+                    Annuleer
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="add-btn"
+                (click)="startAdd('CUSTOM', section.title)"
+              >
+                + Item toevoegen aan {{ section.title }}
+              </button>
+            }
+          }
+        }
+      </section>
+    }
+
+    @if (mode !== "student") {
+      <div
+        class="admin-rubriek-add"
+        style="margin-top: 2rem; display: flex; gap: 10px"
+      >
+        <input
+          class="input"
+          style="flex: 1"
+          type="text"
+          placeholder="Nieuwe rubrieknaam (bv. Boetes)..."
+          [(ngModel)]="newCustomSectionTitle"
+        />
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="!newCustomSectionTitle.trim()"
+          (click)="addCustomSection()"
+        >
+          Rubriek toevoegen
+        </button>
+      </div>
+    }
   </main>
 
   @if (pendingRemoval) {

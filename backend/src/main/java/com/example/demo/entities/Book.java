@@ -64,8 +64,8 @@ public class Book {
     @Size(max = 255)
     private String uitgeverij;
 
-    @Enumerated(EnumType.STRING)
-    private Leesniveau leesniveau;
+    @Size(max = 50)
+    private String leesniveau;
 
     @Column(columnDefinition = "TEXT")
     @Size(max = 500)
@@ -188,11 +188,11 @@ public class Book {
         this.uitgeverij = uitgeverij;
     }
 
-    public Leesniveau getLeesniveau() {
+    public String getLeesniveau() {
         return leesniveau;
     }
 
-    public void setLeesniveau(Leesniveau leesniveau) {
+    public void setLeesniveau(String leesniveau) {
         this.leesniveau = leesniveau;
     }
 
@@ -219,6 +219,7 @@ public class Book {
     public void setSchool(School school) {
         this.school = school;
     }
+
     public Set<Review> getReviews() {
         return reviews;
     }

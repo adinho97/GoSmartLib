@@ -317,7 +317,9 @@ public class BookController {
         existing.setPaginas(bookDto.getPaginas());
         existing.setTaal(bookDto.getTaal());
         existing.setUitgeverij(bookDto.getUitgeverij());
-        existing.setLeesniveau(bookDto.getLeesniveau());
+        if (bookDto.getLeesniveau() != null) {
+            existing.setLeesniveau(bookDto.getLeesniveau().getLabel());
+        }
         assignGoNumberIfNeeded(existing);
 
         if (bookDto.getSchoolId() != null) {

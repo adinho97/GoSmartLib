@@ -1,0 +1,650 @@
+<main class="settings-page">
+  <header class="settings-head">
+    <div>
+      <h1 class="settings-title">Instellingen</h1>
+      <p class="settings-sub">
+        Beheer hoe jouw bib in GO!SmartLib werkt. Wijzigingen gelden voor de leerlingen en leerkrachten van jouw school.
+      </p>
+    </div>
+    <div class="school-chip" title="Wijzigingen gelden voor deze school">
+      <span class="school-chip-meta">
+        <span class="school-chip-eyebrow">School</span>
+        <span class="school-chip-name">{{ schoolName }}</span>
+      </span>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <div class="settings-loading">
+      <div class="spinner"></div>
+      <p>Instellingen laden...</p>
+    </div>
+  } @else {
+  <div class="settings-grid">
+    <aside class="settings-nav" aria-label="Instellingenrubrieken">
+      @for (n of nav; track n.id) {
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="activeAnchor === n.id"
+          (click)="scrollTo(n.id)"
+        >
+          <span class="nav-ico">
+            @switch (n.id) {
+              @case ('motd') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 11l18-8v18l-18-8z"/>
+                  <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+                </svg>
+              }
+              @case ('hours') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              }
+              @case ('loanterm') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              }
+              @case ('genres') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+              }
+              @case ('tags') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              }
+              @case ('levels') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                  <path d="M9 8h6M9 12h4"/>
+                </svg>
+              }
+            }
+          </span>
+          {{ n.label }}
+        </button>
+      }
+    </aside>
+
+    <div class="settings-content">
+      <!-- ── Berichten ───────────────────────── -->
+      <section class="s-card" id="motd">
+        <div class="s-card-head">
+          <div class="head-text">
+            <h2>Berichten</h2>
+            <p class="s-card-sub">Berichten verschijnen op het dashboard van leerlingen en leerkrachten. Bij meerdere actieve berichten wisselen ze elkaar om de 20 seconden af.</p>
+          </div>
+          <div class="head-aside">
+            <span class="scope-tag muted">{{ enabledMessages.length }}/{{ messages.length }} actief</span>
+          </div>
+        </div>
+
+        @if (currentPreview; as current) {
+          <div class="motd-preview-shell">
+            <div class="motd-preview-head">
+              <span class="motd-preview-label">Voorbeeld op het dashboard</span>
+              <span class="motd-preview-counter">
+                @if (enabledMessages.length > 1) {
+                  {{ previewIdx + 1 }} van {{ enabledMessages.length }} · wisselt elke 20s
+                } @else {
+                  1 actief bericht
+                }
+              </span>
+            </div>
+            <div class="motd-card accent-{{ current.accent }}">
+              <span class="motd-icon">
+                @if (current.accent === 'warn') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 11l18-8v18l-18-8z"/>
+                    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+                  </svg>
+                }
+              </span>
+              <div class="motd-body">
+                <h4 class="motd-title">{{ current.title || 'Titel van het bericht' }}</h4>
+                <p class="motd-text">{{ current.body }}</p>
+                <p class="motd-meta">{{ current.startsAt || '—' }} → {{ current.endsAt || '—' }}</p>
+              </div>
+            </div>
+            @if (enabledMessages.length > 1) {
+              <div class="motd-dots" role="tablist">
+                @for (m of enabledMessages; track m.id; let i = $index) {
+                  <button
+                    type="button"
+                    class="motd-dot"
+                    [class.active]="i === previewIdx"
+                    (click)="setPreviewIdx(i)"
+                    [attr.aria-label]="'Toon voorbeeld ' + (i + 1)"
+                  ></button>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="motd-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span>Er zijn momenteel geen actieve berichten. Het dashboard toont dan geen berichtenstrook.</span>
+          </div>
+        }
+
+        <div class="msg-list">
+          @for (m of messages; track m.id) {
+            @if (editingMessageId === m.id && messageDraft) {
+              <div class="msg-row editing">
+                <ng-container *ngTemplateOutlet="messageEditor"></ng-container>
+              </div>
+            } @else {
+              <div class="msg-row accent-{{ m.accent }}" [class.is-off]="!m.enabled">
+                <span class="msg-accent-bar accent-{{ m.accent }}" aria-hidden="true"></span>
+                <div class="msg-row-body">
+                  <h3 class="msg-row-title">{{ m.title || 'Naamloos bericht' }}</h3>
+                  <p class="msg-row-text">{{ m.body }}</p>
+                  <div class="msg-row-meta">
+                    <span class="msg-pill accent-{{ m.accent }}">{{ accentLabel(m.accent) }}</span>
+                    <span class="msg-dot">·</span>
+                    <span>{{ m.startsAt || '—' }} → {{ m.endsAt || '—' }}</span>
+                  </div>
+                </div>
+                <div class="msg-row-actions">
+                  <label class="toggle">
+                    <input type="checkbox" [checked]="m.enabled" (change)="toggleMessage(m.id, $any($event.target).checked)" />
+                    <span class="toggle-track"></span>
+                  </label>
+                  <button type="button" class="icon-btn" title="Bewerken" (click)="startEditMessage(m)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="icon-btn danger" title="Verwijderen" (click)="requestDeleteMessage(m)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1.4 14.1a2 2 0 0 1-2 1.9H8.4a2 2 0 0 1-2-1.9L5 6"/>
+                      <path d="M10 11v6M14 11v6"/>
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            }
+          }
+
+          @if (addingMessage && messageDraft) {
+            <div class="msg-row editing">
+              <ng-container *ngTemplateOutlet="messageEditor"></ng-container>
+            </div>
+          }
+        </div>
+
+        @if (!addingMessage) {
+          <button type="button" class="msg-add-btn" (click)="startAddMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nieuw bericht toevoegen
+          </button>
+        }
+
+        <ng-template #messageEditor>
+          @if (messageDraft) {
+            <div class="msg-edit">
+              <div class="form-row">
+                <label>Titel</label>
+                <input
+                  class="input"
+                  type="text"
+                  [(ngModel)]="messageDraft.title"
+                  placeholder="bv. Vakantie-uitleen vrijdag tot 15u"
+                  maxlength="80"
+                />
+              </div>
+              <div class="form-row">
+                <label>Bericht</label>
+                <textarea
+                  class="textarea"
+                  [ngModel]="messageDraft.body"
+                  (ngModelChange)="onMessageBody($event)"
+                  placeholder="Geef wat extra context. Wat moet de leerling weten, en wanneer geldt het?"
+                ></textarea>
+                <div class="char-counter">{{ charsLeft() }} tekens over</div>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-row">
+                  <label>Toont vanaf</label>
+                  <input class="input" type="date" [(ngModel)]="messageDraft.startsAt" />
+                </div>
+                <div class="form-row">
+                  <label>Tot</label>
+                  <input class="input" type="date" [(ngModel)]="messageDraft.endsAt" />
+                </div>
+              </div>
+              <div class="form-row">
+                <label>Stijl</label>
+                <div class="accent-picker">
+                  @for (a of accents; track a.id) {
+                    <button
+                      type="button"
+                      [attr.data-c]="a.id"
+                      class="accent-swatch"
+                      [class.active]="messageDraft.accent === a.id"
+                      (click)="setMessageAccent(a.id)"
+                    >
+                      <span class="accent-dot"></span>
+                      {{ a.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+              <div class="msg-edit-actions">
+                <button type="button" class="btn btn-ghost" (click)="cancelMessage()">Annuleren</button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  [disabled]="!messageDraft.title.trim() || !messageDraft.body.trim()"
+                  (click)="saveMessage()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  {{ addingMessage ? 'Bericht toevoegen' : 'Wijzigingen opslaan' }}
+                </button>
+              </div>
+            </div>
+          }
+        </ng-template>
+      </section>
+
+      <!-- ── Openingsuren ────────────────────── -->
+      <section class="s-card" id="hours">
+        <div class="s-card-head">
+          <div class="head-text">
+            <h2>Openingsuren bibliotheek</h2>
+            <p class="s-card-sub">Wanneer leerlingen aan de balie boeken kunnen ontlenen of terugbrengen. Verschijnt ook op de infopagina.</p>
+          </div>
+        </div>
+
+        <div class="hours-table">
+          @for (d of days; track d.id) {
+            <div class="hours-row" [class.closed]="!hours[d.id].open">
+              <div class="hours-cell">
+                <span class="day-label">{{ d.label }}<span class="day-short">{{ d.short }}</span></span>
+              </div>
+              <div class="hours-cell">
+                <label class="toggle">
+                  <input type="checkbox" [checked]="hours[d.id].open" (change)="setDayOpen(d.id, $any($event.target).checked)" />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+              <div class="hours-cell">
+                @if (hours[d.id].open) {
+                  <div class="time-pair">
+                    <input class="time-input" type="time" [value]="hours[d.id].from" (change)="setDayFrom(d.id, $any($event.target).value)" />
+                    <span class="time-arrow">→</span>
+                    <input class="time-input" type="time" [value]="hours[d.id].to" (change)="setDayTo(d.id, $any($event.target).value)" />
+                  </div>
+                } @else {
+                  <span class="closed-label">Gesloten</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="hours-presets">
+          <span class="preset-chip-label">Snel instellen:</span>
+          <button type="button" class="preset-chip" (click)="applyHoursPreset('school-week')">Schoolweek 8u30–16u30</button>
+          <button type="button" class="preset-chip" (click)="applyHoursPreset('lunch-only')">Enkel middagpauze</button>
+          <button type="button" class="preset-chip" (click)="applyHoursPreset('closed')">Alles op gesloten</button>
+        </div>
+      </section>
+
+      <!-- ── Uitleentermijn ──────────────────── -->
+      <section class="s-card" id="loanterm">
+        <div class="s-card-head">
+          <div class="head-text">
+            <h2>Uitleentermijn</h2>
+            <p class="s-card-sub">Standaard hoelang leerlingen een boek mogen houden. Aan de balie kan dit per uitlening nog handmatig aangepast worden.</p>
+          </div>
+          <div class="head-aside">
+            <span class="scope-tag muted">Netwerk: {{ networkLoanDays }} dagen</span>
+          </div>
+        </div>
+
+        <div class="loan-stepper-row">
+          <div class="loan-stepper">
+            <button type="button" class="step-btn" aria-label="Eén dag minder" (click)="incLoan(-1)" [disabled]="loanDays <= minLoanDays">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+            <div class="step-value">
+              <input
+                type="number"
+                class="step-input"
+                [min]="minLoanDays"
+                [max]="maxLoanDays"
+                [value]="loanDays"
+                (input)="setLoanDays($any($event.target).valueAsNumber)"
+              />
+              <span class="step-unit">{{ loanDays === 1 ? 'dag' : 'dagen' }}</span>
+            </div>
+            <button type="button" class="step-btn" aria-label="Eén dag meer" (click)="incLoan(1)" [disabled]="loanDays >= maxLoanDays">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="loan-presets">
+            @for (p of loanPresets; track p.days) {
+              <button
+                type="button"
+                class="preset-chip"
+                [class.active]="loanDays === p.days"
+                (click)="setLoanDays(p.days)"
+              >
+                {{ p.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="loan-delta" [ngClass]="deltaClass">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>{{ deltaCopy }}</span>
+        </div>
+      </section>
+
+      <!-- ── Genres ──────────────────────────── -->
+      <section class="s-card" id="genres">
+        <div class="s-card-head">
+          <div class="head-text">
+            <h2>Genres &amp; subgenres</h2>
+            <p class="s-card-sub">Genres die leerlingen kunnen filteren in de catalogus en die bij het toevoegen van een boek beschikbaar zijn.</p>
+          </div>
+          <div class="head-aside">
+            <span class="scope-tag muted">{{ genres.length }} genres</span>
+          </div>
+        </div>
+
+        <div class="genre-search">
+          <span class="genre-search-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
+          <input
+            class="genre-search-input"
+            type="search"
+            placeholder="Zoek genres of subgenres…"
+            [(ngModel)]="genreQuery"
+          />
+          @if (genreQuery) {
+            <button type="button" class="genre-search-clear" (click)="clearGenreQuery()" aria-label="Wis zoekopdracht">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          }
+        </div>
+
+        <div class="genre-list">
+          @for (g of visibleGenres; track g.id) {
+            <div class="genre-item">
+              @if (editingGenreId === g.id) {
+                <div class="genre-edit-row">
+                  <input
+                    class="input"
+                    [(ngModel)]="editingGenreName"
+                    (keydown.enter)="saveEditGenre(g)"
+                    (keydown.escape)="cancelEditGenre()"
+                  />
+                  <div style="display:flex;gap:6px;">
+                    <button type="button" class="btn btn-ghost" (click)="cancelEditGenre()">Annuleren</button>
+                    <button type="button" class="btn btn-primary" [disabled]="!editingGenreName.trim()" (click)="saveEditGenre(g)">Opslaan</button>
+                  </div>
+                </div>
+              } @else {
+                <div class="genre-row">
+                  <span class="genre-name">{{ g.naam }}</span>
+                  <span class="genre-count">{{ g.count }} boeken</span>
+                  <div class="genre-actions">
+                    <button type="button" class="icon-btn" title="Bewerken" (click)="startEditGenre(g)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button type="button" class="icon-btn danger" title="Verwijderen" (click)="requestDeleteGenre(g)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1.4 14.1a2 2 0 0 1-2 1.9H8.4a2 2 0 0 1-2-1.9L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="sub-list">
+                  @for (s of g.subs; track s.id) {
+                    <span class="sub-chip">
+                      {{ s.naam }}
+                      <button type="button" class="sub-remove" [attr.aria-label]="s.naam + ' verwijderen'" (click)="removeSub(g, s.id)">×</button>
+                    </span>
+                  }
+                  @if (addingSubFor === g.id) {
+                    <input
+                      class="sub-add-input"
+                      [(ngModel)]="subDraft"
+                      placeholder="Subgenre…"
+                      (keydown.enter)="commitSub(g)"
+                      (keydown.escape)="cancelSub()"
+                      (blur)="commitSub(g)"
+                    />
+                  } @else {
+                    <button type="button" class="sub-add" (click)="startAddSub(g)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                      </svg>
+                      Subgenre
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (visibleGenres.length === 0) {
+            <div class="genre-empty">
+              Geen genres gevonden voor "<strong>{{ genreQuery }}</strong>".
+            </div>
+          }
+        </div>
+
+        <div class="genre-add-form">
+          <input
+            class="input"
+            placeholder="Naam van nieuw genre…"
+            [(ngModel)]="newGenreName"
+            (keydown.enter)="addGenre()"
+          />
+          <button type="button" class="btn btn-primary" [disabled]="!newGenreName.trim()" (click)="addGenre()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Genre toevoegen
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Thema's (Tags) ──────────────────── -->
+      <section class="s-card" id="tags">
+        <div class="s-card-head">
+          <div class="head-text">
+            <h2>Thema's (Tags)</h2>
+            <p class="s-card-sub">Gebruik thema's om boeken flexibel te groeperen rond projecten zoals 'Jeugdboekenmaand' of 'Leesjury'.</p>
+          </div>
+          <div class="head-aside">
+            <span class="scope-tag muted">{{ tags.length }} thema's</span>
+          </div>
+        </div>
+
+        <div class="sub-list" style="margin-top: 0; padding: 0;">
+          @for (t of tags; track t.id) {
+            <span class="sub-chip" style="font-size: 13px; padding: 6px 12px;">
+              {{ t.naam }}
+              <button type="button" class="sub-remove" [attr.aria-label]="t.naam + ' verwijderen'" (click)="requestDeleteTag(t)">×</button>
+            </span>
+          }
+          @if (tags.length === 0) {
+            <p class="closed-label">Nog geen thema's geconfigureerd.</p>
+          }
+        </div>
+
+        <div class="genre-add-form">
+          <input
+            class="input"
+            placeholder="Nieuw thema toevoegen (bv. Jeugdboekenmaand)…"
+            [(ngModel)]="newTagName"
+            (keydown.enter)="addTag()"
+          />
+          <button type="button" class="btn btn-primary" [disabled]="!newTagName.trim()" (click)="addTag()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Thema toevoegen
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Leesniveaus ─────────────────────── -->
+      <section class="s-card" id="levels">
+        <div class="s-card-head">
+          <div class="head-text">
+            <h2>Leesniveaus</h2>
+            <p class="s-card-sub">Bepaal welke leesniveaus jouw school gebruikt en welk niveau standaard wordt voorgesteld bij nieuwe boeken.</p>
+          </div>
+          <div class="head-aside">
+            <span class="scope-tag muted">{{ activeLevelCount }} actief</span>
+          </div>
+        </div>
+
+        <div class="lvl-grid">
+          @for (l of levels; track l.id) {
+            <div [ngClass]="levelCardClass(l)">
+              <input
+                class="lvl-letter"
+                [value]="l.code"
+                (input)="setLevelCode(l.id, $any($event.target).value)"
+                [attr.aria-label]="'Code voor niveau ' + l.id"
+                maxlength="6"
+              />
+              <div class="lvl-body">
+                <input
+                  class="lvl-name"
+                  [value]="l.name"
+                  (input)="updateLevel(l.id, { name: $any($event.target).value })"
+                  [attr.aria-label]="'Naam voor niveau ' + l.id"
+                  placeholder="Naam van het niveau"
+                />
+                <input
+                  class="lvl-desc-input"
+                  [value]="l.desc"
+                  (input)="updateLevel(l.id, { desc: $any($event.target).value })"
+                  [attr.aria-label]="'Omschrijving voor niveau ' + l.id"
+                  placeholder="Korte omschrijving (optioneel)"
+                />
+                <div class="lvl-card-footer">
+                  <label class="toggle">
+                    <input type="checkbox" [checked]="l.active" (change)="toggleLevelActive(l, $any($event.target).checked)" />
+                    <span class="toggle-track"></span>
+                    <span class="toggle-label">{{ l.active ? 'In gebruik' : 'Niet gebruikt' }}</span>
+                  </label>
+                  <button
+                    type="button"
+                    class="lvl-radio"
+                    [class.is-default]="l.isDefault"
+                    (click)="l.active && setDefaultLevel(l.id)"
+                    [disabled]="!l.active"
+                    [title]="l.isDefault ? 'Standaardniveau van de school' : 'Maak dit het standaardniveau'"
+                  >
+                    <span class="lvl-radio-dot"></span>
+                    Standaard
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="lvl-legend">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>De codes (A, B, C, D) en namen mag je hernoemen naar de woordenschat van jouw school (bv. "A → Ace", "B → Beer"). Het standaardniveau wordt voorgeselecteerd bij het toevoegen van een nieuw boek. Niveaus die je uitschakelt verdwijnen uit nieuwe formulieren en filters.</span>
+        </div>
+      </section>
+
+      <div class="save-bar" [class.hidden]="!dirty">
+        <span class="save-bar-text">Je hebt <strong>niet-opgeslagen wijzigingen</strong>.</span>
+        <button type="button" class="btn btn-ghost" (click)="discardAll()">Annuleren</button>
+        <button type="button" class="btn btn-primary" (click)="saveAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Wijzigingen opslaan
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</main>
+
+@if (confirmTarget) {
+  <div class="modal-backdrop" (click)="closeConfirm()">
+    <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h3>{{ confirmTarget.title }}</h3>
+      <p>{{ confirmTarget.body }}</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="closeConfirm()">Annuleren</button>
+        <button type="button" class="btn btn-danger" (click)="acceptConfirm()">
+          {{ confirmTarget.confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

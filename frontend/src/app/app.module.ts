@@ -53,6 +53,7 @@ import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
 import { TeacherPromotionComponent } from "./teacher-promotion/teacher-promotion.component";
 import { CarouselTileComponent } from "./dashboard/carousel-tile.component";
 import { SpotlightManageComponent } from "./spotlight-manage/spotlight-manage.component";
+import { SettingsComponent } from "./settings/settings.component";
 
 registerLocaleData(localeNl, "nl");
 

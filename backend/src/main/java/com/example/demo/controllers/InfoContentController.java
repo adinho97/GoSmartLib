@@ -32,9 +32,9 @@ public class InfoContentController {
     private final SchoolService schoolService;
 
     public InfoContentController(InfoContentRepository infoContentRepository,
-                                 InfoContentHiddenRepository infoContentHiddenRepository,
-                                 AppUserRepository appUserRepository,
-                                 SchoolService schoolService) {
+            InfoContentHiddenRepository infoContentHiddenRepository,
+            AppUserRepository appUserRepository,
+            SchoolService schoolService) {
         this.infoContentRepository = infoContentRepository;
         this.infoContentHiddenRepository = infoContentHiddenRepository;
         this.appUserRepository = appUserRepository;
@@ -43,7 +43,8 @@ public class InfoContentController {
 
     // Authenticated read.
     // - super_admin: schoolId param is honoured (null = only globals).
-    // - everyone else: schoolId param is ignored; resolved from authenticated user's school.
+    // - everyone else: schoolId param is ignored; resolved from authenticated
+    // user's school.
     @GetMapping
     public List<InfoContent> getAll(
             @RequestParam(required = false) Long schoolId,
@@ -64,7 +65,7 @@ public class InfoContentController {
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<?> create(@RequestBody InfoContentRequest request,
-                                    Authentication authentication) {
+            Authentication authentication) {
         if (request.getSectie() == null) {
             return ResponseEntity.badRequest().body("sectie is required");
         }
@@ -80,6 +81,7 @@ public class InfoContentController {
         item.setTitel(request.getTitel());
         item.setInhoud(request.getInhoud());
         item.setSortOrder(request.getSortOrder());
+        item.setCustomSectionTitle(request.getCustomSectionTitle());
 
         if (isGlobalOnlySection(sectie)) {
             // STAP and FEATURE are always global; only super_admin may create them.
@@ -106,8 +108,8 @@ public class InfoContentController {
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,
-                                    @RequestBody InfoContentRequest request,
-                                    Authentication authentication) {
+            @RequestBody InfoContentRequest request,
+            Authentication authentication) {
         return infoContentRepository.findById(id).map(item -> {
             if (!canModify(item, authentication)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).<Object>build();
@@ -115,6 +117,7 @@ public class InfoContentController {
             item.setTitel(request.getTitel());
             item.setInhoud(request.getInhoud());
             item.setSortOrder(request.getSortOrder());
+            item.setCustomSectionTitle(request.getCustomSectionTitle());
             return ResponseEntity.ok((Object) infoContentRepository.save(item));
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -137,8 +140,8 @@ public class InfoContentController {
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/{id}/hide")
     public ResponseEntity<?> hide(@PathVariable Long id,
-                                  @RequestParam(required = false) Long schoolId,
-                                  Authentication authentication) {
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication) {
         return infoContentRepository.findById(id).map(item -> {
             if (item.getSchool() != null) {
                 return ResponseEntity.badRequest().<Object>body("Only global items can be hidden");
@@ -161,8 +164,8 @@ public class InfoContentController {
     @Transactional
     @DeleteMapping("/{id}/hide")
     public ResponseEntity<?> unhide(@PathVariable Long id,
-                                    @RequestParam(required = false) Long schoolId,
-                                    Authentication authentication) {
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication) {
         School targetSchool = resolveScopeSchool(authentication, schoolId);
         if (targetSchool == null) {
             return ResponseEntity.badRequest().body("schoolId is required");
@@ -174,9 +177,10 @@ public class InfoContentController {
     // ---- auth helpers ----
 
     private boolean isSuperAdmin(Authentication auth) {
-        if (auth == null) return false;
+        if (auth == null)
+            return false;
         return auth.getAuthorities().stream()
-            .anyMatch(a -> ROLE_SUPER_ADMIN.equals(a.getAuthority()));
+                .anyMatch(a -> ROLE_SUPER_ADMIN.equals(a.getAuthority()));
     }
 
     private boolean isGlobalOnlySection(Sectie sectie) {
@@ -185,7 +189,7 @@ public class InfoContentController {
 
     private School resolveCallerSchool(Authentication auth) {
         AppUser caller = appUserRepository.findBySub(auth.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Gebruiker niet gevonden"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Gebruiker niet gevonden"));
         if (caller.getSchool() == null) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Geen school gevonden voor uw account");
         }
@@ -194,16 +198,19 @@ public class InfoContentController {
 
     private School resolveScopeSchool(Authentication auth, Long requestedSchoolId) {
         if (isSuperAdmin(auth)) {
-            if (requestedSchoolId == null) return null;
+            if (requestedSchoolId == null)
+                return null;
             return schoolService.getByIdOrDefault(requestedSchoolId);
         }
         return resolveCallerSchool(auth);
     }
 
     private boolean canModify(InfoContent item, Authentication auth) {
-        if (isSuperAdmin(auth)) return true;
+        if (isSuperAdmin(auth))
+            return true;
         // bibbeheerder: only their own school's items; never globals.
-        if (item.getSchool() == null) return false;
+        if (item.getSchool() == null)
+            return false;
         School ownSchool = resolveCallerSchool(auth);
         return ownSchool.getId().equals(item.getSchool().getId());
     }
@@ -214,16 +221,54 @@ public class InfoContentController {
         private String titel;
         private String inhoud;
         private int sortOrder;
+        private String customSectionTitle;
 
-        public Long getSchoolId() { return schoolId; }
-        public void setSchoolId(Long schoolId) { this.schoolId = schoolId; }
-        public Sectie getSectie() { return sectie; }
-        public void setSectie(Sectie sectie) { this.sectie = sectie; }
-        public String getTitel() { return titel; }
-        public void setTitel(String titel) { this.titel = titel; }
-        public String getInhoud() { return inhoud; }
-        public void setInhoud(String inhoud) { this.inhoud = inhoud; }
-        public int getSortOrder() { return sortOrder; }
-        public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
+        public Long getSchoolId() {
+            return schoolId;
+        }
+
+        public void setSchoolId(Long schoolId) {
+            this.schoolId = schoolId;
+        }
+
+        public Sectie getSectie() {
+            return sectie;
+        }
+
+        public void setSectie(Sectie sectie) {
+            this.sectie = sectie;
+        }
+
+        public String getTitel() {
+            return titel;
+        }
+
+        public void setTitel(String titel) {
+            this.titel = titel;
+        }
+
+        public String getInhoud() {
+            return inhoud;
+        }
+
+        public void setInhoud(String inhoud) {
+            this.inhoud = inhoud;
+        }
+
+        public int getSortOrder() {
+            return sortOrder;
+        }
+
+        public void setSortOrder(int sortOrder) {
+            this.sortOrder = sortOrder;
+        }
+
+        public String getCustomSectionTitle() {
+            return customSectionTitle;
+        }
+
+        public void setCustomSectionTitle(String customSectionTitle) {
+            this.customSectionTitle = customSectionTitle;
+        }
     }
 }

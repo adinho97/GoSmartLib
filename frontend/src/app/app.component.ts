@@ -359,4 +359,8 @@ export class AppComponent implements OnInit {
     this.mainNavOpen = false;
     this.adminMobileMenuOpen = false;
   }
+
+  get isSettingsActive(): boolean {
+    return this.currentUrl.startsWith("/instellingen");
+  }
 }

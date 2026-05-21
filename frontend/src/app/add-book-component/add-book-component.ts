@@ -3,6 +3,7 @@ import { NgForm } from "@angular/forms";
 import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 import { AdminGenreService, Genre } from "../services/admin-genre.service";
+import { SettingsService } from "../services/settings.service";
 
 export enum Language {
   Nederlands = "Nederlands",
@@ -14,7 +15,29 @@ export enum Language {
   Portugees = "Portugees",
   Latijn = "Latijn",
 }
-export const LEESNIVEAUS = ["A", "B", "C", "D"] as const;
+
+// Didactiek blijft hard-coded en apart
+const DIDACTIC_SUBGENRES = [
+  "Wiskunde",
+  "Taal",
+  "Geschiedenis",
+  "Kleuteronderwijs",
+  "Lager onderwijs",
+  "Secundair onderwijs",
+  "Volwasseneneducatie",
+  "Geheugen",
+  "Begrip",
+  "Denkprocessen",
+  "Samenwerking",
+  "Interactie",
+  "Dialoog",
+  "Online leren",
+  "E-learning platforms",
+  "Educatieve apps",
+  "Creativiteit",
+  "Zelfexpressie",
+  "Ervaringsgericht leren",
+];
 
 @Component({
   selector: "app-add-book",
@@ -24,8 +47,8 @@ export const LEESNIVEAUS = ["A", "B", "C", "D"] as const;
 })
 export class AddBookComponent implements OnInit {
   readonly languages = Object.values(Language);
-  readonly leesniveaus = LEESNIVEAUS;
-  didacticSubgenres: string[] = [];
+  leesniveaus: string[] = [];
+  readonly didacticSubgenres = DIDACTIC_SUBGENRES;
 
   // Dynamische genres van de API (excl. Didactiek)
   allGenres: Genre[] = []; // Raw hierarchical genres from API
@@ -56,7 +79,7 @@ export class AddBookComponent implements OnInit {
     goNumber: "",
     cover: "",
     beschrijving: "",
-    genres: [], // Changed from singular 'genre' to plural 'genres'
+    genre: "",
     uitgaveDatum: "",
     paginas: null as number | null,
     taal: "" as Language | "",
@@ -68,17 +91,36 @@ export class AddBookComponent implements OnInit {
     private bookService: BookService,
     private schoolService: SchoolService,
     private genreService: AdminGenreService,
+    private settingsService: SettingsService,
   ) {}
 
   async ngOnInit() {
     await this.schoolService.selectUserDefaultSchool();
     this.selectedSchoolId = this.schoolService.getSelectedSchoolId();
     this.loadGenres();
+    this.loadReadingLevels();
+  }
+
+  loadReadingLevels(): void {
+    if (!this.selectedSchoolId) return;
+    this.settingsService.getSettings(this.selectedSchoolId).subscribe({
+      next: (settings) => {
+        // Filter alleen actieve niveaus en gebruik de door de school ingestelde codes
+        this.leesniveaus = settings.levels
+          .filter((l) => l.active)
+          .map((l) => l.code);
+
+        const defaultLvl = settings.levels.find((l) => l.active && l.isDefault);
+        if (defaultLvl && !this.book.leesniveau)
+          this.book.leesniveau = defaultLvl.code;
+      },
+    });
   }
 
   loadGenres(): void {
     this.genreService.getAll().subscribe({
       next: (genres) => {
+        this.genres = genres;
         this.allGenres = genres; // Store the hierarchical structure
         // Populate didacticSubgenres for the didactic mode
         const did = genres.find((g) => g.naam.toLowerCase() === "didactiek");
@@ -91,6 +133,18 @@ export class AddBookComponent implements OnInit {
       },
       error: () => {},
     });
+  }
+
+  get selectedGenre(): Genre | null {
+    return this.genres.find((g) => g.id === this.selectedGenreId) ?? null;
+  }
+
+  get hasSubgenres(): boolean {
+    return (this.selectedGenre?.subgenres.length ?? 0) > 0;
+  }
+
+  onGenreChange(): void {
+    this.selectedSubgenreId = null;
   }
 
   private flattenNonDidacticGenres(genres: Genre[]): string[] {
@@ -120,6 +174,13 @@ export class AddBookComponent implements OnInit {
       return ["Didactiek"]; // If didactic mode is on but no subgenres selected
     } else {
       return this.selectedNonDidacticGenres;
+    }
+    if (!this.selectedGenreId) return "";
+    const genre = this.selectedGenre;
+    if (!genre) return "";
+    if (this.selectedSubgenreId) {
+      const sub = genre.subgenres.find((s) => s.id === this.selectedSubgenreId);
+      return sub ? `${genre.naam} - ${sub.naam}` : genre.naam;
     }
   }
   isSelected(genre: string): boolean {
@@ -243,6 +304,7 @@ export class AddBookComponent implements OnInit {
         goNumber: book.goNumber || trimmed,
         cover: book.cover || "",
         beschrijving: book.beschrijving || "",
+        genre: book.genre || "",
         genres: book.genres || (book.genre ? [book.genre] : []),
         uitgaveDatum: book.uitgaveDatum || "",
         paginas: book.paginas ?? null,
@@ -267,6 +329,42 @@ export class AddBookComponent implements OnInit {
     }
   }
 
+  private restoreGenreFromString(genreStr: string): void {
+    this.selectedGenreId = null;
+    this.selectedSubgenreId = null;
+    this.isDidactic = false;
+    this.selectedDidacticSubgenre = "";
+
+    if (!genreStr) return;
+    const lower = genreStr.toLowerCase();
+
+    if (lower.startsWith("didactiek")) {
+      this.isDidactic = true;
+      const parts = genreStr.split(" - ");
+      if (parts.length > 1)
+        this.selectedDidacticSubgenre = parts.slice(1).join(" - ").trim();
+      return;
+    }
+
+    // Zoek match in dynamische genres
+    for (const genre of this.genres) {
+      if (lower.startsWith(genre.naam.toLowerCase())) {
+        this.selectedGenreId = genre.id;
+        const remainder = genreStr
+          .substring(genre.naam.length)
+          .replace(/^\s*-\s*/, "")
+          .trim();
+        if (remainder) {
+          const sub = genre.subgenres.find(
+            (s) => s.naam.toLowerCase() === remainder.toLowerCase(),
+          );
+          if (sub) this.selectedSubgenreId = sub.id;
+        }
+        return;
+      }
+    }
+  }
+
   private resetForm(bookForm: NgForm) {
     this.book = {
       titel: "",
@@ -275,10 +373,10 @@ export class AddBookComponent implements OnInit {
       goNumber: "",
       cover: "",
       beschrijving: "",
-      genres: [],
+      genre: "",
       uitgaveDatum: "",
-      paginas: null as number | null,
-      taal: "" as Language | "",
+      paginas: null,
+      taal: "",
       uitgeverij: "",
       leesniveau: "",
     };

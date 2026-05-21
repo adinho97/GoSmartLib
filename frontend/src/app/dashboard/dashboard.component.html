@@ -1,11 +1,71 @@
 <div class="dash-page">
-
   <!-- Greeting -->
   <header class="dash-greeting">
-    <h1 class="dash-h1">Hé {{ currentFirstName }}, <em>tijd om verder te lezen?</em></h1>
+    <h1 class="dash-h1">
+      {{ greeting }}, <em>{{ currentFirstName }}</em>
+      @if (todayHoursDisplay) {
+        <span class="dash-hours-badge" title="Openingsuren van vandaag">{{
+          todayHoursDisplay
+        }}</span>
+      }
+    </h1>
+
+    <!-- School Meldingen (MOTD) -->
+    @if (currentMessage) {
+      <div
+        class="dash-motd-banner"
+        [ngClass]="'accent-' + currentMessage.accent"
+      >
+        <div class="dash-motd-icon">
+          @if (currentMessage.accent === "warn") {
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          } @else {
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          }
+        </div>
+        <div class="dash-motd-content">
+          <div class="dash-motd-header">
+            <span class="dash-motd-title">{{ currentMessage.title }}</span>
+            @if (activeMessages.length > 1) {
+              <span class="dash-motd-pager"
+                >{{ currentMessageIdx + 1 }} / {{ activeMessages.length }}</span
+              >
+            }
+          </div>
+          <p class="dash-motd-text">{{ currentMessage.body }}</p>
+        </div>
+      </div>
+    }
+
     <p class="dash-subtitle">
-      Je hebt {{ myLoans.length }} {{ myLoans.length === 1 ? 'boek' : 'boeken' }} geleend
-      @if (wishlistCount > 0) { en {{ wishlistCount }} op je verlanglijst }
+      Je hebt {{ myLoans.length }}
+      {{ myLoans.length === 1 ? "boek" : "boeken" }} geleend
+      @if (wishlistCount > 0) {
+        en {{ wishlistCount }} op je verlanglijst
+      }
     </p>
   </header>
 
@@ -18,11 +78,19 @@
         (click)="toggleConfigOpen()"
         [attr.aria-expanded]="configOpen"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="3" y="3" width="7" height="7" rx="1"/>
-          <rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/>
-          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
         Tegels aanpassen
       </button>
@@ -31,7 +99,13 @@
         <div class="tiles-pop" role="dialog" aria-label="Tegels kiezen">
           <div class="tiles-pop-head">
             <h4>Pas je dashboard aan</h4>
-            <button class="tiles-pop-reset" type="button" (click)="resetConfig()">Standaard</button>
+            <button
+              class="tiles-pop-reset"
+              type="button"
+              (click)="resetConfig()"
+            >
+              Standaard
+            </button>
           </div>
 
           <!-- Tile toggles + drag-to-reorder -->
@@ -47,11 +121,15 @@
                 [class.dragging]="dragId === tile.id"
                 [class.drag-over]="dragOverId === tile.id && dragId !== tile.id"
                 [attr.draggable]="isTileEnabled(tile.id) ? true : null"
-                (dragstart)="isTileEnabled(tile.id) ? onDragStart(tile.id) : null"
+                (dragstart)="
+                  isTileEnabled(tile.id) ? onDragStart(tile.id) : null
+                "
                 (dragover)="onDragOver($event, tile.id)"
                 (drop)="onDrop($event, tile.id)"
                 (dragend)="onDragEnd()"
-                (dragleave)="dragOverId === tile.id ? (dragOverId = null) : null"
+                (dragleave)="
+                  dragOverId === tile.id ? (dragOverId = null) : null
+                "
               >
                 <svg
                   class="tile-grip"
@@ -60,9 +138,12 @@
                   fill="currentColor"
                   aria-hidden="true"
                 >
-                  <circle cx="6" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
-                  <circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/>
-                  <circle cx="6" cy="13" r="1.2"/><circle cx="10" cy="13" r="1.2"/>
+                  <circle cx="6" cy="3" r="1.2" />
+                  <circle cx="10" cy="3" r="1.2" />
+                  <circle cx="6" cy="8" r="1.2" />
+                  <circle cx="10" cy="8" r="1.2" />
+                  <circle cx="6" cy="13" r="1.2" />
+                  <circle cx="10" cy="13" r="1.2" />
                 </svg>
                 <input
                   type="checkbox"
@@ -80,13 +161,23 @@
           @for (tile of TILES; track tile.id) {
             @if (tile.carousel && isTileEnabled(tile.id)) {
               <div class="tiles-pop-section">
-                <div class="tiles-pop-section-label">{{ tile.label }} — pagina's</div>
+                <div class="tiles-pop-section-label">
+                  {{ tile.label }} — pagina's
+                </div>
                 @for (page of tile.pages; track page.id) {
                   <label class="tile-row">
-                    <svg class="tile-grip disabled" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                      <circle cx="6" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
-                      <circle cx="6" cy="8" r="1.2"/><circle cx="10" cy="8" r="1.2"/>
-                      <circle cx="6" cy="13" r="1.2"/><circle cx="10" cy="13" r="1.2"/>
+                    <svg
+                      class="tile-grip disabled"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <circle cx="6" cy="3" r="1.2" />
+                      <circle cx="10" cy="3" r="1.2" />
+                      <circle cx="6" cy="8" r="1.2" />
+                      <circle cx="10" cy="8" r="1.2" />
+                      <circle cx="6" cy="13" r="1.2" />
+                      <circle cx="10" cy="13" r="1.2" />
                     </svg>
                     <input
                       type="checkbox"
@@ -94,7 +185,11 @@
                       (change)="togglePage(tile.id, page.id)"
                       (click)="$event.stopPropagation()"
                     />
-                    <span class="tile-row-dot" [style.background]="tile.dot" style="opacity: 0.6"></span>
+                    <span
+                      class="tile-row-dot"
+                      [style.background]="tile.dot"
+                      style="opacity: 0.6"
+                    ></span>
                     <span class="tile-row-label">{{ page.label }}</span>
                   </label>
                 }
@@ -110,7 +205,8 @@
   <div class="hero-row" [style.--n]="config.tiles.length || 3">
     @if (config.tiles.length === 0) {
       <p class="hero-empty-state">
-        Geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er een paar te kiezen.
+        Geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er
+        een paar te kiezen.
       </p>
     }
 
@@ -126,73 +222,120 @@
         (dragend)="onDragEnd()"
         (dragleave)="dragOverId === tileId ? (dragOverId = null) : null"
       >
-
-      @if (tileId === 'mijn-boeken') {
-        @if (loansLoading) {
-          <div class="hero-card hero-card-loading">
-            <div class="hero-loader"><div class="spinner"></div></div>
-          </div>
-        } @else {
-          @let mijnBoekenPages = getMijnBoekenPages();
-          @if (mijnBoekenPages.length > 0) {
-            <app-carousel-tile [pages]="mijnBoekenPages"></app-carousel-tile>
+        @if (tileId === "mijn-boeken") {
+          @if (loansLoading) {
+            <div class="hero-card hero-card-loading">
+              <div class="hero-loader"><div class="spinner"></div></div>
+            </div>
+          } @else {
+            @let mijnBoekenPages = getMijnBoekenPages();
+            @if (mijnBoekenPages.length > 0) {
+              <app-carousel-tile [pages]="mijnBoekenPages"></app-carousel-tile>
+            }
           }
         }
-      }
 
-      @if (tileId === 'bibliotheek') {
-        @let bibliotheekPages = getBibliotheekPages();
-        @if (bibliotheekPages.length > 0) {
-          <app-carousel-tile [pages]="bibliotheekPages"></app-carousel-tile>
+        @if (tileId === "bibliotheek") {
+          @let bibliotheekPages = getBibliotheekPages();
+          @if (bibliotheekPages.length > 0) {
+            <app-carousel-tile [pages]="bibliotheekPages"></app-carousel-tile>
+          }
         }
-      }
 
-      @if (tileId === 'snelkoppelingen') {
-        <div class="hero-card snelkoppelingen-card">
-          <div class="hero-card-head">
-            <div class="hero-eyebrow-row">
-              <span class="hero-eyebrow">Snelkoppelingen</span>
-              <app-info-button
-                title="Snelkoppelingen"
-                description="Snelle toegang tot jouw persoonlijke lijsten: geleende boeken, verlanglijst, klasleeslijst en ontleenhistoriek."
-              ></app-info-button>
+        @if (tileId === "snelkoppelingen") {
+          <div class="hero-card snelkoppelingen-card">
+            <div class="hero-card-head">
+              <div class="hero-eyebrow-row">
+                <span class="hero-eyebrow">Snelkoppelingen</span>
+                <app-info-button
+                  title="Snelkoppelingen"
+                  description="Snelle toegang tot jouw persoonlijke lijsten: geleende boeken, verlanglijst, klasleeslijst en ontleenhistoriek."
+                ></app-info-button>
+              </div>
+              <a class="hero-head-link" routerLink="/mijn-lijsten" role="button"
+                >Alles →</a
+              >
             </div>
-            <a class="hero-head-link" routerLink="/mijn-lijsten" role="button">Alles →</a>
+
+            <ul class="shortcut-list">
+              <li
+                class="shortcut-item"
+                (click)="goToMijnLijsten('geleend')"
+                role="button"
+                tabindex="0"
+              >
+                <span
+                  class="shortcut-dot"
+                  style="background: var(--brand)"
+                ></span>
+                <span class="shortcut-label">Geleend</span>
+                <span class="shortcut-count">{{ myLoans.length }}</span>
+              </li>
+              <li
+                class="shortcut-item"
+                (click)="goToMijnLijsten('verlanglijst')"
+                role="button"
+                tabindex="0"
+              >
+                <span class="shortcut-dot" style="background: #d4537e"></span>
+                <span class="shortcut-label">Verlanglijst</span>
+                <span class="shortcut-count">{{ wishlistCount }}</span>
+              </li>
+              <li
+                class="shortcut-item"
+                (click)="goToMijnLijsten('kijker')"
+                role="button"
+                tabindex="0"
+              >
+                <span class="shortcut-dot" style="background: #b86a17"></span>
+                <span class="shortcut-label">In de kijker</span>
+                <span class="shortcut-count">{{
+                  highlightedBooks.length
+                }}</span>
+              </li>
+              <li
+                class="shortcut-item"
+                (click)="goToMijnLijsten('klasleeslijst')"
+                role="button"
+                tabindex="0"
+              >
+                <span class="shortcut-dot" style="background: #2e6b3f"></span>
+                <span class="shortcut-label">Klasleeslijst</span>
+                <span class="shortcut-count">{{ klasleeslijstCount }}</span>
+              </li>
+              <li
+                class="shortcut-item"
+                (click)="goToMijnLijsten('historiek')"
+                role="button"
+                tabindex="0"
+              >
+                <span
+                  class="shortcut-dot"
+                  style="background: var(--ink-3)"
+                ></span>
+                <span class="shortcut-label">Historiek</span>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  class="shortcut-arrow"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </li>
+            </ul>
           </div>
-
-          <ul class="shortcut-list">
-            <li class="shortcut-item" (click)="goToMijnLijsten('geleend')" role="button" tabindex="0">
-              <span class="shortcut-dot" style="background: var(--brand)"></span>
-              <span class="shortcut-label">Geleend</span>
-              <span class="shortcut-count">{{ myLoans.length }}</span>
-            </li>
-            <li class="shortcut-item" (click)="goToMijnLijsten('verlanglijst')" role="button" tabindex="0">
-              <span class="shortcut-dot" style="background: #d4537e"></span>
-              <span class="shortcut-label">Verlanglijst</span>
-              <span class="shortcut-count">{{ wishlistCount }}</span>
-            </li>
-            <li class="shortcut-item" (click)="goToMijnLijsten('kijker')" role="button" tabindex="0">
-              <span class="shortcut-dot" style="background: #b86a17"></span>
-              <span class="shortcut-label">In de kijker</span>
-              <span class="shortcut-count">{{ highlightedBooks.length }}</span>
-            </li>
-            <li class="shortcut-item" (click)="goToMijnLijsten('klasleeslijst')" role="button" tabindex="0">
-              <span class="shortcut-dot" style="background: #2e6b3f"></span>
-              <span class="shortcut-label">Klasleeslijst</span>
-              <span class="shortcut-count">{{ klasleeslijstCount }}</span>
-            </li>
-            <li class="shortcut-item" (click)="goToMijnLijsten('historiek')" role="button" tabindex="0">
-              <span class="shortcut-dot" style="background: var(--ink-3)"></span>
-              <span class="shortcut-label">Historiek</span>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shortcut-arrow"><polyline points="9 18 15 12 9 6"/></svg>
-            </li>
-          </ul>
-        </div>
-      }
-
+        }
       </div>
     }
-  </div><!-- /hero-row -->
+  </div>
+  <!-- /hero-row -->
 
   <!-- Fun badges card -->
   <app-fun-badges></app-fun-badges>
@@ -214,7 +357,19 @@
         </div>
         <a class="overline-link" routerLink="/books">
           Bekijk meer
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </a>
       </div>
       <app-recommendation-section
@@ -235,7 +390,19 @@
           </div>
           <a class="overline-link" routerLink="/books">
             Bekijk meer
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </a>
         </div>
         <app-recommendation-section
@@ -257,7 +424,19 @@
           </div>
           <a class="overline-link" routerLink="/books">
             Bekijk meer
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </a>
         </div>
         <app-recommendation-section
@@ -279,7 +458,19 @@
           </div>
           <a class="overline-link" routerLink="/books">
             Bekijk meer
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </a>
         </div>
         <app-recommendation-section
@@ -292,5 +483,4 @@
       </section>
     }
   }
-
 </div>

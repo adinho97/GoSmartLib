@@ -1,5 +1,6 @@
 package com.example.demo.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -20,11 +21,12 @@ public class Genre {
     private String naam;
 
     /**
-     * null  = top-level genre (bv. "Non-fictie algemeen")
+     * null = top-level genre (bv. "Non-fictie algemeen")
      * non-null = subgenre van de parent (bv. "Biografie / autobiografie")
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+    @JsonIgnore
     private Genre parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -33,15 +35,35 @@ public class Genre {
 
     // ── getters / setters ───────────────────────────────────────────────────
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getNaam() { return naam; }
-    public void setNaam(String naam) { this.naam = naam; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Genre getParent() { return parent; }
-    public void setParent(Genre parent) { this.parent = parent; }
+    public String getNaam() {
+        return naam;
+    }
 
-    public List<Genre> getSubgenres() { return subgenres; }
-    public void setSubgenres(List<Genre> subgenres) { this.subgenres = subgenres; }
+    public void setNaam(String naam) {
+        this.naam = naam;
+    }
+
+    public Genre getParent() {
+        return parent;
+    }
+
+    public void setParent(Genre parent) {
+        this.parent = parent;
+    }
+
+    public List<Genre> getSubgenres() {
+        return subgenres;
+    }
+
+    public void setSubgenres(List<Genre> subgenres) {
+        this.subgenres = subgenres;
+    }
 }

@@ -12,10 +12,10 @@ import org.springframework.stereotype.Component;
 
 /**
  * Automated OneRoster sync triggers:
- *   - on Spring boot ({@code ApplicationReadyEvent}) so a freshly configured
- *     school with zero rows in {@code scholen} gets created/populated;
- *   - on 31 August 03:00 Europe/Brussels to pick up the new school year
- *     (class moves + new students) before users start using the app.
+ * - on Spring boot ({@code ApplicationReadyEvent}) so a freshly configured
+ * school with zero rows in {@code scholen} gets created/populated;
+ * - on 31 August 03:00 Europe/Brussels to pick up the new school year
+ * (class moves + new students) before users start using the app.
  *
  * Both triggers iterate the config map (not the DB) so brand-new schools are
  * covered too. They run async on the {@code oneRosterTaskExecutor} thread
@@ -58,19 +58,10 @@ public class OneRosterStartupSync {
             String subdomain = entry.getKey();
             OneRosterProperties.SchoolConfig cfg = entry.getValue();
             if (cfg == null || !cfg.isUsable()) {
-                logger.debug("OneRoster config for '{}' is missing or incomplete (likely no client_secret env var), skipping {} sync",
-                        subdomain, triggerLabel);
+                logger.debug("OneRoster config for '{}' is missing or incomplete, skipping startup sync.", subdomain);
                 continue;
             }
-            try {
-                OneRosterSyncResult result = syncService.syncBySubdomain(subdomain);
-                if (!result.getErrors().isEmpty()) {
-                    logger.warn("OneRoster {} sync for {} finished with errors: {}",
-                            triggerLabel, subdomain, result.getErrors());
-                }
-            } catch (Exception e) {
-                logger.warn("OneRoster {} sync threw for {}: {}", triggerLabel, subdomain, e.getMessage(), e);
-            }
+            syncService.syncBySubdomain(subdomain);
         }
     }
 }
