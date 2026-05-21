@@ -64,6 +64,7 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                     // Mark as attempted auth failure (not database issue)
                     request.setAttribute("authenticationAttempted", true);
                     request.setAttribute("authenticationFailed", true);
+                    request.setAttribute("authenticationSkippedDueToPoolStress", true);
                 } else {
                     request.setAttribute("authenticationAttempted", true);
                     Optional<AppUser> userOpt = appUserRepository.findByAccessToken(token);

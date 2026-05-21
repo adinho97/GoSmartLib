@@ -3,6 +3,7 @@ import { ActivatedRoute } from "@angular/router";
 import { Router } from "@angular/router";
 import { SchoolService, KlasListItem } from "../services/school.service";
 import { BookService } from "../services/book.service";
+import { AdminGenreService, Genre } from "../services/admin-genre.service";
 import { UiToastService } from "../services/ui-toast.service";
 import { Book } from "../models/book";
 
@@ -56,26 +57,7 @@ export class LeeslijstCreateComponent implements OnInit {
   readonly ratingStars = [0, 1, 2, 3, 4];
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
-  readonly genres = [
-    "Didactiek",
-    "Fictie algemeen",
-    "Literaire roman",
-    "Spanning / thriller",
-    "Detective / misdaad",
-    "Fantasy",
-    "Sciencefiction",
-    "Dystopie",
-    "Historische roman",
-    "Romantiek",
-    "Coming-of-age",
-    "Avontuur",
-    "Oorlog & conflict",
-    "Horror",
-    "Humor",
-    "Graphic novel / strip",
-    "Poëzie",
-    "Non-fictie algemeen",
-  ];
+  genres: string[] = [];
   readonly languages = [
     "Nederlands",
     "Engels",
@@ -87,36 +69,8 @@ export class LeeslijstCreateComponent implements OnInit {
     "Latijn",
   ];
   readonly leesniveaus = ["A", "B", "C", "D"];
-  readonly nonFictionSubgenres = [
-    "Biografie / autobiografie",
-    "Wetenschap & technologie",
-    "Filosofie",
-    "Maatschappij & politiek",
-    "Psychologie",
-    "Geschiedenis",
-    "Kunst & cultuur",
-  ];
-  readonly didacticSubgenres = [
-    "Wiskunde",
-    "Taal",
-    "Geschiedenis",
-    "Kleuteronderwijs",
-    "Lager onderwijs",
-    "Secundair onderwijs",
-    "Volwasseneneducatie",
-    "Geheugen",
-    "Begrip",
-    "Denkprocessen",
-    "Samenwerking",
-    "Interactie",
-    "Dialoog",
-    "Online leren",
-    "E-learning platforms",
-    "Educatieve apps",
-    "Creativiteit",
-    "Zelfexpressie",
-    "Ervaringsgericht leren",
-  ];
+  nonFictionSubgenres: string[] = [];
+  didacticSubgenres: string[] = [];
 
   selectedGenre = "";
   selectedLanguage = "";
@@ -134,6 +88,7 @@ export class LeeslijstCreateComponent implements OnInit {
     private route: ActivatedRoute,
     private schoolService: SchoolService,
     private bookService: BookService,
+    private genreService: AdminGenreService,
     private uiToastService: UiToastService,
     private router: Router,
   ) {}
@@ -155,6 +110,25 @@ export class LeeslijstCreateComponent implements OnInit {
       this.editingLeeslijstId = parseInt(leeslijstIdParam, 10);
       await this.loadExistingLeeslijst(this.editingLeeslijstId);
     }
+    this.loadGenres();
+  }
+
+  loadGenres(): void {
+    this.genreService.getAll().subscribe({
+      next: (genres: Genre[]) => {
+        this.genres = genres.map((g) => g.naam).sort();
+        const nf = genres.find(
+          (g) => g.naam.toLowerCase() === "non-fictie algemeen",
+        );
+        if (nf)
+          this.nonFictionSubgenres = nf.subgenres.map((s) => s.naam).sort();
+        const did = genres.find((g) => g.naam.toLowerCase() === "didactiek");
+        if (did)
+          this.didacticSubgenres = did.subgenres.map((s) => s.naam).sort();
+      },
+      error: () =>
+        console.error("Failed to load genres for leeslijst creation"),
+    });
   }
 
   private async loadExistingLeeslijst(id: number) {
