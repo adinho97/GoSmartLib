@@ -1,12 +1,12 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy } from "@angular/core";
 import {
   LoanService,
   Loan,
   ReturnCondition,
   ReturnLoanRequest,
 } from "../services/loan.service";
-import { formatUserInfoDisplayName } from "../utils/name-utils";
-import axios from "axios";
+import { BookService } from "../services/book.service";
+import { SchoolService } from "../services/school.service";
 
 type Leerling = { sub: string; displayName: string };
 type Step = "leerling" | "uitleningen";
@@ -17,15 +17,18 @@ type Step = "leerling" | "uitleningen";
   styleUrls: ["./boek-terugbrengen.component.css"],
   standalone: false,
 })
-export class BoekTerugbrengenComponent implements OnInit {
+export class BoekTerugbrengenComponent implements OnDestroy {
   step: Step = "leerling";
 
-  leerlingen: Leerling[] = [];
   filteredLeerlingen: Leerling[] = [];
   leerlingSearch = "";
   selectedLeerling: Leerling | null = null;
   leerlingenLoading = false;
   leerlingError = "";
+  hasSearched = false;
+
+  private searchDebounce: ReturnType<typeof setTimeout> | null = null;
+  private activeSearchToken = 0;
 
   get isAdmin(): boolean {
     return !!localStorage.getItem("admin_jwt_token");
@@ -44,49 +47,60 @@ export class BoekTerugbrengenComponent implements OnInit {
   errorMessage = "";
   today = new Date().toISOString().split("T")[0];
 
-  constructor(private loanService: LoanService) {}
+  constructor(
+    private loanService: LoanService,
+    private bookService: BookService,
+    private schoolService: SchoolService,
+  ) {}
 
-  ngOnInit(): void {
-    this.loadLeerlingen();
-  }
-
-  private async getDisplayNameForSub(sub: string): Promise<string> {
-    try {
-      const profile = await axios.get(
-        `/api/users/${encodeURIComponent(sub)}/profile`,
-      );
-      return formatUserInfoDisplayName(profile.data as any, sub);
-    } catch {
-      return sub;
-    }
-  }
-
-  async loadLeerlingen(): Promise<void> {
-    this.leerlingenLoading = true;
-    try {
-      const res = await axios.get('/api/gebruikers/leerlingen');
-      const students = (res.data || []) as Array<{ sub: string; displayName?: string }>;
-      this.leerlingen = students.map((l) => ({
-        sub: l.sub,
-        displayName: l.displayName || l.sub,
-      }));
-      this.filteredLeerlingen = [...this.leerlingen];
-    } catch {
-      this.leerlingError = "Leerlingen laden mislukt.";
-    } finally {
-      this.leerlingenLoading = false;
+  ngOnDestroy(): void {
+    if (this.searchDebounce !== null) {
+      clearTimeout(this.searchDebounce);
     }
   }
 
   onLeerlingSearch(): void {
-    const q = this.leerlingSearch.trim().toLowerCase();
-    this.filteredLeerlingen = q
-      ? this.leerlingen.filter(
-          (l) =>
-            l.displayName.toLowerCase().includes(q) ||
-            l.sub.toLowerCase().includes(q),
-        )
-      : [...this.leerlingen];
+    if (this.searchDebounce !== null) clearTimeout(this.searchDebounce);
+    const q = this.leerlingSearch.trim();
+    if (!q) {
+      this.filteredLeerlingen = [];
+      this.leerlingenLoading = false;
+      this.hasSearched = false;
+      this.activeSearchToken++;
+      return;
+    }
+    this.leerlingenLoading = true;
+    this.searchDebounce = setTimeout(() => this.runLeerlingSearch(q), 300);
+  }
+
+  private async runLeerlingSearch(query: string): Promise<void> {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) {
+      this.leerlingError = "Geen school geselecteerd.";
+      this.leerlingenLoading = false;
+      this.filteredLeerlingen = [];
+      this.hasSearched = true;
+      return;
+    }
+    const token = ++this.activeSearchToken;
+    try {
+      const results = await this.bookService.searchUsers(query, schoolId);
+      if (token !== this.activeSearchToken) return;
+      this.filteredLeerlingen = (results || []).map((l: any) => ({
+        sub: l.sub,
+        displayName: l.displayName || l.sub,
+      }));
+      this.leerlingError = "";
+    } catch {
+      if (token !== this.activeSearchToken) return;
+      this.filteredLeerlingen = [];
+      this.leerlingError = "Zoeken mislukt.";
+    } finally {
+      if (token === this.activeSearchToken) {
+        this.leerlingenLoading = false;
+        this.hasSearched = true;
+      }
+    }
   }
 
   selectLeerling(leerling: Leerling): void {
