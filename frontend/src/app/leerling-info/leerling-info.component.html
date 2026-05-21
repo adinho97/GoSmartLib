@@ -444,4 +444,55 @@
       }
     </section>
   </main>
+
+  @if (pendingRemoval) {
+    <div class="confirm-overlay" (click)="cancelRemove()">
+      <div
+        class="confirm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmRemoveTitle"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="confirm-header">
+          <h2 id="confirmRemoveTitle" class="confirm-title">
+            {{ pendingRemovalTitle }}
+          </h2>
+        </div>
+        <div class="confirm-body">
+          @if (pendingRemoval.kind === "delete") {
+            <p class="confirm-warning">
+              Je staat op het punt dit item <strong>permanent</strong> te
+              verwijderen.
+            </p>
+          } @else {
+            <p class="confirm-warning">
+              Dit item wordt verborgen voor deze school. De globale versie
+              blijft behouden.
+            </p>
+          }
+          <p class="confirm-preview">"{{ pendingRemovalPreview }}"</p>
+          <p class="confirm-note">Deze actie kan niet ongedaan gemaakt worden.</p>
+        </div>
+        <div class="confirm-footer">
+          <button
+            type="button"
+            class="btn-ghost"
+            (click)="cancelRemove()"
+            [disabled]="isRemoving"
+          >
+            Annuleer
+          </button>
+          <button
+            type="button"
+            class="btn-danger"
+            (click)="confirmRemove()"
+            [disabled]="isRemoving"
+          >
+            {{ isRemoving ? "Bezig…" : "Ja, verwijderen" }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
