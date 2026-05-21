@@ -57,7 +57,7 @@ public class GenreSeeder implements CommandLineRunner {
     );
 
     private static final List<String> DIDACTIC_SUBGENRES = List.of(
-            "Wiskunde", "Taal", "Geschiedenis", "Kleuteronderwijs",
+            "Wiskunde", "Taal", "Geschiedenisonderwijs", "Kleuteronderwijs",
             "Lager onderwijs", "Secundair onderwijs", "Volwasseneneducatie",
             "Geheugen", "Begrip", "Denkprocessen", "Samenwerking",
             "Interactie", "Dialoog", "Online leren", "E-learning platforms",
