@@ -54,10 +54,17 @@ public class BookService {
     @Autowired
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService, 
+            IsbnService isbnService, BulkImportService bulkImportService, BookMapper bookMapper, 
+            KlasRepository klasRepository, ImportCoreService importCoreService,
+            LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
+            HighlightedBookRepository highlightedBookRepository,
+            ClassReadingListItemRepository classReadingListItemRepository) {
+
             IsbnService isbnService, BulkImportService bulkImportService, BookMapper bookMapper, ImportCoreService importCoreService, KlasRepository klasRepository,
             LeeslijstRepository leeslijstRepository, WishlistRepository wishlistRepository, 
             HighlightedBookRepository highlightedBookRepository,
             ClassReadingListItemRepository classReadingListItemRepository) { // Corrected parameter list
+
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.loanRepository = loanRepository;
@@ -80,6 +87,10 @@ public class BookService {
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository, LoanRepository loanRepository,
                        SchoolService schoolService, OpenLibraryService openLibraryService, IsbnService isbnService,
                        BulkImportService bulkImportService, BookMapper bookMapper, ImportCoreService importCoreService) {
+
+        this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService, 
+                bulkImportService, bookMapper, null, importCoreService, null, null, null, null);
+
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
                 bulkImportService, bookMapper, importCoreService, null, null, null, null, null);
     }
@@ -89,7 +100,11 @@ public class BookService {
             IsbnService isbnService, BulkImportService bulkImportService,
             ImportCoreService importCoreService) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
+
+                bulkImportService, null, null, importCoreService, null, null, null, null);
+
                 bulkImportService, null, importCoreService, null, null, null, null, null);
+
     }
 
     /**
@@ -100,6 +115,9 @@ public class BookService {
             IsbnService isbnService, BulkImportService bulkImportService,
             ImportCoreService importCoreService, KlasRepository klasRepository) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
+
+                bulkImportService, null, klasRepository, importCoreService, null, null, null, null);
+
                 bulkImportService, null, importCoreService, klasRepository, null, null, null, null);
     }
 

@@ -103,7 +103,8 @@ public class BookController {
         return books.stream() // Changed from BookMapper::toDto
                 .filter(book -> book.getGenres() != null && !book.getGenres().isEmpty())
                 .filter(book -> book.getGenres().stream()
-                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).contains("didactiek")))
+                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).contains("didactiek") 
+                            || (genre.getParent() != null && genre.getParent().getNaam().toLowerCase(Locale.ROOT).contains("didactiek"))))
                 .map(bookMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -152,9 +153,9 @@ public class BookController {
         if (bookOpt.isEmpty()) return ResponseEntity.notFound().build();
         Book book = bookOpt.get();
         if (isStudentRole(authentication, roleHeader)
-                && book.getGenres() != null
                 && book.getGenres().stream()
-                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).startsWith("didactiek"))) {
+                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).contains("didactiek") 
+                            || (genre.getParent() != null && genre.getParent().getNaam().toLowerCase(Locale.ROOT).contains("didactiek")))) {
             return ResponseEntity.notFound().build();
         }
         // Changed from BookMapper::toDto
@@ -234,15 +235,14 @@ public class BookController {
     }
 
     @GetMapping("/preview/{isbn}")
-    public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) { // Removed 'fetched' variable from here
-        BookDto dto = null; // Initialize dto to null
+    public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
+        BookDto dto;
         try {
             dto = bookService.fetchPreviewByIsbn(isbn);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();
         }
 
-        // Use dto directly, as it's already mapped in bookService.fetchPreviewByIsbn
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }

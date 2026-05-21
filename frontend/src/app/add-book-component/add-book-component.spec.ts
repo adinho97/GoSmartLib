@@ -26,7 +26,7 @@ class MockBookService {
         taal: "Nederlands",
         uitgeverij: "Uitgeverij",
         leesniveau: "B",
-      }),
+      } as any),
     );
 }
 

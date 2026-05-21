@@ -3,6 +3,7 @@ package com.example.demo.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Size;
 
 import com.example.demo.entities.Leesniveau;
@@ -34,6 +35,7 @@ public class BookDto {
     @Size(max = 5000)
     private String beschrijving;
 
+    @JsonAlias("genre")
     private List<String> genres = new ArrayList<>();
 
     private LocalDate uitgaveDatum;
