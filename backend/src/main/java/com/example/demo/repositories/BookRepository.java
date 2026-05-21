@@ -61,7 +61,11 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             WHERE (:schoolId IS NULL OR (b.school IS NOT NULL AND b.school.id = :schoolId))
                 AND (:query IS NULL OR LOWER(b.titel) LIKE LOWER(CONCAT('%', :query, '%'))
                          OR LOWER(b.auteur) LIKE LOWER(CONCAT('%', :query, '%')))
-                AND (:excludeDidactic = false OR b.genre IS NULL OR LOWER(b.genre) NOT LIKE 'didactiek%')
+                AND (:excludeDidactic = false OR NOT EXISTS (
+                    SELECT g FROM b.genres g 
+                    LEFT JOIN g.parent p
+                    WHERE LOWER(g.naam) LIKE 'didactiek%' OR LOWER(p.naam) LIKE 'didactiek%'
+                ))
             """)
     Page<Book> searchPaged(@Param("schoolId") Long schoolId,
             @Param("query") String query,
@@ -69,7 +73,14 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             Pageable pageable);
 
     @EntityGraph(attributePaths = { "copies", "reviews" })
-    @Query("SELECT b FROM Book b WHERE b.school.id = :schoolId AND (b.genre IS NULL OR LOWER(b.genre) NOT LIKE 'didactiek%')")
+    @Query("""
+        SELECT b FROM Book b
+        WHERE b.school.id = :schoolId AND NOT EXISTS (
+            SELECT g FROM b.genres g 
+            LEFT JOIN g.parent p
+            WHERE LOWER(g.naam) LIKE 'didactiek%' OR LOWER(p.naam) LIKE 'didactiek%'
+        )
+    """)
     List<Book> findNonDidacticBySchool_Id(@Param("schoolId") Long schoolId);
 
     boolean existsByIdAndSchool_Id(Long id, Long schoolId);

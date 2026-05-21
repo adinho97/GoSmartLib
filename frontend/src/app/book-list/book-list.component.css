@@ -14,10 +14,9 @@
   border-radius: 999px;
   border: 1px solid #d4c1c9;
   background: #fff8fb;
-  overflow: hidden;
 }
 
-.school-selector-bar label {
+.school-selector-label {
   margin: 0;
   padding: 0 0.7rem;
   font-size: 0.8rem;
@@ -26,22 +25,87 @@
   white-space: nowrap;
 }
 
-.school-selector-bar select {
+.school-dropdown {
+  position: relative;
+}
+
+.school-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-width: 200px;
   height: 34px;
   border: none;
   border-left: 1px solid #d4c1c9;
-  border-radius: 0;
-  padding: 0 0.65rem;
+  border-radius: 0 999px 999px 0;
+  padding: 0 0.85rem;
   background: #fff;
   color: #4f1a2e;
   font-size: 0.88rem;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   outline: none;
+  transition: background 0.15s;
 }
 
-.school-selector-bar select:focus {
+.school-dropdown-trigger:hover,
+.school-dropdown-trigger[aria-expanded="true"] {
   background: #fdf0f5;
+}
+
+.school-dropdown-value {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.school-dropdown-trigger svg {
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.school-dropdown-trigger svg.rotated {
+  transform: rotate(180deg);
+}
+
+.school-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  min-width: 100%;
+  max-height: 200px; /* ~5 rows × ~36px + padding, rest scrolls */
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.school-dropdown-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+
+.school-dropdown-item:hover {
+  background: #f5f7fa;
+}
+
+.school-dropdown-item.selected {
+  background: rgba(135, 31, 66, 0.08);
+  color: #871f42;
+  font-weight: 600;
 }
 
 .book-list-header {
@@ -817,9 +881,10 @@
     width: 100%;
   }
 
-  .school-selector-bar select {
-    min-width: 0;
+  .school-dropdown,
+  .school-dropdown-trigger {
     flex: 1;
+    min-width: 0;
   }
 
   .filters-sidebar {

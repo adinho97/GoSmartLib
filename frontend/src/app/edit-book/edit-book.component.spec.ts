@@ -24,7 +24,7 @@ describe("EditBookComponent", () => {
     id: 1,
     titel: "Test Boek",
     auteur: "Test Auteur",
-    genre: "Fictie",
+    genres: ["Fictie"], // Changed from singular 'genre' to plural 'genres'
     beschrijving: "Lorum Ipsum",
     taal: "Nederlands",
     paginas: 200,

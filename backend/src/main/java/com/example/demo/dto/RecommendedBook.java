@@ -1,22 +1,24 @@
 package com.example.demo.dto;
 
+import java.util.List;
+
 public class RecommendedBook {
 
     private Long bookId;
     private String titel;
     private String auteur;
-    private String genre;
+    private List<String> genres; // Changed from singular String to List<String>
     private Double score; // 0-100: how strong the recommendation is
     private String reason;
 
     public RecommendedBook() {
     }
 
-    public RecommendedBook(Long bookId, String titel, String auteur, String genre, Double score, String reason) {
+    public RecommendedBook(Long bookId, String titel, String auteur, List<String> genres, Double score, String reason) {
         this.bookId = bookId;
         this.titel = titel;
         this.auteur = auteur;
-        this.genre = genre;
+        this.genres = genres;
         this.score = score;
         this.reason = reason;
     }
@@ -45,12 +47,12 @@ public class RecommendedBook {
         this.auteur = auteur;
     }
 
-    public String getGenre() {
-        return genre;
+    public List<String> getGenres() {
+        return genres;
     }
 
-    public void setGenre(String genre) {
-        this.genre = genre;
+    public void setGenres(List<String> genres) {
+        this.genres = genres;
     }
 
     public Double getScore() {

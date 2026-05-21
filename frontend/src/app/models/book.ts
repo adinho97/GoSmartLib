@@ -4,9 +4,9 @@ export interface Book {
   auteur: string;
   cover: string;
   beschrijving: string;
-  genre: string;
+  genres: string[];
   uitgaveDatum: string;
-  paginas: number;
+  paginas: number | null;
   taal: string;
   uitgeverij: string;
   leesniveau?: string | null;

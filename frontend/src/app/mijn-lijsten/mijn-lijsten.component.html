@@ -2,7 +2,8 @@
   <header class="ml-head">
     <h1 class="ml-title">Mijn lijsten</h1>
     <p class="ml-subtitle">
-      Jouw geleende boeken, verlanglijst en ontleenhistoriek op één plek.
+      Jouw geleende boeken, verlanglijst, klasleeslijsten en ontleenhistoriek op
+      één plek
     </p>
   </header>
 
@@ -127,7 +128,7 @@
       <div>
         <h2 class="section-title">Didactische collectie</h2>
         <p class="section-desc">
-          Alle boeken uit de catalogus met genre Didactiek.
+          Alle boeken uit de catalogus met genre Didactiek
         </p>
       </div>
     </div>
@@ -164,7 +165,7 @@
     <div class="section-head">
       <div>
         <h2 class="section-title">Verlanglijst</h2>
-        <p class="section-desc">Boeken die je later wilt lezen of ontlenen.</p>
+        <p class="section-desc">Boeken op je verlanglijstje</p>
       </div>
     </div>
     @if (wishlistLoading) {
@@ -206,7 +207,7 @@
     <div class="section-head">
       <div>
         <h2 class="section-title">Klasleeslijst</h2>
-        <p class="section-desc">Leeslisten samengesteld voor jouw klas.</p>
+        <p class="section-desc">Leeslijsten samengesteld voor jouw klas</p>
       </div>
       @if (canCreateLeeslijst) {
         <button
@@ -226,58 +227,65 @@
       </div>
     } @else if (leeslisten.length === 0) {
       <p class="empty-msg">
-        Er zijn momenteel geen leeslisten beschikbaar voor jouw klas.
+        Er zijn momenteel geen leeslijsten beschikbaar voor jouw klas.
       </p>
     } @else {
       <div class="leeslisten-grid">
         @for (leeslijst of leeslisten; track leeslijst.id) {
-          <div class="leeslijst-card">
-            <div
-              class="leeslijst-card-content"
-              (click)="goToLeeslijst(leeslijst.id)"
-            >
-              <h3 class="leeslijst-title">{{ leeslijst.titel }}</h3>
-              <p class="leeslijst-meta">
-                <span class="meta-item"
-                  ><strong>Boeken:</strong> {{ leeslijst.books.length }}</span
+          <button
+            type="button"
+            class="leeslijst-card"
+            (click)="goToLeeslijst(leeslijst.id)"
+          >
+            <div class="leeslijst-card-header">
+              <div class="leeslijst-card-icon" aria-hidden="true">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-              </p>
-              <p class="leeslijst-meta">
-                <span class="meta-item"
-                  ><strong>Door:</strong>
-                  {{ displayCreatorName(leeslijst.createdByName) }}</span
-                >
-              </p>
-              @if (leeslijst.description) {
-                <p class="leeslijst-description">{{ leeslijst.description }}</p>
-              }
-              <div class="leeslijst-klassen">
-                @if (
-                  leeslijst.isGlobal &&
-                  (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
-                ) {
-                  <span class="klas-badge">Voor iedereen</span>
-                }
-                @if (
-                  leeslijst.isSchool &&
-                  (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
-                ) {
-                  <span class="klas-badge">Deze school</span>
-                }
-                @for (klas of leeslijst.klasNames; track klas) {
-                  <span class="klas-badge">{{ klas }}</span>
-                }
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z" />
+                  <path d="M4 19.5A2.5 2.5 0 016.5 22H20v-5" />
+                </svg>
               </div>
+              <span class="leeslijst-count">
+                {{ leeslijst.books.length }}
+                <span>{{ leeslijst.books.length === 1 ? "boek" : "boeken" }}</span>
+              </span>
             </div>
-            <div class="leeslijst-card-action">
-              <button
-                class="btn btn-sm"
-                (click)="goToLeeslijst(leeslijst.id); $event.stopPropagation()"
-              >
-                Bekijk leeslijst
-              </button>
+
+            <h3 class="leeslijst-title">{{ leeslijst.titel }}</h3>
+
+            @if (leeslijst.description) {
+              <p class="leeslijst-description">{{ leeslijst.description }}</p>
+            }
+
+            <p class="leeslijst-author">
+              Door {{ displayCreatorName(leeslijst.createdByName) }}
+            </p>
+
+            <div class="leeslijst-klassen">
+              @if (
+                leeslijst.isGlobal &&
+                (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
+              ) {
+                <span class="klas-badge">Voor iedereen</span>
+              }
+              @if (
+                leeslijst.isSchool &&
+                (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
+              ) {
+                <span class="klas-badge">Deze school</span>
+              }
+              @for (klas of leeslijst.klasNames; track klas) {
+                <span class="klas-badge">{{ klas }}</span>
+              }
             </div>
-          </div>
+          </button>
         }
       </div>
     }
@@ -350,6 +358,7 @@
                 ? formatDate(loan.returnedAt)
                 : formatDate(loan.dueDate)
             "
+            [loanReturned]="!!loan.returnedAt"
             (viewDetails)="goToDetail(loan.bookId)"
           ></app-recommendation-card>
         }

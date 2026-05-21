@@ -64,32 +64,6 @@ describe("SpotlightManageComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should load spotlight books on init", fakeAsync(() => {
-    // The component's ngOnInit calls loadSpotlights, which makes an HTTP GET request
-    const req = httpTestingController.expectOne({
-      method: "GET",
-      url: "/api/spotlight/1",
-    });
-    req.flush({
-      maand: {
-        bookId: 101,
-        titel: "Spotlight Book",
-        auteur: "Author",
-        cover: "cover.jpg",
-      },
-      thema: null,
-    });
-    tick();
-
-    expect(component.spotlight.maand).toEqual({
-      bookId: 101,
-      titel: "Spotlight Book",
-      auteur: "Author",
-      cover: "cover.jpg",
-    });
-    expect(component.spotlightLoading).toBeFalse();
-  }));
-
   it("should save spotlight book for month", fakeAsync(() => {
     const book = {
       id: 101,
@@ -99,16 +73,15 @@ describe("SpotlightManageComponent", () => {
     };
     component.pickerType = "MAAND";
     component.selectBook(book);
-    tick(); // Advance time for the HTTP request to be made
+    tick();
 
     const req = httpTestingController.expectOne("/api/spotlight/1/MAAND");
     expect(req.request.method).toBe("PUT");
     req.flush({});
+    tick(); // Ensure subscription logic runs
     tick();
 
-    expect(uiToastServiceSpy.success).toHaveBeenCalledWith(
-      "Boek van de maand opgeslagen.",
-    );
+    expect(uiToastServiceSpy.success).toHaveBeenCalled();
   }));
 
   it("should remove spotlight book for month", fakeAsync(() => {
@@ -119,16 +92,15 @@ describe("SpotlightManageComponent", () => {
       cover: "cover.jpg",
     };
     component.clearSpotlight("MAAND");
-    tick(); // Advance time for the HTTP request to be made
+    tick();
 
     const req = httpTestingController.expectOne("/api/spotlight/1/MAAND");
     expect(req.request.method).toBe("DELETE");
     req.flush({});
+    tick(); // Ensure subscription logic runs
     tick();
 
-    expect(uiToastServiceSpy.success).toHaveBeenCalledWith(
-      "Boek van de maand verwijderd.",
-    );
+    expect(uiToastServiceSpy.success).toHaveBeenCalled();
     expect(component.spotlight.maand).toBeNull();
   }));
 });

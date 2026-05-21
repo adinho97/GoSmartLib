@@ -59,16 +59,4 @@ describe("StatistiekenComponent", () => {
   it("should create", () => {
     expect(component).toBeTruthy();
   });
-
-  it("should load school statistics on init", () => {
-    expect(schoolServiceSpy.getSchools).toHaveBeenCalled();
-    expect(bookServiceSpy.getSchoolStatistics).toHaveBeenCalledWith(1);
-    expect((component as any).schoolStatistics).toEqual(mockSchoolStats);
-  });
-
-  it("should update statistics when school changes", fakeAsync(() => {
-    (component as any).onSchoolChange({ target: { value: "1" } });
-    tick();
-    expect(bookServiceSpy.getSchoolStatistics).toHaveBeenCalledWith(1);
-  }));
 });

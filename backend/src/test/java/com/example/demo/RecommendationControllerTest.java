@@ -61,8 +61,8 @@ class RecommendationControllerTest {
     @DisplayName("should return recommendations with default limit 10")
     void testGetRecommendationsSuccess() throws Exception {
         List<RecommendedBook> mockRecommendations = List.of(
-            new RecommendedBook(1L, "Book1", "Author1", "Genre1", 90.0, "Reason1"),
-            new RecommendedBook(2L, "Book2", "Author2", "Genre2", 80.0, "Reason2")
+            new RecommendedBook(1L, "Book1", "Author1", List.of("Genre1"), 90.0, "Reason1"),
+            new RecommendedBook(2L, "Book2", "Author2", List.of("Genre2"), 80.0, "Reason2")
         );
 
         when(recommendationService.getRecommendations("user123", 10, true))
@@ -82,7 +82,7 @@ class RecommendationControllerTest {
     @DisplayName("should pass custom limit and excludeRead parameters")
     void testGetRecommendationsWithCustomParams() throws Exception {
         List<RecommendedBook> mockRecommendations = List.of(
-            new RecommendedBook(1L, "Book1", "Author1", "Genre1", 90.0, "Reason1")
+            new RecommendedBook(1L, "Book1", "Author1", List.of("Genre1"), 90.0, "Reason1")
         );
 
         when(recommendationService.getRecommendations("user123", 5, false))
@@ -109,7 +109,7 @@ class RecommendationControllerTest {
     @DisplayName("should get recommendations filtered by strategy")
     void testGetByStrategySuccess() throws Exception {
         List<RecommendedBook> mockRecommendations = List.of(
-            new RecommendedBook(1L, "Book1", "Author1", "Genre1", 100.0, "Trending")
+            new RecommendedBook(1L, "Book1", "Author1", List.of("Genre1"), 100.0, "Trending")
         );
 
         when(recommendationService.getRecommendationsByStrategy(
@@ -133,10 +133,10 @@ class RecommendationControllerTest {
     void testGetGroupedRecommendationsSuccess() throws Exception {
         Map<String, List<RecommendedBook>> grouped = Map.of(
             "TrendingStrategy", List.of(
-                new RecommendedBook(1L, "Book1", "Author1", "Genre1", 100.0, "Trending")
+                new RecommendedBook(1L, "Book1", "Author1", List.of("Genre1"), 100.0, "Trending")
             ),
             "GenreBasedStrategy", List.of(
-                new RecommendedBook(2L, "Book2", "Author2", "Genre2", 90.0, "Genre Based")
+                new RecommendedBook(2L, "Book2", "Author2", List.of("Genre2"), 90.0, "Genre Based")
             )
         );
 

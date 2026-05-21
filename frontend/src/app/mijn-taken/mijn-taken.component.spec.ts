@@ -21,8 +21,8 @@ describe("MijnTakenComponent", () => {
   let userServiceSpy: jasmine.SpyObj<UserService>;
 
   beforeEach(async () => {
-    loanServiceSpy = jasmine.createSpyObj("LoanService", ["getAllActiveLoans"]);
-    loanServiceSpy.getAllActiveLoans.and.returnValue(
+    loanServiceSpy = jasmine.createSpyObj("LoanService", ["getActiveLoans"]);
+    loanServiceSpy.getActiveLoans.and.returnValue(
       Promise.resolve([
         {
           id: 1,
@@ -71,21 +71,26 @@ describe("MijnTakenComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should load overdue loans on init", () => {
-    expect(loanServiceSpy.getAllActiveLoans).toHaveBeenCalled();
-  });
+  it("should load overdue loans on init", fakeAsync(() => {
+    // Selecting a student triggers the loan loading
+    const mockStudent = {
+      sub: "student1",
+      displayName: "Student 1",
+      klas: "1A",
+    };
+    component.selectStudentForExtension(mockStudent);
+    tick();
+    expect(loanServiceSpy.getActiveLoans).toHaveBeenCalledWith("student1");
+  }));
 
   it("should calculate overdue status correctly", () => {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
+    // Ensure both are valid ISO date strings or Date objects depending on implementation
+    component.today = "2023-01-02";
+    const loan = { dueDate: "2023-01-01" } as any;
+    expect(component.isOverdue(loan.dueDate)).toBeTrue();
 
-    const loan = { dueDate: yesterday.toISOString().split("T")[0] } as any;
-    expect(component.isOverdue(loan)).toBeTrue();
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const futureLoan = { dueDate: tomorrow.toISOString().split("T")[0] } as any;
-    expect(component.isOverdue(futureLoan)).toBeFalse();
+    const tomorrow = "2023-01-03";
+    const futureLoan = { dueDate: tomorrow } as any;
+    expect(component.isOverdue(futureLoan.dueDate)).toBeFalse();
   });
 });

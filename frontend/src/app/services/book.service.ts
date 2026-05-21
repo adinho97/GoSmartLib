@@ -511,8 +511,8 @@ export class BookService {
   }
 
   // New methods for the distinct "highlighted" feature
-  async toggleHighlight(bookId: number): Promise<boolean> {
-    const schoolId = this.resolveSchoolId();
+  async toggleHighlight(bookId: number, schoolIdOverride?: number): Promise<boolean> {
+    const schoolId = this.resolveSchoolId(schoolIdOverride);
     if (!schoolId) {
       console.error("No school selected to toggle highlight.");
       throw new Error("No school selected.");

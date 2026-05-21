@@ -12,6 +12,8 @@ import com.example.demo.entities.School;
 import com.example.demo.config.JwtTokenProvider;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.mappers.BookMapper;
+import com.example.demo.repositories.GenreRepository;
 import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.repositories.SuperAdminRepository;
 import com.example.demo.services.ReviewModerationService;
@@ -30,6 +32,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.example.demo.entities.Genre;
+import org.springframework.util.StringUtils;
 import org.hamcrest.Matchers;
 
 import java.time.LocalDate;
@@ -37,6 +41,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashSet;
+import java.util.Set;
 
 import reactor.core.publisher.Mono;
 
@@ -98,13 +104,25 @@ class BookControllerTest {
         @MockBean
         private ConnectionPoolMonitor connectionPoolMonitor;
 
+        @MockBean
+        private BookMapper bookMapper;
+
+        @MockBean
+        private GenreRepository genreRepository;
+
+        private Genre createGenre(String name) {
+                Genre genre = new Genre();
+                genre.setNaam(name);
+                return genre;
+        }
+
         @Test
         void getAllShouldReturnBooks() throws Exception {
                 Book book = new Book();
-                book.setId(1L);
-                book.setTitel("Dune");
-                book.setAuteur("Frank Herbert");
-                book.setGenre("Sciencefiction");
+                book.setId(1L); // Changed from book.setGenre("Sciencefiction");
+                book.setTitel("Dune"); // Changed from book.setGenre("Sciencefiction");
+                book.setAuteur("Frank Herbert"); // Changed from book.setGenre("Sciencefiction");
+                book.setGenres(Set.of(createGenre("Sciencefiction"))); // Changed from book.setGenre("Sciencefiction");
 
                 when(bookRepository.findAll()).thenReturn(List.of(book));
 
@@ -134,6 +152,7 @@ class BookControllerTest {
                 book.setId(10L);
                 book.setTitel("Niet-didactisch");
                 book.setAuteur("Auteur");
+                book.setGenres(new HashSet<>()); // No didactic genre
 
                 when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
                 when(bookRepository.findNonDidacticBySchool_Id(1L)).thenReturn(List.of(book));
@@ -166,7 +185,7 @@ class BookControllerTest {
                 saved.setAuteur("Robert C. Martin");
                 saved.setCover("data:image/png;base64,abc");
                 saved.setBeschrijving("Software craftsmanship");
-                saved.setGenre("Programming");
+                saved.setGenres(Set.of(createGenre("Programming")));
                 saved.setIsbn("9780132350884");
                 saved.setUitgaveDatum(LocalDate.of(2008, 8, 1));
                 saved.setPaginas(464);
@@ -184,7 +203,7 @@ class BookControllerTest {
                                   "isbn": "9780132350884",
                                   "cover": "data:image/png;base64,abc",
                                   "beschrijving": "Software craftsmanship",
-                                  "genre": "Programming",
+                                  "genres": ["Programming"],
                                   "uitgaveDatum": "2008-08-01",
                                   "paginas": 464,
                                   "taal": "English",
@@ -558,7 +577,7 @@ class BookControllerTest {
                 didactic.setId(6L);
                 didactic.setTitel("Didactisch boek");
                 didactic.setAuteur("Auteur");
-                didactic.setGenre("Didactiek - NT2");
+                didactic.setGenres(Set.of(createGenre("Didactiek - NT2")));
 
                 when(appUserRepository.findBySub("student-sub")).thenReturn(Optional.of(student));
                 when(bookRepository.findById(6L)).thenReturn(Optional.of(didactic));
@@ -583,7 +602,7 @@ class BookControllerTest {
                 didactic.setId(7L);
                 didactic.setTitel("Didactisch boek");
                 didactic.setAuteur("Auteur");
-                didactic.setGenre("Didactiek - NT2");
+                didactic.setGenres(Set.of(createGenre("Didactiek - NT2")));
 
                 when(appUserRepository.findBySub("teacher-sub")).thenReturn(Optional.of(teacher));
                 when(bookRepository.findById(7L)).thenReturn(Optional.of(didactic));
@@ -592,8 +611,8 @@ class BookControllerTest {
                                 .header("X-User-Role", "leerkracht")
                                 .header("X-User-Sub", "teacher-sub"))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id").value(7))
-                                .andExpect(jsonPath("$.genre").value("Didactiek - NT2"));
+                                .andExpect(jsonPath("$.id").value(7)) // Changed from jsonPath("$.genre").value("Didactiek - NT2")
+                                .andExpect(jsonPath("$.genres[0]").value("Didactiek - NT2")); // Changed from jsonPath("$.genre").value("Didactiek - NT2")
         }
 
         @Test
@@ -602,13 +621,13 @@ class BookControllerTest {
                 didactic.setId(8L);
                 didactic.setTitel("Didactisch boek");
                 didactic.setAuteur("Auteur");
-                didactic.setGenre("Didactiek");
+                didactic.setGenres(Set.of(createGenre("Didactiek")));
 
                 Book regular = new Book();
                 regular.setId(9L);
                 regular.setTitel("Fictie");
                 regular.setAuteur("Auteur");
-                regular.setGenre("Fictie");
+                regular.setGenres(Set.of(createGenre("Fictie")));
 
                 when(bookRepository.findAll()).thenReturn(List.of(didactic, regular));
 
@@ -616,8 +635,8 @@ class BookControllerTest {
                                 .header("X-User-Role", "leerkracht")
                                 .header("X-User-Sub", "teacher-sub"))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$[0].id").value(8))
-                                .andExpect(jsonPath("$[0].genre").value("Didactiek"))
+                                .andExpect(jsonPath("$[0].id").value(8)) // Changed from jsonPath("$[0].genre").value("Didactiek")
+                                .andExpect(jsonPath("$[0].genres[0]").value("Didactiek")) // Changed from jsonPath("$[0].genre").value("Didactiek")
                                 .andExpect(jsonPath("$.length()").value(1));
         }
 
@@ -667,7 +686,7 @@ class BookControllerTest {
                 dto.setId(1L);
                 dto.setTitel("Dune");
                 dto.setAuteur("Frank Herbert");
-                dto.setIsbn("9780553808049");
+                dto.setGenres(List.of("Sciencefiction"));
                 return dto;
         }
 

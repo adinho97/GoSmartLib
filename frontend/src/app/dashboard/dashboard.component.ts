@@ -315,8 +315,8 @@ export class DashboardComponent implements OnInit {
     }
     const next = [...this.config.tiles];
     const from = next.indexOf(this.dragId);
-    next.splice(from, 1);
     const to = next.indexOf(targetId);
+    next.splice(from, 1);
     next.splice(to, 0, this.dragId);
     this.updateConfig({ ...this.config, tiles: next });
     this.dragId = null;

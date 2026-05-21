@@ -23,6 +23,14 @@ export class BibbeheerderService {
     });
   }
 
+  searchLeerkrachten(query: string): Observable<AdminUserListItem[]> {
+    const params = new URLSearchParams({ q: query });
+    return this.http.get<AdminUserListItem[]>(
+      `${this.apiUrl}/leerkrachten/search?${params.toString()}`,
+      { headers: this.getHeaders() },
+    );
+  }
+
   getAllUsers(): Observable<AdminUserListItem[]> {
     return this.http.get<AdminUserListItem[]>(`${this.apiUrl}/users`, {
       headers: this.getHeaders(),

@@ -33,6 +33,9 @@ export class MijnTakenComponent implements OnInit {
   loansLoading = false;
   loansError = "";
 
+  extensionSuccessMessage = "";
+  private successMessageTimeout: ReturnType<typeof setTimeout> | null = null;
+
   selectedStudentForExtension: {
     sub: string;
     displayName: string;
@@ -53,20 +56,26 @@ export class MijnTakenComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAvailableClasses();
-    // Load students from backend (includes klas)
-    void this.loadStudents();
   }
 
-  async openExtensionModal(): Promise<void> {
+  openExtensionModal(): void {
     this.extensionModalOpen = true;
     this.selectedStudentForExtension = null;
     this.studentSearchQuery = "";
     this.studentClassFilter = "";
     this.studentsError = "";
+    this.filteredStudents = [];
+    this.clearSuccessMessage();
 
     this.loadAvailableClasses();
-    await this.loadStudents();
-    this.onSearchStudents();
+  }
+
+  private clearSuccessMessage(): void {
+    this.extensionSuccessMessage = "";
+    if (this.successMessageTimeout !== null) {
+      clearTimeout(this.successMessageTimeout);
+      this.successMessageTimeout = null;
+    }
   }
 
   private loadAvailableClasses(): void {
@@ -86,7 +95,6 @@ export class MijnTakenComponent implements OnInit {
     this.studentsError = "";
 
     try {
-      // Use BibbeheerderService to get users for the caller's school
       const users = await firstValueFrom(
         this.bibbeheerderService.getAllUsers(),
       );
@@ -96,8 +104,6 @@ export class MijnTakenComponent implements OnInit {
         displayName: u.displayName || u.sub,
         klas: u.klasNaam || "",
       }));
-
-      this.onSearchStudents();
     } catch (err) {
       console.error("Failed to load students for verlengen:", err);
       this.studentsError =
@@ -107,12 +113,12 @@ export class MijnTakenComponent implements OnInit {
     }
   }
 
-  get isLibrarian(): boolean {
-    return localStorage.getItem("role") === "bibbeheerder";
+  get hasSearchInput(): boolean {
+    return this.studentSearchQuery.trim() !== "" || this.studentClassFilter !== "";
   }
 
-  get eyebrow(): string {
-    return this.isLibrarian ? "Bibliotheekbeheerder" : "Leerkracht";
+  get isLibrarian(): boolean {
+    return localStorage.getItem("role") === "bibbeheerder";
   }
 
   // Methods for the "Leningen verlengen" modal
@@ -120,7 +126,16 @@ export class MijnTakenComponent implements OnInit {
     this.extensionModalOpen = false;
   }
 
-  onSearchStudents(): void {
+  async onSearchStudents(): Promise<void> {
+    if (!this.hasSearchInput) {
+      this.filteredStudents = [];
+      return;
+    }
+
+    if (this.allStudents.length === 0 && !this.studentsLoading) {
+      await this.loadStudents();
+    }
+
     this.filteredStudents = this.allStudents.filter((student) => {
       const matchesSearchQuery = student.displayName
         .toLowerCase()
@@ -170,16 +185,36 @@ export class MijnTakenComponent implements OnInit {
     tempNewDueDate?: string;
   }): void {
     if (loan.tempNewDueDate) {
+      const newDueDate = loan.tempNewDueDate;
       void this.loanService
-        .updateLoanDueDate(Number(loan.id), loan.tempNewDueDate!)
+        .updateLoanDueDate(Number(loan.id), newDueDate)
         .then(() => {
-          loan.dueDate = loan.tempNewDueDate!;
+          loan.dueDate = newDueDate;
           delete loan.tempNewDueDate;
+          this.showSuccessMessage(
+            `"${loan.bookTitel}" verlengd tot ${this.formatDutchDate(newDueDate)}.`,
+          );
         })
         .catch((err) => {
           console.error("Failed to extend loan:", err);
-          // Could show an error toast here
+          this.loansError = "Verlengen mislukt. Probeer opnieuw.";
         });
     }
+  }
+
+  private showSuccessMessage(message: string): void {
+    this.extensionSuccessMessage = message;
+    if (this.successMessageTimeout !== null) {
+      clearTimeout(this.successMessageTimeout);
+    }
+    this.successMessageTimeout = setTimeout(() => {
+      this.extensionSuccessMessage = "";
+      this.successMessageTimeout = null;
+    }, 3500);
+  }
+
+  private formatDutchDate(iso: string): string {
+    const [year, month, day] = iso.split("-");
+    return `${day}/${month}/${year}`;
   }
 }

@@ -18,4 +18,7 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {
 
     boolean existsByNaamIgnoreCaseAndParentIsNull(String naam);
     boolean existsByNaamIgnoreCaseAndParentId(String naam, Long parentId);
+
+    // Added for generic genre lookup
+    Optional<Genre> findByNaamIgnoreCase(String naam);
 }

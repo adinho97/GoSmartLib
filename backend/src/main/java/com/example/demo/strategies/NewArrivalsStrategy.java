@@ -3,6 +3,7 @@ package com.example.demo.strategies;
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.Book;
 import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.entities.Genre;
 import com.example.demo.repositories.BookRepository;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +37,9 @@ public class NewArrivalsStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenre(),
+                        book.getGenres() != null // Pass List<String> instead of joined String
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.toList())
+                            : List.of(),
                         100.0,
                         "Recently added to the library"))
                 .collect(Collectors.toList());

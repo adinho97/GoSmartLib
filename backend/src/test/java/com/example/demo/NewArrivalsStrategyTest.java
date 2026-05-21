@@ -4,6 +4,7 @@ import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
+import com.example.demo.entities.Genre;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.strategies.NewArrivalsStrategy;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -149,7 +151,10 @@ class NewArrivalsStrategyTest {
         book.setId(id);
         book.setTitel(titel);
         book.setAuteur(auteur);
-        book.setGenre(genre);
+        // Create a Genre object and add it to a Set
+        Genre newGenre = new Genre();
+        newGenre.setNaam(genre);
+        book.setGenres(Set.of(newGenre));
         return book;
     }
 }

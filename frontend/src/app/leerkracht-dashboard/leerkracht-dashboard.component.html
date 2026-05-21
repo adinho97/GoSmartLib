@@ -302,81 +302,11 @@
       [highlightedBookIds]="highlightedBookIds"
       [highlightedCount]="highlightedBookIds.size"
       [booksLoading]="booksLoading"
-      [schoolId]="schoolId"
+      [schoolId]="ownSchoolId"
       (spotlightSaved)="onSpotlightSaved($event)"
       (spotlightCleared)="onSpotlightCleared($event)"
       (highlightsAdded)="onHighlightsAdded()"
     ></app-spotlight-manage>
-  }
-
-  <!-- Mijn leeshoek strip -->
-  @if (firstOwnLoan || kijkerBook) {
-    <section class="lk-leeshoek">
-      <div class="lk-leeshoek-label">
-        <span class="lk-leeshoek-title">Mijn leeshoek</span>
-        <span class="lk-leeshoek-sub">Want jij bent ook een lezer.</span>
-      </div>
-
-      @if (firstOwnLoan) {
-        <div
-          class="lk-leeshoek-book"
-          (click)="goToDetail(firstOwnLoan.bookId)"
-          role="button"
-          tabindex="0"
-        >
-          <div class="lk-leeshoek-cover-wrap">
-            @if (firstOwnLoan.bookCover) {
-              <img
-                [src]="firstOwnLoan.bookCover"
-                [alt]="firstOwnLoan.bookTitel"
-                class="lk-leeshoek-cover"
-              />
-            } @else {
-              <div class="lk-leeshoek-cover lk-leeshoek-placeholder">
-                {{ firstOwnLoan.bookTitel.slice(0, 2).toUpperCase() }}
-              </div>
-            }
-          </div>
-          <div class="lk-leeshoek-info">
-            <span class="lk-leeshoek-eyebrow">● Verder lezen</span>
-            <p class="lk-leeshoek-book-title">{{ firstOwnLoan.bookTitel }}</p>
-            <p class="lk-leeshoek-book-sub">
-              Inleveren {{ formatDueDate(firstOwnLoan.dueDate) }}
-            </p>
-          </div>
-        </div>
-      }
-
-      @if (kijkerBook) {
-        <div
-          class="lk-leeshoek-book"
-          (click)="goToDetail(kijkerBook.bookId)"
-          role="button"
-          tabindex="0"
-        >
-          <div class="lk-leeshoek-cover-wrap">
-            @if (kijkerBook.cover) {
-              <img
-                [src]="kijkerBook.cover"
-                [alt]="kijkerBook.titel"
-                class="lk-leeshoek-cover"
-              />
-            } @else {
-              <div class="lk-leeshoek-cover lk-leeshoek-placeholder">
-                {{ kijkerBook.titel.slice(0, 2).toUpperCase() }}
-              </div>
-            }
-          </div>
-          <div class="lk-leeshoek-info">
-            <span class="lk-leeshoek-eyebrow" style="color: var(--warn)"
-              >★ In de kijker</span
-            >
-            <p class="lk-leeshoek-book-title">{{ kijkerBook.titel }}</p>
-            <p class="lk-leeshoek-book-sub">{{ kijkerBook.auteur }}</p>
-          </div>
-        </div>
-      }
-    </section>
   }
 
   <!-- Recommendation rails -->
