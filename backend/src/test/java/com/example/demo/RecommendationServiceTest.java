@@ -38,11 +38,11 @@ class RecommendationServiceTest {
     @Test
     @DisplayName("should average scores when book appears in multiple strategies")
     void testScoreAveragingWhenBookInMultipleStrategies() {
-        RecommendedBook book1From1 = new RecommendedBook(1L, "Book 1", "Author", "Genre", 80.0, "Reason 1");
-        RecommendedBook book2From1 = new RecommendedBook(2L, "Book 2", "Author", "Genre", 60.0, "Reason 1");
+        RecommendedBook book1From1 = new RecommendedBook(1L, "Book 1", "Author", List.of("Genre"), 80.0, "Reason 1");
+        RecommendedBook book2From1 = new RecommendedBook(2L, "Book 2", "Author", List.of("Genre"), 60.0, "Reason 1");
 
-        RecommendedBook book1From2 = new RecommendedBook(1L, "Book 1", "Author", "Genre", 100.0, "Reason 2");
-        RecommendedBook book3From2 = new RecommendedBook(3L, "Book 3", "Author", "Genre", 70.0, "Reason 2");
+        RecommendedBook book1From2 = new RecommendedBook(1L, "Book 1", "Author", List.of("Genre"), 100.0, "Reason 2");
+        RecommendedBook book3From2 = new RecommendedBook(3L, "Book 3", "Author", List.of("Genre"), 70.0, "Reason 2");
 
         when(strategy1.recommend("user123", 20, true))
                 .thenReturn(List.of(book1From1, book2From1));
@@ -65,8 +65,8 @@ class RecommendationServiceTest {
     @Test
     @DisplayName("should concatenate reasons with pipe separator")
     void testReasonConcatenation() {
-        RecommendedBook book1From1 = new RecommendedBook(1L, "Book 1", "Author", "Genre", 80.0, "Popular");
-        RecommendedBook book1From2 = new RecommendedBook(1L, "Book 1", "Author", "Genre", 60.0, "Your Genre");
+        RecommendedBook book1From1 = new RecommendedBook(1L, "Book 1", "Author", List.of("Genre"), 80.0, "Popular");
+        RecommendedBook book1From2 = new RecommendedBook(1L, "Book 1", "Author", List.of("Genre"), 60.0, "Your Genre");
 
         when(strategy1.recommend("user123", 20, true)).thenReturn(List.of(book1From1));
         when(strategy2.recommend("user123", 20, true)).thenReturn(List.of(book1From2));
@@ -81,9 +81,9 @@ class RecommendationServiceTest {
     @DisplayName("should respect limit parameter")
     void testLimitRespected() {
         List<RecommendedBook> strategy1Results = List.of(
-                new RecommendedBook(1L, "B1", "A", "G", 100.0, "R1"),
-                new RecommendedBook(2L, "B2", "A", "G", 90.0, "R1"),
-                new RecommendedBook(3L, "B3", "A", "G", 80.0, "R1"));
+                new RecommendedBook(1L, "B1", "A", List.of("G"), 100.0, "R1"),
+                new RecommendedBook(2L, "B2", "A", List.of("G"), 90.0, "R1"),
+                new RecommendedBook(3L, "B3", "A", List.of("G"), 80.0, "R1"));
         List<RecommendedBook> strategy2Results = new ArrayList<>();
 
         when(strategy1.recommend("user123", 4, true)).thenReturn(strategy1Results);
@@ -100,7 +100,7 @@ class RecommendationServiceTest {
         when(strategy1.getName()).thenReturn("TrendingStrategy");
         when(strategy2.getName()).thenReturn("GenreBasedStrategy");
 
-        RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", "G", 100.0, "R1");
+        RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", List.of("G"), 100.0, "R1");
 
         when(strategy1.recommend("user123", 20, true)).thenReturn(List.of(book1));
 
@@ -120,8 +120,8 @@ class RecommendationServiceTest {
         when(strategy1.getName()).thenReturn("TrendingStrategy");
         when(strategy2.getName()).thenReturn("GenreBasedStrategy");
 
-        RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", "G", 100.0, "R1");
-        RecommendedBook book2 = new RecommendedBook(2L, "B2", "A", "G", 90.0, "R2");
+        RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", List.of("G"), 100.0, "R1");
+        RecommendedBook book2 = new RecommendedBook(2L, "B2", "A", List.of("G"), 90.0, "R2");
 
         when(strategy1.recommend("user123", 10, true)).thenReturn(List.of(book1));
         when(strategy2.recommend("user123", 10, true)).thenReturn(List.of(book2));
@@ -154,9 +154,9 @@ class RecommendationServiceTest {
     @Test
     @DisplayName("should sort results by score descending")
     void testResultsSortedByScoreDescending() {
-        RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", "G", 50.0, "R1");
-        RecommendedBook book2 = new RecommendedBook(2L, "B2", "A", "G", 100.0, "R2");
-        RecommendedBook book3 = new RecommendedBook(3L, "B3", "A", "G", 75.0, "R3");
+        RecommendedBook book1 = new RecommendedBook(1L, "B1", "A", List.of("G"), 50.0, "R1");
+        RecommendedBook book2 = new RecommendedBook(2L, "B2", "A", List.of("G"), 100.0, "R2");
+        RecommendedBook book3 = new RecommendedBook(3L, "B3", "A", List.of("G"), 75.0, "R3");
 
         when(strategy1.recommend("user123", 20, true)).thenReturn(List.of(book1, book2, book3));
         when(strategy2.recommend("user123", 20, true)).thenReturn(new ArrayList<>());

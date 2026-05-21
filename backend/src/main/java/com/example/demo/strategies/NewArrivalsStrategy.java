@@ -37,9 +37,9 @@ public class NewArrivalsStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenres() != null
-                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
-                            : "",
+                        book.getGenres() != null // Pass List<String> instead of joined String
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.toList())
+                            : List.of(),
                         100.0,
                         "Recently added to the library"))
                 .collect(Collectors.toList());

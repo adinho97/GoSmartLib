@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import com.example.demo.entities.School;
+import com.example.demo.entities.Genre;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.SchoolRepository;
 import com.example.demo.repositories.BookRepository;
@@ -8,6 +9,7 @@ import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.DisplayNameResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.Stream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,9 +50,10 @@ public class StatisticsService {
 
         dto.setPopularBooks(formatPopularBooks(loanRepository.findPopularBooksBySchool(null)));
         dto.setBooksPerGenre(formatGenreCounts(bookRepository.findAll().stream()
-                .collect(Collectors.groupingBy(
-                        b -> b.getGenre() != null && !b.getGenre().isBlank() ? b.getGenre() : "Onbekend",
-                        Collectors.counting()))
+                .flatMap(b -> b.getGenres() == null || b.getGenres().isEmpty() 
+                    ? Stream.of("Onbekend") 
+                    : b.getGenres().stream().map(Genre::getNaam))
+                .collect(Collectors.groupingBy(g -> g, Collectors.counting()))
                 .entrySet().stream()
                 .map(e -> new Object[] { e.getKey(), e.getValue() })
                 .collect(Collectors.toList())));
@@ -84,7 +87,7 @@ public class StatisticsService {
         Map<String, Object> topReader = formatTopItem(loanRepository.findTopReadersBySchool(requiredSchoolId), "sub", "displayName");
         if (topReader != null) {
             Object subObj = topReader.get("sub");
-            if (subObj instanceof String sub && !sub.isBlank()) {
+            if (subObj instanceof String sub && !sub.isBlank()) { // Corrected to use displayNameResolver
                 Map<String, String> names = displayNameResolver.resolveAll(requiredSchoolId, List.of(sub));
                 topReader.put("displayName", names.getOrDefault(sub, sub));
             }
@@ -93,10 +96,11 @@ public class StatisticsService {
         dto.setTopClass(formatTopItem(loanRepository.findTopClassesBySchool(requiredSchoolId), "name"));
 
         dto.setPopularBooks(formatPopularBooks(loanRepository.findPopularBooksBySchool(requiredSchoolId)));
-        dto.setBooksPerGenre(formatGenreCounts(bookRepository.findAllBySchool_Id(requiredSchoolId).stream()
-                .collect(Collectors.groupingBy(
-                        b -> b.getGenre() != null && !b.getGenre().isBlank() ? b.getGenre() : "Onbekend",
-                        Collectors.counting()))
+        dto.setBooksPerGenre(formatGenreCounts(bookRepository.findAllBySchool_Id(schoolId).stream()
+                .flatMap(b -> b.getGenres() == null || b.getGenres().isEmpty() 
+                    ? Stream.of("Onbekend") 
+                    : b.getGenres().stream().map(Genre::getNaam))
+                .collect(Collectors.groupingBy(g -> g, Collectors.counting()))
                 .entrySet().stream()
                 .map(e -> new Object[] { e.getKey(), e.getValue() })
                 .collect(Collectors.toList())));

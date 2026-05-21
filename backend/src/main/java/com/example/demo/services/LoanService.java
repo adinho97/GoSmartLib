@@ -40,14 +40,17 @@ public class LoanService {
     private final AuthService authService;
     private final SmartschoolProperties smartschoolProperties;
     private final AppUserRepository appUserRepository;
+    private final DisplayNameResolver displayNameResolver; // Injected DisplayNameResolver
 
     public LoanService(LoanRepository loanRepo, BookCopyRepository copyRepo,
             BookAvailabilityNotificationService bookAvailabilityNotificationService,
             SmartschoolMessageService smartschoolMessageService,
             AuthService authService,
             SmartschoolProperties smartschoolProperties,
-            AppUserRepository appUserRepository) {
+            AppUserRepository appUserRepository,
+            DisplayNameResolver displayNameResolver) {
         this.loanRepo = loanRepo;
+        this.displayNameResolver = displayNameResolver;
         this.copyRepo = copyRepo;
         this.bookAvailabilityNotificationService = bookAvailabilityNotificationService;
         this.smartschoolMessageService = smartschoolMessageService;
@@ -532,7 +535,12 @@ public class LoanService {
                     dto.setLoanId(loan.getId());
                     dto.setCopyId(loan.getCopy().getId());
                     dto.setCopyNumber(copyNumbersByCopyId.get(loan.getCopy().getId()));
+                    dto.setUserSub(loan.getUserSub());
+                    // Resolve display name for the user
+                    displayNameResolver.peek(loan.getUserSub()).ifPresent(dto::setUserDisplayName);
+
                     dto.setBookId(loan.getCopy().getBook().getId());
+
                     dto.setBookTitel(loan.getCopy().getBook().getTitel());
                     dto.setBookCover(loan.getCopy().getBook().getCover());
                     dto.setUserSub(loan.getUserSub());
@@ -652,6 +660,7 @@ public class LoanService {
         if (loan.getCopy().getBook().getGenres() != null) {
             dto.setBookGenres(loan.getCopy().getBook().getGenres().stream().map(g -> g.getNaam()).collect(Collectors.joining(", ")));
         }
+        displayNameResolver.peek(loan.getUserSub()).ifPresent(dto::setUserDisplayName); // Set user display name
         dto.setLoanedAt(loan.getLoanedAt());
         dto.setDueDate(loan.getDueDate());
         dto.setReturnedAt(loan.getReturnedAt());

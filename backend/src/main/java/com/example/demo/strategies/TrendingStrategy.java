@@ -3,6 +3,7 @@ package com.example.demo.strategies;
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.Genre;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
@@ -82,9 +83,9 @@ public class TrendingStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenres() != null
-                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
-                            : "",
+                        book.getGenres() != null // Pass List<String> instead of joined String
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.toList())
+                            : List.of(),
                         score,
                         "Popular in our library (" + loanCount + " loans)");
                 scored.add(rec);
@@ -147,9 +148,9 @@ public class TrendingStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenres() != null
-                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
-                            : "",
+                        book.getGenres() != null // Pass List<String> instead of joined String
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.toList())
+                            : List.of(),
                         score,
                         "Popular in our library (" + loanCount + " loans)");
                 scored.add(rec);

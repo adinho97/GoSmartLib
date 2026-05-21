@@ -10,6 +10,7 @@ public class LoanDto {
     private String bookTitel;
     private String bookCover;
     private String bookGenres; // Added for multiple genres
+    private String userDisplayName; // Added for user display name
     private String userSub;
     private LocalDate loanedAt;
     private LocalDate dueDate;
@@ -120,5 +121,13 @@ public class LoanDto {
 
     public void setBookGenres(String bookGenres) {
         this.bookGenres = bookGenres;
+    }
+
+    public String getUserDisplayName() {
+        return userDisplayName;
+    }
+
+    public void setUserDisplayName(String userDisplayName) {
+        this.userDisplayName = userDisplayName;
     }
 }

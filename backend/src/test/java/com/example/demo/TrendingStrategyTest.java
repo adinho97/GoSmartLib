@@ -4,6 +4,7 @@ import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
+import com.example.demo.entities.Genre;
 import com.example.demo.entities.Loan;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.AppUserRepository;
@@ -21,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -275,7 +277,10 @@ class TrendingStrategyTest {
         book.setId(id);
         book.setTitel(titel);
         book.setAuteur(auteur);
-        book.setGenre(genre);
+        // Create a Genre object and add it to a Set
+        Genre newGenre = new Genre();
+        newGenre.setNaam(genre);
+        book.setGenres(Set.of(newGenre));
         return book;
     }
 

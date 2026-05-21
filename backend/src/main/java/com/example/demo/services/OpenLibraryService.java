@@ -226,7 +226,7 @@ public class OpenLibraryService {
                 .limit(3)
                 .map(this::translateSubject)
                 .map(genreName -> genreRepository.findByNaamIgnoreCase(genreName)
-                                                 .orElseGet(() -> {
+                                                 .orElseGet(() -> { // Changed from findByNaamIgnoreCaseAndParentIsNull
                                                      Genre newGenre = new Genre(); newGenre.setNaam(genreName); return genreRepository.save(newGenre);
                                                  }))
                 .collect(Collectors.toSet());

@@ -89,9 +89,9 @@ public class AuthorBasedStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenres() != null
-                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
-                            : "", // Join genre names for display
+                        book.getGenres() != null // Pass List<String> instead of joined String
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.toList())
+                            : List.of(),
                         score,
                         "By an author you read before: " + book.getAuteur());
                 scored.add(rec);
@@ -157,9 +157,9 @@ public class AuthorBasedStrategy implements RecommendationStrategy {
                         book.getId(),
                         book.getTitel(),
                         book.getAuteur(),
-                        book.getGenres() != null
-                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.joining(", "))
-                            : "", // Join genre names for display
+                        book.getGenres() != null // Pass List<String> instead of joined String
+                            ? book.getGenres().stream().map(Genre::getNaam).collect(Collectors.toList())
+                            : List.of(),
                         score,
                         "By an author you read before: " + book.getAuteur());
                 scored.add(rec);

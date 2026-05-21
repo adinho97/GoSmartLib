@@ -18,7 +18,7 @@ public class BookMapper {
     public BookMapper(GenreRepository genreRepository) {
         this.genreRepository = genreRepository;
     }
-    public static BookDto toDto(Book book) {
+    public BookDto toDto(Book book) {
         if (book == null) {
             return null;
         }
@@ -69,7 +69,7 @@ public class BookMapper {
         return dto;
     }
 
-    public static Book toEntity(BookDto dto) {
+    public Book toEntity(BookDto dto) {
         if (dto == null) {
             return null;
         }
