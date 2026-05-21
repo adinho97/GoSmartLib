@@ -35,7 +35,7 @@ const LOAN_BADGES: Omit<BadgeChip, 'unlocked'>[] = [
   { key: '5-op-rij',    iconKey: 'rij',   label: '5 op rij',    hint: '5 boeken',   cssClass: 'lb2', threshold: 5,   unit: 'boek' },
   { key: 'nachtlezer',  iconKey: 'nacht', label: 'Nachtlezer',  hint: '10 boeken',  cssClass: 'lb3', threshold: 10,  unit: 'boek' },
   { key: 'klassiek',    iconKey: 'klas',  label: 'Klassiek',    hint: '20 boeken',  cssClass: 'lb4', threshold: 20,  unit: 'boek' },
-  { key: 'bibliofiel',  iconKey: 'bib',   label: 'Bibliofiel',  hint: '50 boeken',  cssClass: 'lb5', threshold: 50,  unit: 'boek' },
+  { key: 'bibliofiel',  iconKey: 'bib',   label: 'Liefhebber',  hint: '50 boeken',  cssClass: 'lb5', threshold: 50,  unit: 'boek' },
   { key: 'legende',     iconKey: 'leg',   label: 'Legende',     hint: '100 boeken', cssClass: 'lb6', threshold: 100, unit: 'boek' },
 ];
 

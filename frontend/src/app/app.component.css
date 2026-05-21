@@ -364,14 +364,6 @@
   width: 100%;
 }
 
-.profile-toggles .dm-toggle-btn,
-.profile-toggles .cb-toggle-btn {
-  width: 100% !important;
-  border-radius: 8px !important;
-  justify-content: flex-start !important;
-  margin: 0 !important;
-}
-
 .menu-level-card {
   --level-accent: #c8859d;
   --level-accent-strong: #871f42;

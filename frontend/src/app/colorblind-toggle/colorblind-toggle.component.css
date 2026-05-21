@@ -29,3 +29,10 @@
 .cb-toggle-btn svg {
   flex-shrink: 0;
 }
+
+:host-context(.profile-toggles) .cb-toggle-btn {
+  display: flex;
+  width: 100%;
+  border-radius: 8px;
+  justify-content: flex-start;
+}
