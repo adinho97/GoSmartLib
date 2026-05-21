@@ -72,7 +72,6 @@ public class BookService {
         this.wishlistRepository = wishlistRepository;
         this.highlightedBookRepository = highlightedBookRepository;
         this.classReadingListItemRepository = classReadingListItemRepository;
-        this.klasRepository = klasRepository; // Initialized here
     }
 
     /**
@@ -82,13 +81,15 @@ public class BookService {
                        SchoolService schoolService, OpenLibraryService openLibraryService, IsbnService isbnService,
                        BulkImportService bulkImportService, BookMapper bookMapper, ImportCoreService importCoreService) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
-                bulkImportService, bookMapper, importCoreService, null, null, null, null, null); // Added null for klasRepository
+                bulkImportService, bookMapper, importCoreService, null, null, null, null, null);
+    }
+
     public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository,
             LoanRepository loanRepository, SchoolService schoolService, OpenLibraryService openLibraryService,
             IsbnService isbnService, BulkImportService bulkImportService,
             ImportCoreService importCoreService) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
-                bulkImportService, null, importCoreService, null, null, null, null, null); // Added null for BookMapper and KlasRepository, and other nulls
+                bulkImportService, null, importCoreService, null, null, null, null, null);
     }
 
     /**
@@ -99,7 +100,7 @@ public class BookService {
             IsbnService isbnService, BulkImportService bulkImportService,
             ImportCoreService importCoreService, KlasRepository klasRepository) {
         this(bookRepository, bookCopyRepository, loanRepository, schoolService, openLibraryService, isbnService,
-                bulkImportService, null, importCoreService, null, null, null, null, klasRepository); // Added null for BookMapper and other nulls
+                bulkImportService, null, importCoreService, klasRepository, null, null, null, null);
     }
 
     public Optional<BookDto> findByIsbn(String isbn, Long schoolId) {
