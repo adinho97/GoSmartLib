@@ -57,6 +57,11 @@
                   <line x1="7" y1="7" x2="7.01" y2="7"/>
                 </svg>
               }
+              @case ('tags') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              }
               @case ('levels') {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -499,6 +504,47 @@
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
             Genre toevoegen
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Thema's (Tags) ──────────────────── -->
+      <section class="s-card" id="tags">
+        <div class="s-card-head">
+          <div class="head-text">
+            <h2>Thema's (Tags)</h2>
+            <p class="s-card-sub">Gebruik thema's om boeken flexibel te groeperen rond projecten zoals 'Jeugdboekenmaand' of 'Leesjury'.</p>
+          </div>
+          <div class="head-aside">
+            <span class="scope-tag muted">{{ tags.length }} thema's</span>
+          </div>
+        </div>
+
+        <div class="sub-list" style="margin-top: 0; padding: 0;">
+          @for (t of tags; track t.id) {
+            <span class="sub-chip" style="font-size: 13px; padding: 6px 12px;">
+              {{ t.naam }}
+              <button type="button" class="sub-remove" [attr.aria-label]="t.naam + ' verwijderen'" (click)="requestDeleteTag(t)">×</button>
+            </span>
+          }
+          @if (tags.length === 0) {
+            <p class="closed-label">Nog geen thema's geconfigureerd.</p>
+          }
+        </div>
+
+        <div class="genre-add-form">
+          <input
+            class="input"
+            placeholder="Nieuw thema toevoegen (bv. Jeugdboekenmaand)…"
+            [(ngModel)]="newTagName"
+            (keydown.enter)="addTag()"
+          />
+          <button type="button" class="btn btn-primary" [disabled]="!newTagName.trim()" (click)="addTag()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Thema toevoegen
           </button>
         </div>
       </section>

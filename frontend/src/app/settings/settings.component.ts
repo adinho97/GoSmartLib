@@ -4,6 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { SettingsService, SchoolSettings } from "../services/settings.service";
 import { SchoolService } from "../services/school.service";
 import { AdminGenreService, Genre as ApiGenre } from "../services/admin-genre.service";
+import { AdminTagService, Tag } from "../services/admin-tag.service";
 import { UiToastService } from "../services/ui-toast.service";
 import { forkJoin, from } from "rxjs";
 
@@ -91,6 +92,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     { id: "hours", label: "Openingsuren" },
     { id: "loanterm", label: "Uitleentermijn" },
     { id: "genres", label: "Genres" },
+    { id: "tags", label: "Thema's (Tags)" },
     { id: "levels", label: "Leesniveaus" },
   ];
 
@@ -128,6 +130,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   hours: DefaultHours = this.defaultHours();
   loanDays = 7;
   genres: Genre[] = [];
+  tags: Tag[] = [];
   levels: ReadingLevel[] = [];
 
   isLoading = true;
@@ -155,6 +158,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   addingSubFor: string | null = null;
   subDraft = "";
   newGenreName = "";
+  newTagName = "";
 
   confirmTarget: ConfirmTarget | null = null;
 
@@ -162,6 +166,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private settingsService: SettingsService,
     public schoolService: SchoolService,
     private genreService: AdminGenreService,
+    private tagService: AdminTagService,
     private toastService: UiToastService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -185,7 +190,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       schoolInfo: this.settingsService.getSchoolName(this.schoolId),
       settings: this.settingsService.getSettings(this.schoolId),
       loanDays: from(this.schoolService.getDefaultLoanDays(this.schoolId)),
-      apiGenres: this.genreService.getAll()
+      apiGenres: this.genreService.getAll(),
+      apiTags: this.tagService.getAll()
     }).subscribe({
       next: (res) => {
         this.schoolName = res.schoolInfo.name;
@@ -193,6 +199,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.hours = res.settings.hours;
         this.levels = res.settings.levels;
         this.loanDays = res.loanDays;
+        this.tags = res.apiTags;
 
         this.genres = res.apiGenres.map(g => this.mapApiGenre(g));
 
@@ -484,6 +491,34 @@ export class SettingsComponent implements OnInit, OnDestroy {
     if (d < 0)
       return `${Math.abs(d)} dagen strenger dan het netwerk (${this.networkLoanDays} dagen).`;
     return `${d} dagen ruimer dan het netwerk (${this.networkLoanDays} dagen).`;
+  }
+
+  /* ── Tags (Thema's) ─────────────────────── */
+  addTag(): void {
+    const v = this.newTagName.trim();
+    if (!v) return;
+    this.tagService.create(v).subscribe({
+      next: (t) => {
+        this.tags = [...this.tags, t];
+        this.newTagName = "";
+        this.toastService.success(`Thema "${v}" toegevoegd.`);
+      },
+      error: () => this.toastService.error("Fout bij het toevoegen van thema.")
+    });
+  }
+
+  requestDeleteTag(t: Tag): void {
+    this.confirmTarget = {
+      title: `Thema "${t.naam}" verwijderen?`,
+      body: `Dit thema wordt verwijderd uit de lijst. Boeken die dit label hebben, behouden de tekst maar het label is niet langer beschikbaar voor nieuwe boeken.`,
+      confirmLabel: "Verwijderen",
+      onConfirm: () => {
+        this.tagService.delete(t.id).subscribe({
+          next: () => this.tags = this.tags.filter(x => x.id !== t.id),
+          error: () => this.toastService.error("Fout bij het verwijderen van thema.")
+        });
+      }
+    };
   }
 
   /* ── Genres ─────────────────────────────── */

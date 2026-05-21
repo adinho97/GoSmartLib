@@ -2,7 +2,7 @@ package com.example.demo.mappers;
 
 import com.example.demo.dto.BookDto;
 import com.example.demo.entities.Book;
-
+import com.example.demo.entities.Leesniveau;
 import com.example.demo.entities.BookCopy;
 
 public class BookMapper {
@@ -25,7 +25,7 @@ public class BookMapper {
         dto.setPaginas(book.getPaginas());
         dto.setTaal(book.getTaal());
         dto.setUitgeverij(book.getUitgeverij());
-        dto.setLeesniveau(book.getLeesniveau());
+        dto.setLeesniveau(Leesniveau.fromValue(book.getLeesniveau()));
         if (book.getSchool() != null) {
             dto.setSchoolId(book.getSchool().getId());
             dto.setSchoolNaam(book.getSchool().getNaam());
@@ -72,7 +72,9 @@ public class BookMapper {
         book.setPaginas(dto.getPaginas());
         book.setTaal(dto.getTaal());
         book.setUitgeverij(dto.getUitgeverij());
-        book.setLeesniveau(dto.getLeesniveau());
+        if (dto.getLeesniveau() != null) {
+            book.setLeesniveau(dto.getLeesniveau().getLabel());
+        }
 
         return book;
     }
