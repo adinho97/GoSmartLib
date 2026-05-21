@@ -41,6 +41,7 @@ export class LeerlingInfoComponent implements OnInit {
     FAQ: true,
     CUSTOM: true,
   };
+  customSectionOpen: Record<string, boolean> = {};
 
   customSections: { title: string; items: InfoContentItem[] }[] = [];
   newCustomSectionTitle = "";
@@ -122,6 +123,10 @@ export class LeerlingInfoComponent implements OnInit {
       const title = item.customSectionTitle || "Overige";
       if (!grouped[title]) grouped[title] = [];
       grouped[title].push(item);
+      // Initialize toggle state to open if not already set
+      if (this.customSectionOpen[title] === undefined) {
+        this.customSectionOpen[title] = true;
+      }
     });
     this.customSections = Object.keys(grouped).map((title) => ({
       title,
@@ -133,6 +138,7 @@ export class LeerlingInfoComponent implements OnInit {
     const title = this.newCustomSectionTitle.trim();
     if (!title || this.customSections.some((s) => s.title === title)) return;
     this.customSections.push({ title, items: [] });
+    this.customSectionOpen[title] = true;
     this.newCustomSectionTitle = "";
   }
 
@@ -202,7 +208,11 @@ export class LeerlingInfoComponent implements OnInit {
     return list.length > 0 && list.every((item) => this.isGlobal(item));
   }
 
-  toggleSection(sectie: Sectie): void {
+  toggleSection(sectie: Sectie, customTitle?: string): void {
+    if (sectie === 'CUSTOM' && customTitle) {
+      this.customSectionOpen[customTitle] = !this.customSectionOpen[customTitle];
+      return;
+    }
     this.sectionOpen[sectie] = !this.sectionOpen[sectie];
   }
 

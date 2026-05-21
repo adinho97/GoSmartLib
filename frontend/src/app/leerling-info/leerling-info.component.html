@@ -519,13 +519,13 @@
           <button
             type="button"
             class="section-toggle"
-            [attr.aria-expanded]="sectionOpen.CUSTOM"
-            (click)="toggleSection('CUSTOM')"
+            [attr.aria-expanded]="customSectionOpen[section.title]"
+            (click)="toggleSection('CUSTOM', section.title)"
           >
             <span class="section-title">{{ section.title }}</span>
             <span
               class="fold-arrow"
-              [class.open]="sectionOpen.CUSTOM"
+              [class.open]="customSectionOpen[section.title]"
               aria-hidden="true"
               >▾</span
             >
@@ -542,7 +542,7 @@
           }
         </h2>
 
-        @if (sectionOpen.CUSTOM) {
+        @if (customSectionOpen[section.title]) {
           <ul>
             @for (item of section.items; track item.id) {
               <li class="info-item">
