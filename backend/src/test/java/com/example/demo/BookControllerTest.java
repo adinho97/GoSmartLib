@@ -1688,4 +1688,81 @@ class BookControllerTest {
                                 .header("X-User-Name", "  JANSSENS   emma  "))
                                 .andExpect(status().isNoContent());
         }
+
+        @Test
+        void getLestipShouldReturnSharedTipFromOtherSchoolByIsbn() throws Exception {
+                // Local book in School A has no tip
+                Book localBook = new Book();
+                localBook.setId(1L);
+                localBook.setIsbn("978-1234567890");
+                localBook.setLestip(null);
+
+                // Book in School B with the same ISBN has a tip
+                Book remoteBook = new Book();
+                remoteBook.setId(2L);
+                remoteBook.setIsbn("978-1234567890");
+                remoteBook.setLestip("Interessante tip voor dit ISBN.");
+                remoteBook.setLestipAuteur("Collega Leerkracht");
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(localBook));
+                when(bookRepository.findByIsbn("978-1234567890")).thenReturn(Optional.of(remoteBook));
+
+                mockMvc.perform(get("/api/boeken/1/lestip")
+                                .header("X-User-Role", "leerkracht")
+                                .header("X-User-Name", "Eigen Naam"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.lestip").value("Interessante tip voor dit ISBN."))
+                                .andExpect(jsonPath("$.auteurNaam").value("Collega Leerkracht"))
+                                .andExpect(jsonPath("$.magVerwijderen").value(false)); // Should be read-only if from other record
+        }
+
+        @Test
+        void getLestipShouldReturnSharedTipFromOtherSchoolByGoNumber() throws Exception {
+                // Local book has no tip
+                Book localBook = new Book();
+                localBook.setId(10L);
+                localBook.setGoNumber("GO-999");
+                localBook.setLestip(null);
+
+                // Another record with the same GO-number has a tip
+                Book remoteBook = new Book();
+                remoteBook.setId(11L);
+                remoteBook.setGoNumber("GO-999");
+                remoteBook.setLestip("Lestip via GO-nummer.");
+                remoteBook.setLestipAuteur("Andere Bibbeheerder");
+
+                when(bookRepository.findById(10L)).thenReturn(Optional.of(localBook));
+                when(bookRepository.findByGoNumber("GO-999")).thenReturn(Optional.of(remoteBook));
+
+                mockMvc.perform(get("/api/boeken/10/lestip")
+                                .header("X-User-Role", "leerkracht"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.lestip").value("Lestip via GO-nummer."))
+                                .andExpect(jsonPath("$.magVerwijderen").value(false));
+        }
+
+        @Test
+        void getLestipShouldReturnEmptyWhenScopeIsSchoolAndLocalBookHasNoTip() throws Exception {
+                // Local book in School A has no tip
+                Book localBook = new Book();
+                localBook.setId(1L);
+                localBook.setIsbn("978-1234567890");
+                localBook.setLestip(null);
+
+                // Book in School B with the same ISBN has a tip
+                Book remoteBook = new Book();
+                remoteBook.setId(2L);
+                remoteBook.setIsbn("978-1234567890");
+                remoteBook.setLestip("Shared Tip");
+
+                when(bookRepository.findById(1L)).thenReturn(Optional.of(localBook));
+                // Even if remote book is in DB, it should be ignored due to scope=school
+
+                mockMvc.perform(get("/api/boeken/1/lestip")
+                                .param("scope", "school")
+                                .header("X-User-Role", "leerkracht"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.lestip").value(""))
+                                .andExpect(jsonPath("$.magVerwijderen").value(false));
+        }
 }
