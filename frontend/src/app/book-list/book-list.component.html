@@ -213,7 +213,7 @@
                 @if ((book.genre || "").toLowerCase().startsWith("didactiek")) {
                   <div class="didactic-badge">Lerarencollectie</div>
                 }
-                @if ((book.reviewCount || 0) >= 10) {
+                @if ((book.reviewCount || 0) >= 3) {
                   <div
                     class="rating-chip"
                     aria-label="Gemiddelde score {{
