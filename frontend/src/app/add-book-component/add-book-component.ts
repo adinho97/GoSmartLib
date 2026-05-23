@@ -48,10 +48,15 @@ const DIDACTIC_SUBGENRES = [
 export class AddBookComponent implements OnInit {
   readonly languages = Object.values(Language);
   leesniveaus: string[] = [];
-  readonly didacticSubgenres = DIDACTIC_SUBGENRES;
+  didacticSubgenres = [...DIDACTIC_SUBGENRES];
 
   // Dynamische genres van de API (excl. Didactiek)
+  genres: Genre[] = [];
   allGenres: Genre[] = []; // Raw hierarchical genres from API
+  selectedGenreId: number | null = null;
+  selectedSubgenreId: number | null = null;
+  isDidactic = false;
+  selectedDidacticSubgenre = "";
   availableNonDidacticGenres: string[] = []; // Flattened list of non-didactic genres
   showGenreDropdown = false;
   showDidacticDropdown = false;
@@ -79,6 +84,7 @@ export class AddBookComponent implements OnInit {
     goNumber: "",
     cover: "",
     beschrijving: "",
+    genres: [] as string[],
     genre: "",
     uitgaveDatum: "",
     paginas: null as number | null,
@@ -125,7 +131,7 @@ export class AddBookComponent implements OnInit {
         // Populate didacticSubgenres for the didactic mode
         const did = genres.find((g) => g.naam.toLowerCase() === "didactiek");
         if (did) {
-          this.didacticSubgenres = did.subgenres.map((s) => s.naam).sort();
+          this.didacticSubgenres = did.subgenres.map((s: any) => s.naam).sort();
         }
         // Populate availableNonDidacticGenres for the non-didactic multi-select
         this.availableNonDidacticGenres = this.flattenNonDidacticGenres(genres);
@@ -136,7 +142,9 @@ export class AddBookComponent implements OnInit {
   }
 
   get selectedGenre(): Genre | null {
-    return this.genres.find((g) => g.id === this.selectedGenreId) ?? null;
+    return (
+      this.genres.find((g: Genre) => g.id === this.selectedGenreId) ?? null
+    );
   }
 
   get hasSubgenres(): boolean {
@@ -175,14 +183,8 @@ export class AddBookComponent implements OnInit {
     } else {
       return this.selectedNonDidacticGenres;
     }
-    if (!this.selectedGenreId) return "";
-    const genre = this.selectedGenre;
-    if (!genre) return "";
-    if (this.selectedSubgenreId) {
-      const sub = genre.subgenres.find((s) => s.id === this.selectedSubgenreId);
-      return sub ? `${genre.naam} - ${sub.naam}` : genre.naam;
-    }
   }
+
   isSelected(genre: string): boolean {
     return this.selectedNonDidacticGenres.includes(genre);
   }
@@ -356,7 +358,7 @@ export class AddBookComponent implements OnInit {
           .trim();
         if (remainder) {
           const sub = genre.subgenres.find(
-            (s) => s.naam.toLowerCase() === remainder.toLowerCase(),
+            (s: any) => s.naam.toLowerCase() === remainder.toLowerCase(),
           );
           if (sub) this.selectedSubgenreId = sub.id;
         }
@@ -373,6 +375,7 @@ export class AddBookComponent implements OnInit {
       goNumber: "",
       cover: "",
       beschrijving: "",
+      genres: [],
       genre: "",
       uitgaveDatum: "",
       paginas: null,

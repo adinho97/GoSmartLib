@@ -15,6 +15,7 @@ type BookItem = {
   cover: string;
   beschrijving: string;
   lestip?: string;
+  genres: string[];
   genre: string;
   uitgaveDatum: string;
   paginas: number | null;
@@ -342,14 +343,19 @@ export class BookListComponent implements OnInit {
     this.isLoading = true;
     this.error = "";
     try {
-      const books = await this.bookService.getBooks(
+      const books: any[] = await this.bookService.getBooks(
         this.selectedSchoolId ?? undefined,
       );
-      this.books = books.sort((a: BookItem, b: BookItem) =>
-        (a.titel || "").localeCompare(b.titel || "", "nl", {
-          sensitivity: "base",
-        }),
-      );
+      this.books = books
+        .map((b) => ({
+          ...b,
+          genre: b.genres && b.genres.length > 0 ? b.genres[0] : "",
+        }))
+        .sort((a: BookItem, b: BookItem) =>
+          (a.titel || "").localeCompare(b.titel || "", "nl", {
+            sensitivity: "base",
+          }),
+        );
       if (this.isTeacherOrLibrarian) {
         await this.loadLestipsForTeacher();
       }
@@ -364,7 +370,9 @@ export class BookListComponent implements OnInit {
   get filteredBooks(): BookItem[] {
     const query = this.searchQuery.trim().toLowerCase();
     return this.books.filter((book) => {
-      const isDidactic = (book.genre || "").toLowerCase() === "didactiek";
+      const isDidactic = (book.genres || []).some((g) =>
+        g.toLowerCase().includes("didactiek"),
+      );
       if (isDidactic && !this.isTeacherOrLibrarian) return false;
 
       const titleOrAuthorMatches =
@@ -374,8 +382,8 @@ export class BookListComponent implements OnInit {
 
       const genreMatches =
         !this.appliedGenre ||
-        ((): boolean => {
-          const bookGenre = (book.genre || "").toLowerCase();
+        (book.genres || []).some((g) => {
+          const bookGenre = g.toLowerCase();
           const appliedGenre = this.appliedGenre.toLowerCase();
 
           if (appliedGenre === "didactiek") {
@@ -402,7 +410,7 @@ export class BookListComponent implements OnInit {
 
           // Exact match for other genres
           return bookGenre === appliedGenre;
-        })();
+        });
       const languageMatches =
         !this.appliedLanguage ||
         (book.taal || "").toLowerCase() === this.appliedLanguage.toLowerCase();
