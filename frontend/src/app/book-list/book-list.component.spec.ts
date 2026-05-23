@@ -11,6 +11,7 @@ type TestBook = {
   auteur: string;
   cover: string;
   beschrijving: string;
+  genres: string[];
   genre: string;
   uitgaveDatum: string;
   paginas: number | null;
@@ -29,6 +30,7 @@ const createBook = (
   auteur: "Auteur",
   cover: "",
   beschrijving: "",
+  genres: overrides.genre ? [overrides.genre] : [],
   genre: "",
   uitgaveDatum: "",
   paginas: null,

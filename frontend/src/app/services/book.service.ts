@@ -157,7 +157,7 @@ export class BookService {
       goNumber?: string;
       cover: string;
       beschrijving: string;
-      genre: string;
+      genres: string[];
       uitgaveDatum: string;
       paginas: number | null;
       taal: string;
@@ -242,7 +242,7 @@ export class BookService {
       auteur: bookMap.get(book.bookId)?.auteur || book.auteur || null,
       taal: bookMap.get(book.bookId)?.taal || book.taal || null,
       paginas: bookMap.get(book.bookId)?.paginas || book.paginas || null,
-      genre: bookMap.get(book.bookId)?.genre || book.genre || null,
+      genres: bookMap.get(book.bookId)?.genres || book.genres || [],
     }));
   }
 
@@ -260,7 +260,7 @@ export class BookService {
       auteur: bookMap.get(book.bookId)?.auteur || book.auteur || null,
       taal: bookMap.get(book.bookId)?.taal || book.taal || null,
       paginas: bookMap.get(book.bookId)?.paginas || book.paginas || null,
-      genre: bookMap.get(book.bookId)?.genre || book.genre || null,
+      genres: bookMap.get(book.bookId)?.genres || book.genres || [],
     });
 
     const enriched: Record<string, any[]> = {};
@@ -511,7 +511,10 @@ export class BookService {
   }
 
   // New methods for the distinct "highlighted" feature
-  async toggleHighlight(bookId: number, schoolIdOverride?: number): Promise<boolean> {
+  async toggleHighlight(
+    bookId: number,
+    schoolIdOverride?: number,
+  ): Promise<boolean> {
     const schoolId = this.resolveSchoolId(schoolIdOverride);
     if (!schoolId) {
       console.error("No school selected to toggle highlight.");

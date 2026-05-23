@@ -264,6 +264,11 @@
                     <p class="book-meta">
                       <strong>Genre:</strong> {{ book.genre || "Onbekend" }}
                     </p>
+                    @if (book.lestip) {
+                      <p class="book-meta lestip-preview">
+                        <strong>Lestip:</strong> {{ book.lestip }}
+                      </p>
+                    }
                     <p class="book-meta">
                       <strong>Taal:</strong> {{ book.taal || "Onbekend" }}
                     </p>
@@ -372,7 +377,6 @@
                                 : "Markeer boek"
                             }}
                           </button>
-
                         </div>
                       }
                     </div>

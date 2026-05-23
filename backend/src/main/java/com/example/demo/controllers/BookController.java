@@ -344,16 +344,27 @@ public class BookController {
         if (!hasAnyLestipRole(authentication, roleHeader)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        Book book = repo.findById(id).orElse(null);
-        if (book == null) {
+        Book localBook = repo.findById(id).orElse(null);
+        if (localBook == null) {
             return ResponseEntity.notFound().build();
         }
 
         String normalizedUserName = normalizeUserName(userName);
-        
-        // If the local book record has no tip, search for one globally using ISBN or GO-number
-        Book sourceBook = findSourceBookWithSharedLestip(book);
-        return ResponseEntity.ok(toLestipDto(sourceBook, normalizedUserName));
+
+        // Prioritize local tip
+        if (hasLestip(localBook.getLestip())) {
+            return ResponseEntity.ok(toLestipDto(localBook, normalizedUserName));
+        }
+
+        // Fallback to global shared tip
+        Book sourceBook = findSourceBookWithSharedLestip(localBook);
+        LestipDto dto = toLestipDto(sourceBook, normalizedUserName);
+
+        // If the tip is shared from another record/school, force it to be read-only locally
+        if (!Objects.equals(sourceBook.getId(), localBook.getId())) {
+            dto.setMagVerwijderen(false);
+        }
+        return ResponseEntity.ok(dto);
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
@@ -626,16 +637,15 @@ public class BookController {
         }
 
         if (StringUtils.hasText(originalBook.getIsbn())) {
-            return repo.findAll().stream()
-                    .filter(b -> originalBook.getIsbn().equals(b.getIsbn()) && hasLestip(b.getLestip()))
+            return repo.findByIsbn(originalBook.getIsbn()).stream()
+                    .filter(b -> hasLestip(b.getLestip()))
                     .findFirst()
                     .orElse(originalBook);
         }
 
         if (StringUtils.hasText(originalBook.getGoNumber())) {
-            return repo.findAll().stream()
-                    .filter(b -> originalBook.getGoNumber().equals(b.getGoNumber()) && hasLestip(b.getLestip()))
-                    .findFirst()
+            return repo.findByGoNumber(originalBook.getGoNumber())
+                    .filter(b -> hasLestip(b.getLestip()))
                     .orElse(originalBook);
         }
 
