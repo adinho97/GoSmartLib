@@ -5,6 +5,7 @@ import com.example.demo.entities.Tag;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.TagRepository;
 import com.example.demo.repositories.SchoolRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/tags")
+@PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
 public class AdminTagController {
 
     private final TagRepository tagRepository;

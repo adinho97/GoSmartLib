@@ -46,6 +46,7 @@ public class InfoContentController {
     // - everyone else: schoolId param is ignored; resolved from authenticated
     // user's school.
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public List<InfoContent> getAll(
             @RequestParam(required = false) Long schoolId,
             @RequestParam Sectie sectie,
