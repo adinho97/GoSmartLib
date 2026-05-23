@@ -227,7 +227,7 @@ public class DisplayNameResolver {
         boolean hasGiven = given != null && !given.isBlank();
         boolean hasFamily = family != null && !family.isBlank();
         if (hasFamily && hasGiven) {
-            return family + " " + given;
+            return given + " " + family;
         }
         if (hasFamily) {
             return family;
