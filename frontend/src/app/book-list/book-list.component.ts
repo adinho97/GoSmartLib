@@ -716,7 +716,7 @@ export class BookListComponent implements OnInit {
       }
 
       try {
-        const lestip = await this.bookService.getBookLestip(book.id);
+        const lestip = await this.bookService.getBookLestip(book.id, "all");
         book.lestip = lestip;
       } catch {
         book.lestip = "";

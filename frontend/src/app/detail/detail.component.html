@@ -145,7 +145,20 @@
 
           @if (isTeacherOrLibrarian) {
             <section class="lestip-section" aria-label="Lestip">
-              <h3>Lestip</h3>
+              <div class="lestip-header">
+                <h3>Lestip</h3>
+                <div class="lestip-scope-selector">
+                  <label for="lestipScope">Weergave:</label>
+                  <select
+                    id="lestipScope"
+                    [(ngModel)]="lestipScope"
+                    (change)="onScopeChange()"
+                  >
+                    <option value="all">Alle scholen (ISBN/GO match)</option>
+                    <option value="school">Alleen deze school</option>
+                  </select>
+                </div>
+              </div>
 
               @if (hasLestip) {
                 <div class="lestip-content">

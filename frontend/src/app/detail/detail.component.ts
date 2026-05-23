@@ -40,7 +40,9 @@ export class DetailComponent implements OnInit, OnDestroy {
   readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
   readonly isLibrarian = this.userRole.includes("bibbeheerder");
   readonly isTeacher = this.userRole.includes("leerkracht");
-  readonly isTeacherOrLibrarian = this.isLibrarian || this.isTeacher;
+  readonly isAdmin = this.userRole.includes("super_admin");
+  readonly isTeacherOrLibrarian =
+    this.isLibrarian || this.isTeacher || this.isAdmin;
   private readonly roleLikeValues = new Set([
     "leerling",
     "leerkracht",
@@ -112,6 +114,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   lestipText = "";
   lestipAuteurNaam = "";
   magLestipVerwijderen = false;
+  lestipScope: "all" | "school" = "all";
   newLestipText = "";
   lestipError = "";
   lestipSuccess = "";
@@ -1066,9 +1069,21 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async loadLestip(bookId: number): Promise<void> {
+  onScopeChange(): void {
+    if (this.currentBookId !== null) {
+      // Clear messages when scope changes for a fresh display
+      this.lestipSuccess = "";
+      this.lestipError = "";
+      this.loadLestip(this.currentBookId);
+    }
+  }
+
+  async loadLestip(bookId: number): Promise<void> {
     try {
-      const lestipData = await this.bookService.getBookLestipDetails(bookId);
+      const lestipData = await this.bookService.getBookLestipDetails(
+        bookId,
+        this.lestipScope,
+      );
       this.lestipText = lestipData.lestip || "";
       this.lestipAuteurNaam = lestipData.auteurNaam || "";
       this.magLestipVerwijderen = !!lestipData.magVerwijderen;

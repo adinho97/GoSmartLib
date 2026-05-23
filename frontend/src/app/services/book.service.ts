@@ -329,16 +329,21 @@ export class BookService {
     return res.data;
   }
 
-  async getBookLestip(bookId: number): Promise<string> {
-    const data = await this.getBookLestipDetails(bookId);
+  async getBookLestip(bookId: number, scope?: string): Promise<string> {
+    const data = await this.getBookLestipDetails(bookId, scope);
     return data.lestip || "";
   }
 
-  async getBookLestipDetails(bookId: number): Promise<LestipResponse> {
-    const res = await axios.get<LestipResponse>(
-      this.withSchoolId(`${this.apiUrl}/${bookId}/lestip`),
-      this.getFullAuthHeaders(),
-    );
+  async getBookLestipDetails(
+    bookId: number,
+    scope?: string,
+  ): Promise<LestipResponse> {
+    let url = this.withSchoolId(`${this.apiUrl}/${bookId}/lestip`);
+    if (scope) {
+      const separator = url.includes("?") ? "&" : "?";
+      url = `${url}${separator}scope=${scope}`;
+    }
+    const res = await axios.get<LestipResponse>(url, this.getFullAuthHeaders());
     return res.data;
   }
 

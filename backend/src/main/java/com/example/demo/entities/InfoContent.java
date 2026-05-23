@@ -18,7 +18,7 @@ public class InfoContent {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id")
+    @JoinColumn(name = "school_id", nullable = true)
     private School school;
 
     @Enumerated(EnumType.STRING)

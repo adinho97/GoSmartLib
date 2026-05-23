@@ -338,6 +338,7 @@ public class BookController {
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/{id}/lestip")
     public ResponseEntity<LestipDto> getLestip(@PathVariable @NonNull Long id,
+            @RequestParam(required = false, defaultValue = "all") String scope,
             Authentication authentication,
             @RequestHeader(value = "X-User-Role", required = false) String roleHeader,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
@@ -350,6 +351,11 @@ public class BookController {
         }
 
         String normalizedUserName = normalizeUserName(userName);
+
+        // If scope is 'school', only return the tip if it exists on the local record
+        if ("school".equalsIgnoreCase(scope)) {
+            return ResponseEntity.ok(toLestipDto(localBook, normalizedUserName));
+        }
 
         // Prioritize local tip
         if (hasLestip(localBook.getLestip())) {
@@ -637,9 +643,8 @@ public class BookController {
         }
 
         if (StringUtils.hasText(originalBook.getIsbn())) {
-            return repo.findByIsbn(originalBook.getIsbn()).stream()
+            return repo.findByIsbn(originalBook.getIsbn())
                     .filter(b -> hasLestip(b.getLestip()))
-                    .findFirst()
                     .orElse(originalBook);
         }
 
