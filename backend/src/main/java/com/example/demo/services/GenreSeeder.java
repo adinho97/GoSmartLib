@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.services;
 
 import com.example.demo.entities.Genre;
 import com.example.demo.repositories.GenreRepository;

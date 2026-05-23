@@ -3,6 +3,7 @@ package com.example.demo.controllers;
 import com.example.demo.entities.SchoolSettings;
 import com.example.demo.repositories.SchoolSettingsRepository;
 import com.example.demo.repositories.SchoolRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,6 +38,7 @@ public class SettingsController {
                 }).orElse(ResponseEntity.notFound().build()));
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/settings/school/{schoolId}")
     public ResponseEntity<SchoolSettings> saveSettings(@PathVariable Long schoolId,
             @RequestBody SchoolSettings settings) {
