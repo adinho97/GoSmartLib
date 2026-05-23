@@ -348,7 +348,10 @@ public class BookController {
         }
 
         String normalizedUserName = normalizeUserName(userName);
-        return ResponseEntity.ok(toLestipDto(book, normalizedUserName));
+        
+        // If the local book record has no tip, search for one globally using ISBN or GO-number
+        Book sourceBook = findSourceBookWithSharedLestip(book);
+        return ResponseEntity.ok(toLestipDto(sourceBook, normalizedUserName));
     }
 
     @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
@@ -609,6 +612,32 @@ public class BookController {
                 || (currentUserName != null && isSameUser(currentUserName, lestipAuteur)));
         dto.setMagVerwijderen(magVerwijderen);
         return dto;
+    }
+
+    /**
+     * Resolves a book instance that contains a teaching tip for the same logical work.
+     * It prioritizes the local book instance and falls back to other libraries via ISBN or GO-number.
+     */
+    private Book findSourceBookWithSharedLestip(Book originalBook) {
+        if (hasLestip(originalBook.getLestip())) {
+            return originalBook;
+        }
+
+        if (StringUtils.hasText(originalBook.getIsbn())) {
+            return repo.findAll().stream()
+                    .filter(b -> originalBook.getIsbn().equals(b.getIsbn()) && hasLestip(b.getLestip()))
+                    .findFirst()
+                    .orElse(originalBook);
+        }
+
+        if (StringUtils.hasText(originalBook.getGoNumber())) {
+            return repo.findAll().stream()
+                    .filter(b -> originalBook.getGoNumber().equals(b.getGoNumber()) && hasLestip(b.getLestip()))
+                    .findFirst()
+                    .orElse(originalBook);
+        }
+
+        return originalBook;
     }
 
     private String normalizeLestip(String lestip) {
