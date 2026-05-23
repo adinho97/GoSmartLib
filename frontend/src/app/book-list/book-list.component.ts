@@ -422,7 +422,7 @@ export class BookListComponent implements OnInit {
       const minAverage = Number(this.appliedMinAverageRating);
       const averageMatches =
         !this.appliedMinAverageRating ||
-        ((book.reviewCount || 0) >= 10 &&
+        ((book.reviewCount || 0) >= 3 &&
           (book.averageRating || 0) >= minAverage);
 
       const pageCount = book.paginas ?? 0;

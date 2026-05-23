@@ -230,18 +230,26 @@
 }
 
 .lestip-indicator-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
   border-radius: 8px;
-  background: #fff8fb;
+  background: rgba(255, 248, 251, 0.95);
+  backdrop-filter: blur(4px);
   border: 1px solid #d4c1c9;
   font-size: 0.78rem;
   font-weight: 700;
   color: #871f42;
   width: fit-content;
-  margin: 4px 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(135, 31, 66, 0.15);
+  white-space: nowrap;
 }
 
 .page-slider-group {
@@ -594,6 +602,7 @@
 }
 
 .book-cover-slot {
+  position: relative;
   width: 100%;
   height: 220px;
   overflow: hidden;
