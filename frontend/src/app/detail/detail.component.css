@@ -360,9 +360,51 @@
   gap: 10px;
 }
 
-.lestip-section h3 {
-  color: black;
+.lestip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.lestip-header h3 {
+  color: #1a1a1a;
   margin: 0;
+  font-size: 1.15rem;
+}
+
+.lestip-scope-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lestip-scope-selector label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #5a6472;
+}
+
+.lestip-scope-selector select {
+  padding: 6px 14px;
+  border: 1px solid #d4c1c9;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.lestip-scope-selector select:focus {
+  outline: none;
+  border-color: #871f42;
+  box-shadow: 0 0 0 3px rgba(135, 31, 66, 0.08);
 }
 
 .lestip-section textarea {
