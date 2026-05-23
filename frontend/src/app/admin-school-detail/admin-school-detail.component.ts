@@ -419,6 +419,14 @@ export class AdminSchoolDetailComponent implements OnInit {
     this.selectedKlasForPopup = null;
   }
 
+  get classReadingListCount(): number {
+    return (this.leeslijsten || []).filter((list: any) => {
+      const klasIds = Array.isArray(list?.klasIds) ? list.klasIds : [];
+      const klasNames = Array.isArray(list?.klasNames) ? list.klasNames : [];
+      return klasIds.length > 0 || klasNames.length > 0;
+    }).length;
+  }
+
   get usersInSelectedKlas(): AdminUserListItem[] {
     if (!this.selectedKlasForPopup) return [];
     return this.users.filter(

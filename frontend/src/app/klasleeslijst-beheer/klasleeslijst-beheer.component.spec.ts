@@ -19,6 +19,7 @@ describe("KlasleeslijstBeheerComponent", () => {
     bookServiceSpy = jasmine.createSpyObj("BookService", [
       "getLeeslisten",
       "deleteLeeslijst",
+      "createLeeslijst",
     ]);
     bookServiceSpy.getLeeslisten.and.returnValue(
       Promise.resolve([
@@ -27,15 +28,21 @@ describe("KlasleeslijstBeheerComponent", () => {
       ]),
     );
     bookServiceSpy.deleteLeeslijst.and.returnValue(Promise.resolve());
+    bookServiceSpy.createLeeslijst.and.returnValue(
+      Promise.resolve({ id: 3, titel: "Nieuwe Lijst", klasIds: [] }),
+    );
 
     schoolServiceSpy = jasmine.createSpyObj("SchoolService", [
       "getSelectedSchoolId",
       "getKlassenBySchool",
     ]);
     schoolServiceSpy.getSelectedSchoolId.and.returnValue(1);
-    // The component's current implementation uses hardcoded data, not this service call.
-    // Mocking it to return an empty array or a specific value if the component were to use it.
-    schoolServiceSpy.getKlassenBySchool.and.returnValue(Promise.resolve([]));
+    schoolServiceSpy.getKlassenBySchool.and.returnValue(
+      Promise.resolve([
+        { id: 1, naam: "Klas 1" },
+        { id: 2, naam: "Klas 2" },
+      ]),
+    );
 
     authContextServiceSpy = jasmine.createSpyObj("AuthContextService", [
       "getEffectiveRole",
@@ -65,15 +72,47 @@ describe("KlasleeslijstBeheerComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  // This test is commented out because the component's current implementation
-  // uses hardcoded class data and does not call schoolService.getKlassenBySchool.
-  xit("should load reading lists and classes on init", () => {
-    // expect(schoolServiceSpy.getKlassenBySchool).toHaveBeenCalledWith(1);
-    // expect(component.klassen.length).toBe(1); // Expect 1 based on mock data
+  it("should load reading lists and classes on init", () => {
+    expect(schoolServiceSpy.getKlassenBySchool).toHaveBeenCalledWith(1);
+    expect(component.klassen.length).toBe(2);
   });
 
-  it("should navigate to create new reading list", () => {
-    // The component no longer has this method, test removed.
-    // If this functionality is desired, it should be re-added to the component.
+  it("should save a new reading list for the entire school", async () => {
+    component.titel = "Schoolbrede Lijst";
+    component.toewijzingType = "SCHOOL";
+    component.selectedKlasId = null;
+
+    await component.saveLeeslijst();
+
+    expect(bookServiceSpy.createLeeslijst).toHaveBeenCalledWith(
+      "Schoolbrede Lijst",
+      "",
+      [],
+      null,
+      true,
+      [],
+      1,
+    );
+    expect(bookServiceSpy.getLeeslisten).toHaveBeenCalled();
+    expect(component.titel).toBe("");
+    expect(component.toewijzingType).toBe("KLAS");
+    expect(component.selectedKlasId).toBeNull();
+  });
+
+  it("should show error if title is empty", async () => {
+    component.titel = "";
+    await component.saveLeeslijst();
+
+    expect(component.error).toBe("Titel is verplicht.");
+    expect(bookServiceSpy.createLeeslijst).not.toHaveBeenCalled();
+  });
+
+  it("should show error if no class is selected and not assigning to entire school", async () => {
+    component.titel = "Test Lijst";
+    component.toewijzingType = "KLAS";
+    component.selectedKlasId = null;
+    await component.saveLeeslijst();
+    expect(component.error).toBe("Selecteer een klas.");
+    expect(bookServiceSpy.createLeeslijst).not.toHaveBeenCalled();
   });
 });

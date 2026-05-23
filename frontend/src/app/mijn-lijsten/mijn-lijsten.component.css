@@ -232,42 +232,100 @@
 .leeslisten-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--s-5);
+  gap: 1rem;
   margin-bottom: var(--s-6);
 }
 
 .leeslijst-card {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.2s ease;
+  position: relative;
+  background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
+  border: 1px solid #f0dde5;
+  border-radius: 16px;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  gap: 0.7rem;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.leeslijst-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #a14466 0%, #871f42 100%);
+  border-radius: 16px 16px 0 0;
 }
 
 .leeslijst-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-  border-color: var(--brand);
+  border-color: #e0c5d3;
+  box-shadow: 0 14px 30px rgba(135, 31, 66, 0.12);
+  transform: translateY(-3px);
 }
 
-.leeslijst-card-content {
-  padding: var(--s-4);
-  flex: 1;
-  cursor: pointer;
+.leeslijst-card:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.leeslijst-card-header {
   display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.leeslijst-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #f5e3eb;
+  color: #871f42;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.leeslijst-card-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.leeslijst-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--brand);
+  line-height: 1;
+}
+
+.leeslijst-count span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
 }
 
 .leeslijst-title {
-  font-size: 16px;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--ink);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.35;
   display: -webkit-box;
   line-clamp: 2;
   -webkit-line-clamp: 2;
@@ -275,33 +333,27 @@
   overflow: hidden;
 }
 
-.leeslijst-card-content:hover .leeslijst-title {
+.leeslijst-card:hover .leeslijst-title {
   color: var(--brand);
 }
 
-.leeslijst-meta {
-  font-size: 13px;
-  color: var(--ink-3);
-  margin: 0;
-  display: flex;
-  gap: var(--s-2);
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  display: inline-block;
-}
-
 .leeslijst-description {
-  font-size: 13px;
-  color: var(--ink);
+  font-size: 0.86rem;
+  color: #4b5563;
   margin: 0;
   line-height: 1.5;
   display: -webkit-box;
-  line-clamp: 3;
-  -webkit-line-clamp: 3;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.leeslijst-author {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 0;
+  font-style: italic;
 }
 
 .leeslijst-klassen {
@@ -309,41 +361,20 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-top: auto;
-  padding-top: var(--s-2);
-  border-top: 1px solid var(--line);
+  padding-top: 0.7rem;
+  border-top: 1px dashed #f0dde5;
 }
 
 .klas-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   padding: 4px 10px;
   background: var(--brand-50);
-  color: var(--brand-700);
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.leeslijst-card-action {
-  padding: var(--s-3) var(--s-4);
-  background: var(--surface);
-  border-top: 1px solid var(--line);
-}
-
-.btn-sm {
-  width: 100%;
-  padding: 8px 12px;
-  background: var(--brand);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.btn-sm:hover {
-  background: var(--brand-700);
+  color: var(--brand);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 /* ── Mobile (≤ 600px) ── */

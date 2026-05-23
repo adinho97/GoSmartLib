@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface HighlightedBookRepository extends JpaRepository<HighlightedBook, Long> {
-    List<HighlightedBook> findBySchoolId(Long schoolId);
+    List<HighlightedBook> findBySchoolIdOrderByIdDesc(Long schoolId);
 
     Optional<HighlightedBook> findByBookIdAndSchoolId(Long bookId, Long schoolId);
 

@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -107,7 +108,7 @@ class GenreBasedStrategyTest {
         List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 10, true);
 
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(b -> "Fantasy".equals(b.getGenre())));
+        assertTrue(result.stream().allMatch(b -> b.getGenres().contains("Fantasy"))); // Corrected to use getGenres()
         assertEquals(2L, result.get(0).getBookId());
         assertEquals(3L, result.get(1).getBookId());
         assertTrue(result.stream().noneMatch(b -> b.getBookId() == 1L));
@@ -131,12 +132,12 @@ class GenreBasedStrategyTest {
         List<RecommendedBook> result = genreBasedStrategy.recommend("user123", 10, true);
 
         assertTrue(result.size() >= 2);
-        RecommendedBook firstFantasy = result.stream()
-                .filter(b -> "Fantasy".equals(b.getGenre()))
+        RecommendedBook firstFantasy = result.stream() // Corrected to use getGenres()
+                .filter(b -> b.getGenres().contains("Fantasy"))
                 .findFirst()
                 .orElse(null);
         RecommendedBook firstRomance = result.stream()
-                .filter(b -> "Romantiek".equals(b.getGenre()))
+                .filter(b -> b.getGenres().contains("Romantiek")) // Corrected to use getGenres()
                 .findFirst()
                 .orElse(null);
 
@@ -165,7 +166,7 @@ class GenreBasedStrategyTest {
         // Book 3 (already read) must be excluded; books 1 and 2 match Fantasy and are not read
         assertTrue(result.stream().noneMatch(b -> b.getBookId() == 3L));
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(b -> "Fantasy".equals(b.getGenre())));
+        assertTrue(result.stream().allMatch(b -> b.getGenres().contains("Fantasy")));
     }
 
     @Test
@@ -251,7 +252,13 @@ class GenreBasedStrategyTest {
         book.setId(id);
         book.setTitel(titel);
         book.setAuteur(auteur);
-        book.setGenre(genre);
+        // Create a Genre object and add it to a Set
+        com.example.demo.entities.Genre newGenre = new com.example.demo.entities.Genre();
+        newGenre.setNaam(genre);
+        // In a real test, you might mock genreRepository.save if IDs are important
+        // For simple tests, just setting the name is often enough.
+        // If you need to ensure the genre exists in the repository, you'd mock that.
+        book.setGenres(Set.of(newGenre));
         return book;
     }
 

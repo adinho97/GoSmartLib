@@ -3,11 +3,13 @@ import { HttpClientTestingModule } from "@angular/common/http/testing";
 import axios from "axios";
 
 import { BookService } from "./book.service";
+import { SchoolService } from "./school.service";
 import { AuthContextService } from "./auth-context.service";
 
 describe("BookService", () => {
   let service: BookService;
   let authContextSpy: jasmine.SpyObj<AuthContextService>;
+  let schoolServiceSpy: jasmine.SpyObj<SchoolService>;
 
   beforeEach(() => {
     authContextSpy = jasmine.createSpyObj<AuthContextService>(
@@ -24,9 +26,17 @@ describe("BookService", () => {
     authContextSpy.getEffectiveBearerToken.and.returnValue("test-token");
     authContextSpy.isAdminMode.and.returnValue(false);
 
+    schoolServiceSpy = jasmine.createSpyObj("SchoolService", [
+      "getSelectedSchoolId",
+    ]);
+    schoolServiceSpy.getSelectedSchoolId.and.returnValue(7); // Mock a school ID
+
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [{ provide: AuthContextService, useValue: authContextSpy }],
+      providers: [
+        { provide: AuthContextService, useValue: authContextSpy },
+        { provide: SchoolService, useValue: schoolServiceSpy },
+      ],
     });
     service = TestBed.inject(BookService);
   });
@@ -216,16 +226,22 @@ describe("BookService", () => {
         "Nieuwe lijst",
         "Beschrijving",
         [10, 11],
-        [3, 4],
+        [3, 4], // klasIds
+        false, // isGlobal
+        [], // sharedWithUserSubs
+        schoolServiceSpy.getSelectedSchoolId(), // schoolId
       );
 
       expect(axiosPostSpy).toHaveBeenCalledWith(
         "/api/leeslisten",
         jasmine.objectContaining({
           titel: "Nieuwe lijst",
-          description: "Beschrijving",
+          beschrijving: "Beschrijving", // Note: backend expects 'beschrijving'
           bookIds: [10, 11],
           klasIds: [3, 4],
+          isGlobal: false,
+          sharedWithUserSubs: [],
+          schoolId: 7,
         }),
         {
           headers: {
@@ -266,17 +282,23 @@ describe("BookService", () => {
         9,
         "Bijgewerkt",
         "Nieuwe beschrijving",
-        [1],
-        [2],
+        [1], // bookIds
+        [2], // klasIds
+        false, // isGlobal
+        [], // sharedWithUserSubs
+        schoolServiceSpy.getSelectedSchoolId(), // schoolId
       );
 
       expect(axiosPutSpy).toHaveBeenCalledWith(
         "/api/leeslisten/9",
         jasmine.objectContaining({
           titel: "Bijgewerkt",
-          description: "Nieuwe beschrijving",
+          beschrijving: "Nieuwe beschrijving", // Note: backend expects 'beschrijving'
           bookIds: [1],
           klasIds: [2],
+          isGlobal: false,
+          sharedWithUserSubs: [],
+          schoolId: 7,
         }),
         {
           headers: {

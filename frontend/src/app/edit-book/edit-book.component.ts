@@ -28,14 +28,6 @@ export enum Language {
 }
 export const LEESNIVEAUS = ["A", "B", "C", "D"] as const;
 
-const DIDACTIC_SUBGENRES = [
-  "Wiskunde", "Taal", "Geschiedenis", "Kleuteronderwijs",
-  "Lager onderwijs", "Secundair onderwijs", "Volwasseneneducatie",
-  "Geheugen", "Begrip", "Denkprocessen", "Samenwerking",
-  "Interactie", "Dialoog", "Online leren", "E-learning platforms",
-  "Educatieve apps", "Creativiteit", "Zelfexpressie", "Ervaringsgericht leren",
-];
-
 @Component({
   selector: "app-edit-book",
   standalone: true,
@@ -47,21 +39,30 @@ export class EditBookComponent implements OnInit {
   bookId!: number;
   readonly languages = Object.values(Language);
   readonly leesniveaus = LEESNIVEAUS;
-  readonly didacticSubgenres = DIDACTIC_SUBGENRES;
-
-  // Dynamische genres van API
-  genres: Genre[] = [];
+  didacticSubgenres: string[] = [];
+  availableNonDidacticGenres: string[] = []; // Flattened list of non-didactic genres
+  allGenres: Genre[] = []; // Raw hierarchical genres from API
   genresLoaded = false;
+  showGenreDropdown = false;
+  showDidacticDropdown = false;
 
   // Geselecteerde waarden
-  isDidactic = false;
-  selectedGenreId: number | null = null;
-  selectedSubgenreId: number | null = null;
-  selectedDidacticSubgenre = "";
+  isDidacticMode = false;
+  selectedNonDidacticGenres: string[] = [];
+  selectedDidacticSubgenres: string[] = [];
 
   book: Book = {
-    id: 0, titel: "", auteur: "", cover: "", beschrijving: "",
-    genre: "", uitgaveDatum: "", paginas: 0, taal: "", uitgeverij: "", leesniveau: "",
+    id: 0,
+    titel: "",
+    auteur: "",
+    cover: "",
+    beschrijving: "",
+    genres: [], // Changed from singular 'genre' to plural 'genres'
+    uitgaveDatum: "",
+    paginas: 0,
+    taal: "",
+    uitgeverij: "",
+    leesniveau: "",
   };
 
   isLoading = true;
@@ -85,85 +86,113 @@ export class EditBookComponent implements OnInit {
     if (idParam) {
       this.bookId = Number(idParam);
       this.loadCopyData();
-      // Laad genres én boek tegelijk, herstel selectie als beide klaar zijn
-      this.genreService.getAll().subscribe({
-        next: (genres) => {
-          this.genres = genres;
-          this.genresLoaded = true;
-          if (!this.isLoading) {
-            // boek was al geladen
-            this.restoreGenreFromString(this.book.genre || "");
-          }
-        },
-        error: () => { this.genresLoaded = true; },
-      });
+      this.loadGenres();
       this.loadBook();
     }
   }
 
   // ── Genre helpers ──────────────────────────────────────────────────────────
 
-  get selectedGenre(): Genre | null {
-    return this.genres.find(g => g.id === this.selectedGenreId) ?? null;
+  loadGenres(): void {
+    this.genreService.getAll().subscribe({
+      next: (genres) => {
+        this.allGenres = genres;
+        const didacticParent = genres.find(
+          (g) => g.naam.toLowerCase() === "didactiek",
+        );
+        if (didacticParent) {
+          this.didacticSubgenres = didacticParent.subgenres
+            .map((s) => s.naam)
+            .sort();
+        }
+        this.availableNonDidacticGenres = this.flattenNonDidacticGenres(genres);
+        this.genresLoaded = true;
+        if (!this.isLoading && this.book.genres) {
+          this.restoreGenresToSelection(this.book.genres);
+        }
+      },
+      error: () => {
+        this.genresLoaded = true;
+      },
+    });
   }
 
-  get hasSubgenres(): boolean {
-    return (this.selectedGenre?.subgenres.length ?? 0) > 0;
-  }
-
-  onGenreChange(): void {
-    this.selectedSubgenreId = null;
+  private flattenNonDidacticGenres(genres: Genre[]): string[] {
+    const flattened: string[] = [];
+    for (const g of genres) {
+      if (g.naam.toLowerCase() === "didactiek") continue;
+      flattened.push(g.naam);
+      for (const sg of g.subgenres) {
+        flattened.push(`${g.naam} - ${sg.naam}`);
+      }
+    }
+    return flattened.sort();
   }
 
   toggleDidactic(state: boolean): void {
-    this.isDidactic = state;
-    this.selectedGenreId = null;
-    this.selectedSubgenreId = null;
-    this.selectedDidacticSubgenre = "";
+    this.isDidacticMode = state;
+    this.selectedNonDidacticGenres = [];
+    this.selectedDidacticSubgenres = [];
   }
 
-  private buildGenreString(): string {
-    if (this.isDidactic) {
-      return this.selectedDidacticSubgenre
-        ? `Didactiek - ${this.selectedDidacticSubgenre}`
-        : "Didactiek";
-    }
-    if (!this.selectedGenreId) return "";
-    const genre = this.selectedGenre;
-    if (!genre) return "";
-    if (this.selectedSubgenreId) {
-      const sub = genre.subgenres.find(s => s.id === this.selectedSubgenreId);
-      return sub ? `${genre.naam} - ${sub.naam}` : genre.naam;
-    }
-    return genre.naam;
+  isSelected(genre: string): boolean {
+    return this.selectedNonDidacticGenres.includes(genre);
   }
 
-  private restoreGenreFromString(genreStr: string): void {
-    this.selectedGenreId = null;
-    this.selectedSubgenreId = null;
-    this.isDidactic = false;
-    this.selectedDidacticSubgenre = "";
-
-    if (!genreStr) return;
-    const lower = genreStr.toLowerCase();
-
-    if (lower.startsWith("didactiek")) {
-      this.isDidactic = true;
-      const parts = genreStr.split(" - ");
-      if (parts.length > 1) this.selectedDidacticSubgenre = parts.slice(1).join(" - ").trim();
-      return;
+  toggleGenre(genre: string): void {
+    const index = this.selectedNonDidacticGenres.indexOf(genre);
+    if (index >= 0) {
+      this.selectedNonDidacticGenres.splice(index, 1);
+    } else {
+      this.selectedNonDidacticGenres.push(genre);
     }
+  }
 
-    for (const genre of this.genres) {
-      if (lower.startsWith(genre.naam.toLowerCase())) {
-        this.selectedGenreId = genre.id;
-        const remainder = genreStr.substring(genre.naam.length).replace(/^\s*-\s*/, "").trim();
-        if (remainder) {
-          const sub = genre.subgenres.find(s => s.naam.toLowerCase() === remainder.toLowerCase());
-          if (sub) this.selectedSubgenreId = sub.id;
-        }
-        return;
+  isDidacticSubgenreSelected(sub: string): boolean {
+    return this.selectedDidacticSubgenres.includes(sub);
+  }
+
+  toggleDidacticSubgenre(sub: string): void {
+    const index = this.selectedDidacticSubgenres.indexOf(sub);
+    if (index >= 0) {
+      this.selectedDidacticSubgenres.splice(index, 1);
+    } else {
+      this.selectedDidacticSubgenres.push(sub);
+    }
+  }
+
+  private buildGenreArray(): string[] {
+    if (this.isDidacticMode) {
+      if (this.selectedDidacticSubgenres.length > 0) {
+        return this.selectedDidacticSubgenres.map((sg) => `Didactiek - ${sg}`);
       }
+      return ["Didactiek"];
+    } else {
+      return this.selectedNonDidacticGenres;
+    }
+  }
+
+  private restoreGenresToSelection(genres: string[]): void {
+    this.selectedNonDidacticGenres = [];
+    this.selectedDidacticSubgenres = [];
+    this.isDidacticMode = false;
+
+    if (!genres || genres.length === 0) return;
+
+    const didacticGenre = genres.find((g) =>
+      g.toLowerCase().startsWith("didactiek"),
+    );
+    if (didacticGenre) {
+      this.isDidacticMode = true;
+      this.selectedDidacticSubgenres = genres
+        .filter((g) => g.toLowerCase().startsWith("didactiek"))
+        .map((g) => {
+          const parts = g.split(" - ");
+          return parts.length > 1 ? parts.slice(1).join(" - ").trim() : "";
+        })
+        .filter((s) => s !== "");
+    } else {
+      this.selectedNonDidacticGenres = [...genres];
     }
   }
 
@@ -171,11 +200,11 @@ export class EditBookComponent implements OnInit {
 
   loadBook() {
     this.bookService.getBookById(this.bookId).subscribe({
-      next: (data) => {
+      next: (data: Book) => {
         this.book = data;
         this.isLoading = false;
         if (this.genresLoaded) {
-          this.restoreGenreFromString(data.genre || "");
+          this.restoreGenresToSelection(data.genres || []);
         }
       },
       error: () => {
@@ -187,64 +216,88 @@ export class EditBookComponent implements OnInit {
 
   // ── Exemplaren ─────────────────────────────────────────────────────────────
 
-  async loadCopySummary() {
-    try { this.copySummary = await this.loanService.getCopySummary(this.bookId); }
-    catch { this.copySummary = { total: 0, available: 0 }; }
+  async loadCopySummary(): Promise<void> {
+    try {
+      this.copySummary = await this.loanService.getCopySummary(this.bookId);
+    } catch {
+      this.copySummary = { total: 0, available: 0 };
+    }
   }
 
-  async loadCopyData() {
+  async loadCopyData(): Promise<void> {
     await Promise.all([this.loadCopySummary(), this.loadCopies()]);
   }
 
-  async loadCopies() {
+  async loadCopies(): Promise<void> {
     try {
       const copies = await this.loanService.getCopiesForBook(this.bookId);
-      this.copies = copies.sort((a, b) => a.id - b.id).map((copy) => ({
-        ...copy,
-        editStatus: this.normalizeEditableStatus(copy.status),
-        editCondition: copy.condition,
-        isUpdating: false,
-      }));
-    } catch { this.copies = []; }
+      this.copies = copies
+        .sort((a, b) => a.id - b.id)
+        .map((copy) => ({
+          ...copy,
+          editStatus: this.normalizeEditableStatus(copy.status),
+          editCondition: copy.condition,
+          isUpdating: false,
+        }));
+    } catch {
+      this.copies = [];
+    }
   }
 
-  async addCopy() {
-    this.isAddingCopy = true; this.copyMessage = ""; this.copyError = "";
+  async addCopy(): Promise<void> {
+    this.isAddingCopy = true;
+    this.copyMessage = "";
+    this.copyError = "";
     try {
       await this.loanService.addCopy(this.bookId);
       await this.loadCopyData();
       this.copyMessage = "Exemplaar toegevoegd.";
-    } catch { this.copyError = "Toevoegen mislukt."; }
-    finally { this.isAddingCopy = false; }
+    } catch {
+      this.copyError = "Toevoegen mislukt.";
+    } finally {
+      this.isAddingCopy = false;
+    }
   }
 
-  async removeCopy(copyId: number) {
-    this.copyMessage = ""; this.copyError = "";
+  async removeCopy(copyId: number): Promise<void> {
+    this.copyMessage = "";
+    this.copyError = "";
     try {
       await this.loanService.deleteCopy(copyId);
       await this.loadCopyData();
       this.copyMessage = "Exemplaar verwijderd.";
     } catch (err: any) {
-      this.copyError = err?.response?.status === 409
-        ? "Dit exemplaar is nog uitgeleend en kan niet verwijderd worden."
-        : err?.message || "Verwijderen mislukt.";
+      this.copyError =
+        err?.response?.status === 409
+          ? "Dit exemplaar is nog uitgeleend en kan niet verwijderd worden."
+          : err?.message || "Verwijderen mislukt.";
     }
   }
 
-  async updateCopyState(copy: CopyView) {
-    this.copyMessage = ""; this.copyError = ""; copy.isUpdating = true;
+  async updateCopyState(copy: CopyView): Promise<void> {
+    this.copyMessage = "";
+    this.copyError = "";
+    copy.isUpdating = true;
     try {
-      await this.loanService.updateCopyState(copy.id, { status: copy.editStatus, condition: copy.editCondition });
+      await this.loanService.updateCopyState(copy.id, {
+        status: copy.editStatus,
+        condition: copy.editCondition,
+      });
       await this.loadCopyData();
       this.copyMessage = "Exemplaar staat bijgewerkt.";
     } catch (err: any) {
-      this.copyError = err?.response?.status === 409
-        ? "Uitgeleende exemplaren kunnen niet aangepast worden."
-        : "Bijwerken van exemplaarstaat mislukt.";
-    } finally { copy.isUpdating = false; }
+      this.copyError =
+        err?.response?.status === 409
+          ? "Uitgeleende exemplaren kunnen niet aangepast worden."
+          : "Bijwerken van exemplaarstaat mislukt.";
+    } finally {
+      copy.isUpdating = false;
+    }
   }
 
-  private normalizeEditableStatus(status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST"): "AVAILABLE" | "DAMAGED" | "LOST" {
+  private normalizeEditableStatus(
+    status: "AVAILABLE" | "LOANED" | "DAMAGED" | "LOST",
+  ): "AVAILABLE" | "DAMAGED" | "LOST" {
     if (status === "DAMAGED") return "DAMAGED";
     if (status === "LOST") return "LOST";
     return "AVAILABLE";
@@ -257,23 +310,25 @@ export class EditBookComponent implements OnInit {
   }
 
   get hasKnownLanguage(): boolean {
-    const l = String(this.book.taal || "").trim().toLowerCase();
+    const l = String(this.book.taal || "")
+      .trim()
+      .toLowerCase();
     if (!l) return true;
-    return this.languages.some(lang => lang.toLowerCase() === l);
+    return this.languages.some((lang) => lang.toLowerCase() === l);
   }
 
   get hasKnownLeesniveau(): boolean {
-    const l = String(this.book.leesniveau || "").trim().toLowerCase();
+    const l = String(this.book.leesniveau || "")
+      .trim()
+      .toLowerCase();
     if (!l) return true;
-    return this.leesniveaus.some(n => n.toLowerCase() === l);
+    return this.leesniveaus.some((n) => n.toLowerCase() === l);
   }
 
-  async onSubmit() {
+  async onSubmit(): Promise<void> {
     try {
-      await this.bookService.updateBook(this.bookId, {
-        ...this.book,
-        genre: this.buildGenreString(),
-      });
+      this.book.genres = this.buildGenreArray();
+      await this.bookService.updateBook(this.bookId, this.book);
       this.router.navigate(["/detail", this.bookId]);
     } catch {
       this.errorMessage = "Fout bij het opslaan van wijzigingen.";

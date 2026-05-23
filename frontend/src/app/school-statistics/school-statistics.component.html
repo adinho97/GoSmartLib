@@ -1,66 +1,129 @@
 <div class="stats-wrapper">
-  <div class="header-actions">
-    <a routerLink="/statistieken" class="back-btn">← Terug</a>
-    <h1>School Statistieken</h1>
-  </div>
+  <header class="page-head">
+    <h1 class="page-title">School statistieken</h1>
+    <p class="page-subtitle">
+      Trends, populairste boeken en de meest actieve lezers in uw schoolbibliotheek
+    </p>
+  </header>
 
   @if (isLoading) {
     <div class="loader-container">
+      <div class="loader-dot"></div>
       <p>Gegevens ophalen...</p>
     </div>
   }
 
   @if (!isLoading && stats) {
-    <div class="stats-grid">
-      <div class="stat-card">
-        <span class="stat-label"
-          >Totaal Uitleningen: {{ stats.totalLoans }}</span
+    <article class="hero-card">
+      <div class="hero-icon">
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
         >
-        <div>
-          <div class="stat-value">School: {{ stats.school }}</div>
+          <path d="M3 3v18h18" />
+          <path d="M18 17V9M13 17V5M8 17v-3" />
+        </svg>
+      </div>
+      <div class="hero-body">
+        <p class="hero-label">Totaal uitleningen</p>
+        <p class="hero-value">{{ stats.totalLoans }}</p>
+        <p class="hero-subtext">{{ stats.school }}</p>
+      </div>
+    </article>
+
+    <div class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-icon icon-book">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z" />
+            <path d="M4 19.5A2.5 2.5 0 016.5 22H20v-5" />
+          </svg>
         </div>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-label">Meest gelezen boek</span>
+        <p class="stat-label">Meest gelezen boek</p>
         @if (stats.mostReadBook) {
-          <div class="stat-value">{{ stats.mostReadBook.titel }}</div>
-          <div class="stat-subtext">
-            {{ stats.mostReadBook.auteur }} — {{ stats.mostReadBook.count }}x
-            uitgeleend
-          </div>
+          <p class="stat-value">{{ stats.mostReadBook.titel }}</p>
+          <p class="stat-subtext">
+            {{ stats.mostReadBook.auteur }}
+            <span class="stat-pill">{{ stats.mostReadBook.count }}x uitgeleend</span>
+          </p>
         } @else {
-          <div class="no-data">
-            Geen gegevens beschikbaar voor deze periode.
-          </div>
+          <p class="no-data">Geen gegevens beschikbaar voor deze periode</p>
         }
-      </div>
+      </article>
 
-      <div class="stat-card">
-        <span class="stat-label">Top Lezer</span>
+      <article class="stat-card">
+        <div class="stat-icon icon-reader">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+        <p class="stat-label">Top lezer</p>
         @if (stats.topReader) {
-          <div class="stat-value">{{ stats.topReader.displayName }}</div>
-          <div class="stat-subtext">
-            {{ stats.topReader.count }} boeken gelezen
-          </div>
+          <p class="stat-value">{{ stats.topReader.displayName }}</p>
+          <p class="stat-subtext">
+            <span class="stat-pill">{{ stats.topReader.count }} boeken gelezen</span>
+          </p>
         } @else {
-          <div class="no-data">
-            Geen gegevens beschikbaar voor deze periode.
-          </div>
+          <p class="no-data">Geen gegevens beschikbaar voor deze periode</p>
         }
-      </div>
+      </article>
 
-      <div class="stat-card">
-        <span class="stat-label">Meest actieve klas</span>
+      <article class="stat-card">
+        <div class="stat-icon icon-class">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+          </svg>
+        </div>
+        <p class="stat-label">Meest actieve klas</p>
         @if (stats.topClass) {
-          <div class="stat-value">{{ stats.topClass.name }}</div>
-          <div class="stat-subtext">{{ stats.topClass.count }} uitleningen</div>
+          <p class="stat-value">{{ stats.topClass.name }}</p>
+          <p class="stat-subtext">
+            <span class="stat-pill">{{ stats.topClass.count }} uitleningen</span>
+          </p>
         } @else {
-          <div class="no-data">
-            Geen gegevens beschikbaar voor deze periode.
-          </div>
+          <p class="no-data">Geen gegevens beschikbaar voor deze periode</p>
         }
-      </div>
+      </article>
     </div>
   }
 

@@ -8,16 +8,25 @@
     <div class="copy-manager">
       <div class="copy-info">
         <span class="copy-count">
-          {{ copySummary.available }} / {{ copySummary.total }} exemplaren beschikbaar
+          {{ copySummary.available }} / {{ copySummary.total }} exemplaren
+          beschikbaar
         </span>
       </div>
       <div class="copy-actions">
-        <button type="button" class="copy-btn add" (click)="addCopy()" [disabled]="isAddingCopy">
+        <button
+          type="button"
+          class="copy-btn add"
+          (click)="addCopy()"
+          [disabled]="isAddingCopy"
+        >
           + Toevoegen
         </button>
       </div>
       @if (copyMessage) {
-        <p class="copy-success" [class.copy-success-danger]="copyMessage === 'Exemplaar verwijderd.'">
+        <p
+          class="copy-success"
+          [class.copy-success-danger]="copyMessage === 'Exemplaar verwijderd.'"
+        >
           {{ copyMessage }}
         </p>
       }
@@ -33,7 +42,9 @@
                 <div class="copy-row-main">
                   <span class="copy-id">Exemplaar #{{ copyIndex + 1 }}</span>
                   @if (copy.status === "LOANED") {
-                    <span class="copy-condition-text">Staat: {{ getCopyConditionLabel(copy.condition) }}</span>
+                    <span class="copy-condition-text"
+                      >Staat: {{ getCopyConditionLabel(copy.condition) }}</span
+                    >
                     <span class="copy-status-note loaned">Uitgeleend</span>
                   } @else {
                     <div class="copy-edit-controls">
@@ -54,7 +65,12 @@
                         </select>
                       </label>
                     </div>
-                    <button type="button" class="copy-update-btn" (click)="updateCopyState(copy)" [disabled]="copy.isUpdating">
+                    <button
+                      type="button"
+                      class="copy-update-btn"
+                      (click)="updateCopyState(copy)"
+                      [disabled]="copy.isUpdating"
+                    >
                       {{ copy.isUpdating ? "Opslaan..." : "Opslaan" }}
                     </button>
                     @if (copy.status === "LOST") {
@@ -83,15 +99,26 @@
     } @else {
       <form (ngSubmit)="onSubmit()">
         <div class="form-layout">
-
           <div class="form-group">
             <label for="titel">Titel</label>
-            <input id="titel" type="text" [(ngModel)]="book.titel" name="titel" required />
+            <input
+              id="titel"
+              type="text"
+              [(ngModel)]="book.titel"
+              name="titel"
+              required
+            />
           </div>
 
           <div class="form-group">
             <label for="auteur">Auteur</label>
-            <input id="auteur" type="text" [(ngModel)]="book.auteur" name="auteur" required />
+            <input
+              id="auteur"
+              type="text"
+              [(ngModel)]="book.auteur"
+              name="auteur"
+              required
+            />
           </div>
 
           <!-- Didactisch toggle -->
@@ -100,50 +127,48 @@
               <input
                 type="checkbox"
                 name="isDidactic"
-                [(ngModel)]="isDidactic"
-                (change)="toggleDidactic(isDidactic)"
+                [(ngModel)]="isDidacticMode"
+                (change)="toggleDidactic(isDidacticMode)"
               />
               Didactisch boek (lerarencollectie)
             </label>
           </div>
 
           <!-- DIDACTIEK modus -->
-          @if (isDidactic) {
+          @if (isDidacticMode) {
             <div class="form-group full-width">
-              <label for="didacticSubgenre">Subgenre (didactiek)</label>
-              <select id="didacticSubgenre" name="didacticSubgenre" [(ngModel)]="selectedDidacticSubgenre">
-                <option value="">Kies een subgenre</option>
-                @for (sg of didacticSubgenres; track sg) {
-                  <option [value]="sg">{{ sg }}</option>
+              <label>Subgenres (didactiek)</label>
+              <div class="dropdown-multiselect">
+                <div
+                  class="multiselect-trigger"
+                  (click)="showDidacticDropdown = !showDidacticDropdown"
+                >
+                  {{
+                    selectedDidacticSubgenres.length
+                      ? selectedDidacticSubgenres.join(", ")
+                      : "Kies subgenres..."
+                  }}
+                  <span class="arrow">▼</span>
+                </div>
+                @if (showDidacticDropdown) {
+                  <div class="multiselect-menu">
+                    @for (sg of didacticSubgenres; track sg) {
+                      <div
+                        class="multiselect-item"
+                        [class.selected]="isDidacticSubgenreSelected(sg)"
+                        (click)="toggleDidacticSubgenre(sg)"
+                      >
+                        {{ sg }}
+                      </div>
+                    }
+                  </div>
                 }
-              </select>
-              <small class="helper-note">Genre staat vast op "Didactiek" voor de lerarencollectie.</small>
-            </div>
-          }
-
-          <!-- NORMAAL genre modus -->
-          @if (!isDidactic) {
-            <div class="form-group">
-              <label for="genre">Genre</label>
-              <select id="genre" [(ngModel)]="selectedGenreId" name="genre" (ngModelChange)="onGenreChange()">
-                <option [ngValue]="null">Kies een genre</option>
-                @for (g of genres; track g.id) {
-                  <option [ngValue]="g.id">{{ g.naam }}</option>
-                }
-              </select>
-            </div>
-
-            @if (hasSubgenres) {
-              <div class="form-group">
-                <label for="subgenre">Subgenre</label>
-                <select id="subgenre" name="subgenre" [(ngModel)]="selectedSubgenreId">
-                  <option [ngValue]="null">Alle subgenres / geen keuze</option>
-                  @for (sg of selectedGenre!.subgenres; track sg.id) {
-                    <option [ngValue]="sg.id">{{ sg.naam }}</option>
-                  }
-                </select>
               </div>
-            }
+              <small class="helper-note"
+                >Klik om subgenres te selecteren voor de
+                lerarencollectie.</small
+              >
+            </div>
           }
 
           <div class="form-group">
@@ -161,7 +186,11 @@
 
           <div class="form-group">
             <label for="leesniveau">Leesniveau</label>
-            <select id="leesniveau" [(ngModel)]="book.leesniveau" name="leesniveau">
+            <select
+              id="leesniveau"
+              [(ngModel)]="book.leesniveau"
+              name="leesniveau"
+            >
               <option value="">Kies een leesniveau</option>
               @if (book.leesniveau && !hasKnownLeesniveau) {
                 <option [value]="book.leesniveau">{{ book.leesniveau }}</option>
@@ -172,14 +201,57 @@
             </select>
           </div>
 
+          <!-- NORMAAL genre modus -->
+          @if (!isDidacticMode) {
+            <div class="form-group full-width">
+              <label>Genres</label>
+              <div class="dropdown-multiselect">
+                <div
+                  class="multiselect-trigger"
+                  (click)="showGenreDropdown = !showGenreDropdown"
+                >
+                  {{
+                    selectedNonDidacticGenres.length
+                      ? selectedNonDidacticGenres.join(", ")
+                      : "Kies genres..."
+                  }}
+                  <span class="arrow">▼</span>
+                </div>
+                @if (showGenreDropdown) {
+                  <div class="multiselect-menu">
+                    @for (g of availableNonDidacticGenres; track g) {
+                      <div
+                        class="multiselect-item"
+                        [class.selected]="isSelected(g)"
+                        (click)="toggleGenre(g)"
+                      >
+                        {{ g }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+              <small class="helper-note"
+                >Klik om een of meerdere genres te selecteren.</small
+              >
+            </div>
+          }
+
           <div class="form-group full-width">
             <label for="beschrijving">Beschrijving</label>
-            <textarea id="beschrijving" rows="5" [(ngModel)]="book.beschrijving" name="beschrijving"></textarea>
+            <textarea
+              id="beschrijving"
+              rows="5"
+              [(ngModel)]="book.beschrijving"
+              name="beschrijving"
+            ></textarea>
           </div>
 
           <div class="button-group">
             <button type="submit" class="save-button">Opslaan</button>
-            <button type="button" class="cancel-button" (click)="cancel()">Annuleren</button>
+            <button type="button" class="cancel-button" (click)="cancel()">
+              Annuleren
+            </button>
           </div>
         </div>
       </form>

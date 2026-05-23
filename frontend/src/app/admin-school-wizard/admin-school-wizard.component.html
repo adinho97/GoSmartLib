@@ -9,18 +9,32 @@
 
     @if (step === 1) {
       <h2>Stap 1 - Vul gegevens in</h2>
-      <label for="subdomain">Subdomein</label>
+      <label for="smartschoolUrl">Smartschool URL</label>
       <input
-        id="subdomain"
-        type="text"
-        [(ngModel)]="subdomain"
-        placeholder="bv. aphogeschool"
+        id="smartschoolUrl"
+        type="url"
+        [(ngModel)]="smartschoolUrl"
+        placeholder="https://aphogeschool.smartschool.be/"
       />
 
-      <label for="naam">Schoolnaam (optioneel)</label>
-      <input id="naam" type="text" [(ngModel)]="naam" placeholder="AP Hogeschool" />
+      <label for="derivedSubdomain">Subdomein (afgeleid)</label>
+      <input
+        id="derivedSubdomain"
+        type="text"
+        [value]="extractedSubdomain || '—'"
+        readonly
+        aria-readonly="true"
+      />
 
-      <label for="adres">Adres (optioneel)</label>
+      <label for="naam">Schoolnaam</label>
+      <input
+        id="naam"
+        type="text"
+        [(ngModel)]="naam"
+        placeholder="AP Hogeschool"
+      />
+
+      <label for="adres">Adres</label>
       <div class="geocode-row">
         <input
           id="adres"
@@ -28,6 +42,7 @@
           [(ngModel)]="adres"
           placeholder="bv. Kerkelei 43, 2610 Antwerpen"
           (keyup.enter)="geocodeAddress()"
+          required
         />
         <button
           type="button"
@@ -45,26 +60,42 @@
       @if (latitude !== null && longitude !== null) {
         <div class="geocode-result">
           <p class="geocode-display">{{ geocodedDisplay }}</p>
-          <p class="geocode-coords">Lat: {{ latitude | number:'1.5-5' }} &nbsp; Lng: {{ longitude | number:'1.5-5' }}</p>
+          <p class="geocode-coords">
+            Lat: {{ latitude | number: "1.5-5" }} &nbsp; Lng:
+            {{ longitude | number: "1.5-5" }}
+          </p>
         </div>
       }
 
-      <button type="button" class="btn-primary" style="margin-top: 24px;" (click)="goToStep2()">
+      <button
+        type="button"
+        class="btn-primary"
+        style="margin-top: 24px"
+        (click)="goToStep2()"
+      >
         Volgende
       </button>
     }
 
     @if (step === 2) {
       <h2>Stap 2 - Bevestig</h2>
-      <p>Je voegt toe: <strong>{{ previewUrl }}</strong></p>
-      @if (naam.trim()) {
-        <p>Naam: <strong>{{ naam.trim() }}</strong></p>
-      }
-      @if (adres.trim()) {
-        <p>Adres: <strong>{{ adres.trim() }}</strong></p>
-      }
+      <p>
+        Je voegt toe: <strong>{{ previewUrl }}</strong>
+      </p>
+      <p>
+        Naam: <strong>{{ naam.trim() }}</strong>
+      </p>
+      <p>
+        Adres: <strong>{{ adres.trim() }}</strong>
+      </p>
       @if (latitude !== null && longitude !== null) {
-        <p>Coördinaten: <strong>{{ latitude | number:'1.5-5' }}, {{ longitude | number:'1.5-5' }}</strong></p>
+        <p>
+          Coördinaten:
+          <strong
+            >{{ latitude | number: "1.5-5" }},
+            {{ longitude | number: "1.5-5" }}</strong
+          >
+        </p>
       }
       <p>Status bij aanmaak: <strong>PENDING</strong></p>
 

@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.Genre;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
@@ -16,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -105,7 +107,10 @@ class RecommendationIntegrationTest {
         Book book = new Book();
         book.setTitel(title);
         book.setAuteur(author);
-        book.setGenre(genre);
+        // Create a Genre object and add it to a Set
+        Genre newGenre = new Genre();
+        newGenre.setNaam(genre);
+        book.setGenres(Set.of(newGenre));
         return bookRepository.save(book);
     }
 }

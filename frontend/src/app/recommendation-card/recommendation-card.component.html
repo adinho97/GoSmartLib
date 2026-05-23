@@ -128,7 +128,9 @@
     </p>
     @if (profileVariant === "history" && loanDate) {
       <p class="loan-date">
-        @if (book.deadline) {
+        @if (loanReturned) {
+          Teruggebracht op {{ loanDate }}
+        } @else if (book.deadline) {
           Terugbrengen voor {{ loanDate }}
         } @else {
           Ontleend op {{ loanDate }}

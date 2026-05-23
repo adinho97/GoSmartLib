@@ -45,10 +45,16 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         Boolean authenticationAttempted = (Boolean) request.getAttribute("authenticationAttempted");
         Boolean authenticationFailed = (Boolean) request.getAttribute("authenticationFailed");
         Boolean databaseUnavailable = (Boolean) request.getAttribute("databaseUnavailable");
+        Boolean authenticationSkippedDueToPoolStress = (Boolean) request
+                .getAttribute("authenticationSkippedDueToPoolStress");
 
         int statusCode;
         String message;
         String errorCode;
+
+        if (authenticationSkippedDueToPoolStress != null && authenticationSkippedDueToPoolStress) {
+            logger.warn("Request denied: Authentication skipped due to database connection pool stress.");
+        }
 
         if (authenticationAttempted != null && authenticationAttempted && authenticationFailed != null
                 && authenticationFailed) {

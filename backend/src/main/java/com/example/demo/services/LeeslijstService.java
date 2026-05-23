@@ -172,7 +172,9 @@ public class LeeslijstService {
                         book.getTitel(),
                         book.getAuteur(),
                         book.getCover(),
-                        book.getGenre(),
+                        book.getGenres() != null 
+                            ? book.getGenres().stream().map(Genre::getNaam).toList() 
+                            : List.of(),
                         book.getPaginas(),
                         book.getIsbn()))
                 .collect(Collectors.toList());
@@ -224,7 +226,9 @@ public class LeeslijstService {
                         book.getTitel(),
                         book.getAuteur(),
                         book.getCover(),
-                        book.getGenre(),
+                        book.getGenres() != null 
+                            ? book.getGenres().stream().map(Genre::getNaam).toList() 
+                            : List.of(),
                         book.getPaginas(),
                         book.getIsbn()))
                 .collect(Collectors.toList());

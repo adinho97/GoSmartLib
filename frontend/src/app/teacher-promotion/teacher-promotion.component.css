@@ -8,31 +8,10 @@
   gap: var(--s-5);
 }
 
-.tp-back {
-  display: inline-block;
-  font-size: 13px;
-  color: var(--ink-2);
-  text-decoration: none;
-  margin-bottom: var(--s-3);
-}
-
-.tp-back:hover {
-  color: var(--brand);
-}
-
 .tp-head {
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.tp-eyebrow {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--brand);
-  margin: 0;
 }
 
 .tp-title {
@@ -48,112 +27,226 @@
   margin: 0;
 }
 
-/* ── State messages ── */
-.tp-state-msg {
-  font-size: 14px;
-  color: var(--ink-2);
-  padding: var(--s-5);
-  text-align: center;
+/* ── Card ── */
+.tp-card {
   background: var(--surface);
-  border-radius: var(--r-lg);
   border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.tp-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ── Success banner ── */
+.tp-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--r);
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: var(--good);
+  font-weight: 600;
+}
+
+/* ── Search ── */
+.tp-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 0 14px;
+  color: var(--ink-3);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.tp-search:focus-within {
+  border-color: var(--brand);
+  color: var(--ink);
+}
+
+.tp-search svg {
+  flex-shrink: 0;
+}
+
+.tp-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+  outline: none;
+}
+
+.tp-search-input::placeholder {
+  color: var(--ink-4);
+}
+
+/* ── State messages ── */
+.tp-empty-msg {
+  margin: 0;
+  padding: var(--s-5) 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-3);
 }
 
 .tp-error {
-  color: var(--danger, #c0392b);
+  margin: 0;
+  font-size: 13px;
+  color: #c0392b;
 }
 
-/* ── Teacher list ── */
+.tp-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-5) 0;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--line);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: tp-spin 0.7s linear infinite;
+}
+
+@keyframes tp-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Results list ── */
 .tp-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
+  max-height: 360px;
+  overflow-y: auto;
 }
 
 .tp-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--s-4);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 14px var(--s-5);
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r);
+  transition: background 0.12s;
+}
+
+.tp-item:hover {
+  background: var(--surface-2);
+}
+
+.tp-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  text-transform: uppercase;
 }
 
 .tp-item-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
   min-width: 0;
 }
 
 .tp-item-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ink);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tp-item-klas {
   font-size: 12px;
-  color: var(--ink-2);
+  color: var(--ink-3);
+  font-weight: 500;
 }
 
 .tp-promote-btn {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 7px 14px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-sm);
   font-size: 13px;
   font-weight: 600;
-  color: var(--brand);
-  background: transparent;
-  border: 1.5px solid var(--brand);
-  border-radius: var(--r-lg);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+  transition: background 0.15s;
 }
 
 .tp-promote-btn:hover {
   background: var(--brand);
-  color: #fff;
 }
 
 /* ── Confirmation modal ── */
 .tp-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 1000;
+  padding: var(--s-4);
 }
 
 .tp-modal {
   background: var(--surface);
   border-radius: var(--r-lg);
-  width: min(92vw, 400px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
 }
 
 .tp-modal-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--s-4) var(--s-5);
+  padding: 20px var(--s-5);
   border-bottom: 1px solid var(--line);
 }
 
 .tp-modal-head h3 {
+  margin: 0;
   font-size: 16px;
   font-weight: 700;
   color: var(--ink);
-  margin: 0;
 }
 
 .tp-modal-close {
@@ -161,13 +254,17 @@
   height: 28px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  color: var(--ink-3);
+  font-size: 20px;
   cursor: pointer;
-  font-size: 18px;
-  color: var(--ink-2);
-  display: flex;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
+  transition: background 0.12s;
 }
 
 .tp-modal-close:hover {
@@ -196,7 +293,7 @@
 
 .tp-modal-error {
   font-size: 13px;
-  color: var(--danger, #c0392b);
+  color: #c0392b;
   margin: 0;
 }
 
@@ -210,20 +307,23 @@
 }
 
 .tp-ghost-btn {
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
   background: transparent;
-  border: 1.5px solid var(--line);
-  border-radius: var(--r-lg);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  font-family: inherit;
+  transition: background 0.15s;
 }
 
 .tp-ghost-btn:hover {
-  border-color: var(--ink-2);
-  color: var(--ink);
+  background: var(--surface-2);
 }
 
 .tp-confirm-btn {
@@ -231,18 +331,29 @@
   font-size: 13px;
   font-weight: 600;
   color: #fff;
-  background: var(--brand);
+  background: var(--ink);
   border: none;
-  border-radius: var(--r-lg);
+  border-radius: var(--r-sm);
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: background 0.15s;
 }
 
 .tp-confirm-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .tp-confirm-btn:not(:disabled):hover {
-  opacity: 0.88;
+  background: var(--brand);
+}
+
+@media (max-width: 600px) {
+  .tp-item {
+    flex-wrap: wrap;
+  }
+
+  .tp-promote-btn {
+    width: 100%;
+    margin-top: 6px;
+  }
 }

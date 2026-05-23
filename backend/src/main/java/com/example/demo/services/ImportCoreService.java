@@ -14,20 +14,19 @@ public class ImportCoreService {
 
     private final BookRepository bookRepository;
     private final OpenLibraryService openLibraryService;
-    private final IsbnService isbnService;
+    private final BookMapper bookMapper;
 
     public ImportCoreService(BookRepository bookRepository,
-            OpenLibraryService openLibraryService,
-            IsbnService isbnService) {
+            OpenLibraryService openLibraryService, BookMapper bookMapper) {
         this.bookRepository = bookRepository;
         this.openLibraryService = openLibraryService;
-        this.isbnService = isbnService;
+        this.bookMapper = bookMapper;
     }
 
     public ImportOutcome importByNormalizedIsbn(String normalizedIsbn, School school) {
         Optional<Book> existing = bookRepository.findByIsbnAndSchool_Id(normalizedIsbn, school.getId());
         if (existing.isPresent()) {
-            return new ImportOutcome(ImportStatus.ALREADY_EXISTS, BookMapper.toDto(existing.get()));
+            return new ImportOutcome(ImportStatus.ALREADY_EXISTS, bookMapper.toDto(existing.get()));
         }
 
         Book fetched = openLibraryService.fetchBookFromOpenLibrary(normalizedIsbn);
@@ -35,12 +34,9 @@ public class ImportCoreService {
             return new ImportOutcome(ImportStatus.NOT_FOUND, null);
         }
 
-        fetched.setIsbn(isbnService.normalizeAndValidateIsbn(fetched.getIsbn())
-                .orElse(fetched.getIsbn()));
-
         fetched.setSchool(school);
         Book saved = bookRepository.save(fetched);
-        return new ImportOutcome(ImportStatus.ADDED, BookMapper.toDto(saved));
+        return new ImportOutcome(ImportStatus.ADDED, bookMapper.toDto(saved));
     }
 
     public enum ImportStatus {

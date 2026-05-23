@@ -26,14 +26,15 @@
 }
 
 .reload-btn {
-  border: 1px solid #0f172a;
-  background: #0f172a;
+  border: 1px solid #871f42;
+  background: #871f42;
   color: #ffffff;
   border-radius: 0.5rem;
   padding: 0.6rem 0.9rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .reload-btn:disabled {
@@ -42,7 +43,9 @@
 }
 
 .reload-btn:hover:not(:disabled) {
-  background: #1a2332;
+  background: #6d1834;
+  border-color: #6d1834;
+  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.25);
 }
 
 .error-banner {

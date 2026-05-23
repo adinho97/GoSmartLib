@@ -7,9 +7,13 @@ import com.example.demo.exception.GlobalExceptionHandler;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.mappers.BookMapper;
+import com.example.demo.repositories.GenreRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.services.BookService;
+import com.example.demo.mappers.BookMapper;
+import com.example.demo.services.ImportCoreService;
 import com.example.demo.services.IsbnService;
 import com.example.demo.services.OpenLibraryService;
 import com.example.demo.services.ReviewModerationService;
@@ -34,22 +38,30 @@ class BookStatsControllerStandaloneTest {
     private MockMvc mockMvc;
     private BookRepository bookRepository;
     private LoanRepository loanRepository;
+    private GenreRepository genreRepository;
+    private IsbnService isbnService;
+    private BookMapper bookMapper;
+    private ImportCoreService importCoreService;
 
     @BeforeEach
     void setUp() {
         bookRepository = mock(BookRepository.class);
         loanRepository = mock(LoanRepository.class);
         BookCopyRepository bookCopyRepository = mock(BookCopyRepository.class);
+        genreRepository = mock(GenreRepository.class);
+        isbnService = mock(IsbnService.class);
+        bookMapper = mock(BookMapper.class);
+        importCoreService = mock(ImportCoreService.class);
 
         BookService bookService = new BookService(
                 bookRepository,
                 bookCopyRepository,
                 loanRepository,
                 null,
-                new OpenLibraryService(),
-                new IsbnService(),
+                new OpenLibraryService(genreRepository, isbnService),
+                isbnService,
                 null,
-                null);
+                bookMapper, importCoreService);
 
         ReviewRepository reviewRepository = mock(ReviewRepository.class);
         AppUserRepository appUserRepository = mock(AppUserRepository.class);
@@ -60,8 +72,9 @@ class BookStatsControllerStandaloneTest {
                 appUserRepository,
                 bookService,
                 (SchoolService) null,
-                (ReviewModerationService) null,
-                (AuthService) null);
+                mock(ReviewModerationService.class), // Mock this if needed
+                (AuthService) null,
+                bookMapper); // Use the mockBookMapper at the correct parameter position
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())

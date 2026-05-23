@@ -20,7 +20,7 @@ export class AdminSchoolWizardComponent {
   step = 1;
   isSubmitting = false;
   errorMessage = "";
-  subdomain = "";
+  smartschoolUrl = "";
   naam = "";
   adres = "";
   latitude: number | null = null;
@@ -36,19 +36,43 @@ export class AdminSchoolWizardComponent {
     private readonly router: Router,
   ) {}
 
-  get normalizedSubdomain(): string {
-    return this.subdomain.trim().toLowerCase();
+  get extractedSubdomain(): string {
+    return this.extractSubdomainFromUrl(this.smartschoolUrl) || "";
   }
 
   get previewUrl(): string {
-    return this.normalizedSubdomain
-      ? `https://${this.normalizedSubdomain}.smartschool.be`
+    return this.extractedSubdomain
+      ? `https://${this.extractedSubdomain}.smartschool.be`
       : "";
   }
 
-  validateSubdomain(): boolean {
-    const value = this.normalizedSubdomain;
-    return /^[a-z0-9-]+$/.test(value);
+  private extractSubdomainFromUrl(rawUrl: string): string | null {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return null;
+
+    const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+
+    let hostname = "";
+    try {
+      hostname = new URL(withScheme).hostname.toLowerCase();
+    } catch {
+      return null;
+    }
+
+    hostname = hostname.replace(/^www\./, "");
+    const suffix = ".smartschool.be";
+    if (!hostname.endsWith(suffix)) return null;
+
+    const subdomain = hostname.slice(0, -suffix.length);
+    if (!subdomain || !/^[a-z0-9-]+$/.test(subdomain)) return null;
+
+    return subdomain;
+  }
+
+  validateSmartschoolUrl(): boolean {
+    return !!this.extractSubdomainFromUrl(this.smartschoolUrl);
   }
 
   geocodeAddress(): void {
@@ -83,9 +107,17 @@ export class AdminSchoolWizardComponent {
 
   goToStep2(): void {
     this.errorMessage = "";
-    if (!this.validateSubdomain()) {
+    if (!this.naam.trim()) {
+      this.errorMessage = "Schoolnaam is verplicht.";
+      return;
+    }
+    if (!this.adres.trim()) {
+      this.errorMessage = "Adres is verplicht.";
+      return;
+    }
+    if (!this.validateSmartschoolUrl()) {
       this.errorMessage =
-        "Ongeldig subdomein. Gebruik enkel a-z, 0-9 en een koppelteken.";
+        "Vul een geldige Smartschool URL in (bv. https://aphogeschool.smartschool.be).";
       return;
     }
     this.step = 2;
@@ -101,13 +133,26 @@ export class AdminSchoolWizardComponent {
       return;
     }
     this.errorMessage = "";
+    if (!this.naam.trim()) {
+      this.errorMessage = "Schoolnaam is verplicht.";
+      return;
+    }
+    if (!this.adres.trim()) {
+      this.errorMessage = "Adres is verplicht.";
+      return;
+    }
+    if (!this.validateSmartschoolUrl()) {
+      this.errorMessage =
+        "Vul een geldige Smartschool URL in (bv. https://aphogeschool.smartschool.be).";
+      return;
+    }
     this.isSubmitting = true;
 
     this.adminSchoolService
       .createSchool({
-        subdomain: this.normalizedSubdomain,
-        naam: this.naam.trim() || undefined,
-        adres: this.adres.trim() || undefined,
+        subdomain: this.extractedSubdomain,
+        naam: this.naam.trim(),
+        adres: this.adres.trim(),
         latitude: this.latitude ?? undefined,
         longitude: this.longitude ?? undefined,
       })

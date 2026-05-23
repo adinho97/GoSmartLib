@@ -3,6 +3,7 @@ import { ActivatedRoute } from "@angular/router";
 import { Router } from "@angular/router";
 import { SchoolService, KlasListItem } from "../services/school.service";
 import { BookService } from "../services/book.service";
+import { AdminGenreService, Genre } from "../services/admin-genre.service";
 import { UiToastService } from "../services/ui-toast.service";
 import { Book } from "../models/book";
 
@@ -53,29 +54,11 @@ export class LeeslijstCreateComponent implements OnInit {
   searchQuery = "";
   currentPage = 1;
   pageSize = 10;
+  booksLoaded = false;
   readonly ratingStars = [0, 1, 2, 3, 4];
   readonly minPageFilterLimit = 0;
   readonly maxPageFilterLimit = 1000;
-  readonly genres = [
-    "Didactiek",
-    "Fictie algemeen",
-    "Literaire roman",
-    "Spanning / thriller",
-    "Detective / misdaad",
-    "Fantasy",
-    "Sciencefiction",
-    "Dystopie",
-    "Historische roman",
-    "Romantiek",
-    "Coming-of-age",
-    "Avontuur",
-    "Oorlog & conflict",
-    "Horror",
-    "Humor",
-    "Graphic novel / strip",
-    "Poëzie",
-    "Non-fictie algemeen",
-  ];
+  genres: string[] = [];
   readonly languages = [
     "Nederlands",
     "Engels",
@@ -87,36 +70,8 @@ export class LeeslijstCreateComponent implements OnInit {
     "Latijn",
   ];
   readonly leesniveaus = ["A", "B", "C", "D"];
-  readonly nonFictionSubgenres = [
-    "Biografie / autobiografie",
-    "Wetenschap & technologie",
-    "Filosofie",
-    "Maatschappij & politiek",
-    "Psychologie",
-    "Geschiedenis",
-    "Kunst & cultuur",
-  ];
-  readonly didacticSubgenres = [
-    "Wiskunde",
-    "Taal",
-    "Geschiedenis",
-    "Kleuteronderwijs",
-    "Lager onderwijs",
-    "Secundair onderwijs",
-    "Volwasseneneducatie",
-    "Geheugen",
-    "Begrip",
-    "Denkprocessen",
-    "Samenwerking",
-    "Interactie",
-    "Dialoog",
-    "Online leren",
-    "E-learning platforms",
-    "Educatieve apps",
-    "Creativiteit",
-    "Zelfexpressie",
-    "Ervaringsgericht leren",
-  ];
+  nonFictionSubgenres: string[] = [];
+  didacticSubgenres: string[] = [];
 
   selectedGenre = "";
   selectedLanguage = "";
@@ -134,6 +89,7 @@ export class LeeslijstCreateComponent implements OnInit {
     private route: ActivatedRoute,
     private schoolService: SchoolService,
     private bookService: BookService,
+    private genreService: AdminGenreService,
     private uiToastService: UiToastService,
     private router: Router,
   ) {}
@@ -155,6 +111,25 @@ export class LeeslijstCreateComponent implements OnInit {
       this.editingLeeslijstId = parseInt(leeslijstIdParam, 10);
       await this.loadExistingLeeslijst(this.editingLeeslijstId);
     }
+    this.loadGenres();
+  }
+
+  loadGenres(): void {
+    this.genreService.getAll().subscribe({
+      next: (genres: Genre[]) => {
+        this.genres = genres.map((g) => g.naam).sort();
+        const nf = genres.find(
+          (g) => g.naam.toLowerCase() === "non-fictie algemeen",
+        );
+        if (nf)
+          this.nonFictionSubgenres = nf.subgenres.map((s) => s.naam).sort();
+        const did = genres.find((g) => g.naam.toLowerCase() === "didactiek");
+        if (did)
+          this.didacticSubgenres = did.subgenres.map((s) => s.naam).sort();
+      },
+      error: () =>
+        console.error("Failed to load genres for leeslijst creation"),
+    });
   }
 
   private async loadExistingLeeslijst(id: number) {
@@ -219,8 +194,23 @@ export class LeeslijstCreateComponent implements OnInit {
     }
     this.step = "boeken";
     this.loadKlassen();
-    this.loadBooks();
-    this.loadAllUsers();
+  }
+
+  private async ensureBooksLoaded() {
+    if (this.booksLoaded || this.isLoading) return;
+    await this.loadBooks();
+    this.booksLoaded = true;
+  }
+
+  goToStep(target: Step) {
+    const order: Step[] = ["titel", "boeken", "bevestiging"];
+    if (order.indexOf(target) < order.indexOf(this.step)) {
+      this.step = target;
+    }
+  }
+
+  get hasUserSearchInput(): boolean {
+    return this.userSearchQuery.trim().length > 0;
   }
 
   async loadKlassen() {
@@ -275,24 +265,11 @@ export class LeeslijstCreateComponent implements OnInit {
     });
   }
 
-  async loadAllUsers() {
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    if (!schoolId) return;
-
-    try {
-      // Pass empty string to get all users
-      this.foundUsers = await this.bookService.searchUsers("", schoolId);
-    } catch (error) {
-      console.error("Failed to load users", error);
-    }
-  }
-
   async onUserSearch() {
     const query = this.userSearchQuery.trim();
 
-    // If query is empty, show all users
     if (query.length === 0) {
-      await this.loadAllUsers();
+      this.foundUsers = [];
       return;
     }
 
@@ -353,9 +330,10 @@ export class LeeslijstCreateComponent implements OnInit {
     }
   }
 
-  onSearch() {
+  async onSearch() {
     this.currentPage = 1;
     this.searchQuery = this.searchInput.trim();
+    await this.ensureBooksLoaded();
   }
 
   onGenreChange() {
@@ -379,7 +357,7 @@ export class LeeslijstCreateComponent implements OnInit {
     this.maxPages = Math.max(parsed, this.minPages);
   }
 
-  clearFilters() {
+  async clearFilters() {
     this.searchInput = "";
     this.searchQuery = "";
     this.selectedGenre = "";
@@ -391,11 +369,13 @@ export class LeeslijstCreateComponent implements OnInit {
     this.minPages = this.minAvailablePages;
     this.maxPages = this.maxAvailablePages;
     this.currentPage = 1;
+    await this.ensureBooksLoaded();
   }
 
-  applyFilters() {
+  async applyFilters() {
     this.searchQuery = this.searchInput.trim();
     this.currentPage = 1;
+    await this.ensureBooksLoaded();
   }
 
   get filteredKlassen(): KlasListItem[] {
@@ -418,7 +398,9 @@ export class LeeslijstCreateComponent implements OnInit {
 
       const matchesGenre =
         !this.selectedGenre ||
-        (book.genre || "").toLowerCase() === this.selectedGenre.toLowerCase();
+        (book.genres || []).some((g) =>
+          g.toLowerCase().includes(this.selectedGenre.toLowerCase()),
+        );
 
       const matchesLanguage =
         !this.selectedLanguage ||
@@ -429,22 +411,27 @@ export class LeeslijstCreateComponent implements OnInit {
         (book.leesniveau || "").toLowerCase() ===
           this.selectedLeesniveau.toLowerCase();
 
-      const averageRating = Number((book as any).averageRating ?? 0);
+      const averageRating = Number(book.averageRating ?? 0);
       const minRating = Number(this.selectedMinAverageRating || 0);
       const matchesMinRating =
         !this.selectedMinAverageRating || averageRating >= minRating;
 
-      const pages = typeof book.paginas === "number" ? book.paginas : null;
+      const pages = book.paginas;
       const matchesPages =
         pages === null || (pages >= this.minPages && pages <= this.maxPages);
 
-      const subgenre = ((book as any).subgenre || "").toLowerCase();
       const matchesNonFictionSubgenre =
         !this.selectedNonFictionSubgenre ||
-        subgenre === this.selectedNonFictionSubgenre.toLowerCase();
+        (book.genres || []).some((g) =>
+          g
+            .toLowerCase()
+            .includes(this.selectedNonFictionSubgenre.toLowerCase()),
+        );
       const matchesDidacticSubgenre =
         !this.selectedDidacticSubgenre ||
-        subgenre === this.selectedDidacticSubgenre.toLowerCase();
+        (book.genres || []).some((g) =>
+          g.toLowerCase().includes(this.selectedDidacticSubgenre.toLowerCase()),
+        );
 
       return (
         matchesQuery &&
@@ -479,6 +466,7 @@ export class LeeslijstCreateComponent implements OnInit {
   goToConfirmation() {
     const hasTarget =
       this.isGlobal ||
+      this.isSchool ||
       this.selectedKlassenIds.size > 0 ||
       this.sharedWithUserSubs.size > 0;
 
