@@ -95,7 +95,9 @@
   color: #1a1a1a;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
 }
 
 .school-dropdown-item:hover {
@@ -227,18 +229,19 @@
   box-shadow: 0 0 0 3px rgba(135, 31, 66, 0.16);
 }
 
-.lestip-badge {
+.lestip-indicator-badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #fff4f7;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #fff8fb;
   border: 1px solid #d4c1c9;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #60162f;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #871f42;
   width: fit-content;
-  margin-top: 4px;
+  margin: 4px 0;
 }
 
 .page-slider-group {
