@@ -76,11 +76,11 @@ export class LoginComponent implements OnInit {
         ).trim();
         const displayName = (userInfo.username || "").trim();
 
-        // Smartschool's `voornaam`/`achternaam` fields are unreliable on some
-        // platforms — they can contain the surname duplicated in both, or be
-        // missing entirely. The `name` field is reliable on Belgian Smartschool:
-        // always "LastName FirstName" order. Fall back to parsing it when the
-        // structured pair is missing or duplicated.
+        // Smartschool's `voornaam`/`achternaam` fields are unreliable: they
+        // can be reversed, duplicated, or missing. The `name` (username) field
+        // is the source of truth. Two shapes:
+        //  - "LastName FirstName" (Belgian convention, two+ words)
+        //  - "FirstName" (single word, with the surname living in `given_name`)
         if (displayName) {
           const parts = displayName.split(/\s+/);
           if (parts.length >= 2) {
@@ -92,6 +92,15 @@ export class LoginComponent implements OnInit {
               rawLastName = parts[0];
               rawFirstName = parts.slice(1).join(" ");
             }
+          } else if (
+            rawFirstName &&
+            !rawLastName &&
+            displayName.toLowerCase() !== rawFirstName.toLowerCase()
+          ) {
+            // Single-word displayName differs from given_name → Smartschool
+            // put the surname in given_name and the first name in `name`.
+            rawLastName = rawFirstName;
+            rawFirstName = displayName;
           }
         }
 
