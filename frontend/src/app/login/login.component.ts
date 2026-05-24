@@ -83,23 +83,24 @@ export class LoginComponent implements OnInit {
         //  - "FirstName" (single word, with the surname living in `given_name`)
         if (displayName) {
           const parts = displayName.split(/\s+/);
+          const sameValues =
+            rawFirstName &&
+            rawLastName &&
+            rawFirstName.toLowerCase() === rawLastName.toLowerCase();
+
           if (parts.length >= 2) {
-            const sameValues =
-              rawFirstName &&
-              rawLastName &&
-              rawFirstName.toLowerCase() === rawLastName.toLowerCase();
             if (!rawFirstName || !rawLastName || sameValues) {
               rawLastName = parts[0];
               rawFirstName = parts.slice(1).join(" ");
             }
           } else if (
             rawFirstName &&
-            !rawLastName &&
+            (!rawLastName || sameValues) &&
             displayName.toLowerCase() !== rawFirstName.toLowerCase()
           ) {
             // Single-word displayName differs from given_name → Smartschool
             // put the surname in given_name and the first name in `name`.
-            rawLastName = rawFirstName;
+            rawLastName = rawLastName || rawFirstName;
             rawFirstName = displayName;
           }
         }
