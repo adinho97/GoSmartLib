@@ -69,17 +69,21 @@ export function normalizeReviewAuthorName(storedName: string): string {
     return trimmed;
   }
 
+  // 1. Handle "Lastname, Firstname" format (very common in administrative/Smartschool exports)
+  if (trimmed.includes(",")) {
+    const commaParts = trimmed.split(",").map((p) => p.trim());
+    if (commaParts.length === 2 && commaParts[0] && commaParts[1]) {
+      return `${commaParts[1]} ${commaParts[0]}`;
+    }
+  }
+
   const parts = trimmed.split(/\s+/).filter(Boolean);
   if (parts.length < 2) {
     return trimmed; // Single word, can't determine order
   }
 
   // Get current user's known name from localStorage
-  const currentFirstName = (
-    localStorage.getItem("firstName") ||
-    localStorage.getItem("userName") ||
-    ""
-  )
+  const currentFirstName = (localStorage.getItem("firstName") || "")
     .trim()
     .toLowerCase();
   const currentLastName = (localStorage.getItem("lastName") || "")
@@ -103,7 +107,7 @@ export function normalizeReviewAuthorName(storedName: string): string {
     return `${newFirst} ${newLast}`;
   }
 
-  // Fallback: check if name looks like it's in lastname-first format
+  // 4. Fallback: check if name looks like it's in lastname-first format
   // by seeing if first part is all caps or looks like a surname
   const firstPart = parts[0];
   if (
@@ -127,6 +131,8 @@ export function formatUserInfoDisplayName(
   if (!userInfo) return (fallbackSub || "").trim();
 
   const rawFirstName =
+    userInfo.actualUserName ||
+    userInfo.name ||
     userInfo.actualUserFirstName ||
     userInfo.givenName ||
     userInfo.given_name ||
@@ -135,6 +141,8 @@ export function formatUserInfoDisplayName(
     "";
 
   const rawLastName =
+    userInfo.actualUserSurname ||
+    userInfo.surname ||
     userInfo.actualUserSurname ||
     userInfo.actualUserLastName ||
     userInfo.familyName ||
