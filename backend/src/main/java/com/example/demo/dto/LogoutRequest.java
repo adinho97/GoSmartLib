@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.dto;
 
 public class LogoutRequest {
     private String accessToken;

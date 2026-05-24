@@ -1,11 +1,11 @@
 package com.example.demo.services;
 
-import com.example.demo.config.AuthLoginResponse;
-import com.example.demo.config.SmartschoolGroup;
-import com.example.demo.config.SmartschoolGroupInfo;
+import com.example.demo.dto.AuthLoginResponse;
+import com.example.demo.dto.SmartschoolGroup;
+import com.example.demo.dto.SmartschoolGroupInfo;
 import com.example.demo.config.SmartschoolProperties;
-import com.example.demo.config.SmartschoolTokenResponse;
-import com.example.demo.config.SmartschoolUserInfo;
+import com.example.demo.dto.SmartschoolTokenResponse;
+import com.example.demo.dto.SmartschoolUserInfo;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Klas;
 import com.example.demo.entities.School;

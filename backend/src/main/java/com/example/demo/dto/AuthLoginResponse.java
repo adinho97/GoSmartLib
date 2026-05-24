@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.dto;
 
 public class AuthLoginResponse {
     private String sub;

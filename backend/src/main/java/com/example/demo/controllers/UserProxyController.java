@@ -1,7 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.services.AuthService;
-import com.example.demo.config.SmartschoolUserInfo;
+import com.example.demo.dto.SmartschoolUserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;

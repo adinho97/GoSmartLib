@@ -1,6 +1,6 @@
 package com.example.demo.controllers;
 
-import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.dto.SmartschoolMessageRequest;
 import com.example.demo.services.SmartschoolMessageService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;

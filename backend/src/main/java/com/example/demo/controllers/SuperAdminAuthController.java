@@ -1,8 +1,8 @@
 package com.example.demo.controllers;
 
 import com.example.demo.services.SuperAdminAuthService;
-import com.example.demo.config.SuperAdminLoginRequest;
-import com.example.demo.config.SuperAdminLoginResponse;
+import com.example.demo.dto.SuperAdminLoginRequest;
+import com.example.demo.dto.SuperAdminLoginResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

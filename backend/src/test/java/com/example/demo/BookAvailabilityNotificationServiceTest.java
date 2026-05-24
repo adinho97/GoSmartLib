@@ -1,10 +1,10 @@
 package com.example.demo;
 
-import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.dto.SmartschoolMessageRequest;
 import com.example.demo.services.AuthService;
 import com.example.demo.services.SmartschoolMessageService;
 import com.example.demo.config.SmartschoolProperties;
-import com.example.demo.config.SmartschoolUserInfo;
+import com.example.demo.dto.SmartschoolUserInfo;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Wishlist;

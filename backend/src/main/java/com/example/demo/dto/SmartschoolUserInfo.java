@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

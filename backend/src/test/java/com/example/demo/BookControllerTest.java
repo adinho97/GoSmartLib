@@ -4,7 +4,7 @@ import com.example.demo.dto.BookDto;
 import com.example.demo.controllers.BookController;
 import com.example.demo.services.AuthService;
 import com.example.demo.config.ConnectionPoolMonitor;
-import com.example.demo.config.SmartschoolUserInfo;
+import com.example.demo.dto.SmartschoolUserInfo;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Review;

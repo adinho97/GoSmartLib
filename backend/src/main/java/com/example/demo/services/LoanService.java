@@ -10,7 +10,7 @@ import com.example.demo.entities.Loan;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
-import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.dto.SmartschoolMessageRequest;
 import com.example.demo.config.SmartschoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

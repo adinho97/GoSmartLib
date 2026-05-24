@@ -1,10 +1,10 @@
 package com.example.demo.controllers;
 
-import com.example.demo.config.AuthLoginResponse;
+import com.example.demo.dto.AuthLoginResponse;
 import com.example.demo.services.AuthService;
-import com.example.demo.config.LoginRequest;
-import com.example.demo.config.LogoutRequest;
-import com.example.demo.config.TokenRefreshResponse;
+import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.LogoutRequest;
+import com.example.demo.dto.TokenRefreshResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;

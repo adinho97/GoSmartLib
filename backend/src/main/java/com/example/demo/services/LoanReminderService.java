@@ -1,6 +1,6 @@
 package com.example.demo.services;
 
-import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.dto.SmartschoolMessageRequest;
 import com.example.demo.config.SmartschoolProperties;
 import com.example.demo.entities.Loan;
 import com.example.demo.repositories.LoanRepository;

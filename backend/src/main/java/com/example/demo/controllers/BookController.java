@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import com.example.demo.config.SmartschoolUserInfo;
+import com.example.demo.dto.SmartschoolUserInfo;
 
 import java.util.List;
 import java.util.Map;

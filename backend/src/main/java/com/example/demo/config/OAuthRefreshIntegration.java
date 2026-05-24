@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import com.example.demo.entities.AppUser;
+import com.example.demo.dto.SmartschoolUserInfo;
 import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.services.AuthService;
@@ -81,7 +81,7 @@ public class OAuthRefreshIntegration {
                                 logger.debug("Updated access token for user: {}", sub);
 
                                 // Get user info using new token
-                                com.example.demo.config.SmartschoolTokenResponse tokenResponse = new com.example.demo.config.SmartschoolTokenResponse();
+                                com.example.demo.dto.SmartschoolTokenResponse tokenResponse = new com.example.demo.dto.SmartschoolTokenResponse();
                                 tokenResponse.setAccessToken(newAccessToken);
                                 return authService.getUserInfo(tokenResponse, user.getPlatform());
                             })
