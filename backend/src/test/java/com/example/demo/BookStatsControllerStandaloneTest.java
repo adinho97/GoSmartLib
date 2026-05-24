@@ -1,6 +1,5 @@
 package com.example.demo;
 
-import com.example.demo.services.AuthService;
 import com.example.demo.controllers.BookController;
 import com.example.demo.entities.Book;
 import com.example.demo.exception.GlobalExceptionHandler;
@@ -8,13 +7,14 @@ import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.mappers.BookMapper;
 import com.example.demo.repositories.LoanRepository;
-import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.services.BookDeletionService;
 import com.example.demo.services.BookImportService;
 import com.example.demo.services.BookLookupService;
+import com.example.demo.services.BookQueryService;
 import com.example.demo.services.BookStatsService;
-import com.example.demo.services.ReviewModerationService;
-import com.example.demo.services.SchoolService;
+import com.example.demo.services.BookWriteService;
+import com.example.demo.services.LestipService;
+import com.example.demo.services.ReviewService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -57,24 +57,25 @@ class BookStatsControllerStandaloneTest {
                                 loanRepository,
                                 bookMapper);
 
-                ReviewRepository reviewRepository = mock(ReviewRepository.class);
                 AppUserRepository appUserRepository = mock(AppUserRepository.class);
                 BookLookupService bookLookupService = mock(BookLookupService.class);
                 BookImportService bookImportService = mock(BookImportService.class);
                 BookDeletionService bookDeletionService = mock(BookDeletionService.class);
+                BookQueryService bookQueryService = mock(BookQueryService.class);
+                BookWriteService bookWriteService = mock(BookWriteService.class);
+                ReviewService reviewService = mock(ReviewService.class);
+                LestipService lestipService = mock(LestipService.class);
 
                 BookController controller = new BookController(
-                                bookRepository,
-                                reviewRepository,
                                 appUserRepository,
                                 bookLookupService,
                                 bookImportService,
                                 bookStatsService,
                                 bookDeletionService,
-                                (SchoolService) null,
-                                mock(ReviewModerationService.class), // Mock this if needed
-                                (AuthService) null,
-                                bookMapper); // Use the mockBookMapper at the correct parameter position
+                                bookQueryService,
+                                bookWriteService,
+                                reviewService,
+                                lestipService);
 
                 mockMvc = MockMvcBuilders.standaloneSetup(controller)
                                 .setControllerAdvice(new GlobalExceptionHandler())
