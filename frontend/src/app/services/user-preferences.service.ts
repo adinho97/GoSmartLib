@@ -164,9 +164,14 @@ export class UserPreferencesService {
   }
 
   clearCache(): void {
-    this.preferencesSubject.next({});
     localStorage.removeItem(this.STORAGE_KEY);
     this.hasSyncedWithBackend = false;
+
+    // After clearing the main cache, re-seed the reactive state with
+    // UI preferences from the cookie. This prevents the UI (like the
+    // logout/login button) from flickering to default colors before a refresh.
+    const cookiePrefs = this.getUiPrefsFromCookie();
+    this.preferencesSubject.next(cookiePrefs);
   }
 
   /**
