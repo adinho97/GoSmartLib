@@ -52,11 +52,8 @@ public class SmartschoolUserInfo {
         this.name = name;
     }
 
-    // Smartschool returns "voornaam" as the family
-    // name and "achternaam" as the given name, which is the opposite of the
-    // standard convention.
     public String getGivenName() {
-        return familyName;
+        return givenName;
     }
 
     public void setGivenName(String givenName) {
@@ -64,7 +61,7 @@ public class SmartschoolUserInfo {
     }
 
     public String getFamilyName() {
-        return givenName;
+        return familyName;
     }
 
     public void setFamilyName(String familyName) {

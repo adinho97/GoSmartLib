@@ -76,17 +76,22 @@ export class LoginComponent implements OnInit {
         ).trim();
         const displayName = (userInfo.username || "").trim();
 
-        // Smartschool sometimes stores the surname in given_name with the full name in
-        // "LastName FirstName" order. Detect this when givenName matches the first word
-        // of the display name but familyName is absent.
-        if (rawFirstName && !rawLastName && displayName) {
+        // Smartschool's `voornaam`/`achternaam` fields are unreliable on some
+        // platforms — they can contain the surname duplicated in both, or be
+        // missing entirely. The `name` field is reliable on Belgian Smartschool:
+        // always "LastName FirstName" order. Fall back to parsing it when the
+        // structured pair is missing or duplicated.
+        if (displayName) {
           const parts = displayName.split(/\s+/);
-          if (
-            parts.length >= 2 &&
-            parts[0].toLowerCase() === rawFirstName.toLowerCase()
-          ) {
-            rawLastName = parts[0];
-            rawFirstName = parts.slice(1).join(" ");
+          if (parts.length >= 2) {
+            const sameValues =
+              rawFirstName &&
+              rawLastName &&
+              rawFirstName.toLowerCase() === rawLastName.toLowerCase();
+            if (!rawFirstName || !rawLastName || sameValues) {
+              rawLastName = parts[0];
+              rawFirstName = parts.slice(1).join(" ");
+            }
           }
         }
 
