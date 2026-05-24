@@ -1,7 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.config.AuthLoginResponse;
-import com.example.demo.config.AuthService;
+import com.example.demo.services.AuthService;
 import com.example.demo.config.SmartschoolProperties;
 import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.entities.AppUser;

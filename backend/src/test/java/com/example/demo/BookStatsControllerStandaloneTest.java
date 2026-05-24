@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.config.AuthService;
+import com.example.demo.services.AuthService;
 import com.example.demo.controllers.BookController;
 import com.example.demo.entities.Book;
 import com.example.demo.exception.GlobalExceptionHandler;

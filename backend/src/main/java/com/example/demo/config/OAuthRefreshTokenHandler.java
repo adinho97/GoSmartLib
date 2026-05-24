@@ -3,6 +3,8 @@ package com.example.demo.config;
 import com.example.demo.entities.AppUser;
 import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.AppUserRepository;
+import com.example.demo.services.AuthService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

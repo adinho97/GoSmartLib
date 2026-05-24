@@ -1,6 +1,6 @@
 package com.example.demo.controllers;
 
-import com.example.demo.config.SuperAdminAuthService;
+import com.example.demo.services.SuperAdminAuthService;
 import com.example.demo.config.SuperAdminLoginRequest;
 import com.example.demo.config.SuperAdminLoginResponse;
 import org.springframework.http.ResponseEntity;

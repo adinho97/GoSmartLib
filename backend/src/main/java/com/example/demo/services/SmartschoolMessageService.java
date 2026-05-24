@@ -1,5 +1,7 @@
-package com.example.demo.config;
+package com.example.demo.services;
 
+import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.config.SmartschoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

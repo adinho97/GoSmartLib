@@ -1,6 +1,6 @@
 package com.example.demo.controllers;
 
-import com.example.demo.config.AuthService;
+import com.example.demo.services.AuthService;
 import com.example.demo.config.SmartschoolUserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

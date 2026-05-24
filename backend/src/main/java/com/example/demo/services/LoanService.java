@@ -11,8 +11,6 @@ import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.config.SmartschoolMessageRequest;
-import com.example.demo.config.SmartschoolMessageService;
-import com.example.demo.config.AuthService;
 import com.example.demo.config.SmartschoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,5 @@
 package com.example.demo.services;
 
-import com.example.demo.config.AuthService;
 import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.entities.School;
 import com.example.demo.oneroster.OneRosterClient;

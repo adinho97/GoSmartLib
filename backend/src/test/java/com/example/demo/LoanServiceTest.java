@@ -4,6 +4,7 @@ import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.config.SmartschoolProperties;
 import com.example.demo.config.SmartschoolUserInfo;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
@@ -13,8 +14,10 @@ import com.example.demo.entities.School;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
+import com.example.demo.services.AuthService;
 import com.example.demo.services.BookAvailabilityNotificationService;
 import com.example.demo.services.LoanService;
+import com.example.demo.services.SmartschoolMessageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -48,13 +51,13 @@ class LoanServiceTest {
     private BookAvailabilityNotificationService bookAvailabilityNotificationService;
 
     @Mock
-    private com.example.demo.config.SmartschoolMessageService smartschoolMessageService;
+    private SmartschoolMessageService smartschoolMessageService;
 
     @Mock
-    private com.example.demo.config.AuthService authService;
+    private AuthService authService;
 
     @Mock
-    private com.example.demo.config.SmartschoolProperties smartschoolProperties;
+    private SmartschoolProperties smartschoolProperties;
 
     @Mock
     private AppUserRepository appUserRepository;
@@ -71,7 +74,7 @@ class LoanServiceTest {
         request.setDueDate(LocalDate.now().plusDays(14));
 
         // We bouwen de keten van achter naar voren op:
-        
+
         // A. Het Boek
         Book mockBook = new Book();
         mockBook.setId(1L);
@@ -91,12 +94,13 @@ class LoanServiceTest {
 
         // Mock de repository calls
         when(bookCopyRepository.findByBook_Id(anyLong()))
-            .thenReturn(Collections.singletonList(mockCopy));
-        
+                .thenReturn(Collections.singletonList(mockCopy));
+
         ArgumentCaptor<Loan> savedLoanCaptor = ArgumentCaptor.forClass(Loan.class);
         when(loanRepository.save(savedLoanCaptor.capture())).thenReturn(savedLoan);
-        
-        // Mock de save van de bookCopy (als de service de status van de kopie aanpast naar 'uitgeleend')
+
+        // Mock de save van de bookCopy (als de service de status van de kopie aanpast
+        // naar 'uitgeleend')
         ArgumentCaptor<BookCopy> savedCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
         when(bookCopyRepository.save(savedCopyCaptor.capture())).thenReturn(mockCopy);
 
@@ -147,9 +151,11 @@ class LoanServiceTest {
         List<LoanDto> loans = loanService.createLoans(List.of(request1, request2), null);
 
         assertEquals(2, loans.size());
-        verify(smartschoolMessageService, times(1)).sendMessage(eq("access-token"), any(SmartschoolMessageRequest.class));
+        verify(smartschoolMessageService, times(1)).sendMessage(eq("access-token"),
+                any(SmartschoolMessageRequest.class));
 
-        ArgumentCaptor<SmartschoolMessageRequest> requestCaptor = ArgumentCaptor.forClass(SmartschoolMessageRequest.class);
+        ArgumentCaptor<SmartschoolMessageRequest> requestCaptor = ArgumentCaptor
+                .forClass(SmartschoolMessageRequest.class);
         verify(smartschoolMessageService).sendMessage(eq("access-token"), requestCaptor.capture());
 
         String body = requestCaptor.getValue().getBody();
@@ -164,7 +170,8 @@ class LoanServiceTest {
         Book bookA = buildBook(1L, "Boek A");
         Book bookB = buildBook(2L, "Boek B");
 
-        // For book A, copy numbers should follow sorted copy ids: 5 -> #1, 7 -> #2, 10 -> #3
+        // For book A, copy numbers should follow sorted copy ids: 5 -> #1, 7 -> #2, 10
+        // -> #3
         BookCopy copyA3 = buildCopy(10L, bookA, BookCopy.CopyStatus.AVAILABLE, BookCopy.CopyCondition.GOOD);
         BookCopy copyA1 = buildCopy(5L, bookA, BookCopy.CopyStatus.LOST, BookCopy.CopyCondition.BAD);
         BookCopy copyA2 = buildCopy(7L, bookA, BookCopy.CopyStatus.DAMAGED, BookCopy.CopyCondition.MODERATE);

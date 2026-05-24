@@ -1,7 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.config.AuthLoginResponse;
-import com.example.demo.config.AuthService;
+import com.example.demo.services.AuthService;
 import com.example.demo.config.LoginRequest;
 import com.example.demo.config.LogoutRequest;
 import com.example.demo.config.TokenRefreshResponse;

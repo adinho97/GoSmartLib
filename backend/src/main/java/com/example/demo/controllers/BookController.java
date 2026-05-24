@@ -17,7 +17,7 @@ import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.services.BookService;
-import com.example.demo.config.AuthService;
+import com.example.demo.services.AuthService;
 import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.SchoolService;
 import jakarta.validation.Valid;

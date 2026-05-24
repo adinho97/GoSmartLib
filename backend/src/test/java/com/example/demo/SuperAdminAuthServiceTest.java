@@ -1,7 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.config.JwtTokenProvider;
-import com.example.demo.config.SuperAdminAuthService;
+import com.example.demo.services.SuperAdminAuthService;
 import com.example.demo.config.SuperAdminLoginRequest;
 import com.example.demo.config.SuperAdminLoginResponse;
 import com.example.demo.entities.SuperAdmin;
