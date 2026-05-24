@@ -6,7 +6,7 @@ import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.LeeslijstRepository;
 import com.example.demo.repositories.WishlistRepository;
 import com.example.demo.repositories.KlasRepository;
-import com.example.demo.config.HighlightedBookRepository;
+import com.example.demo.repositories.HighlightedBookRepository;
 import com.example.demo.config.ClassReadingListItemRepository;
 import com.example.demo.dto.BookDto;
 import com.example.demo.dto.ImportResultDto;

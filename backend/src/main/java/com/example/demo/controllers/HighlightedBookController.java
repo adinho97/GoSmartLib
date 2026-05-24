@@ -1,4 +1,7 @@
-package com.example.demo.config;
+package com.example.demo.controllers;
+
+import com.example.demo.entities.HighlightedBook;
+import com.example.demo.repositories.HighlightedBookRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
