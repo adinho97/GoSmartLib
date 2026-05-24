@@ -57,6 +57,11 @@ JWT_SECRET=change-me-32-characters-min
 docker compose up --build
 ```
 
+### Docker image (backend)
+
+- Multi-stage build: Maven enkel in de build stage.
+- Runtime image gebruikt `eclipse-temurin:17-jre` (geen JDK of Maven in productie, nu kleiner).
+
 ### Belangrijke poorten
 
 - Traefik: 80, 443 (dashboard op 127.0.0.1:8080)
