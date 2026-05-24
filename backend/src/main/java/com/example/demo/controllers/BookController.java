@@ -969,18 +969,26 @@ public class BookController {
     }
 
     private String formatDisplayName(SmartschoolUserInfo info) {
-        String given = info.getGivenName();
+        // Based on Smartschool example: info.getName() is the First Name ("Piet")
+        String given = (info.getGivenName() != null && !info.getGivenName().isBlank()) 
+                ? info.getGivenName() : info.getName();
+        
         String family = info.getFamilyName();
+        
+        // If family name is missing but we have a first name and a full name string ("Peters Piet"), 
+        // we extract the surname by removing the first name from the full string.
+        if ((family == null || family.isBlank()) && given != null && !given.isBlank() && info.getFullName() != null) {
+            String full = info.getFullName();
+            String extracted = full.replaceFirst("(?i)" + java.util.regex.Pattern.quote(given), "").trim();
+            if (!extracted.isEmpty()) family = extracted;
+        }
 
-        // 1. Prioritize individual fields (Given + Family) to ensure "First Last" order
+        // 1. Construct from parts to guarantee "First Last" order
         if (given != null && !given.isBlank() && family != null && !family.isBlank())
             return given + " " + family;
-
-        // 2. Fallback to full name/display name if parts are missing
+            
+        // 2. Fallback to full name only if parts construction failed
         if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
-        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
-
-        if (given != null && !given.isBlank()) return given;
-        return info.getSub() != null ? info.getSub() : "Gebruiker";
+        return given != null ? given : (info.getSub() != null ? info.getSub() : "Gebruiker");
     }
 }

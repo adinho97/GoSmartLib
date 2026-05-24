@@ -131,6 +131,8 @@ export function formatUserInfoDisplayName(
   if (!userInfo) return (fallbackSub || "").trim();
 
   const rawFirstName =
+    userInfo.actualUserName ||
+    userInfo.name ||
     userInfo.actualUserFirstName ||
     userInfo.givenName ||
     userInfo.given_name ||
@@ -139,6 +141,8 @@ export function formatUserInfoDisplayName(
     "";
 
   const rawLastName =
+    userInfo.actualUserSurname ||
+    userInfo.surname ||
     userInfo.actualUserSurname ||
     userInfo.actualUserLastName ||
     userInfo.familyName ||

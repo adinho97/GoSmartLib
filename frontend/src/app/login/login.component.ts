@@ -62,12 +62,16 @@ export class LoginComponent implements OnInit {
     this.http.post<any>("/api/auth/smartschool-login", { code }).subscribe({
       next: async (userInfo) => {
         let rawFirstName: string = (
+          userInfo.actualUserName ||
+          userInfo.name ||
           userInfo.actualUserFirstName ||
           userInfo.givenName ||
           userInfo.given_name ||
           ""
         ).trim();
         let rawLastName: string = (
+          userInfo.actualUserSurname ||
+          userInfo.surname ||
           userInfo.actualUserSurname ||
           userInfo.actualUserLastName ||
           userInfo.familyName ||
