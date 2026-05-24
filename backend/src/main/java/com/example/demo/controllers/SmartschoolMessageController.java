@@ -1,5 +1,7 @@
-package com.example.demo.config;
+package com.example.demo.controllers;
 
+import com.example.demo.config.SmartschoolMessageRequest;
+import com.example.demo.config.SmartschoolMessageService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
