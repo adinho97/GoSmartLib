@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;

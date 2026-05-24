@@ -1,8 +1,5 @@
 package com.example.demo.security;
 
-import com.example.demo.config.JwtAuthenticationFilter;
-import com.example.demo.config.SmartschoolAuthenticationFilter;
-import com.example.demo.config.CustomAccessDeniedHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

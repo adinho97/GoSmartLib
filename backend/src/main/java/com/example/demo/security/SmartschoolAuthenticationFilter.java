@@ -1,5 +1,6 @@
-package com.example.demo.config;
+package com.example.demo.security;
 
+import com.example.demo.config.ConnectionPoolMonitor;
 import com.example.demo.entities.AppUser;
 import com.example.demo.repositories.AppUserRepository;
 import jakarta.servlet.FilterChain;

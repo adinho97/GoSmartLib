@@ -1,7 +1,7 @@
 package com.example.demo;
 
-import com.example.demo.config.JwtAuthenticationFilter;
-import com.example.demo.config.JwtTokenProvider;
+import com.example.demo.security.JwtAuthenticationFilter;
+import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.entities.SuperAdmin;
 import com.example.demo.repositories.SuperAdminRepository;
 import org.junit.jupiter.api.AfterEach;

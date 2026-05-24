@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.security;
 
 import com.example.demo.entities.SuperAdmin;
 import com.example.demo.repositories.SuperAdminRepository;

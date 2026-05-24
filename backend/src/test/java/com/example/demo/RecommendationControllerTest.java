@@ -1,7 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.config.ConnectionPoolMonitor;
-import com.example.demo.config.JwtTokenProvider;
+import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.controllers.RecommendationController;
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.repositories.AppUserRepository;

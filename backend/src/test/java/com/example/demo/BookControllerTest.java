@@ -9,7 +9,7 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Review;
 import com.example.demo.entities.School;
-import com.example.demo.config.JwtTokenProvider;
+import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.mappers.BookMapper;

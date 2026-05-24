@@ -1,8 +1,8 @@
 package com.example.demo;
 
 import com.example.demo.config.ConnectionPoolMonitor;
-import com.example.demo.config.CustomAccessDeniedHandler;
-import com.example.demo.config.JwtTokenProvider;
+import com.example.demo.security.CustomAccessDeniedHandler;
+import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.controllers.BibbeheerderController;
 import com.example.demo.dto.admin.user.AdminUserListItem;
 import com.example.demo.exception.ApiException;

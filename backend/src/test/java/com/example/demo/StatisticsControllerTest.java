@@ -8,7 +8,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.demo.config.ConnectionPoolMonitor;
-import com.example.demo.config.JwtTokenProvider;
+import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.dto.StatisticsController;
 import com.example.demo.dto.StatisticsDTO;
 import com.example.demo.dto.StatisticsService;
