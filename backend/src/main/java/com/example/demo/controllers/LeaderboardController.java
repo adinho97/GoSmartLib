@@ -1,5 +1,7 @@
-package com.example.demo.config;
+package com.example.demo.controllers;
 
+import com.example.demo.dto.LeaderboardResponseDTO;
+import com.example.demo.services.LeaderboardService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,5 +1,7 @@
-package com.example.demo.config;
+package com.example.demo.services;
 
+import com.example.demo.dto.LeaderboardEntryDTO;
+import com.example.demo.dto.LeaderboardResponseDTO;
 import com.example.demo.entities.AppUser;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.LoanRepository;
