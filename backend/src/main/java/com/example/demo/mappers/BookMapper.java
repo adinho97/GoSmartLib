@@ -8,7 +8,6 @@ import com.example.demo.entities.Genre;
 import com.example.demo.repositories.GenreRepository;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Component
@@ -19,6 +18,7 @@ public class BookMapper {
     public BookMapper(GenreRepository genreRepository) {
         this.genreRepository = genreRepository;
     }
+
     public BookDto toDto(Book book) {
         if (book == null) {
             return null;
@@ -34,8 +34,8 @@ public class BookMapper {
         dto.setBeschrijving(book.getBeschrijving());
         if (book.getGenres() != null) {
             dto.setGenres(book.getGenres().stream()
-                               .map(Genre::getNaam)
-                               .collect(Collectors.toList()));
+                    .map(Genre::getNaam)
+                    .collect(Collectors.toList()));
         }
         dto.setUitgaveDatum(book.getUitgaveDatum());
         dto.setPaginas(book.getPaginas());
@@ -61,8 +61,8 @@ public class BookMapper {
         if (book.getCopies() != null) {
             dto.setTotalCopies(book.getCopies().size());
             long available = book.getCopies().stream()
-                .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
-                    || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+                    .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                            || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
                     .count();
             dto.setAvailableCopies((int) available);
         }
@@ -85,12 +85,14 @@ public class BookMapper {
         book.setBeschrijving(dto.getBeschrijving());
         if (dto.getGenres() != null && !dto.getGenres().isEmpty()) {
             book.setGenres(dto.getGenres().stream()
-                               .map(genreName -> genreRepository.findByNaamIgnoreCase(genreName)
-                                                                .orElseGet(() -> {
-                                                                    // Handle case where genre might not exist, or create it
-                                                                    Genre newGenre = new Genre(); newGenre.setNaam(genreName); return genreRepository.save(newGenre);
-                                                                }))
-                               .collect(Collectors.toSet()));
+                    .map(genreName -> genreRepository.findByNaamIgnoreCase(genreName)
+                            .orElseGet(() -> {
+                                // Handle case where genre might not exist, or create it
+                                Genre newGenre = new Genre();
+                                newGenre.setNaam(genreName);
+                                return genreRepository.save(newGenre);
+                            }))
+                    .collect(Collectors.toSet()));
         }
         book.setUitgaveDatum(dto.getUitgaveDatum());
         book.setPaginas(dto.getPaginas());

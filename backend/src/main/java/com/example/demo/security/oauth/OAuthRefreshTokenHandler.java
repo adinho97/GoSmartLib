@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.security.oauth;
 
 import com.example.demo.entities.AppUser;
 import com.example.demo.exception.ApiException;

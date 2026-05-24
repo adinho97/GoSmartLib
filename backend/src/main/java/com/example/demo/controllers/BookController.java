@@ -45,7 +45,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.security.SecureRandom;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/boeken")
@@ -970,8 +969,10 @@ public class BookController {
 
     private String formatDisplayName(SmartschoolUserInfo info) {
         // Prioriteer de volledige naam van de provider (vaak correct geformatteerd)
-        if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
-        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
+        if (info.getFullName() != null && !info.getFullName().isBlank())
+            return info.getFullName();
+        if (info.getName() != null && !info.getName().isBlank())
+            return info.getName();
 
         String given = info.getGivenName();
         String family = info.getFamilyName();
@@ -979,7 +980,8 @@ public class BookController {
         // Fallback naar losse delen als fullName ontbreekt
         if (given != null && !given.isBlank() && family != null && !family.isBlank())
             return given + " " + family;
-        if (given != null && !given.isBlank()) return given;
+        if (given != null && !given.isBlank())
+            return given;
         return info.getSub() != null ? info.getSub() : "Gebruiker";
     }
 }

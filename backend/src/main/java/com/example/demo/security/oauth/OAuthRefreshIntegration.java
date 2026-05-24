@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.security.oauth;
 
 import com.example.demo.dto.SmartschoolUserInfo;
 import com.example.demo.exception.ApiException;

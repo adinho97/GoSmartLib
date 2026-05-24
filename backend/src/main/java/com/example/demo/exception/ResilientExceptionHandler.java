@@ -1,7 +1,7 @@
 package com.example.demo.exception;
 
 import com.example.demo.config.ConnectionPoolMonitor;
-import com.example.demo.config.OAuthRefreshTokenHandler;
+import com.example.demo.security.oauth.OAuthRefreshTokenHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
