@@ -172,12 +172,12 @@ export class AppComponent implements OnInit {
   get userName(): string {
     const firstName = (localStorage.getItem("firstName") || "").trim();
     const lastName = (localStorage.getItem("lastName") || "").trim();
-    const userNameKey = (localStorage.getItem("userName") || "").trim();
 
-    // 1. If userName contains a full name (2+ words), use it and normalize the order
-    if (userNameKey.split(/\s+/).filter(Boolean).length >= 2) {
-      return normalizeReviewAuthorName(userNameKey);
-    }
+    // 1. Explicitly combine first and last name if we have them
+    const composed = composeFullName(firstName, lastName);
+    if (composed) return composed;
+
+    const userNameKey = (localStorage.getItem("userName") || "").trim();
 
     // 2. If userName and lastName are distinct, combine them (User often contains Firstname)
     if (
@@ -186,11 +186,6 @@ export class AppComponent implements OnInit {
       userNameKey.toLowerCase() !== lastName.toLowerCase()
     ) {
       return composeFullName(userNameKey, lastName);
-    }
-
-    const composed = composeFullName(firstName, lastName);
-    if (composed) {
-      return composed;
     }
 
     const nameCandidates = [

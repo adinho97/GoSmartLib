@@ -83,10 +83,7 @@ export function normalizeReviewAuthorName(storedName: string): string {
   }
 
   // Get current user's known name from localStorage
-  const currentFirstName = (
-    localStorage.getItem("firstName") ||
-    ""
-  )
+  const currentFirstName = (localStorage.getItem("firstName") || "")
     .trim()
     .toLowerCase();
   const currentLastName = (localStorage.getItem("lastName") || "")
@@ -105,17 +102,6 @@ export function normalizeReviewAuthorName(storedName: string): string {
     lastName === currentLastName
   ) {
     // Stored as "LastName FirstName", reorder to "FirstName LastName"
-    const newFirst = parts[parts.length - 1];
-    const newLast = parts.slice(0, -1).join(" ");
-    return `${newFirst} ${newLast}`;
-  }
-
-  // 3. Heuristic: Check for common Dutch/Belgian surname prefixes
-  // If the first word is a prefix, it's almost certainly "Lastname Firstname" format
-  const surnamePrefixes = ["van", "de", "der", "den", "le", "la", "du", "von"];
-  const firstWord = parts[0].toLowerCase();
-  if (surnamePrefixes.includes(firstWord) && parts.length >= 2) {
-    // Reorder "Van De Smet Piet" -> "Piet Van De Smet"
     const newFirst = parts[parts.length - 1];
     const newLast = parts.slice(0, -1).join(" ");
     return `${newFirst} ${newLast}`;

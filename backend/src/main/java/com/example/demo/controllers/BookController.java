@@ -969,16 +969,17 @@ public class BookController {
     }
 
     private String formatDisplayName(SmartschoolUserInfo info) {
-        // Prioriteer de volledige naam van de provider (vaak correct geformatteerd)
-        if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
-        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
-
         String given = info.getGivenName();
         String family = info.getFamilyName();
 
-        // Fallback naar losse delen als fullName ontbreekt
+        // 1. Prioritize individual fields (Given + Family) to ensure "First Last" order
         if (given != null && !given.isBlank() && family != null && !family.isBlank())
             return given + " " + family;
+
+        // 2. Fallback to full name/display name if parts are missing
+        if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
+        if (info.getName() != null && !info.getName().isBlank()) return info.getName();
+
         if (given != null && !given.isBlank()) return given;
         return info.getSub() != null ? info.getSub() : "Gebruiker";
     }
