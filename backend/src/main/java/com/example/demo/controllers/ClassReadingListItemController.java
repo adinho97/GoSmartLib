@@ -1,5 +1,7 @@
-package com.example.demo.config;
+package com.example.demo.controllers;
 
+import com.example.demo.entities.ClassReadingListItem;
+import com.example.demo.repositories.ClassReadingListItemRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;

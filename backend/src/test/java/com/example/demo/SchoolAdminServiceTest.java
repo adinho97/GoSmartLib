@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.config.ClassReadingListItemRepository;
+import com.example.demo.repositories.ClassReadingListItemRepository;
 import com.example.demo.dto.admin.school.CreateSchoolRequest;
 import com.example.demo.dto.admin.school.CreateSchoolResponse;
 import com.example.demo.dto.admin.school.KlasListItem;
