@@ -5,9 +5,11 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Wishlist;
+import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.WishlistRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,14 @@ public class WishlistService {
     public void addToWishlist(Long bookId, AppUser user) {
         Book book = bookRepo.findById(Objects.requireNonNull(bookId, "bookId"))
                 .orElseThrow(() -> new IllegalArgumentException("Boek niet gevonden"));
+
+        if (user.getSchool() != null) {
+            if (book.getSchool() == null
+                    || !Objects.requireNonNull(user.getSchool().getId(), "schoolId is required")
+                            .equals(Objects.requireNonNull(book.getSchool().getId(), "schoolId is required"))) {
+                throw new ApiException("Boek behoort niet tot jouw school.", HttpStatus.FORBIDDEN, "ACCESS_DENIED");
+            }
+        }
 
         boolean alreadyWishlisted = wishlistRepo.findByUserAndBook(user, book).isPresent();
         if (alreadyWishlisted) {
@@ -68,15 +78,57 @@ public class WishlistService {
         return wishlistRepo.findByUserAndBook(user, book).isPresent();
     }
 
+    @Transactional
+    public WishlistDto updateNotificationEnabled(Long id, boolean notificationEnabled) {
+        Wishlist wishlist = wishlistRepo.findById(Objects.requireNonNull(id, "id is required"))
+                .orElseThrow(() -> new IllegalArgumentException("Wishlist not found"));
+        Long bookId = Objects.requireNonNull(wishlist.getBook().getId(), "bookId is required");
+
+        if (notificationEnabled) {
+            long availableCopies = bookCopyRepo.findByBook_Id(bookId).stream()
+                    .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                            || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+                    .count();
+
+            if (availableCopies > 0) {
+                throw new IllegalStateException("Cannot enable notifications for available book");
+            }
+        }
+
+        wishlist.setNotificationEnabled(notificationEnabled);
+        if (notificationEnabled) {
+            wishlist.setLastNotifiedAt(null);
+        }
+        Wishlist updated = wishlistRepo.save(wishlist);
+        return toWishlistDtoWithCounts(updated, bookId);
+    }
+
+    private WishlistDto toWishlistDtoWithCounts(Wishlist wishlist, Long bookId) {
+        long totalCopies = bookCopyRepo.countByBook_Id(bookId);
+        long availableCopies = bookCopyRepo.countByBook_IdAndStatus(bookId, BookCopy.CopyStatus.AVAILABLE);
+
+        return new WishlistDto(
+                wishlist.getId(),
+                bookId,
+                wishlist.getBook().getTitel(),
+                wishlist.getBook().getAuteur(),
+                wishlist.getBook().getCover(),
+                wishlist.getAddedAt(),
+                wishlist.isNotificationEnabled(),
+                wishlist.getLastNotifiedAt(),
+                (int) availableCopies,
+                (int) totalCopies);
+    }
+
     private WishlistDto toWishlistDto(Wishlist wishlist) {
         Book book = wishlist.getBook();
-        
-        // Count available and total copies
+
         long totalCopies = bookCopyRepo.countByBook_Id(book.getId());
         long availableCopies = bookCopyRepo.findByBook_Id(book.getId()).stream()
- .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
- .count();
-        
+                .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                        || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+                .count();
+
         return new WishlistDto(
                 wishlist.getId(),
                 book.getId(),

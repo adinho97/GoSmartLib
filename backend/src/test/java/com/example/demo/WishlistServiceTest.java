@@ -3,7 +3,10 @@ package com.example.demo;
 import com.example.demo.dto.WishlistDto;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.BookCopy;
+import com.example.demo.entities.School;
 import com.example.demo.entities.Wishlist;
+import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.WishlistRepository;
@@ -13,10 +16,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -207,5 +213,112 @@ class WishlistServiceTest {
 
         assertEquals("Boek niet gevonden", exception.getMessage());
         verify(wishlistRepository, never()).findByUserAndBook(any(), any());
+    }
+
+    @Test
+    @DisplayName("Should throw FORBIDDEN when book belongs to a different school than the user")
+    void testAddToWishlistRejectsDifferentSchool() {
+        School userSchool = new School();
+        userSchool.setId(100L);
+        testUser.setSchool(userSchool);
+
+        School otherSchool = new School();
+        otherSchool.setId(200L);
+        testBook.setSchool(otherSchool);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(testBook));
+
+        ApiException ex = assertThrows(ApiException.class,
+                () -> wishlistService.addToWishlist(1L, testUser));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatus());
+        verify(wishlistRepository, never()).save(any(Wishlist.class));
+    }
+
+    @Test
+    @DisplayName("Should throw FORBIDDEN when book has no school but user has one")
+    void testAddToWishlistRejectsBookWithoutSchool() {
+        School userSchool = new School();
+        userSchool.setId(100L);
+        testUser.setSchool(userSchool);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(testBook));
+
+        ApiException ex = assertThrows(ApiException.class,
+                () -> wishlistService.addToWishlist(1L, testUser));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatus());
+        verify(wishlistRepository, never()).save(any(Wishlist.class));
+    }
+
+    @Test
+    @DisplayName("Should allow add when book and user share the same school")
+    void testAddToWishlistAllowsSameSchool() {
+        School school = new School();
+        school.setId(100L);
+        testUser.setSchool(school);
+        testBook.setSchool(school);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(testBook));
+        when(wishlistRepository.findByUserAndBook(testUser, testBook)).thenReturn(Optional.empty());
+        when(wishlistRepository.save(any(Wishlist.class))).thenReturn(testWishlist);
+
+        assertDoesNotThrow(() -> wishlistService.addToWishlist(1L, testUser));
+        verify(wishlistRepository).save(any(Wishlist.class));
+    }
+
+    @Test
+    @DisplayName("Should reset lastNotifiedAt when enabling notifications")
+    void testUpdateNotificationEnabledResetsLastNotifiedAt() {
+        Book book = new Book();
+        book.setId(11L);
+        book.setTitel("Dune");
+        book.setAuteur("Frank Herbert");
+        book.setCover("cover.jpg");
+
+        Wishlist wishlist = new Wishlist();
+        wishlist.setId(5L);
+        wishlist.setBook(book);
+        wishlist.setAddedAt(LocalDateTime.now().minusDays(5));
+        wishlist.setNotificationEnabled(false);
+        wishlist.setLastNotifiedAt(LocalDateTime.now().minusHours(2));
+
+        when(wishlistRepository.findById(5L)).thenReturn(Optional.of(wishlist));
+        when(bookCopyRepository.findByBook_Id(11L)).thenReturn(Collections.emptyList());
+        when(bookCopyRepository.countByBook_Id(11L)).thenReturn(3L);
+        when(bookCopyRepository.countByBook_IdAndStatus(11L, BookCopy.CopyStatus.AVAILABLE)).thenReturn(0L);
+        when(wishlistRepository.save(wishlist)).thenReturn(wishlist);
+
+        WishlistDto responseDto = wishlistService.updateNotificationEnabled(5L, true);
+
+        assertTrue(responseDto.isNotificationEnabled());
+        assertNull(responseDto.getLastNotifiedAt());
+
+        ArgumentCaptor<Wishlist> captor = ArgumentCaptor.forClass(Wishlist.class);
+        verify(wishlistRepository).save(captor.capture());
+        assertTrue(captor.getValue().isNotificationEnabled());
+        assertNull(captor.getValue().getLastNotifiedAt());
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalState when enabling notifications and book has available copies")
+    void testUpdateNotificationEnabledRejectsWhenAvailable() {
+        Book book = new Book();
+        book.setId(12L);
+
+        Wishlist wishlist = new Wishlist();
+        wishlist.setId(7L);
+        wishlist.setBook(book);
+
+        BookCopy availableCopy = new BookCopy();
+        availableCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
+
+        when(wishlistRepository.findById(7L)).thenReturn(Optional.of(wishlist));
+        when(bookCopyRepository.findByBook_Id(12L)).thenReturn(List.of(availableCopy, availableCopy));
+
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> wishlistService.updateNotificationEnabled(7L, true));
+
+        assertEquals("Cannot enable notifications for available book", ex.getMessage());
+        verify(wishlistRepository, never()).save(any(Wishlist.class));
     }
 }
