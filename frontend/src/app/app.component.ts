@@ -172,8 +172,23 @@ export class AppComponent implements OnInit {
   get userName(): string {
     const firstName = (localStorage.getItem("firstName") || "").trim();
     const lastName = (localStorage.getItem("lastName") || "").trim();
-    const composed = composeFullName(firstName, lastName);
+    const userNameKey = (localStorage.getItem("userName") || "").trim();
 
+    // 1. If userName contains a full name (2+ words), use it and normalize the order
+    if (userNameKey.split(/\s+/).filter(Boolean).length >= 2) {
+      return normalizeReviewAuthorName(userNameKey);
+    }
+
+    // 2. If userName and lastName are distinct, combine them (User often contains Firstname)
+    if (
+      userNameKey &&
+      lastName &&
+      userNameKey.toLowerCase() !== lastName.toLowerCase()
+    ) {
+      return composeFullName(userNameKey, lastName);
+    }
+
+    const composed = composeFullName(firstName, lastName);
     if (composed) {
       return composed;
     }
@@ -204,8 +219,9 @@ export class AppComponent implements OnInit {
       return normalizeReviewAuthorName(fullName);
     }
 
-    // Fallback to single names if no full name string is available
-    const fallbacks = [firstName || lastName, ...nameCandidates];
+    // 5. Fallback to single names if no full name string is available.
+    // We prefer the 'Display Name' (userName) over just the last name.
+    const fallbacks = [firstName || userNameKey || lastName, ...nameCandidates];
     for (const candidate of fallbacks) {
       const normalized = this.normalizeDisplayName(candidate);
       if (normalized) {
