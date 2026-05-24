@@ -5,10 +5,12 @@ import com.example.demo.dto.ImportResultDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
+import com.example.demo.mappers.BookMapper;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.services.BulkImportService;
-import com.example.demo.services.BookService;
+import com.example.demo.services.BookImportService;
+import com.example.demo.services.BookLookupService;
 import com.example.demo.services.ImportCoreService;
 import com.example.demo.services.IsbnService;
 import com.example.demo.services.OpenLibraryService;
@@ -54,8 +56,14 @@ class BookServiceTest {
     @Mock
     private ImportCoreService importCoreService;
 
-    @InjectMocks
-    private BookService bookService;
+        @Mock
+        private BookMapper bookMapper;
+
+        @InjectMocks
+        private BookLookupService bookLookupService;
+
+        @InjectMocks
+        private BookImportService bookImportService;
 
     @Mock
     private SchoolService schoolService;
@@ -91,7 +99,9 @@ class BookServiceTest {
     void findByIsbnShouldReturnDtoWhenBookIsInDb() {
         when(bookRepository.findByIsbn("9780553808049")).thenReturn(Optional.of(makeBook()));
 
-        Optional<BookDto> result = bookService.findByIsbn("9780553808049", null);
+        when(bookMapper.toDto(any(Book.class))).thenReturn(makeBookDto());
+
+        Optional<BookDto> result = bookLookupService.findByIsbn("9780553808049", null);
 
         assertTrue(result.isPresent());
         assertEquals("Dune", result.get().getTitel());
@@ -103,7 +113,7 @@ class BookServiceTest {
     void findByIsbnShouldReturnEmptyWhenNotInDb() {
         when(bookRepository.findByIsbn("0000000000000")).thenReturn(Optional.empty());
 
-        Optional<BookDto> result = bookService.findByIsbn("0000000000000", null);
+        Optional<BookDto> result = bookLookupService.findByIsbn("0000000000000", null);
 
         assertFalse(result.isPresent());
     }
@@ -117,7 +127,7 @@ class BookServiceTest {
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.ALREADY_EXISTS,
                         makeBookDto()));
 
-        BookDto result = bookService.importByIsbn("9780553808049", 1L);
+        BookDto result = bookImportService.importByIsbn("9780553808049", 1L);
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
@@ -132,7 +142,7 @@ class BookServiceTest {
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.ADDED,
                         makeBookDto()));
 
-        BookDto result = bookService.importByIsbn("9780553808049", 1L);
+        BookDto result = bookImportService.importByIsbn("9780553808049", 1L);
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
@@ -145,7 +155,7 @@ class BookServiceTest {
         when(importCoreService.importByNormalizedIsbn(eq("0000000000000"), any(School.class)))
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.NOT_FOUND, null));
 
-        BookDto result = bookService.importByIsbn("0000000000000", 1L);
+        BookDto result = bookImportService.importByIsbn("0000000000000", 1L);
 
         assertNull(result);
         verifyNoInteractions(bookRepository);
@@ -160,7 +170,13 @@ class BookServiceTest {
         preview.setTaal("Engels");
         when(openLibraryService.fetchBookFromOpenLibrary("9780553808049")).thenReturn(preview);
 
-        BookDto result = bookService.fetchPreviewByIsbn("9780553808049");
+        when(bookMapper.toDto(preview)).thenAnswer(invocation -> {
+            BookDto dto = makeBookDto();
+            dto.setTaal(preview.getTaal());
+            return dto;
+        });
+
+        BookDto result = bookLookupService.fetchPreviewByIsbn("9780553808049");
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
@@ -176,7 +192,13 @@ class BookServiceTest {
         preview.setTaal("Frans");
         when(openLibraryService.fetchBookFromOpenLibrary("9780156012195")).thenReturn(preview);
 
-        BookDto result = bookService.fetchPreviewByIsbn("9780156012195");
+        when(bookMapper.toDto(preview)).thenAnswer(invocation -> {
+            BookDto dto = makeBookDto();
+            dto.setTaal(preview.getTaal());
+            return dto;
+        });
+
+        BookDto result = bookLookupService.fetchPreviewByIsbn("9780156012195");
 
         assertNotNull(result);
         assertEquals("Frans", result.getTaal());
@@ -187,7 +209,7 @@ class BookServiceTest {
     void fetchPreviewByIsbnShouldReturnNullWhenNotFoundInOpenLibrary() {
         when(openLibraryService.fetchBookFromOpenLibrary("0000000000000")).thenReturn(null);
 
-        BookDto result = bookService.fetchPreviewByIsbn("0000000000000");
+        BookDto result = bookLookupService.fetchPreviewByIsbn("0000000000000");
 
         assertNull(result);
         verify(openLibraryService).fetchBookFromOpenLibrary("0000000000000");
@@ -199,9 +221,9 @@ class BookServiceTest {
     void importBulkByIsbnShouldAggregateInvalidAndCoreOutcomes() {
         MultipartFile file = mock(MultipartFile.class);
         School school = makeSchool();
-                Book existingBook = makeBook();
-                existingBook.setIsbn("9780156012195");
-                existingBook.setId(2L);
+        Book existingBook = makeBook();
+        existingBook.setIsbn("9780156012195");
+        existingBook.setId(2L);
 
         List<ImportResultDto.RowResult> invalidRows = List.of(
                 new ImportResultDto.RowResult("bad-isbn", ImportResultDto.Status.INVALID_ISBN,
@@ -232,7 +254,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(existingBook));
 
-        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
 
         assertEquals(4, result.getTotalRows());
         assertEquals(3, result.getUniqueIsbnsProcessed());
@@ -268,7 +290,7 @@ class BookServiceTest {
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenThrow(new RuntimeException("boom"));
 
-        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
 
         assertEquals(1, result.getResults().size());
         ImportResultDto.RowResult row = result.getResults().get(0);
@@ -298,7 +320,7 @@ class BookServiceTest {
         // ADDED branch resolves the new book via findById(dto.getId()).
         when(bookRepository.findById(1L)).thenReturn(Optional.of(savedBook));
 
-        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
 
         // Verify 3 copies were created
         ArgumentCaptor<BookCopy> newBookCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
@@ -333,7 +355,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
                 .thenReturn(Optional.of(existingBook));
 
-        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
 
         // Verify 5 copies were created
         ArgumentCaptor<BookCopy> existingBookCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
@@ -380,7 +402,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(book2));
 
-        ImportResultDto result = bookService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
 
         // Verify total is 2 + 3 = 5 copies
         assertEquals(5, result.getTotalCopiesAdded());
@@ -410,7 +432,7 @@ class BookServiceTest {
         // ADDED branch resolves the new book via findById(dto.getId()).
         when(bookRepository.findById(1L)).thenReturn(Optional.of(savedBook));
 
-        bookService.importBulkByIsbn(file, 1L);
+        bookImportService.importBulkByIsbn(file, 1L);
 
         // Verify each saved copy has AVAILABLE status
         ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);

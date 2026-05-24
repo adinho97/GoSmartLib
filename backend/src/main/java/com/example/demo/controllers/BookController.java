@@ -16,7 +16,10 @@ import com.example.demo.mappers.BookMapper;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.ReviewRepository;
-import com.example.demo.services.BookService;
+import com.example.demo.services.BookDeletionService;
+import com.example.demo.services.BookImportService;
+import com.example.demo.services.BookLookupService;
+import com.example.demo.services.BookStatsService;
 import com.example.demo.services.AuthService;
 import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.SchoolService;
@@ -55,20 +58,28 @@ public class BookController {
     private final BookRepository repo;
     private final ReviewRepository reviewRepository;
     private final AppUserRepository appUserRepository;
-    private final BookService bookService;
+    private final BookLookupService bookLookupService;
+    private final BookImportService bookImportService;
+    private final BookStatsService bookStatsService;
+    private final BookDeletionService bookDeletionService;
     private final SchoolService schoolService;
     private final ReviewModerationService reviewModerationService;
     private final AuthService authService;
     private final BookMapper bookMapper;
 
     public BookController(BookRepository repo, ReviewRepository reviewRepository,
-            AppUserRepository appUserRepository, BookService bookService,
-            SchoolService schoolService, ReviewModerationService reviewModerationService,
-            AuthService authService, BookMapper bookMapper) {
+            AppUserRepository appUserRepository, BookLookupService bookLookupService,
+            BookImportService bookImportService, BookStatsService bookStatsService,
+            BookDeletionService bookDeletionService, SchoolService schoolService,
+            ReviewModerationService reviewModerationService, AuthService authService,
+            BookMapper bookMapper) {
         this.repo = repo;
         this.reviewRepository = reviewRepository;
         this.appUserRepository = appUserRepository;
-        this.bookService = bookService;
+        this.bookLookupService = bookLookupService;
+        this.bookImportService = bookImportService;
+        this.bookStatsService = bookStatsService;
+        this.bookDeletionService = bookDeletionService;
         this.schoolService = schoolService;
         this.reviewModerationService = reviewModerationService;
         this.bookMapper = bookMapper;
@@ -141,7 +152,7 @@ public class BookController {
     @GetMapping("/stats")
     public List<BookDto> getStatsOrderedByPopularity() {
         logger.info("Fetching books with loan statistics, sorted by popularity");
-        return bookService.getBooksWithStats();
+        return bookStatsService.getBooksWithStats();
     }
 
     @GetMapping("/{id}")
@@ -213,7 +224,7 @@ public class BookController {
             Authentication authentication) {
         try {
             Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
-            return bookService.findByIsbn(isbn, effectiveSchoolId)
+            return bookLookupService.findByIsbn(isbn, effectiveSchoolId)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (IllegalArgumentException ex) {
@@ -242,7 +253,7 @@ public class BookController {
     public ResponseEntity<BookDto> previewByIsbn(@PathVariable @NonNull String isbn) {
         BookDto dto;
         try {
-            dto = bookService.fetchPreviewByIsbn(isbn);
+            dto = bookLookupService.fetchPreviewByIsbn(isbn);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();
         }
@@ -259,7 +270,7 @@ public class BookController {
             @RequestParam(required = false) Long schoolId) {
         BookDto dto;
         try {
-            dto = bookService.importByIsbn(isbn, schoolId);
+            dto = bookImportService.importByIsbn(isbn, schoolId);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().build();
         }
@@ -276,7 +287,7 @@ public class BookController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) Long schoolId) {
         try {
-            ImportResultDto result = bookService.importBulkByIsbn(file, schoolId);
+            ImportResultDto result = bookImportService.importBulkByIsbn(file, schoolId);
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().build();
@@ -294,13 +305,7 @@ public class BookController {
         }
 
         Long librarianSchoolId = resolveEffectiveSchoolId(null, authentication, subHeader);
-        boolean exists = librarianSchoolId == null ? repo.existsById(id)
-                : repo.existsByIdAndSchool_Id(id, librarianSchoolId);
-        if (!exists) {
-            return ResponseEntity.notFound().build();
-        }
-
-        repo.deleteById(id);
+        bookDeletionService.deleteBook(id, librarianSchoolId);
         return ResponseEntity.noContent().build();
     }
 

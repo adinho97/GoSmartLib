@@ -5,16 +5,14 @@ import com.example.demo.controllers.BookController;
 import com.example.demo.entities.Book;
 import com.example.demo.exception.GlobalExceptionHandler;
 import com.example.demo.repositories.AppUserRepository;
-import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.mappers.BookMapper;
-import com.example.demo.repositories.GenreRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.ReviewRepository;
-import com.example.demo.services.BookService;
-import com.example.demo.services.ImportCoreService;
-import com.example.demo.services.IsbnService;
-import com.example.demo.services.OpenLibraryService;
+import com.example.demo.services.BookDeletionService;
+import com.example.demo.services.BookImportService;
+import com.example.demo.services.BookLookupService;
+import com.example.demo.services.BookStatsService;
 import com.example.demo.services.ReviewModerationService;
 import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,39 +35,42 @@ class BookStatsControllerStandaloneTest {
         private MockMvc mockMvc;
         private BookRepository bookRepository;
         private LoanRepository loanRepository;
-        private GenreRepository genreRepository;
-        private IsbnService isbnService;
         private BookMapper bookMapper;
-        private ImportCoreService importCoreService;
+        private BookStatsService bookStatsService;
 
         @BeforeEach
         void setUp() {
                 bookRepository = mock(BookRepository.class);
                 loanRepository = mock(LoanRepository.class);
-                BookCopyRepository bookCopyRepository = mock(BookCopyRepository.class);
-                genreRepository = mock(GenreRepository.class);
-                isbnService = mock(IsbnService.class);
                 bookMapper = mock(BookMapper.class);
-                importCoreService = mock(ImportCoreService.class);
+                when(bookMapper.toDto(org.mockito.ArgumentMatchers.any(Book.class))).thenAnswer(invocation -> {
+                        Book book = invocation.getArgument(0);
+                        var dto = new com.example.demo.dto.BookDto();
+                        dto.setId(book.getId());
+                        dto.setTitel(book.getTitel());
+                        dto.setAuteur(book.getAuteur());
+                        return dto;
+                });
 
-                BookService bookService = new BookService(
+                bookStatsService = new BookStatsService(
                                 bookRepository,
-                                bookCopyRepository,
                                 loanRepository,
-                                null,
-                                new OpenLibraryService(genreRepository, isbnService),
-                                isbnService,
-                                null,
-                                bookMapper, importCoreService);
+                                bookMapper);
 
                 ReviewRepository reviewRepository = mock(ReviewRepository.class);
                 AppUserRepository appUserRepository = mock(AppUserRepository.class);
+                BookLookupService bookLookupService = mock(BookLookupService.class);
+                BookImportService bookImportService = mock(BookImportService.class);
+                BookDeletionService bookDeletionService = mock(BookDeletionService.class);
 
                 BookController controller = new BookController(
                                 bookRepository,
                                 reviewRepository,
                                 appUserRepository,
-                                bookService,
+                                bookLookupService,
+                                bookImportService,
+                                bookStatsService,
+                                bookDeletionService,
                                 (SchoolService) null,
                                 mock(ReviewModerationService.class), // Mock this if needed
                                 (AuthService) null,

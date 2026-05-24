@@ -17,7 +17,10 @@ import com.example.demo.repositories.GenreRepository;
 import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.repositories.SuperAdminRepository;
 import com.example.demo.services.ReviewModerationService;
-import com.example.demo.services.BookService;
+import com.example.demo.services.BookDeletionService;
+import com.example.demo.services.BookImportService;
+import com.example.demo.services.BookLookupService;
+import com.example.demo.services.BookStatsService;
 import com.example.demo.services.SchoolService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -93,7 +96,16 @@ class BookControllerTest {
         private SchoolService schoolService;
 
         @MockBean
-        private BookService bookService;
+        private BookLookupService bookLookupService;
+
+        @MockBean
+        private BookImportService bookImportService;
+
+        @MockBean
+        private BookStatsService bookStatsService;
+
+        @MockBean
+        private BookDeletionService bookDeletionService;
 
         @MockBean
         private ReviewRepository reviewRepository;
@@ -364,7 +376,7 @@ class BookControllerTest {
 
         @Test
         void getByIsbnShouldReturnBookWhenFoundInDb() throws Exception {
-                when(bookService.findByIsbn("9780553808049", null)).thenReturn(Optional.of(makeDto()));
+                when(bookLookupService.findByIsbn("9780553808049", null)).thenReturn(Optional.of(makeDto()));
 
                 mockMvc.perform(get("/api/boeken/isbn/9780553808049"))
                                 .andExpect(status().isOk())
@@ -375,7 +387,7 @@ class BookControllerTest {
 
         @Test
         void getByIsbnShouldReturn404WhenNotInDb() throws Exception {
-                when(bookService.findByIsbn("0000000000000", null)).thenReturn(Optional.empty());
+                when(bookLookupService.findByIsbn("0000000000000", null)).thenReturn(Optional.empty());
 
                 mockMvc.perform(get("/api/boeken/isbn/0000000000000"))
                                 .andExpect(status().isNotFound());
@@ -385,7 +397,7 @@ class BookControllerTest {
 
         @Test
         void previewByIsbnShouldReturnBookFromOpenLibrary() throws Exception {
-                when(bookService.fetchPreviewByIsbn("9780553808049")).thenReturn(makeDto());
+                when(bookLookupService.fetchPreviewByIsbn("9780553808049")).thenReturn(makeDto());
 
                 mockMvc.perform(get("/api/boeken/preview/9780553808049"))
                                 .andExpect(status().isOk())
@@ -395,7 +407,7 @@ class BookControllerTest {
 
         @Test
         void previewByIsbnShouldReturn404WhenNotFoundInOpenLibrary() throws Exception {
-                when(bookService.fetchPreviewByIsbn("0000000000000")).thenReturn(null);
+                when(bookLookupService.fetchPreviewByIsbn("0000000000000")).thenReturn(null);
 
                 mockMvc.perform(get("/api/boeken/preview/0000000000000"))
                                 .andExpect(status().isNotFound());
@@ -405,7 +417,7 @@ class BookControllerTest {
 
         @Test
         void importByIsbnShouldReturnSavedBook() throws Exception {
-                when(bookService.importByIsbn("9780553808049", null)).thenReturn(makeDto());
+                when(bookImportService.importByIsbn("9780553808049", null)).thenReturn(makeDto());
 
                 mockMvc.perform(post("/api/boeken/isbn/9780553808049"))
                                 .andExpect(status().isOk())
@@ -415,7 +427,7 @@ class BookControllerTest {
 
         @Test
         void importByIsbnShouldReturn404WhenNotFoundInOpenLibrary() throws Exception {
-                when(bookService.importByIsbn("0000000000000", null)).thenReturn(null);
+                when(bookImportService.importByIsbn("0000000000000", null)).thenReturn(null);
 
                 mockMvc.perform(post("/api/boeken/isbn/0000000000000"))
                                 .andExpect(status().isNotFound());
@@ -441,7 +453,7 @@ class BookControllerTest {
                                 "Boek toegevoegd.",
                                 1L)));
 
-                when(bookService.importBulkByIsbn(any(), any())).thenReturn(result);
+                when(bookImportService.importBulkByIsbn(any(), any())).thenReturn(result);
 
                 mockMvc.perform(multipart("/api/boeken/isbn/bulk")
                                 .file(file)
@@ -460,7 +472,7 @@ class BookControllerTest {
                                 "text/plain",
                                 "abc".getBytes());
 
-                when(bookService.importBulkByIsbn(any(), any()))
+                when(bookImportService.importBulkByIsbn(any(), any()))
                                 .thenThrow(new IllegalArgumentException(
                                                 "Unsupported file type. Use CSV, XLS or XLSX."));
 
@@ -692,29 +704,23 @@ class BookControllerTest {
 
         @Test
         void deleteShouldReturnForbiddenWhenRoleHeaderMissing() throws Exception {
-                when(bookRepository.existsById(1L)).thenReturn(true);
-                doNothing().when(bookRepository).deleteById(1L);
-
                 mockMvc.perform(delete("/api/boeken/1"))
                                 .andExpect(status().isForbidden());
 
-                verify(bookRepository, never()).deleteById(1L);
+                verify(bookDeletionService, never()).deleteBook(any(), any());
         }
 
         @Test
         void deleteShouldReturnForbiddenBeforeCheckingExistenceWhenRoleHeaderMissing() throws Exception {
-                when(bookRepository.existsById(999L)).thenReturn(false);
-
                 mockMvc.perform(delete("/api/boeken/999"))
                                 .andExpect(status().isForbidden());
 
-                verify(bookRepository, never()).existsById(999L);
+                verify(bookDeletionService, never()).deleteBook(any(), any());
         }
 
         @Test
         void deleteShouldReturnNoContentForLibrarianWhenBookExists() throws Exception {
-                when(bookRepository.existsById(1L)).thenReturn(true);
-                doNothing().when(bookRepository).deleteById(1L);
+                doNothing().when(bookDeletionService).deleteBook(1L, null);
 
                 mockMvc.perform(delete("/api/boeken/1")
                                 .header("X-User-Role", "bibbeheerder"))
