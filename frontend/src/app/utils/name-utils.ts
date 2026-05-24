@@ -69,6 +69,14 @@ export function normalizeReviewAuthorName(storedName: string): string {
     return trimmed;
   }
 
+  // 1. Handle "Lastname, Firstname" format (very common in administrative/Smartschool exports)
+  if (trimmed.includes(",")) {
+    const commaParts = trimmed.split(",").map((p) => p.trim());
+    if (commaParts.length === 2 && commaParts[0] && commaParts[1]) {
+      return `${commaParts[1]} ${commaParts[0]}`;
+    }
+  }
+
   const parts = trimmed.split(/\s+/).filter(Boolean);
   if (parts.length < 2) {
     return trimmed; // Single word, can't determine order
@@ -77,7 +85,6 @@ export function normalizeReviewAuthorName(storedName: string): string {
   // Get current user's known name from localStorage
   const currentFirstName = (
     localStorage.getItem("firstName") ||
-    localStorage.getItem("userName") ||
     ""
   )
     .trim()
@@ -103,7 +110,18 @@ export function normalizeReviewAuthorName(storedName: string): string {
     return `${newFirst} ${newLast}`;
   }
 
-  // Fallback: check if name looks like it's in lastname-first format
+  // 3. Heuristic: Check for common Dutch/Belgian surname prefixes
+  // If the first word is a prefix, it's almost certainly "Lastname Firstname" format
+  const surnamePrefixes = ["van", "de", "der", "den", "le", "la", "du", "von"];
+  const firstWord = parts[0].toLowerCase();
+  if (surnamePrefixes.includes(firstWord) && parts.length >= 2) {
+    // Reorder "Van De Smet Piet" -> "Piet Van De Smet"
+    const newFirst = parts[parts.length - 1];
+    const newLast = parts.slice(0, -1).join(" ");
+    return `${newFirst} ${newLast}`;
+  }
+
+  // 4. Fallback: check if name looks like it's in lastname-first format
   // by seeing if first part is all caps or looks like a surname
   const firstPart = parts[0];
   if (

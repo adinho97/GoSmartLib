@@ -1101,7 +1101,7 @@ export class DetailComponent implements OnInit, OnDestroy {
         scope,
       );
       this.lestipText = lestipData.lestip || "";
-      this.lestipAuteurNaam = lestipData.auteurNaam || "";
+      this.lestipAuteurNaam = normalizeReviewAuthorName(lestipData.auteurNaam || "");
       this.magLestipVerwijderen = !!lestipData.magVerwijderen;
       this.newLestipText = "";
       this.lestipError = "";
