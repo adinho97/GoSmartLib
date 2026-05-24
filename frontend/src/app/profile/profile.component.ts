@@ -104,8 +104,22 @@ export class ProfileComponent {
   };
 
   get userName(): string {
-    const firstName = (localStorage.getItem("firstName") || "").trim();
+    const userNameKey = (localStorage.getItem("userName") || "").trim();
     const lastName = (localStorage.getItem("lastName") || "").trim();
+
+    if (
+      userNameKey &&
+      lastName &&
+      userNameKey.toLowerCase() !== lastName.toLowerCase()
+    ) {
+      return composeFullName(userNameKey, lastName);
+    }
+
+    const firstName = (
+      localStorage.getItem("firstName") ||
+      userNameKey ||
+      ""
+    ).trim();
     const composed = composeFullName(firstName, lastName);
 
     if (composed) {
@@ -129,11 +143,12 @@ export class ProfileComponent {
     }
 
     const candidates = [
-      firstName || lastName,
+      firstName,
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
       localStorage.getItem("username"),
       localStorage.getItem("name"),
+      lastName,
     ];
 
     for (const candidate of candidates) {

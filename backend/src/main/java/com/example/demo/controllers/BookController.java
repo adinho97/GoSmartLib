@@ -87,7 +87,9 @@ public class BookController {
         if (isStudentRole(authentication, roleHeader) && effectiveSchoolId != null) {
             books = repo.findNonDidacticBySchool_Id(effectiveSchoolId);
         } else {
-            books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId); // Changed from BookMapper::toDto
+            books = effectiveSchoolId == null ? repo.findAll() : repo.findAllBySchool_Id(effectiveSchoolId); // Changed
+                                                                                                             // from
+                                                                                                             // BookMapper::toDto
         }
         return books.stream().map(bookMapper::toDto).collect(Collectors.toList());
     }
@@ -103,8 +105,9 @@ public class BookController {
         return books.stream() // Changed from BookMapper::toDto
                 .filter(book -> book.getGenres() != null && !book.getGenres().isEmpty())
                 .filter(book -> book.getGenres().stream()
-                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).contains("didactiek") 
-                            || (genre.getParent() != null && genre.getParent().getNaam().toLowerCase(Locale.ROOT).contains("didactiek"))))
+                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).contains("didactiek")
+                                || (genre.getParent() != null
+                                        && genre.getParent().getNaam().toLowerCase(Locale.ROOT).contains("didactiek"))))
                 .map(bookMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -150,12 +153,14 @@ public class BookController {
             @RequestHeader(value = "X-User-Role", required = false) String roleHeader) {
         Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, subHeader);
         var bookOpt = effectiveSchoolId == null ? repo.findById(id) : repo.findByIdAndSchool_Id(id, effectiveSchoolId);
-        if (bookOpt.isEmpty()) return ResponseEntity.notFound().build();
+        if (bookOpt.isEmpty())
+            return ResponseEntity.notFound().build();
         Book book = bookOpt.get();
         if (isStudentRole(authentication, roleHeader)
                 && book.getGenres().stream()
-                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).contains("didactiek") 
-                            || (genre.getParent() != null && genre.getParent().getNaam().toLowerCase(Locale.ROOT).contains("didactiek")))) {
+                        .anyMatch(genre -> genre.getNaam().toLowerCase(Locale.ROOT).contains("didactiek")
+                                || (genre.getParent() != null && genre.getParent().getNaam().toLowerCase(Locale.ROOT)
+                                        .contains("didactiek")))) {
             return ResponseEntity.notFound().build();
         }
         // Changed from BookMapper::toDto
@@ -290,7 +295,8 @@ public class BookController {
         }
 
         Long librarianSchoolId = resolveEffectiveSchoolId(null, authentication, subHeader);
-        boolean exists = librarianSchoolId == null ? repo.existsById(id) : repo.existsByIdAndSchool_Id(id, librarianSchoolId);
+        boolean exists = librarianSchoolId == null ? repo.existsById(id)
+                : repo.existsByIdAndSchool_Id(id, librarianSchoolId);
         if (!exists) {
             return ResponseEntity.notFound().build();
         }
@@ -366,7 +372,8 @@ public class BookController {
         Book sourceBook = findSourceBookWithSharedLestip(localBook);
         LestipDto dto = toLestipDto(sourceBook, normalizedUserName);
 
-        // If the tip is shared from another record/school, force it to be read-only locally
+        // If the tip is shared from another record/school, force it to be read-only
+        // locally
         if (!Objects.equals(sourceBook.getId(), localBook.getId())) {
             dto.setMagVerwijderen(false);
         }
@@ -627,15 +634,17 @@ public class BookController {
         dto.setLestip(lestipText == null ? "" : lestipText);
         dto.setAuteurNaam(lestipAuteur == null ? "" : lestipAuteur);
         boolean magVerwijderen = hasLestip(lestipText)
-            && (!StringUtils.hasText(lestipAuteur)
-                || (currentUserName != null && isSameUser(currentUserName, lestipAuteur)));
+                && (!StringUtils.hasText(lestipAuteur)
+                        || (currentUserName != null && isSameUser(currentUserName, lestipAuteur)));
         dto.setMagVerwijderen(magVerwijderen);
         return dto;
     }
 
     /**
-     * Resolves a book instance that contains a teaching tip for the same logical work.
-     * It prioritizes the local book instance and falls back to other libraries via ISBN or GO-number.
+     * Resolves a book instance that contains a teaching tip for the same logical
+     * work.
+     * It prioritizes the local book instance and falls back to other libraries via
+     * ISBN or GO-number.
      */
     private Book findSourceBookWithSharedLestip(Book originalBook) {
         if (hasLestip(originalBook.getLestip())) {
@@ -723,10 +732,9 @@ public class BookController {
         if (authentication != null && authentication.getAuthorities() != null) {
             boolean matches = authentication.getAuthorities().stream()
                     .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
-                    .anyMatch(authority ->
-                            "ROLE_LEERKRACHT".equalsIgnoreCase(authority)
-                                    || "ROLE_BIBBEHEERDER".equalsIgnoreCase(authority)
-                                    || "ROLE_SUPER_ADMIN".equalsIgnoreCase(authority));
+                    .anyMatch(authority -> "ROLE_LEERKRACHT".equalsIgnoreCase(authority)
+                            || "ROLE_BIBBEHEERDER".equalsIgnoreCase(authority)
+                            || "ROLE_SUPER_ADMIN".equalsIgnoreCase(authority));
             if (matches) {
                 return true;
             }
@@ -802,9 +810,8 @@ public class BookController {
         if (authentication != null && authentication.getAuthorities() != null) {
             boolean matches = authentication.getAuthorities().stream()
                     .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
-                    .anyMatch(authority ->
-                            "ROLE_BIBBEHEERDER".equalsIgnoreCase(authority)
-                                    || "ROLE_SUPER_ADMIN".equalsIgnoreCase(authority));
+                    .anyMatch(authority -> "ROLE_BIBBEHEERDER".equalsIgnoreCase(authority)
+                            || "ROLE_SUPER_ADMIN".equalsIgnoreCase(authority));
             if (matches) {
                 return true;
             }
@@ -828,7 +835,8 @@ public class BookController {
     }
 
     private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication) {
-        // Students cannot scope to any school other than their own — ignore the param if present.
+        // Students cannot scope to any school other than their own — ignore the param
+        // if present.
         boolean studentCaller = isStudentRole(authentication, null);
         if (requestedSchoolId != null && !studentCaller) {
             return requestedSchoolId;
@@ -847,7 +855,8 @@ public class BookController {
     }
 
     private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication, String subHeader) {
-        // Students cannot scope to any school other than their own — ignore the param if present.
+        // Students cannot scope to any school other than their own — ignore the param
+        // if present.
         boolean studentCaller = isStudentRole(authentication, null);
         if (requestedSchoolId != null && !studentCaller) {
             return requestedSchoolId;
@@ -940,12 +949,14 @@ public class BookController {
                 .filter(dto -> !"Anoniem".equals(dto.getReviewerUserName())
                         && !"Oud-leerling".equals(dto.getReviewerUserName()))
                 .collect(Collectors.toList());
-        if (nonAnon.isEmpty()) return;
+        if (nonAnon.isEmpty())
+            return;
 
         Flux.fromIterable(nonAnon)
                 .flatMap(dto -> {
                     Mono<SmartschoolUserInfo> userMono = authService.getUserInfoBySub(dto.getReviewerUserName());
-                    if (userMono == null) return Mono.just(dto);
+                    if (userMono == null)
+                        return Mono.just(dto);
                     return userMono
                             .map(info -> {
                                 dto.setReviewerUserName(formatDisplayName(info));
@@ -958,12 +969,17 @@ public class BookController {
     }
 
     private String formatDisplayName(SmartschoolUserInfo info) {
-        String given = info.getGivenName();
-        String family = info.getFamilyName();
-        if (given != null && !given.isBlank() && family != null && !family.isBlank()) return given + " " + family;
-        if (given != null && !given.isBlank()) return given;
+        // Prioriteer de volledige naam van de provider (vaak correct geformatteerd)
         if (info.getFullName() != null && !info.getFullName().isBlank()) return info.getFullName();
         if (info.getName() != null && !info.getName().isBlank()) return info.getName();
+
+        String given = info.getGivenName();
+        String family = info.getFamilyName();
+
+        // Fallback naar losse delen als fullName ontbreekt
+        if (given != null && !given.isBlank() && family != null && !family.isBlank())
+            return given + " " + family;
+        if (given != null && !given.isBlank()) return given;
         return info.getSub() != null ? info.getSub() : "Gebruiker";
     }
 }

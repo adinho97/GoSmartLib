@@ -73,7 +73,7 @@
 
     @if (leerlingenLoading) {
     <p class="info-msg">Leerlingen laden...</p>
-    } @else if (!hasLeerlingSearchInput) {
+    } @else if (!leerlingSearch.trim()) {
     <p class="info-msg">
       Typ een naam om een leerling te zoeken.
     </p>

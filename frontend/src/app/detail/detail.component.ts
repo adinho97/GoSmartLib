@@ -40,9 +40,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   readonly userRole = (localStorage.getItem("role") || "").toLowerCase().trim();
   readonly isLibrarian = this.userRole.includes("bibbeheerder");
   readonly isTeacher = this.userRole.includes("leerkracht");
-  readonly isAdmin = this.userRole.includes("super_admin");
-  readonly isTeacherOrLibrarian =
-    this.isLibrarian || this.isTeacher || this.isAdmin;
+  readonly isTeacherOrLibrarian = this.isLibrarian || this.isTeacher;
   private readonly roleLikeValues = new Set([
     "leerling",
     "leerkracht",
@@ -72,8 +70,22 @@ export class DetailComponent implements OnInit, OnDestroy {
   private expandedReviewIds = new Set<number>();
 
   get smartschoolUserName(): string {
-    const firstName = (localStorage.getItem("firstName") || "").trim();
+    const userNameKey = (localStorage.getItem("userName") || "").trim();
     const lastName = (localStorage.getItem("lastName") || "").trim();
+
+    if (
+      userNameKey &&
+      lastName &&
+      userNameKey.toLowerCase() !== lastName.toLowerCase()
+    ) {
+      return composeFullName(userNameKey, lastName);
+    }
+
+    const firstName = (
+      localStorage.getItem("firstName") ||
+      userNameKey ||
+      ""
+    ).trim();
     const composed = composeFullName(firstName, lastName);
 
     if (composed) {
@@ -97,12 +109,14 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
 
     const candidates = [
-      firstName || lastName,
+      firstName, // Dit pakt nu Adrian via de userName fallback hierboven
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
       localStorage.getItem("username"),
       localStorage.getItem("name"),
     ];
+
+    candidates.push(lastName); // Zet achternaam als allerlaatste redmiddel
     for (const candidate of candidates) {
       const normalized = this.normalizeDisplayName(candidate);
       if (normalized) return normalized;
@@ -164,7 +178,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.loadReviews(this.currentBookId);
 
       if (this.isTeacherOrLibrarian) {
-        this.loadLestip(this.currentBookId);
+        this.loadLestip(this.currentBookId, this.lestipScope);
       }
 
       this.loadCopySummary(this.currentBookId);
@@ -181,6 +195,12 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+  }
+
+  onScopeChange(): void {
+    if (this.currentBookId !== null) {
+      this.loadLestip(this.currentBookId, this.lestipScope);
+    }
   }
 
   private normalizeDisplayName(raw: string | null): string {
@@ -270,7 +290,7 @@ export class DetailComponent implements OnInit, OnDestroy {
           : "Boek verwijderd uit Klasleeslijst.",
       );
     } catch (error) {
-      console.error("Failed to toggle highlight:", error);
+      console.error("Failed to toggle class reading list item:", error);
       this.uiToastService.error("Fout bij bijwerken Klasleeslijst.");
     }
   }
@@ -1069,20 +1089,16 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  onScopeChange(): void {
-    if (this.currentBookId !== null) {
-      // Clear messages when scope changes for a fresh display
-      this.lestipSuccess = "";
-      this.lestipError = "";
-      this.loadLestip(this.currentBookId);
-    }
-  }
-
-  async loadLestip(bookId: number): Promise<void> {
+  private async loadLestip(
+    bookId: number,
+    scope: string = "all",
+  ): Promise<void> {
     try {
+      // Assuming getBookLestipDetails supports an optional scope parameter
+      // or handles the filtering logic based on teacher context.
       const lestipData = await this.bookService.getBookLestipDetails(
         bookId,
-        this.lestipScope,
+        scope,
       );
       this.lestipText = lestipData.lestip || "";
       this.lestipAuteurNaam = lestipData.auteurNaam || "";

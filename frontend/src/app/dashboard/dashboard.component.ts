@@ -125,12 +125,16 @@ export class DashboardComponent implements OnInit {
   }
 
   get currentFirstName(): string {
+    const userName = (localStorage.getItem("userName") || "").trim();
     const firstName = (localStorage.getItem("firstName") || "").trim();
+    const lastName = (localStorage.getItem("lastName") || "").trim();
+    
+    // Als userName 'Adrian' is en verschilt van de achternaam, is dit onze beste gok
+    if (userName && userName.toLowerCase() !== lastName.toLowerCase()) return userName;
     if (firstName) return firstName;
 
-    const lastName = (localStorage.getItem("lastName") || "").trim();
     const nameCandidates = [
-      localStorage.getItem("userName"),
+      userName,
       localStorage.getItem("fullname"),
       localStorage.getItem("name"),
     ];
@@ -139,12 +143,19 @@ export class DashboardComponent implements OnInit {
       lastName || null,
       nameCandidates,
     );
-    return inferredFirst || lastName || localStorage.getItem("userName") || "Leerling";
+    return inferredFirst || userName || firstName || "Leerling";
   }
 
   get currentUsername(): string {
-    const firstName = (localStorage.getItem("firstName") || "").trim();
+    const userName = (localStorage.getItem("userName") || "").trim();
     const lastName = (localStorage.getItem("lastName") || "").trim();
+
+    // Als we Adrian en Dyszczak los hebben, plak ze dan direct aan elkaar
+    if (userName && lastName && userName.toLowerCase() !== lastName.toLowerCase()) {
+      return composeFullName(userName, lastName);
+    }
+
+    const firstName = (localStorage.getItem("firstName") || userName || "").trim();
     const composed = composeFullName(firstName, lastName);
     if (composed) return composed;
 

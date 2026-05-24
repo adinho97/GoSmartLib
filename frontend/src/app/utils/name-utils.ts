@@ -75,7 +75,11 @@ export function normalizeReviewAuthorName(storedName: string): string {
   }
 
   // Get current user's known name from localStorage
-  const currentFirstName = (localStorage.getItem("firstName") || "")
+  const currentFirstName = (
+    localStorage.getItem("firstName") ||
+    localStorage.getItem("userName") ||
+    ""
+  )
     .trim()
     .toLowerCase();
   const currentLastName = (localStorage.getItem("lastName") || "")
