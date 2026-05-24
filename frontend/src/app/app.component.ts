@@ -16,7 +16,11 @@ import { DashboardConfigService } from "./services/dashboard-config.service";
 import { RecommendationService } from "./services/recommendation.service";
 import { BookService } from "./services/book.service";
 import { SuperAdminAuthService } from "./services/super-admin-auth.service";
-import { inferNameParts, composeFullName } from "./utils/name-utils";
+import {
+  inferNameParts,
+  composeFullName,
+  normalizeReviewAuthorName,
+} from "./utils/name-utils";
 
 @Component({
   selector: "app-root",
@@ -177,6 +181,7 @@ export class AppComponent implements OnInit {
     const nameCandidates = [
       localStorage.getItem("userName"),
       localStorage.getItem("fullname"),
+      localStorage.getItem("username"),
       localStorage.getItem("name"),
     ];
     const { firstName: inferredFirst, lastName: inferredLast } = inferNameParts(
@@ -190,18 +195,21 @@ export class AppComponent implements OnInit {
       return inferredComposed;
     }
 
-    const candidates = [
-      firstName || lastName,
-      localStorage.getItem("userName"),
-      localStorage.getItem("fullname"),
-      localStorage.getItem("username"),
-      localStorage.getItem("name"),
-    ];
+    // If still no composed name, prefer a multi-word string and normalize it
+    const fullName = nameCandidates.find((c) => {
+      const val = (c || "").trim();
+      return val.split(/\s+/).filter(Boolean).length >= 2;
+    });
+    if (fullName) {
+      return normalizeReviewAuthorName(fullName);
+    }
 
-    for (const candidate of candidates) {
+    // Fallback to single names if no full name string is available
+    const fallbacks = [firstName || lastName, ...nameCandidates];
+    for (const candidate of fallbacks) {
       const normalized = this.normalizeDisplayName(candidate);
       if (normalized) {
-        return normalized;
+        return normalizeReviewAuthorName(normalized);
       }
     }
 
@@ -361,6 +369,6 @@ export class AppComponent implements OnInit {
   }
 
   get isSettingsActive(): boolean {
-    return this.currentUrl.startsWith("/instellingen");
+    return this.currentUrl.startsWith("/settings");
   }
 }
