@@ -147,7 +147,7 @@
                 Typ een naam om een collega te zoeken.
               </p>
             } @else if (foundUsers.length === 0) {
-              <p class="empty-msg">Geen gebruikers gevonden.</p>
+              <p class="empty-msg">Geen gebruikers gevonden</p>
             } @else {
               <div class="grid-list small-grid">
                 @for (user of foundUsers; track user.sub) {
@@ -322,7 +322,7 @@
           Klik op <strong>Zoeken</strong> om de boeken te laden en te filteren.
         </p>
       } @else if (filteredBooks.length === 0) {
-        <p class="empty-msg">Geen boeken gevonden.</p>
+        <p class="empty-msg">Geen boeken gevonden</p>
       } @else {
         <p class="empty-msg">{{ filteredBooks.length }} boek(en) gevonden.</p>
         <div class="book-grid">

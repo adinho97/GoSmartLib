@@ -123,7 +123,7 @@
 
     @if (!isLoadingSchools && schools.length === 0 && !schoolError) {
       <div class="empty-state">
-        <p>Nog geen scholen toegevoegd.</p>
+        <p>Nog geen scholen toegevoegd</p>
         <button type="button" class="btn-add" (click)="goToSchoolWizard()">
           Eerste school toevoegen
         </button>
@@ -134,7 +134,7 @@
       !isLoadingSchools && filteredSchools.length === 0 && schools.length > 0
     ) {
       <p class="empty-filter-text">
-        Geen scholen gevonden voor deze zoekopdracht.
+        Geen scholen gevonden voor deze zoekopdracht
       </p>
     }
 

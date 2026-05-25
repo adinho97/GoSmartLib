@@ -126,7 +126,7 @@
   <!-- Hero row: dynamic order -->
   <div class="lk-hero-row" [style.--n]="config.tiles.length || 3">
     @if (config.tiles.length === 0) {
-      <p class="lk-hero-empty">Geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er een paar te kiezen.</p>
+      <p class="lk-hero-empty">Er zijn geen tegels geselecteerd. Klik <strong>"Tegels aanpassen"</strong> om er een paar te kiezen.</p>
     }
 
     @for (tileId of config.tiles; track tileId) {
@@ -284,7 +284,7 @@
               </button>
             }
             @if (activeShortcuts.length === 0) {
-              <p class="lk-shortcut-empty">Geen snelkoppelingen. Klik ··· om er toe te voegen.</p>
+              <p class="lk-shortcut-empty">Er zijn geen snelkoppelingen. Klik ··· om er toe te voegen.</p>
             }
           </div>
         </section>

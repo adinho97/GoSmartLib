@@ -326,7 +326,7 @@
       @if (isLoadingUsers) {
         <p class="loading-text">Gebruikers laden...</p>
       } @else if (users.length === 0) {
-        <p class="empty-text">Geen gebruikers gevonden voor deze school.</p>
+        <p class="empty-text">Geen gebruikers gevonden voor deze school</p>
       } @else {
         <div class="table-wrap">
           <table class="data-table">
@@ -397,7 +397,7 @@
               }
               @if (filteredUsers.length === 0) {
                 <tr>
-                  <td colspan="6" class="empty-text">Geen resultaten.</td>
+                  <td colspan="6" class="empty-text">Geen resultaten</td>
                 </tr>
               }
             </tbody>
@@ -494,7 +494,7 @@
         <p class="loading-text">Klassen laden...</p>
       } @else if (klassen.length === 0) {
         <p class="empty-text">
-          Nog geen klassen. Ze worden automatisch aangemaakt bij de eerste login
+          Er zijn nog geen klassen. Ze worden automatisch aangemaakt bij de eerste login
           via Smartschool.
         </p>
       } @else {
@@ -694,7 +694,7 @@
 
         <div class="modal-body">
           @if (filteredUsersInKlas.length === 0) {
-            <p class="empty-text">Geen gebruikers gevonden in deze klas.</p>
+            <p class="empty-text">Geen gebruikers gevonden in deze klas</p>
           } @else {
             <div class="table-wrap">
               <table class="data-table">

@@ -207,7 +207,7 @@
               </div>
               @if (borrowedBooks.length === 0) {
                 <div class="inline-empty">
-                  Geen boeken momenteel uitgeleend.
+                  Geen boeken momenteel uitgeleend
                 </div>
               } @else {
                 <div class="wishlist-grid">
@@ -245,7 +245,7 @@
               @if (classReadingListLoading) {
                 <div class="inline-empty">Klasleeslijst laden...</div>
               } @else if (classReadingList.length === 0) {
-                <div class="inline-empty">Nog geen boeken in de klasleeslijst.</div>
+                <div class="inline-empty">Nog geen boeken in de klasleeslijst</div>
               } @else {
                 <div class="horizontal-scroll-wrapper">
                   @for (book of classReadingList; track book.id) {
@@ -340,7 +340,7 @@
                 <div class="inline-empty">Verlanglijst laden...</div>
               } @else if (wishlistBooks.length === 0) {
                 <div class="inline-empty">
-                  Nog geen boeken op je verlanglijst.
+                  Nog geen boeken op je verlanglijst
                 </div>
               } @else {
                 <div class="wishlist-grid">
@@ -401,7 +401,7 @@
               @if (readingHistoryLoading) {
                 <div class="inline-empty">Historiek laden...</div>
               } @else if (readingHistory.length === 0) {
-                <div class="inline-empty">Nog geen ontleenhistoriek.</div>
+                <div class="inline-empty">Nog geen ontleenhistoriek</div>
               } @else {
                 <div class="wishlist-grid">
                   @for (book of pagedReadingHistory; track book.id) {

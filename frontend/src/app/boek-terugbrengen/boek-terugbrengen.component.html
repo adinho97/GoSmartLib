@@ -69,7 +69,7 @@
       } @else if (!hasSearched) {
         <p class="btb-empty-msg">Typ een naam om een leerling te zoeken.</p>
       } @else if (filteredLeerlingen.length === 0) {
-        <p class="btb-empty-msg">Geen leerlingen gevonden.</p>
+        <p class="btb-empty-msg">Geen leerlingen gevonden</p>
       } @else {
         <ul class="btb-leerling-list">
           @for (leerling of filteredLeerlingen; track leerling.sub) {

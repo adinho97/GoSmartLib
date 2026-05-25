@@ -46,7 +46,7 @@
     } @else if (!hasSearched) {
       <p class="tp-empty-msg">Typ een naam om een leerkracht te zoeken.</p>
     } @else if (results.length === 0) {
-      <p class="tp-empty-msg">Geen leerkrachten gevonden.</p>
+      <p class="tp-empty-msg">Geen leerkrachten gevonden</p>
     } @else {
       <ul class="tp-list">
         @for (user of results; track user.id) {

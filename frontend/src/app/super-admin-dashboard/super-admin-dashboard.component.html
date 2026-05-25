@@ -102,7 +102,7 @@
       @if (isLoading) {
         <p class="sa-loading-text">Laden…</p>
       } @else if (schools.length === 0) {
-        <p class="sa-loading-text">Geen scholen gevonden.</p>
+        <p class="sa-loading-text">Geen scholen gevonden</p>
       } @else {
         <div class="schools-overview">
           @for (s of sortedSchools; track s.id) {
@@ -180,7 +180,7 @@
         @if (isLoading) {
           <p class="sa-loading-text">Laden…</p>
         } @else if (topSchools.length === 0) {
-          <p class="sa-loading-text">Geen scholen gevonden.</p>
+          <p class="sa-loading-text">Geen scholen gevonden</p>
         } @else {
           @for (s of topSchools; track s.id) {
             <div class="school-mini-row">

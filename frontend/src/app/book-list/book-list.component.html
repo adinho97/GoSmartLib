@@ -197,7 +197,7 @@
         }
         @if (filteredBooks.length === 0) {
           <div class="info-message">
-            Geen boeken gevonden voor deze filters.
+            Geen boeken gevonden voor deze filters
           </div>
         }
         @if (filteredBooks.length > 0) {
@@ -296,7 +296,7 @@
                         book.beschrijving
                           ? (book.beschrijving | slice: 0 : 25) +
                             (book.beschrijving.length > 25 ? "..." : "")
-                          : "Geen beschrijving beschikbaar."
+                          : "Geen beschrijving beschikbaar"
                       }}
                     </p>
                   </div>

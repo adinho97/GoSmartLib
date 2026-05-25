@@ -147,7 +147,7 @@
             <div class="spinner"></div>
           </div>
         } @else if (pickerQuery.trim() && pickerResults.length === 0) {
-          <p class="sp-results-empty">Geen boeken gevonden.</p>
+          <p class="sp-results-empty">Geen boeken gevonden</p>
         } @else if (!pickerQuery.trim()) {
           <p class="sp-results-hint">Typ een titel of auteur om te zoeken.</p>
         } @else {
@@ -204,7 +204,7 @@
             } @else if (!highlightQuery) {
               <p class="sp-results-hint">Typ om boeken te zoeken.</p>
             } @else if (highlightResults.length === 0) {
-              <p class="sp-results-empty">Geen resultaten gevonden.</p>
+              <p class="sp-results-empty">Geen resultaten gevonden</p>
             } @else {
               @for (book of highlightResults; track book.id) {
                 <label
@@ -246,7 +246,7 @@
           </div>
           <div class="sp-side-list">
             @if (highlightSelectedBooks.length === 0) {
-              <p class="sp-results-hint">Nog geen boeken geselecteerd.</p>
+              <p class="sp-results-hint">Nog geen boeken geselecteerd</p>
             } @else {
               @for (book of highlightSelectedBooks; track book.id) {
                 <div class="sp-side-item">

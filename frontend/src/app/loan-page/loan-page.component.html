@@ -79,7 +79,7 @@
     </p>
     } @else if (filteredLeerlingen.length === 0) {
     <p class="info-msg">
-      Geen leerlingen gevonden. Leerlingen verschijnen hier nadat ze
+      Er zijn geen leerlingen gevonden. Leerlingen verschijnen hier nadat ze
       minstens één keer ingelogd hebben via Smartschool.
     </p>
     } @else {
@@ -343,7 +343,7 @@
     @if (isLoading) {
     <p class="info-msg">Boeken laden...</p>
     } @else if (filteredBooks.length === 0 && !cameraMode) {
-    <p class="info-msg">Geen boeken gevonden.</p>
+    <p class="info-msg">Geen boeken gevonden</p>
     } @else if (
     filteredBooks.length === 0 && cameraMode && !isProcessingScan
     ) {
@@ -626,7 +626,7 @@
             <p class="preview-author">{{ pendingScannedBook.auteur }}</p>
             <p class="preview-copies">
               {{ pendingScannedBook.availableCopies }} van de
-              {{ pendingScannedBook.totalCopies }} exemplaren beschikbaar.
+              {{ pendingScannedBook.totalCopies }} exemplaren beschikbaar
             </p>
           </div>
         </div>
