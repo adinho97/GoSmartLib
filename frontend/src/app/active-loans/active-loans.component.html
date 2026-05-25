@@ -21,7 +21,7 @@
 
           <p class="due-date" [class.overdue]="isOverdue(loan.dueDate)">
             @if (isOverdue(loan.dueDate)) {
-              TE LAAT
+              Te laat
             } @else {
               Inleveren: {{ loan.dueDate | date: "dd/MM" }}
             }

@@ -1,5 +1,5 @@
 <div class="beheer-container">
-  <h2>Klasleeslijsten Beheren</h2>
+  <h2>Klasleeslijsten beheren</h2>
 
   <div class="form-card">
     <h3>Nieuwe leeslijst aanmaken</h3>
@@ -16,7 +16,7 @@
     </div>
 
     <div class="form-group">
-      <label>Toewijzing Type</label>
+      <label>Toewijzingstype</label>
       <div class="radio-options">
         <label>
           <input
@@ -34,7 +34,7 @@
             value="SCHOOL"
             name="type"
           />
-          Hele School
+          Hele school
         </label>
         <label>
           <input
@@ -58,7 +58,7 @@
     </div>
 
     <div class="form-group" *ngIf="toewijzingType === 'KLAS'">
-      <label for="klas">Selecteer Klas/Leerjaar</label>
+      <label for="klas">Selecteer klas/leerjaar</label>
       <select
         id="klas"
         [(ngModel)]="selectedKlasId"
@@ -72,12 +72,12 @@
     </div>
 
     <button class="btn-save" (click)="saveLeeslijst()" [disabled]="isLoading">
-      Leeslijst Opslaan
+      Leeslijst opslaan
     </button>
   </div>
 
   <div class="list-card">
-    <h3>Bestaande Leeslijsten</h3>
+    <h3>Bestaande leeslijsten</h3>
     <table>
       <thead>
         <tr>

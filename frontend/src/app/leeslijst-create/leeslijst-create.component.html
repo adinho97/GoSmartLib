@@ -1,7 +1,7 @@
 <div class="llc-page">
   <header class="llc-head">
     <h1 class="llc-title">
-      {{ isEditMode ? "Leeslijst Aanpassen" : "Nieuwe Leeslijst" }}
+      {{ isEditMode ? "Leeslijst aanpassen" : "Nieuwe leeslijst" }}
     </h1>
     <p class="llc-subtitle">
       {{
@@ -393,7 +393,7 @@
           <strong>Gedeeld met:</strong>
           {{
             isGlobal
-              ? "Iedereen (Globaal)"
+              ? "Iedereen (globaal)"
               : getSelectedKlassenNames() || "Geen klassen"
           }}
         </p>
@@ -418,8 +418,8 @@
             isSaving
               ? "Bezig met opslaan..."
               : isEditMode
-                ? "Wijzigingen Opslaan"
-                : "Leeslijst Opslaan"
+                ? "Wijzigingen opslaan"
+                : "Leeslijst opslaan"
           }}
         </button>
       </div>
