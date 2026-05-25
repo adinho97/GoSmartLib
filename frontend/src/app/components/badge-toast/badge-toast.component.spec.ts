@@ -43,7 +43,7 @@ describe("BadgeToastComponent", () => {
   it("should show toast when badgeUnlocked$ emits", fakeAsync(() => {
     const badge: BadgeUnlocked = {
       title: "New Badge",
-      icon: "⭐",
+      iconKey: "leg",
       category: "loan",
     };
     badgeUnlockedSubject.next(badge);
@@ -51,7 +51,7 @@ describe("BadgeToastComponent", () => {
 
     expect(component.visibleBadge).toEqual(badge);
     expect(component.visibleBadge?.title).toBe("New Badge");
-    expect(component.visibleBadge?.icon).toBe("⭐");
+    expect(component.visibleBadge?.iconKey).toBe("leg");
 
     tick(4500); // Default duration for badge toast
     expect(component.visibleBadge).toBeNull();

@@ -1,9 +1,23 @@
 import { Injectable } from "@angular/core";
 import { Subject } from "rxjs";
 
+export type BadgeIconKey =
+  | "boek"
+  | "rij"
+  | "nacht"
+  | "klas"
+  | "bib"
+  | "leg"
+  | "rev"
+  | "recens"
+  | "crit"
+  | "schr"
+  | "lit"
+  | "master";
+
 export interface BadgeUnlocked {
   title: string;
-  icon: string;
+  iconKey: BadgeIconKey;
   category: "loan" | "review";
 }
 
