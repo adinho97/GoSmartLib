@@ -16,7 +16,7 @@
         </div>
 
         <div class="book-details">
-          <span class="genre-label">Lening</span>
+          <span class="genre-label">Ontlening</span>
           <h4 class="title">{{ loan.bookTitel }}</h4>
 
           <p class="due-date" [class.overdue]="isOverdue(loan.dueDate)">
@@ -33,7 +33,7 @@
               class="btn-extend"
               (click)="onExtendLoan(loan, $event)"
               [disabled]="isOverdue(loan.dueDate)"
-              title="Verleng de lening met 1 week"
+              title="Verleng de ontlening met 1 week"
             >
               Verlengen
             </button>

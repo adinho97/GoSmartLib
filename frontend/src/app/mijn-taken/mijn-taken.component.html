@@ -113,7 +113,7 @@
         </svg>
       </div>
       <div class="mt-card-body">
-        <h2 class="mt-card-title">Leningen verlengen</h2>
+        <h2 class="mt-card-title">Ontleningen verlengen</h2>
         <p class="mt-card-desc">
           Pas de inleverdatum van actieve uitleningen aan voor leerlingen die
           meer tijd nodig hebben om hun boek uit te lezen.
@@ -222,7 +222,7 @@
   <div class="return-modal-backdrop" (click)="closeExtensionModal()">
     <div class="return-modal modal-large" (click)="$event.stopPropagation()">
       <header class="return-modal-header">
-        <h3>Leningen verlengen</h3>
+        <h3>Ontleningen verlengen</h3>
         <button
           type="button"
           class="return-modal-close"
@@ -322,7 +322,7 @@
             </ul>
           }
         } @else {
-          <!-- Stap 2: Leningen van leerling tonen -->
+          <!-- Stap 2: Ontleningen van leerling tonen -->
           <div class="extension-view">
             <button
               type="button"
@@ -348,12 +348,12 @@
               </div>
             </div>
 
-            <p class="ext-section-label">Actieve leningen</p>
+            <p class="ext-section-label">Actieve ontleningen</p>
 
             @if (loansLoading) {
               <div class="ext-state">
                 <div class="ext-spinner"></div>
-                <p>Leningen laden...</p>
+                <p>Ontleningen laden...</p>
               </div>
             } @else if (loansError) {
               <p class="ext-error">{{ loansError }}</p>
@@ -389,7 +389,7 @@
                   </li>
                 } @empty {
                   <div class="ext-state ext-empty">
-                    <p>Deze leerling heeft momenteel geen actieve leningen.</p>
+                    <p>Deze leerling heeft momenteel geen actieve ontleningen.</p>
                   </div>
                 }
               </ul>

@@ -11,7 +11,7 @@ import { firstValueFrom } from "rxjs";
   standalone: false,
 })
 export class MijnTakenComponent implements OnInit {
-  // Properties for the "Leningen verlengen" modal
+  // Properties for the "Ontleningen verlengen" modal
   extensionModalOpen: boolean = false;
   studentSearchQuery: string = "";
   studentClassFilter: string = ""; // Holds the selected class filter
@@ -121,7 +121,7 @@ export class MijnTakenComponent implements OnInit {
     return localStorage.getItem("role") === "bibbeheerder";
   }
 
-  // Methods for the "Leningen verlengen" modal
+  // Methods for the "Ontleningen verlengen" modal
   closeExtensionModal(): void {
     this.extensionModalOpen = false;
   }
@@ -169,7 +169,7 @@ export class MijnTakenComponent implements OnInit {
       })
       .catch((err) => {
         console.error("Failed to load loans:", err);
-        this.loansError = "Leningen laden mislukt.";
+        this.loansError = "Ontleningen laden mislukt.";
         this.loansLoading = false;
       });
   }
