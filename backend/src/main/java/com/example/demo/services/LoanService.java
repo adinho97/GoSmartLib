@@ -360,7 +360,7 @@ public class LoanService {
                   </tbody>
                 </table>
                 <div style="background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px 18px; border-radius: 3px; margin-bottom: 24px;">
-                  <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Terugbrengdatum:</strong> %s</p>
+                  <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Teruggavedatum:</strong> %s</p>
                   <p style="margin: 6px 0 0; font-size: 13px; color: #9a7a20;">Gelieve het boek op deze datum terug te brengen.</p>
                 </div>
                 <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
@@ -405,7 +405,7 @@ public class LoanService {
                   <tbody>%s</tbody>
                 </table>
                 <div style="background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px 18px; border-radius: 3px; margin-bottom: 24px;">
-                  <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Terugbrengdatum:</strong> %s</p>
+                  <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Teruggavedatum:</strong> %s</p>
                   <p style="margin: 6px 0 0; font-size: 13px; color: #9a7a20;">Gelieve alle boeken op deze datum terug te brengen.</p>
                 </div>
                 <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
