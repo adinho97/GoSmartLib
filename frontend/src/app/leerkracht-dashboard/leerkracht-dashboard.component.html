@@ -229,7 +229,7 @@
                         <div class="lk-shortcut-pop-label">
                           Toevoegen
                           @if (shortcutsAtMax) {
-                            <span class="lk-shortcut-pop-max-hint">(max {{ maxShortcuts }})</span>
+                            <span class="lk-shortcut-pop-max-hint">(max. {{ maxShortcuts }})</span>
                           }
                         </div>
                         @for (sc of inactiveShortcuts; track sc.id) {
@@ -247,7 +247,7 @@
                               type="button"
                               (click)="addShortcut(sc.id)"
                               [disabled]="shortcutsAtMax"
-                              [attr.title]="shortcutsAtMax ? 'Maximum van ' + maxShortcuts + ' bereikt' : 'Voeg ' + sc.label + ' toe'"
+                              [attr.title]="shortcutsAtMax ? 'Max. van ' + maxShortcuts + ' bereikt' : 'Voeg ' + sc.label + ' toe'"
                             >
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
                                 <line x1="12" y1="5" x2="12" y2="19"/>
