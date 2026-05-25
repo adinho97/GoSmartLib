@@ -275,21 +275,7 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     return category === "loan" ? "Uitleen" : "Reviews";
   }
 
-  getBadgeIcon(badge: ProfileBadge): string {
-    if (badge.category === "loan") {
-      if (badge.threshold >= 100) return "🏛️";
-      if (badge.threshold >= 50) return "🏆";
-      if (badge.threshold >= 20) return "📚";
-      return "📘";
-    }
-
-    if (badge.threshold >= 100) return "👑";
-    if (badge.threshold >= 50) return "🌟";
-    if (badge.threshold >= 20) return "📝";
-    return "✍️";
-  }
-
-  private getBadgeIconKey(badge: ProfileBadge): BadgeIconKey {
+  getBadgeIconKey(badge: ProfileBadge): BadgeIconKey {
     if (badge.category === "loan") {
       if (badge.threshold >= 100) return "leg";
       if (badge.threshold >= 50) return "bib";

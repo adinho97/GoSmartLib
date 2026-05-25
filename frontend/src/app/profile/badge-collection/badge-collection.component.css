@@ -144,7 +144,6 @@
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  font-size: 2.4rem;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -154,6 +153,11 @@
     0 6px 16px rgba(0, 0, 0, 0.15);
   border: 3px solid rgba(255, 255, 255, 0.4);
   transition: all 0.3s ease;
+}
+
+.badge-icon svg {
+  width: 48%;
+  height: 48%;
 }
 
 .badge-category {
@@ -269,7 +273,6 @@
   .badge-icon {
     width: 75px;
     height: 75px;
-    font-size: 1.8rem;
   }
 
   .badge-card h4 {

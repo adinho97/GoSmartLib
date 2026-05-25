@@ -155,7 +155,9 @@
                       class="hc-cover"
                     />
                   } @else {
-                    <div class="hc-cover hc-cover-placeholder">📖</div>
+                    <div class="hc-cover hc-cover-placeholder" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7a3 3 0 0 1 3 3v14"/><path d="M20 4h-7a3 3 0 0 0-3 3v14"/></svg>
+                    </div>
                   }
                   <div class="hc-item-body">
                     <p class="hc-item-title">{{ loan.bookTitel }}</p>
@@ -288,7 +290,9 @@
                       class="hc-cover hc-cover-lg"
                     />
                   } @else {
-                    <div class="hc-cover hc-cover-lg hc-cover-placeholder">📚</div>
+                    <div class="hc-cover hc-cover-lg hc-cover-placeholder" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7a3 3 0 0 1 3 3v14"/><path d="M20 4h-7a3 3 0 0 0-3 3v14"/></svg>
+                    </div>
                   }
                   <div class="hc-book-body">
                     <p class="hc-book-title">{{ book.titel }}</p>
