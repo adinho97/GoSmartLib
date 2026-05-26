@@ -46,6 +46,7 @@ import { LeeslijstCreateComponent } from "./leeslijst-create/leeslijst-create.co
 import { LeeslijstViewComponent } from "./leeslijst-view/leeslijst-view.component";
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
+import { OntleningenVerlengenComponent } from "./ontleningen-verlengen/ontleningen-verlengen.component";
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
 import { ColorblindToggleComponent } from "./colorblind-toggle/colorblind-toggle.component";
 import { DarkModeToggleComponent } from "./dark-mode-toggle/dark-mode-toggle.component";
@@ -87,6 +88,7 @@ registerLocaleData(localeNl, "nl");
     LeeslijstViewComponent,
     MijnTakenComponent,
     BoekTerugbrengenComponent,
+    OntleningenVerlengenComponent,
     StatistiekenComponent,
     AdminGenreComponent,
     TeacherPromotionComponent,
