@@ -199,12 +199,23 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: (res) => {
         this.schoolName = res.schoolInfo.name;
-        this.messages = res.settings.messages;
-        this.hours = res.settings.hours;
-        this.levels = res.settings.levels;
+        this.messages = res.settings.messages ?? [];
+        // Merge de opgeslagen uren met de defaults zodat alle 7 dagen altijd aanwezig zijn
+        const savedHours = res.settings.hours as any;
+        const defaults = this.defaultHours();
+        this.hours = {
+          mon: savedHours?.mon ?? defaults.mon,
+          tue: savedHours?.tue ?? defaults.tue,
+          wed: savedHours?.wed ?? defaults.wed,
+          thu: savedHours?.thu ?? defaults.thu,
+          fri: savedHours?.fri ?? defaults.fri,
+          sat: savedHours?.sat ?? defaults.sat,
+          sun: savedHours?.sun ?? defaults.sun,
+        };
+        this.levels = res.settings.levels ?? [];
         this.loanDays = res.loanDays;
         this.tags = res.apiTags;
-        this.genres = res.apiGenres.map((g) => this.mapApiGenre(g));
+        this.genres = res.apiGenres.map(g => this.mapApiGenre(g));
         this.snapshotInitial();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -215,6 +226,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       },
     });
   }
+
   private mapApiGenre(g: ApiGenre): Genre {
     return {
       id: String(g.id),
