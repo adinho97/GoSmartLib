@@ -8,6 +8,7 @@ import com.example.demo.dto.LoanDto;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.SuperAdminRepository;
 import com.example.demo.security.SecurityConfig;
+import com.example.demo.services.DisplayNameResolver;
 import com.example.demo.services.LoanService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,9 @@ class LoanControllerTest {
 
     @MockBean
     private ConnectionPoolMonitor connectionPoolMonitor;
+
+    @MockBean
+    private DisplayNameResolver displayNameResolver;
 
     @Test
     @WithMockUser(roles = "BIBBEHEERDER")

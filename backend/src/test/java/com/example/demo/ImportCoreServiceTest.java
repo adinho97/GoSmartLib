@@ -3,9 +3,9 @@ package com.example.demo;
 import com.example.demo.dto.BookDto;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.School;
+import com.example.demo.mappers.BookMapper;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.services.ImportCoreService;
-import com.example.demo.services.IsbnService;
 import com.example.demo.services.OpenLibraryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +34,7 @@ class ImportCoreServiceTest {
     private OpenLibraryService openLibraryService;
 
     @Spy
-    private IsbnService isbnService;
+    private BookMapper bookMapper = new BookMapper(null);
 
     @InjectMocks
     private ImportCoreService importCoreService;

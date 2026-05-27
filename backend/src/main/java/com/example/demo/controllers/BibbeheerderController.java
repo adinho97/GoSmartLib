@@ -31,7 +31,7 @@ public class BibbeheerderController {
     }
 
     @GetMapping("/leerkrachten")
-    @PreAuthorize("hasRole('BIBBEHEERDER')")
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     public ResponseEntity<List<AdminUserListItem>> getLeerkrachtenInOwnSchool(
             @RequestHeader("X-User-Sub") String callerSub) {
         Long schoolId = bibbeheerderService.getCallerSchoolId(callerSub);
@@ -85,7 +85,7 @@ public class BibbeheerderController {
     }
 
     @PatchMapping("/leerkrachten/{userId}/promote")
-    @PreAuthorize("hasRole('BIBBEHEERDER')")
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     public ResponseEntity<AdminUserListItem> promoteLeerkracht(
             @RequestHeader("X-User-Sub") String callerSub,
             @PathVariable Long userId) {

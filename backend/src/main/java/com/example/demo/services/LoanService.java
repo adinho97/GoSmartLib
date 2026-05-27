@@ -662,7 +662,8 @@ public class LoanService {
         if (loan.getCopy().getBook().getGenres() != null) {
             dto.setBookGenres(loan.getCopy().getBook().getGenres().stream().map(g -> g.getNaam()).collect(Collectors.joining(", ")));
         }
-        displayNameResolver.peek(loan.getUserSub()).ifPresent(dto::setUserDisplayName); // Set user display name
+        dto.setUserSub(loan.getUserSub());
+        displayNameResolver.peek(loan.getUserSub()).ifPresent(dto::setUserDisplayName);
         dto.setLoanedAt(loan.getLoanedAt());
         dto.setDueDate(loan.getDueDate());
         dto.setReturnedAt(loan.getReturnedAt());

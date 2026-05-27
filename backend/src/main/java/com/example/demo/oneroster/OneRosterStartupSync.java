@@ -1,6 +1,5 @@
 package com.example.demo.oneroster;
 
-import com.example.demo.oneroster.dto.OneRosterSyncResult;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

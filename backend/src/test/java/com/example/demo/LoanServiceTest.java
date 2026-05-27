@@ -16,6 +16,7 @@ import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.AuthService;
 import com.example.demo.services.BookAvailabilityNotificationService;
+import com.example.demo.services.DisplayNameResolver;
 import com.example.demo.services.LoanService;
 import com.example.demo.services.SmartschoolMessageService;
 import org.junit.jupiter.api.Test;
@@ -61,6 +62,9 @@ class LoanServiceTest {
 
     @Mock
     private AppUserRepository appUserRepository;
+
+    @Mock
+    private DisplayNameResolver displayNameResolver;
 
     @InjectMocks
     private LoanService loanService;

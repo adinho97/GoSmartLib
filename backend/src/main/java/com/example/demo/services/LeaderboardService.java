@@ -6,7 +6,6 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.KlasRepository;
-import com.example.demo.services.DisplayNameResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,10 +106,14 @@ public class LeaderboardService {
 
     private void resolveDisplayNames(LeaderboardResponseDTO response, Long schoolId) {
         List<LeaderboardEntryDTO> allEntries = new ArrayList<>();
-        if (response.getTopClassReaders() != null) allEntries.addAll(response.getTopClassReaders());
-        if (response.getTopSchoolReaders() != null) allEntries.addAll(response.getTopSchoolReaders());
-        if (response.getUserClassRank() != null) allEntries.add(response.getUserClassRank());
-        if (response.getUserSchoolRank() != null) allEntries.add(response.getUserSchoolRank());
+        if (response.getTopClassReaders() != null)
+            allEntries.addAll(response.getTopClassReaders());
+        if (response.getTopSchoolReaders() != null)
+            allEntries.addAll(response.getTopSchoolReaders());
+        if (response.getUserClassRank() != null)
+            allEntries.add(response.getUserClassRank());
+        if (response.getUserSchoolRank() != null)
+            allEntries.add(response.getUserSchoolRank());
 
         List<String> subs = allEntries.stream()
                 .map(LeaderboardEntryDTO::getDisplayName)

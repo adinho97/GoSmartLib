@@ -10,6 +10,7 @@ import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.SuperAdminRepository;
 import com.example.demo.security.SecurityConfig;
 import com.example.demo.services.BibbeheerderService;
+import com.example.demo.services.DisplayNameResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -52,6 +53,9 @@ class BibbeheerderControllerTest {
     private AppUserRepository appUserRepository;
 
     @MockBean
+    private DisplayNameResolver displayNameResolver;
+
+    @MockBean
     private ConnectionPoolMonitor connectionPoolMonitor;
 
     // --- GET /api/bibbeheerder/leerkrachten ---
@@ -89,14 +93,16 @@ class BibbeheerderControllerTest {
     @Test
     @WithMockUser(roles = "LEERKRACHT")
     void getLeerkrachten_shouldReturn403ForLeerkracht() throws Exception {
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten"))
+        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                        .header("X-User-Sub", "leerkracht-sub"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "LEERLING")
     void getLeerkrachten_shouldReturn403ForLeerling() throws Exception {
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten"))
+        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                        .header("X-User-Sub", "leerling-sub"))
                 .andExpect(status().isForbidden());
     }
 

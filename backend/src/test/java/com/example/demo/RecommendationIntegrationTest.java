@@ -6,6 +6,7 @@ import com.example.demo.entities.Book;
 import com.example.demo.entities.Genre;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookRepository;
+import com.example.demo.repositories.GenreRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.RecommendationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Transactional // keep a Hibernate session open so lazy Book.genres can be loaded by the strategies
 @DisplayName("Recommendation Integration Tests")
 class RecommendationIntegrationTest {
 
@@ -38,12 +41,16 @@ class RecommendationIntegrationTest {
     @Autowired
     private LoanRepository loanRepository;
 
+    @Autowired
+    private GenreRepository genreRepository;
+
     private AppUser testUser;
 
     @BeforeEach
     void setUp() {
         loanRepository.deleteAll();
         bookRepository.deleteAll();
+        genreRepository.deleteAll();
         appUserRepository.deleteAll();
 
         testUser = new AppUser();
@@ -107,10 +114,16 @@ class RecommendationIntegrationTest {
         Book book = new Book();
         book.setTitel(title);
         book.setAuteur(author);
-        // Create a Genre object and add it to a Set
-        Genre newGenre = new Genre();
-        newGenre.setNaam(genre);
-        book.setGenres(Set.of(newGenre));
+        // Book.genres is @ManyToMany without cascade, so the Genre must be
+        // persisted before it can be linked to the book. Reuse an existing
+        // genre with the same name to avoid duplicate rows across books.
+        Genre persistedGenre = genreRepository.findByNaamIgnoreCase(genre)
+                .orElseGet(() -> {
+                    Genre newGenre = new Genre();
+                    newGenre.setNaam(genre);
+                    return genreRepository.save(newGenre);
+                });
+        book.setGenres(Set.of(persistedGenre));
         return bookRepository.save(book);
     }
 }
