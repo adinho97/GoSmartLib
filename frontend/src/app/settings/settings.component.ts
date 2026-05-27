@@ -195,9 +195,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: (res) => {
         this.schoolName = res.schoolInfo.name;
-        this.messages = res.settings.messages;
-        this.hours = res.settings.hours;
-        this.levels = res.settings.levels;
+        this.messages = res.settings.messages || [];
+        this.hours = (res.settings.hours && Object.keys(res.settings.hours).length > 0) ? res.settings.hours : this.defaultHours();
+        this.levels = (res.settings.levels && res.settings.levels.length > 0) ? res.settings.levels : this.defaultLevels();
         this.loanDays = res.loanDays;
         this.tags = res.apiTags;
 
@@ -238,6 +238,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
       sat: { open: false, from: "10:00", to: "12:00" },
       sun: { open: false, from: "10:00", to: "12:00" },
     };
+  }
+
+  private defaultLevels(): ReadingLevel[] {
+    return [
+      { id: 'l1', code: 'A', name: 'Niveau A', desc: 'Beginnende lezers', active: true, isDefault: true },
+      { id: 'l2', code: 'B', name: 'Niveau B', desc: 'Gevorderde lezers', active: true, isDefault: false },
+      { id: 'l3', code: 'C', name: 'Niveau C', desc: 'Ervaren lezers', active: true, isDefault: false },
+      { id: 'l4', code: 'D', name: 'Niveau D', desc: 'Top lezers', active: true, isDefault: false },
+    ];
   }
 
   markDirty(): void {
