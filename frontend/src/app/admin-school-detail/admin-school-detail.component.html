@@ -561,96 +561,19 @@
         }
       }
     </div>
-    <!-- Spotlights card -->
-    <div class="card">
-      <h2 class="card-title">Spotlights</h2>
-
-      @if (spotlightLoading) {
-        <p class="loading-text">Laden...</p>
-      } @else {
-        <div class="spotlight-rows">
-
-          <!-- Boek van de maand -->
-          <div class="spotlight-row">
-            <span class="spotlight-label">Boek van de maand</span>
-            @if (spotlight.maand) {
-              <span class="spotlight-current">
-                {{ spotlight.maand.titel }} – {{ spotlight.maand.auteur }}
-                <span class="spotlight-id">(ID: {{ spotlight.maand.bookId }})</span>
-              </span>
-            } @else {
-              <span class="spotlight-empty">Niet ingesteld</span>
-            }
-            <div class="spotlight-actions">
-              <input
-                type="number"
-                class="spotlight-input"
-                [(ngModel)]="maandBookIdInput"
-                placeholder="Boek-ID"
-                min="1"
-              />
-              <button
-                type="button"
-                class="btn-primary btn-sm"
-                (click)="setSpotlight('MAAND')"
-                [disabled]="!maandBookIdInput || spotlightSaving === 'MAAND'"
-              >{{ spotlightSaving === 'MAAND' ? '...' : 'Instellen' }}</button>
-              @if (spotlight.maand) {
-                <button
-                  type="button"
-                  class="btn-secondary btn-sm"
-                  (click)="clearSpotlight('MAAND')"
-                  [disabled]="spotlightClearing === 'MAAND'"
-                >{{ spotlightClearing === 'MAAND' ? '...' : 'Wissen' }}</button>
-              }
-            </div>
-          </div>
-
-          <!-- Themaboek -->
-          <div class="spotlight-row">
-            <span class="spotlight-label">Themaboek</span>
-            @if (spotlight.thema) {
-              <span class="spotlight-current">
-                {{ spotlight.thema.titel }} – {{ spotlight.thema.auteur }}
-                <span class="spotlight-id">(ID: {{ spotlight.thema.bookId }})</span>
-              </span>
-            } @else {
-              <span class="spotlight-empty">Niet ingesteld</span>
-            }
-            <div class="spotlight-actions">
-              <input
-                type="number"
-                class="spotlight-input"
-                [(ngModel)]="themaBookIdInput"
-                placeholder="Boek-ID"
-                min="1"
-              />
-              <button
-                type="button"
-                class="btn-primary btn-sm"
-                (click)="setSpotlight('THEMA')"
-                [disabled]="!themaBookIdInput || spotlightSaving === 'THEMA'"
-              >{{ spotlightSaving === 'THEMA' ? '...' : 'Instellen' }}</button>
-              @if (spotlight.thema) {
-                <button
-                  type="button"
-                  class="btn-secondary btn-sm"
-                  (click)="clearSpotlight('THEMA')"
-                  [disabled]="spotlightClearing === 'THEMA'"
-                >{{ spotlightClearing === 'THEMA' ? '...' : 'Wissen' }}</button>
-              }
-            </div>
-          </div>
-
-        </div>
-        @if (spotlightError) {
-          <p class="inline-error">{{ spotlightError }}</p>
-        }
-        @if (spotlightSuccess) {
-          <p class="inline-success">{{ spotlightSuccess }}</p>
-        }
-      }
-    </div>
+    <!-- Spotlight beheer -->
+    <app-spotlight-manage
+      [spotlight]="spotlight"
+      [spotlightLoading]="spotlightLoading"
+      [highlightedBooks]="highlightedBooks"
+      [highlightedBookIds]="highlightedBookIds"
+      [highlightedCount]="highlightedBookIds.size"
+      [booksLoading]="booksLoading"
+      [schoolId]="schoolId"
+      (spotlightSaved)="onSpotlightSaved($event)"
+      (spotlightCleared)="onSpotlightCleared($event)"
+      (highlightsAdded)="onHighlightsAdded()"
+    ></app-spotlight-manage>
   }
 
   <!-- Modal for Class Users -->
