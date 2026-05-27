@@ -173,7 +173,7 @@ public class BookController {
     public ResponseEntity<BookDto> importByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId,
             @RequestBody(required = false) ImportByIsbnRequest request) {
-        BookDto dto;
+        BookDto dto = null;
         try {
             int quantity = 1;
             if (request != null && request.getCopyQuantity() != null) {

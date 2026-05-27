@@ -63,7 +63,7 @@ class BookCopyServiceTest {
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
         when(bookCopyRepository.save(any(BookCopy.class))).thenReturn(savedCopy);
 
-        CopyDto dto = bookCopyService.addCopy(bookId);
+        CopyDto dto = bookCopyService.addCopy(bookId, BookCopy.CopyCondition.GOOD);
 
         assertEquals(10L, dto.getId());
         assertEquals(BookCopy.CopyStatus.AVAILABLE, dto.getStatus());
@@ -86,7 +86,7 @@ class BookCopyServiceTest {
             return copy;
         });
 
-        bookCopyService.addCopy(bookId);
+        bookCopyService.addCopy(bookId, BookCopy.CopyCondition.GOOD);
 
         verify(bookCopyRepository).save(any(BookCopy.class));
     }
@@ -97,7 +97,7 @@ class BookCopyServiceTest {
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
 
-        ApiException ex = assertThrows(ApiException.class, () -> bookCopyService.addCopy(bookId));
+        ApiException ex = assertThrows(ApiException.class, () -> bookCopyService.addCopy(bookId, BookCopy.CopyCondition.GOOD));
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
         verify(bookCopyRepository, never()).save(any());
     }
@@ -117,7 +117,7 @@ class BookCopyServiceTest {
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
         when(bookCopyRepository.save(any(BookCopy.class))).thenReturn(savedCopy);
 
-        bookCopyService.addCopy(bookId);
+        bookCopyService.addCopy(bookId, BookCopy.CopyCondition.GOOD);
 
         ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);
         verify(bookCopyRepository).save(captor.capture());
