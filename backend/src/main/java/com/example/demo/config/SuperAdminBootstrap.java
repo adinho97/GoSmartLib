@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -73,8 +74,9 @@ public class SuperAdminBootstrap implements CommandLineRunner {
                 hex.append(String.format("%02x", b));
             }
             return hex.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to hash setup token", e);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("SHA-256 not available on this JVM - cannot hash setup token", e);
+            throw new IllegalStateException("Failed to hash setup token: SHA-256 unavailable", e);
         }
     }
 }

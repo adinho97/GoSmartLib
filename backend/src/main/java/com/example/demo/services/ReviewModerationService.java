@@ -3,8 +3,11 @@ package com.example.demo.services;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.demo.exception.ApiException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,6 +17,8 @@ import java.util.Set;
 
 @Service
 public class ReviewModerationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReviewModerationService.class);
 
     private static final String CENSORED_WORDS_RESOURCE = "censored-words.json";
     // Initialize confusables before loading censored words because the loader
@@ -77,7 +82,9 @@ public class ReviewModerationService {
             }
 
             return Collections.unmodifiableSet(normalizedWords);
-        } catch (Exception ignored) {
+        } catch (IOException e) {
+            logger.warn("Failed to load censored-words resource '{}': {}",
+                    CENSORED_WORDS_RESOURCE, e.getMessage(), e);
             return Collections.emptySet();
         }
     }

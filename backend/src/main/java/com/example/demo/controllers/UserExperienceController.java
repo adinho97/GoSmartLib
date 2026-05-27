@@ -2,6 +2,9 @@ package com.example.demo.controllers;
 
 import com.example.demo.entities.UserExperience;
 import com.example.demo.repositories.UserExperienceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/user/experience")
 public class UserExperienceController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserExperienceController.class);
 
     private final UserExperienceRepository userExperienceRepository;
 
@@ -30,7 +35,11 @@ public class UserExperienceController {
         try {
             UserExperience userExperience = findOrCreate(userSub);
             return ResponseEntity.ok(toResponse(userExperience));
-        } catch (Exception ex) {
+        } catch (DataAccessException ex) {
+            logger.error("Database error fetching user experience for userSub: {}", userSub, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error fetching user experience for userSub: {}", userSub, ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -55,7 +64,11 @@ public class UserExperienceController {
 
             userExperienceRepository.save(userExperience);
             return ResponseEntity.noContent().build();
-        } catch (Exception ex) {
+        } catch (DataAccessException ex) {
+            logger.error("Database error saving user experience for userSub: {}", userSub, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error saving user experience for userSub: {}", userSub, ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
