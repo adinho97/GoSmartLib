@@ -130,7 +130,7 @@ export class AdminSchoolDetailComponent implements OnInit {
     {
       label: "School-instellingen",
       sub: "Openingsuren, berichten, genres",
-      route: "/settings",
+      route: "/instellingen",
       icon: "settings",
     },
     {
