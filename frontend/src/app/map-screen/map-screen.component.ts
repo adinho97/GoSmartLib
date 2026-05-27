@@ -152,7 +152,7 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
     this.schoolMarkers = [];
 
     this.schools.forEach((school) => {
-      if (school.latitude !== undefined && school.longitude !== undefined) {
+      if (this.hasLocation(school)) {
         const popupContent = `
           <div class="map-popup-card">
             <h3 class="popup-title">${school.naam}</h3>
@@ -164,7 +164,7 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
         `;
 
         const marker = L.marker(
-          [school.latitude as number, school.longitude as number],
+          [school.latitude!, school.longitude!],
           { icon: this.defaultIcon },
         )
           .addTo(this.map)
@@ -173,7 +173,7 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
         marker.on("click", () => {
           this.selectedSchool = school;
           this.map.flyTo(
-            [school.latitude as number, school.longitude as number],
+            [school.latitude!, school.longitude!],
             15,
           ); // Zoom in on click
         });
@@ -183,21 +183,18 @@ export class MapScreenComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  hasLocation(school: School): boolean {
+    return school.latitude != null && school.longitude != null;
+  }
+
   zoomToSchool(school: School): void {
     this.selectedSchool = school;
-    if (
-      this.map &&
-      school.latitude !== undefined &&
-      school.longitude !== undefined
-    ) {
-      this.map.flyTo([school.latitude, school.longitude], 15); // Zoom to level 15
+    if (this.map && this.hasLocation(school)) {
+      this.map.flyTo([school.latitude!, school.longitude!], 15); // Zoom to level 15
       // Find the corresponding marker and open its popup
       const marker = this.schoolMarkers.find(
         (m) =>
-          this.map &&
-          school.latitude !== undefined &&
-          school.longitude !== undefined &&
-          m.getLatLng().equals(L.latLng(school.latitude, school.longitude)),
+          m.getLatLng().equals(L.latLng(school.latitude!, school.longitude!)),
       );
       if (marker) {
         marker.openPopup();
