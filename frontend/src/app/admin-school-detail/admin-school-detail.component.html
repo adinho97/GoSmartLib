@@ -443,46 +443,6 @@
       }
     </div>
 
-    <!-- Bibliotheek card -->
-    <div class="card">
-      <h2 class="card-title">Bibliotheek</h2>
-
-      <div class="lib-stats-row">
-        <div class="lib-stat-box">
-          <span class="lib-stat-label">Boeken</span>
-          <span class="lib-stat-value">{{ detail.bookCount }}</span>
-        </div>
-        <div class="lib-stat-box">
-          <span class="lib-stat-label">Uitgeleend</span>
-          <span class="lib-stat-value">{{ detail.activeLoansCount }}</span>
-        </div>
-        <div class="lib-stat-box">
-          <span class="lib-stat-label">Verlanglijst</span>
-          <span class="lib-stat-value">{{ detail.wishlistCount }}</span>
-        </div>
-        <div class="lib-stat-box">
-          <span class="lib-stat-label">Klasleeslijst</span>
-          <span class="lib-stat-value">{{ isLoadingLeeslijsten ? "..." : classReadingListCount }}</span>
-        </div>
-      </div>
-
-      <div class="lib-cards-grid">
-        @for (card of libraryCards; track card.route) {
-          <button
-            type="button"
-            class="lib-card"
-            (click)="navigateToLibrary(card.route, card.fragment)"
-          >
-            <span class="lib-card-icon lib-icon-{{ card.icon }}"></span>
-            <div class="lib-card-text">
-              <span class="lib-card-title">{{ card.label }}</span>
-              <span class="lib-card-sub">{{ card.sub }}</span>
-            </div>
-          </button>
-        }
-      </div>
-    </div>
-
     <!-- Klassen card -->
     <div class="card">
       <h2 class="card-title">
@@ -561,6 +521,47 @@
         }
       }
     </div>
+
+    <!-- Bibliotheek card -->
+    <div class="card">
+      <h2 class="card-title">Bibliotheek</h2>
+
+      <div class="lib-stats-row">
+        <div class="lib-stat-box">
+          <span class="lib-stat-label">Boeken</span>
+          <span class="lib-stat-value">{{ detail.bookCount }}</span>
+        </div>
+        <div class="lib-stat-box">
+          <span class="lib-stat-label">Uitgeleend</span>
+          <span class="lib-stat-value">{{ detail.activeLoansCount }}</span>
+        </div>
+        <div class="lib-stat-box">
+          <span class="lib-stat-label">Verlanglijst</span>
+          <span class="lib-stat-value">{{ detail.wishlistCount }}</span>
+        </div>
+        <div class="lib-stat-box">
+          <span class="lib-stat-label">Klasleeslijst</span>
+          <span class="lib-stat-value">{{ isLoadingLeeslijsten ? "..." : classReadingListCount }}</span>
+        </div>
+      </div>
+
+      <div class="lib-cards-grid">
+        @for (card of libraryCards; track card.route) {
+          <button
+            type="button"
+            class="lib-card"
+            (click)="navigateToLibrary(card.route, card.fragment)"
+          >
+            <span class="lib-card-icon lib-icon-{{ card.icon }}"></span>
+            <div class="lib-card-text">
+              <span class="lib-card-title">{{ card.label }}</span>
+              <span class="lib-card-sub">{{ card.sub }}</span>
+            </div>
+          </button>
+        }
+      </div>
+    </div>
+
     <!-- Spotlight beheer -->
     <app-spotlight-manage
       [spotlight]="spotlight"
