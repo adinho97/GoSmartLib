@@ -25,6 +25,10 @@
         <option value="MODERATE">Matig</option>
         <option value="BAD">Slecht</option>
       </select>
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="isDidacticMode" />
+        Didactisch boeken (lerarencollectie)
+      </label>
       <button (click)="uploadFile()" [disabled]="isUploading || !selectedFile">
         {{ isUploading ? "Verwerken..." : "Upload en verwerk" }}
       </button>

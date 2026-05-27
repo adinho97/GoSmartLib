@@ -58,6 +58,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   showBarcodeModal = false;
   pendingScannedBook: PendingBarcodeBook | null = null;
   aantalExemplaren: number = 1;
+  isDidacticMode = false;
   copyConditionsArray: ("GOOD" | "MODERATE" | "BAD")[] = ["GOOD"];
   isConfirmingBarcode = false;
 
@@ -430,6 +431,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
         const savedBook = await this.bookService.importBookByIsbn(
           barcode,
           this.selectedSchoolId ?? undefined,
+          this.isDidacticMode,
         );
         bookId = savedBook?.id;
       }
