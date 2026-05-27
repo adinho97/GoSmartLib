@@ -88,7 +88,9 @@ public class OAuthRefreshTokenHandler {
                         logger.warn("Token refresh failed for user: {} - {}", userSub, error.getMessage());
                     })
                     .doFinally(signal -> refreshLock.releaseLock(lockHandle));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            logger.error("Failed to start token refresh pipeline for user {}: {}",
+                    userSub, e.getMessage(), e);
             refreshLock.releaseLock(lockHandle);
             return Mono.error(e);
         }
@@ -175,8 +177,11 @@ public class OAuthRefreshTokenHandler {
                 appUserRepository.save(user);
                 logger.warn("Force logged out user due to revoked token: {}", userSub);
             }
-        } catch (Exception e) {
-            logger.error("Failed to force-logout user {}: {}", userSub, e.getMessage(), e);
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Database error while force-logging out user {}: {}", userSub, e.getMessage(), e);
+            // Don't rethrow - logout failure shouldn't cascade
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error while force-logging out user {}: {}", userSub, e.getMessage(), e);
             // Don't rethrow - logout failure shouldn't cascade
         }
     }

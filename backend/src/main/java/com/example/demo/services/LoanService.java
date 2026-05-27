@@ -203,8 +203,9 @@ public class LoanService {
                     err.getMessage()))
                 .onErrorResume(e -> reactor.core.publisher.Mono.empty())
                 .subscribe();
-        } catch (Exception ex) {
-            logger.warn("Exception while attempting to send Smartschool confirmation: {}", ex.getMessage());
+        } catch (RuntimeException ex) {
+            logger.warn("Failed to start Smartschool confirmation pipeline ({}): {}",
+                    ex.getClass().getSimpleName(), ex.getMessage(), ex);
         }
     }
 
@@ -244,8 +245,9 @@ public class LoanService {
                 .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub, err.getMessage()))
                 .onErrorResume(e -> reactor.core.publisher.Mono.empty())
                 .subscribe();
-        } catch (Exception ex) {
-            logger.warn("Exception while attempting to send combined Smartschool confirmation: {}", ex.getMessage());
+        } catch (RuntimeException ex) {
+            logger.warn("Failed to start combined Smartschool confirmation pipeline ({}): {}",
+                    ex.getClass().getSimpleName(), ex.getMessage(), ex);
         }
     }
 
@@ -287,8 +289,9 @@ public class LoanService {
                 .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub, err.getMessage()))
                 .onErrorResume(e -> reactor.core.publisher.Mono.empty())
                 .subscribe();
-        } catch (Exception ex) {
-            logger.warn("Exception while attempting to send combined Smartschool confirmation: {}", ex.getMessage());
+        } catch (RuntimeException ex) {
+            logger.warn("Failed to start combined Smartschool confirmation pipeline ({}): {}",
+                    ex.getClass().getSimpleName(), ex.getMessage(), ex);
         }
     }
 
@@ -329,8 +332,9 @@ public class LoanService {
                 .doOnError(err -> logger.error("Failed to send single loan confirmation for {}: {}", userSub, err.getMessage()))
                 .onErrorResume(e -> reactor.core.publisher.Mono.empty())
                 .subscribe();
-        } catch (Exception ex) {
-            logger.warn("Exception while attempting to send Smartschool confirmation: {}", ex.getMessage());
+        } catch (RuntimeException ex) {
+            logger.warn("Failed to start Smartschool confirmation pipeline ({}): {}",
+                    ex.getClass().getSimpleName(), ex.getMessage(), ex);
         }
     }
 

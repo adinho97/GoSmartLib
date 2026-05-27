@@ -2,12 +2,14 @@ package com.example.demo.security;
 
 import com.example.demo.entities.SuperAdmin;
 import com.example.demo.repositories.SuperAdminRepository;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -75,8 +77,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 logger.debug("JWT token validated for user: {} (id: {})", username, userId);
             }
-        } catch (Exception ex) {
-            logger.debug("Could not set user authentication in security context", ex);
+        } catch (JwtException ex) {
+            logger.debug("JWT rejected ({}): {}", ex.getClass().getSimpleName(), ex.getMessage());
+        } catch (DataAccessException ex) {
+            logger.warn("Database error while validating JWT - request will proceed unauthenticated", ex);
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error setting authentication in security context", ex);
         }
 
         filterChain.doFilter(request, response);

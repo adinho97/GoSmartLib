@@ -2,6 +2,9 @@ package com.example.demo.controllers;
 
 import com.example.demo.dto.RecommendedBook;
 import com.example.demo.services.RecommendationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,6 +16,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/aanbevelingen")
 public class RecommendationController {
+
+    private static final Logger logger = LoggerFactory.getLogger(RecommendationController.class);
 
     private final RecommendationService recommendationService;
 
@@ -33,7 +38,11 @@ public class RecommendationController {
         try {
             var recommendations = recommendationService.getRecommendations(userSub, limit, excludeRead);
             return ResponseEntity.ok(recommendations);
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
+            logger.error("Database error generating recommendations for userSub: {}", userSub, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error generating recommendations for userSub: {}", userSub, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -54,7 +63,11 @@ public class RecommendationController {
             var recommendations = recommendationService.getRecommendationsByStrategy(userSub, strategyList, limit,
                     excludeRead);
             return ResponseEntity.ok(recommendations);
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
+            logger.error("Database error generating recommendations for userSub: {}", userSub, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error generating recommendations for userSub: {}", userSub, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -73,7 +86,11 @@ public class RecommendationController {
             var recommendations = recommendationService.getRecommendationsByStrategyGrouped(userSub, limit,
                     excludeRead);
             return ResponseEntity.ok(recommendations);
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
+            logger.error("Database error generating recommendations for userSub: {}", userSub, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error generating recommendations for userSub: {}", userSub, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

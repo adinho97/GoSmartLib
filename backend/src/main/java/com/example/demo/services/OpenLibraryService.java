@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.demo.entities.Book;
 import com.example.demo.entities.Genre;
 import com.example.demo.repositories.GenreRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.InputStream;
@@ -25,6 +28,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class OpenLibraryService {
+
+    private static final Logger logger = LoggerFactory.getLogger(OpenLibraryService.class);
 
     private final GenreRepository genreRepository;
     private final IsbnService isbnService; // Re-inject IsbnService
@@ -120,8 +125,12 @@ public class OpenLibraryService {
         } catch (HttpClientErrorException.NotFound e) {
             // ISBN not found in OpenLibrary
             return null;
-        } catch (Exception e) {
-            // Network or parsing error etc.
+        } catch (RestClientException e) {
+            logger.debug("OpenLibrary fetch failed for ISBN {} (network/HTTP): {}", isbn, e.getMessage(), e);
+            return null;
+        } catch (RuntimeException e) {
+            logger.debug("OpenLibrary fetch failed for ISBN {} ({}): {}",
+                    isbn, e.getClass().getSimpleName(), e.getMessage(), e);
             return null;
         }
     }
@@ -185,8 +194,9 @@ public class OpenLibraryService {
                     }
                 }
             }
-        } catch (Exception ignored) {
-            // Author lookup failed, fall through
+        } catch (RuntimeException e) {
+            logger.debug("OpenLibrary author lookup failed ({}): {}",
+                    e.getClass().getSimpleName(), e.getMessage());
         }
         return "Onbekende auteur";
     }
@@ -215,7 +225,9 @@ public class OpenLibraryService {
                         }
                     }
                 }
-            } catch (Exception ignored) {
+            } catch (RuntimeException e) {
+                logger.debug("OpenLibrary work-subject fallback failed ({}): {}",
+                        e.getClass().getSimpleName(), e.getMessage());
             }
         }
 
@@ -357,7 +369,8 @@ public class OpenLibraryService {
                     result.put(k.trim().toLowerCase(Locale.ROOT), v != null ? v : "");
             });
             return Collections.unmodifiableMap(result);
-        } catch (Exception ignored) {
+        } catch (java.io.IOException e) {
+            logger.warn("Failed to load JSON mapping resource '{}': {}", resource, e.getMessage(), e);
             return Collections.emptyMap();
         }
     }

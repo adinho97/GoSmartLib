@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -90,21 +91,18 @@ public class SmartschoolAuthenticationFilter extends OncePerRequestFilter {
                         }
                     }
                 }
-            } catch (Exception ex) {
+            } catch (DataAccessException ex) {
                 // DB might be unavailable. Log but don't rethrow.
-                // Graceful degradation: fail the request with proper error handling,
-                // not with an uncaught exception.
-                String cause = ex.getClass().getSimpleName();
-                if (cause.contains("Transient") || cause.contains("Connection")) {
-                    logger.warn("Could not authenticate Smartschool token due to database issue: {}", cause);
-                    // Mark as attempted but failed (let exception handler decide on 503 vs 401)
-                    request.setAttribute("authenticationAttempted", true);
-                    request.setAttribute("databaseUnavailable", true);
-                } else {
-                    logger.debug("Could not authenticate Smartschool token", ex);
-                    request.setAttribute("authenticationAttempted", true);
-                    request.setAttribute("authenticationFailed", true);
-                }
+                // Graceful degradation: fail the request with proper error handling.
+                logger.warn("Could not authenticate Smartschool token due to database issue ({}): {}",
+                        ex.getClass().getSimpleName(), ex.getMessage(), ex);
+                request.setAttribute("authenticationAttempted", true);
+                request.setAttribute("databaseUnavailable", true);
+            } catch (RuntimeException ex) {
+                logger.debug("Could not authenticate Smartschool token ({}): {}",
+                        ex.getClass().getSimpleName(), ex.getMessage(), ex);
+                request.setAttribute("authenticationAttempted", true);
+                request.setAttribute("authenticationFailed", true);
                 // Don't set authentication - let the request fail at endpoint with proper error
             }
         }

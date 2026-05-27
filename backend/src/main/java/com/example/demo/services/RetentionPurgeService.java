@@ -78,9 +78,13 @@ public class RetentionPurgeService {
             try {
                 self.purgeUser(user.getId());
                 purged++;
-            } catch (Exception e) {
+            } catch (org.springframework.dao.DataAccessException e) {
                 failed++;
-                logger.error("Retention purge failed for user id={}", user.getId(), e);
+                logger.error("Retention purge DB error for user id={}: {}", user.getId(), e.getMessage(), e);
+            } catch (RuntimeException e) {
+                failed++;
+                logger.error("Retention purge failed for user id={} ({}): {}",
+                        user.getId(), e.getClass().getSimpleName(), e.getMessage(), e);
             }
         }
         logger.info("Retention purge done: purged={}, failed={}", purged, failed);

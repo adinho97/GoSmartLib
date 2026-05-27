@@ -197,9 +197,15 @@ public class BulkImportService {
                 }
             }
         } catch (IllegalArgumentException ex) {
+            // Includes Apache POI's EmptyFileException (subclass of IllegalArgumentException).
             throw ex;
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Failed to read Excel file", ex);
+        } catch (java.io.IOException ex) {
+            throw new IllegalArgumentException(
+                    "Failed to read Excel file (I/O error: " + ex.getMessage() + ")", ex);
+        } catch (RuntimeException ex) {
+            throw new IllegalArgumentException(
+                    "Failed to read Excel file (" + ex.getClass().getSimpleName() + ": " + ex.getMessage() + ")",
+                    ex);
         }
 
         return new ParsedBulkIsbn(isbnQuantityPairs, invalidRows, totalRows, duplicateRowsSkipped);
