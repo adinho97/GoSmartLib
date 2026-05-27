@@ -39,6 +39,10 @@ public class BulkImportService {
     }
 
     public ParsedBulkIsbn parseAndValidate(MultipartFile file) {
+        return parseAndValidate(file, null);
+    }
+
+    public ParsedBulkIsbn parseAndValidate(MultipartFile file, String defaultConditionStr) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File is required");
         }
@@ -46,6 +50,15 @@ public class BulkImportService {
         String filename = file.getOriginalFilename();
         if (filename == null) {
             throw new IllegalArgumentException("File name is required");
+        }
+
+        BookCopy.CopyCondition defaultCondition = BookCopy.CopyCondition.GOOD;
+        if (defaultConditionStr != null && !defaultConditionStr.trim().isEmpty()) {
+            try {
+                defaultCondition = BookCopy.CopyCondition.valueOf(defaultConditionStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Ongeldige standaard staat. Gebruik GOOD, MODERATE of BAD");
+            }
         }
 
         String lowerName = filename.toLowerCase(Locale.ROOT);
@@ -56,7 +69,7 @@ public class BulkImportService {
             throw new IllegalArgumentException("Unsupported file type. Use CSV, XLS or XLSX.");
         }
 
-        ParsedBulkIsbn parsed = isCsv ? parseCsvIsbns(file) : parseExcelIsbns(file);
+        ParsedBulkIsbn parsed = isCsv ? parseCsvIsbns(file, defaultCondition) : parseExcelIsbns(file, defaultCondition);
 
         if (parsed.totalRows() > BULK_IMPORT_MAX_ROWS) {
             throw new IllegalArgumentException(
@@ -67,6 +80,10 @@ public class BulkImportService {
     }
 
     private ParsedBulkIsbn parseCsvIsbns(MultipartFile file) {
+        return parseCsvIsbns(file, BookCopy.CopyCondition.GOOD);
+    }
+
+    private ParsedBulkIsbn parseCsvIsbns(MultipartFile file, BookCopy.CopyCondition defaultCondition) {
         List<IsbnQuantityPair> isbnQuantityPairs = new ArrayList<>();
         List<ImportResultDto.RowResult> invalidRows = new ArrayList<>();
         int totalRows = 0;
@@ -114,7 +131,7 @@ public class BulkImportService {
                     }
                 }
 
-                BookCopy.CopyCondition condition = BookCopy.CopyCondition.GOOD;
+                BookCopy.CopyCondition condition = defaultCondition;
                 if (columns.length > 2 && !columns[2].trim().isEmpty()) {
                     try {
                         condition = BookCopy.CopyCondition.valueOf(columns[2].trim().toUpperCase());
@@ -148,6 +165,10 @@ public class BulkImportService {
     }
 
     private ParsedBulkIsbn parseExcelIsbns(MultipartFile file) {
+        return parseExcelIsbns(file, BookCopy.CopyCondition.GOOD);
+    }
+
+    private ParsedBulkIsbn parseExcelIsbns(MultipartFile file, BookCopy.CopyCondition defaultCondition) {
         List<IsbnQuantityPair> isbnQuantityPairs = new ArrayList<>();
         List<ImportResultDto.RowResult> invalidRows = new ArrayList<>();
         int totalRows = 0;
@@ -204,7 +225,7 @@ public class BulkImportService {
                     }
                 }
 
-                BookCopy.CopyCondition condition = BookCopy.CopyCondition.GOOD;
+                BookCopy.CopyCondition condition = defaultCondition;
                 Cell conditionCell = row.getCell(2);
                 if (conditionCell != null) {
                     String conditionStr = formatter.formatCellValue(conditionCell).trim();
