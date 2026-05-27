@@ -288,8 +288,9 @@ public class ReviewService {
                     })
                     .collectList()
                     .block();
-        } catch (Exception ex) {
-            logger.warn("Failed to resolve reviewer display names", ex);
+        } catch (RuntimeException ex) {
+            logger.warn("Failed to resolve reviewer display names ({}): {}",
+                    ex.getClass().getSimpleName(), ex.getMessage(), ex);
         }
     }
 

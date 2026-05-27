@@ -3,12 +3,17 @@ package com.example.demo.controllers;
 import com.example.demo.services.SuperAdminAuthService;
 import com.example.demo.dto.SuperAdminLoginRequest;
 import com.example.demo.dto.SuperAdminLoginResponse;
+import io.jsonwebtoken.JwtException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin")
 public class SuperAdminAuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(SuperAdminAuthController.class);
 
     private final SuperAdminAuthService superAdminAuthService;
 
@@ -30,6 +35,7 @@ public class SuperAdminAuthController {
             SuperAdminLoginResponse response = superAdminAuthService.login(request);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
+            logger.warn("Super admin login failed for username='{}': {}", request.getUsername(), e.getMessage(), e);
             return ResponseEntity.status(401).body(e.getMessage());
         }
     }
@@ -52,9 +58,12 @@ public class SuperAdminAuthController {
                     request.getPassword());
 
             return ResponseEntity.ok("Super admin created successfully");
-        } catch (RuntimeException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            logger.warn("Super admin setup rejected: {}", e.getMessage(), e);
             return ResponseEntity.status(400).body(e.getMessage());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            logger.error("Super admin setup failed unexpectedly ({}): {}",
+                    e.getClass().getSimpleName(), e.getMessage(), e);
             return ResponseEntity.status(500).body("Setup failed: " + e.getMessage());
         }
     }
@@ -89,7 +98,11 @@ public class SuperAdminAuthController {
             }
 
             return ResponseEntity.ok("Token is valid");
-        } catch (Exception e) {
+        } catch (JwtException e) {
+            logger.debug("JWT validation failed: {}", e.getMessage(), e);
+            return ResponseEntity.status(401).body("Token validation failed: " + e.getMessage());
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error during token validation", e);
             return ResponseEntity.status(401).body("Token validation failed: " + e.getMessage());
         }
     }
@@ -116,7 +129,11 @@ public class SuperAdminAuthController {
 
             AdminInfoResponse info = new AdminInfoResponse(userId, username, role);
             return ResponseEntity.ok(info);
-        } catch (Exception e) {
+        } catch (JwtException e) {
+            logger.debug("JWT validation failed while fetching admin info: {}", e.getMessage(), e);
+            return ResponseEntity.status(401).body("Failed to get admin info: " + e.getMessage());
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error fetching admin info", e);
             return ResponseEntity.status(401).body("Failed to get admin info: " + e.getMessage());
         }
     }
@@ -143,9 +160,12 @@ public class SuperAdminAuthController {
             superAdminAuthService.changeSuperAdminPassword(userId, request.getOldPassword(), request.getNewPassword());
 
             return ResponseEntity.ok("Password changed successfully");
-        } catch (RuntimeException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            logger.warn("Password change rejected: {}", e.getMessage(), e);
             return ResponseEntity.status(400).body(e.getMessage());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error while changing password ({}): {}",
+                    e.getClass().getSimpleName(), e.getMessage(), e);
             return ResponseEntity.status(500).body("Failed to change password: " + e.getMessage());
         }
     }

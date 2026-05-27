@@ -51,12 +51,15 @@ public class LoanController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(loanService.createLoan(request, authentication.getName()));
         } catch (IllegalArgumentException e) {
-            logger.warn("Loan creation validation error: {}", e.getMessage());
+            logger.warn("Loan creation validation error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (IllegalStateException e) {
-            logger.warn("Loan creation conflict: {}", e.getMessage());
+            logger.warn("Loan creation conflict: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } catch (Exception e) {
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Database error creating loan", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
             logger.error("Unexpected error creating loan", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -74,12 +77,15 @@ public class LoanController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(loanService.createLoans(requests, authentication.getName()));
         } catch (IllegalArgumentException e) {
-            logger.warn("Bulk loan validation error: {}", e.getMessage());
+            logger.warn("Bulk loan validation error: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         } catch (IllegalStateException e) {
-            logger.warn("Bulk loan creation conflict: {}", e.getMessage());
+            logger.warn("Bulk loan creation conflict: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } catch (Exception e) {
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.error("Database error creating bulk loans", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
             logger.error("Unexpected error creating bulk loans", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
