@@ -104,6 +104,36 @@ export class AdminSchoolDetailComponent implements OnInit {
       icon: "list",
     },
     {
+      label: "Leeslijst aanmaken",
+      sub: "Nieuwe leeslijst opstellen",
+      route: "/leeslijst-create",
+      icon: "create-list",
+    },
+    {
+      label: "Ontleningen verlengen",
+      sub: "Uitleentermijnen verlengen",
+      route: "/ontleningen-verlengen",
+      icon: "renew",
+    },
+    {
+      label: "Leerkracht promoten",
+      sub: "Rol upgraden naar bibbeheerder",
+      route: "/teacher-promotion",
+      icon: "promote",
+    },
+    {
+      label: "ISBN bulk toevoegen",
+      sub: "Meerdere boeken via ISBN",
+      route: "/isbn-bulk",
+      icon: "bulk",
+    },
+    {
+      label: "School-instellingen",
+      sub: "Openingsuren, berichten, genres",
+      route: "/settings",
+      icon: "settings",
+    },
+    {
       label: "FAQ & Inhoud",
       sub: "Inhoud & veelgestelde vragen",
       route: "/info",
