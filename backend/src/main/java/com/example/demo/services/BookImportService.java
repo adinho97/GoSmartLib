@@ -7,6 +7,8 @@ import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +18,8 @@ import java.util.List;
 
 @Service
 public class BookImportService {
+
+    private static final Logger logger = LoggerFactory.getLogger(BookImportService.class);
 
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
@@ -127,7 +131,9 @@ public class BookImportService {
                             "Boek is geimporteerd, maar er is een fout opgetreden bij het toevoegen van exemplaren.",
                             bookIdForDiagnostic));
                 }
-            } catch (Exception ex) {
+            } catch (RuntimeException ex) {
+                logger.warn("Bulk import failed for ISBN {} ({}): {}",
+                        isbn, ex.getClass().getSimpleName(), ex.getMessage(), ex);
                 rows.add(new ImportResultDto.RowResult(
                         isbn,
                         ImportResultDto.Status.ERROR,

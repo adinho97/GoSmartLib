@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -147,8 +148,9 @@ public class SuperAdminAuthService {
                 hex.append(String.format("%02x", b));
             }
             return hex.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to hash setup token", e);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("SHA-256 not available on this JVM - cannot hash setup token", e);
+            throw new IllegalStateException("Failed to hash setup token: SHA-256 unavailable", e);
         }
     }
 

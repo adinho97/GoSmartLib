@@ -119,8 +119,16 @@ public class OneRosterSyncService {
                     result.getClassesCreated(), result.getClassesUpdated(),
                     result.getUsersCreated(), result.getUsersUpdated(),
                     result.getUsersDeparted(), result.getSkipped());
-        } catch (Exception e) {
-            logger.warn("OneRoster sync failed for subdomain {}: {}", subdomain, e.getMessage(), e);
+        } catch (org.springframework.dao.DataAccessException e) {
+            logger.warn("OneRoster sync DB error for subdomain {}: {}", subdomain, e.getMessage(), e);
+            result.addError(e.getClass().getSimpleName() + ": " + e.getMessage());
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            logger.warn("OneRoster sync HTTP error for subdomain {} (status={}): {}",
+                    subdomain, e.getStatusCode(), e.getMessage(), e);
+            result.addError(e.getClass().getSimpleName() + ": " + e.getMessage());
+        } catch (RuntimeException e) {
+            logger.warn("OneRoster sync failed for subdomain {} ({}): {}",
+                    subdomain, e.getClass().getSimpleName(), e.getMessage(), e);
             result.addError(e.getClass().getSimpleName() + ": " + e.getMessage());
         } finally {
             inFlightSubdomains.remove(guardKey);

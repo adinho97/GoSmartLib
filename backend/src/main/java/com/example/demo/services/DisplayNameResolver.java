@@ -199,12 +199,12 @@ public class DisplayNameResolver {
             }
             oneRosterLastFetch.put(subdomain, now);
             logger.debug("OneRoster name cache populated for {} ({} users)", subdomain, seen.size());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             // Mark as recently attempted even on failure, so a down OneRoster API
             // doesn't get hammered on every request. The cooldown will expire.
             oneRosterLastFetch.put(subdomain, now);
-            logger.warn("OneRoster name fetch failed for {}: {}; using per-user Smartschool fallback",
-                    subdomain, e.getMessage());
+            logger.warn("OneRoster name fetch failed for {} ({}): {}; using per-user Smartschool fallback",
+                    subdomain, e.getClass().getSimpleName(), e.getMessage(), e);
         }
     }
 
