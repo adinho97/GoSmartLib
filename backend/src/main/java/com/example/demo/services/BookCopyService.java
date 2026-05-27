@@ -23,13 +23,16 @@ public class BookCopyService {
     private final BookCopyRepository bookCopyRepository;
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
+    private final BookDeletionService bookDeletionService;
 
     public BookCopyService(BookCopyRepository bookCopyRepository,
             BookRepository bookRepository,
-            LoanRepository loanRepository) {
+            LoanRepository loanRepository,
+            BookDeletionService bookDeletionService) {
         this.bookCopyRepository = bookCopyRepository;
         this.bookRepository = bookRepository;
         this.loanRepository = loanRepository;
+        this.bookDeletionService = bookDeletionService;
     }
 
     public Map<String, Long> getSummary(Long bookId) {
@@ -97,8 +100,18 @@ public class BookCopyService {
                     "COPY_LOANED");
         }
 
+        Book book = copy.getBook();
+        Long bookId = book.getId();
+        Long schoolId = book.getSchool() != null ? book.getSchool().getId() : null;
+
         loanRepository.deleteByCopy_Id(resolvedId);
         bookCopyRepository.deleteById(resolvedId);
+
+        // Automatically delete book if it has no more copies
+        long remainingCopies = bookCopyRepository.countByBook_Id(bookId);
+        if (remainingCopies == 0) {
+            bookDeletionService.deleteBook(bookId, schoolId);
+        }
     }
 
     private CopyDto toDto(BookCopy copy) {
