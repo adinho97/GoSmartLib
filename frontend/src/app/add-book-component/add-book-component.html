@@ -238,6 +238,20 @@
         >
       </div>
 
+      <!-- Staat van exemplaren -->
+      <div class="form-row">
+        <label for="copyCondition">Staat van exemplaren</label>
+        <select
+          id="copyCondition"
+          name="copyCondition"
+          [(ngModel)]="copyCondition"
+        >
+          <option value="GOOD">Goed</option>
+          <option value="MODERATE">Matig</option>
+          <option value="BAD">Slecht</option>
+        </select>
+      </div>
+
       <button
         type="submit"
         class="submit-btn"

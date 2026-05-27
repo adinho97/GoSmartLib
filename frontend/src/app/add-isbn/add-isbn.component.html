@@ -28,6 +28,15 @@
       />
     </div>
 
+    <div class="isbn-input-row exemplaren-row">
+      <label>Staat van exemplaren</label>
+      <select [(ngModel)]="copyCondition" class="exemplaren-input">
+        <option value="GOOD">Goed</option>
+        <option value="MODERATE">Matig</option>
+        <option value="BAD">Slecht</option>
+      </select>
+    </div>
+
     @if (errorMessage) {
       <p class="error-message">{{ errorMessage }}</p>
     }
