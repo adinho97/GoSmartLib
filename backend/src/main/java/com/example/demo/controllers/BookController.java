@@ -172,6 +172,7 @@ public class BookController {
     @PostMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> importByIsbn(@PathVariable @NonNull String isbn,
             @RequestParam(required = false) Long schoolId,
+            @RequestParam(required = false, defaultValue = "false") boolean isDidactisch,
             @RequestBody(required = false) ImportByIsbnRequest request) {
         BookDto dto = null;
         try {
@@ -181,7 +182,7 @@ public class BookController {
             }
             
             for (int i = 0; i < quantity; i++) {
-                dto = bookImportService.importByIsbn(isbn, schoolId);
+                dto = bookImportService.importByIsbn(isbn, schoolId, isDidactisch);
                 if (i == quantity - 1) {
                     return ResponseEntity.ok(dto);
                 }
@@ -201,9 +202,10 @@ public class BookController {
     public ResponseEntity<ImportResultDto> importBulkByIsbn(
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) Long schoolId,
-            @RequestParam(required = false) String defaultCondition) {
+            @RequestParam(required = false) String defaultCondition,
+            @RequestParam(required = false, defaultValue = "false") boolean isDidactisch) {
         try {
-            ImportResultDto result = bookImportService.importBulkByIsbn(file, schoolId, defaultCondition);
+            ImportResultDto result = bookImportService.importBulkByIsbn(file, schoolId, defaultCondition, isDidactisch);
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().build();

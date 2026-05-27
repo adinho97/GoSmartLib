@@ -24,6 +24,7 @@ export class AddIsbnComponent {
   successMessage = "";
   book: any = null;
   copiesTotalCount: number = 0;
+  isDidacticMode = false;
 
   constructor(
     private bookService: BookService,
@@ -102,6 +103,7 @@ export class AddIsbnComponent {
       const savedBook = await this.bookService.importBookByIsbn(
         isbnToImport,
         this.selectedSchoolId ?? undefined,
+        this.isDidacticMode,
       );
       console.log("savedBook:", savedBook);
 
@@ -179,5 +181,9 @@ export class AddIsbnComponent {
       // Trim array
       this.copyConditionsArray = this.copyConditionsArray.slice(0, newLength);
     }
+  }
+
+  toggleDidactic(): void {
+    this.isDidacticMode = !this.isDidacticMode;
   }
 }

@@ -30,6 +30,7 @@ export class AddBulkComponent {
   selectedStatusFilter: "" | BulkImportStatus = "";
   copyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
   currentPage = 1;
+  isDidacticMode = false;
 
   isUploading = false;
   errorMessage = "";
@@ -85,6 +86,7 @@ export class AddBulkComponent {
         this.selectedFile,
         this.selectedSchoolId ?? undefined,
         this.copyCondition,
+        this.isDidacticMode,
       );
 
       const addedCount = this.getStatusCount("ADDED");

@@ -246,6 +246,14 @@
             />
           </div>
 
+          <!-- Didactisch toggle -->
+          <div class="modal-copies-section">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="isDidacticMode" />
+              Didactisch boek (lerarencollectie)
+            </label>
+          </div>
+
           @for (condition of copyConditionsArray; track $index) {
             <div class="modal-copies-section">
               <label>Staat van exemplaar {{ $index + 1 }}:</label>
