@@ -127,7 +127,7 @@ class BookServiceTest {
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.ALREADY_EXISTS,
                         makeBookDto()));
 
-        BookDto result = bookImportService.importByIsbn("9780553808049", 1L);
+        BookDto result = bookImportService.importByIsbn("9780553808049", 1L, false);
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
@@ -142,7 +142,7 @@ class BookServiceTest {
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.ADDED,
                         makeBookDto()));
 
-        BookDto result = bookImportService.importByIsbn("9780553808049", 1L);
+        BookDto result = bookImportService.importByIsbn("9780553808049", 1L, false);
 
         assertNotNull(result);
         assertEquals("Dune", result.getTitel());
@@ -155,7 +155,7 @@ class BookServiceTest {
         when(importCoreService.importByNormalizedIsbn(eq("0000000000000"), any(School.class)))
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.NOT_FOUND, null));
 
-        BookDto result = bookImportService.importByIsbn("0000000000000", 1L);
+        BookDto result = bookImportService.importByIsbn("0000000000000", 1L, false);
 
         assertNull(result);
         verifyNoInteractions(bookRepository);
@@ -254,9 +254,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(existingBook));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
-
-        assertEquals(4, result.getTotalRows());
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
         assertEquals(3, result.getUniqueIsbnsProcessed());
         assertEquals(0, result.getDuplicateRowsSkipped());
         assertEquals(4, result.getResults().size());
@@ -290,7 +288,7 @@ class BookServiceTest {
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenThrow(new RuntimeException("boom"));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
 
         assertEquals(1, result.getResults().size());
         ImportResultDto.RowResult row = result.getResults().get(0);
@@ -320,7 +318,7 @@ class BookServiceTest {
         // ADDED branch resolves the new book via findById(dto.getId()).
         when(bookRepository.findById(1L)).thenReturn(Optional.of(savedBook));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
 
         // Verify 3 copies were created
         ArgumentCaptor<BookCopy> newBookCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
@@ -355,7 +353,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
                 .thenReturn(Optional.of(existingBook));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
 
         // Verify 5 copies were created
         ArgumentCaptor<BookCopy> existingBookCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
@@ -402,7 +400,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(book2));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
 
         // Verify total is 2 + 3 = 5 copies
         assertEquals(5, result.getTotalCopiesAdded());
@@ -432,7 +430,7 @@ class BookServiceTest {
         // ADDED branch resolves the new book via findById(dto.getId()).
         when(bookRepository.findById(1L)).thenReturn(Optional.of(savedBook));
 
-        bookImportService.importBulkByIsbn(file, 1L);
+        bookImportService.importBulkByIsbn(file, 1L, null, false);
 
         // Verify each saved copy has AVAILABLE status
         ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);

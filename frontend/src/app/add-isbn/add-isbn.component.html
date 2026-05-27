@@ -60,6 +60,18 @@
       </div>
     }
 
+    <!-- Didactisch toggle -->
+    <div class="isbn-input-row exemplaren-row">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [(ngModel)]="isDidacticMode"
+          (change)="toggleDidactic()"
+        />
+        Didactisch boek (lerarencollectie)
+      </label>
+    </div>
+
     @if (errorMessage) {
       <p class="error-message">{{ errorMessage }}</p>
     }

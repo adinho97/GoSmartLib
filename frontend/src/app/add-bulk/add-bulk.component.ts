@@ -6,6 +6,7 @@ import {
   BulkImportStatus,
 } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
+import { LoanService } from "../services/loan.service";
 import * as XLSX from "xlsx";
 
 @Component({
@@ -29,15 +30,33 @@ export class AddBulkComponent {
   selectedStatusFilter: "" | BulkImportStatus = "";
   copyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
   currentPage = 1;
+  isDidacticMode = false;
 
   isUploading = false;
   errorMessage = "";
   successMessage = "";
   result: BulkImportResult | null = null;
 
+  // Preview step properties
+  showPreview = false;
+  previewBooks: Array<{
+    isbn: string;
+    quantity: number;
+    condition: "GOOD" | "MODERATE" | "BAD";
+    isDidactisch: boolean;
+  }> = [];
+
+  // Logic for manual fix (matches add-isbn.component.ts)
+  showFixModal = false;
+  pendingFixBook: any = null;
+  aantalExemplaren: number = 1;
+  copyConditionsArray: ("GOOD" | "MODERATE" | "BAD")[] = ["GOOD"];
+  isConfirmingFix = false;
+
   constructor(
     private bookService: BookService,
     private schoolService: SchoolService,
+    private loanService: LoanService,
   ) {
     void this.loadUserSchool();
   }
@@ -51,11 +70,132 @@ export class AddBulkComponent {
     const input = event.target as HTMLInputElement;
     const file = input.files && input.files.length > 0 ? input.files[0] : null;
     this.selectedFile = file;
-    this.selectedStatusFilter = "";
-    this.currentPage = 1;
     this.errorMessage = "";
     this.successMessage = "";
     this.result = null;
+    this.showPreview = false;
+    this.previewBooks = [];
+
+    if (file) {
+      this.parseAndShowPreview(file);
+    }
+  }
+
+  private parseAndShowPreview(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      try {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: "array" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+        this.previewBooks = [];
+        const seenIsbns = new Set<string>();
+
+        for (const row of rows) {
+          const rowData = row as Record<string, any>;
+          const isbn =
+            (rowData["ISBN"] || rowData["isbn"] || rowData["Isbn"] || "")
+              .toString()
+              .trim() || "";
+          if (!isbn || seenIsbns.has(isbn)) {
+            continue;
+          }
+
+          seenIsbns.add(isbn);
+          const quantity =
+            parseInt(rowData["Aantal"] || rowData["Quantity"] || "1") || 1;
+
+          this.previewBooks.push({
+            isbn,
+            quantity: Math.max(1, quantity),
+            condition: "GOOD",
+            isDidactisch: false,
+          });
+        }
+
+        if (this.previewBooks.length === 0) {
+          this.errorMessage =
+            "Geen geldige ISBN-nummers gevonden in het bestand.";
+        } else {
+          this.showPreview = true;
+        }
+      } catch (err) {
+        this.errorMessage = "Fout bij het parseren van het bestand.";
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+
+  cancelPreview() {
+    this.showPreview = false;
+    this.previewBooks = [];
+    this.selectedFile = null;
+    this.errorMessage = "";
+  }
+
+  async saveBooks() {
+    if (this.previewBooks.length === 0 || !this.selectedFile) {
+      this.errorMessage = "Geen boeken om op te slaan.";
+      return;
+    }
+
+    this.isUploading = true;
+    this.errorMessage = "";
+    this.successMessage = "";
+    this.result = null;
+    this.selectedStatusFilter = "";
+    this.currentPage = 1;
+
+    try {
+      // Create a FormData with all the preview book data
+      const formData = new FormData();
+      formData.append("file", this.selectedFile);
+
+      // Append each preview book's configuration
+      this.previewBooks.forEach((book, index) => {
+        formData.append(`books[${index}].isbn`, book.isbn);
+        formData.append(`books[${index}].quantity`, book.quantity.toString());
+        formData.append(`books[${index}].condition`, book.condition);
+        formData.append(
+          `books[${index}].isDidactisch`,
+          book.isDidactisch.toString(),
+        );
+      });
+
+      this.result = await this.bookService.importBooksByUpload(
+        this.selectedFile,
+        this.selectedSchoolId ?? undefined,
+        this.previewBooks[0]?.condition || this.copyCondition,
+        this.previewBooks.some((b) => b.isDidactisch),
+      );
+
+      const addedCount = this.getStatusCount("ADDED");
+      this.successMessage = `Upload verwerkt. ${addedCount} boeken toegevoegd.`;
+      this.showPreview = false;
+      this.previewBooks = [];
+    } catch (err: any) {
+      this.errorMessage =
+        err?.response?.data?.message ||
+        "Er ging iets mis bij het verwerken van het bestand.";
+    } finally {
+      this.isUploading = false;
+    }
+  }
+
+  updatePreviewBook(index: number, field: string, value: any) {
+    if (index >= 0 && index < this.previewBooks.length) {
+      const book = this.previewBooks[index];
+      if (field === "quantity") {
+        book.quantity = Math.max(1, parseInt(value) || 1);
+      } else if (field === "condition") {
+        book.condition = value as "GOOD" | "MODERATE" | "BAD";
+      } else if (field === "isDidactisch") {
+        book.isDidactisch = value;
+      }
+    }
   }
 
   async uploadFile() {
@@ -76,6 +216,7 @@ export class AddBulkComponent {
         this.selectedFile,
         this.selectedSchoolId ?? undefined,
         this.copyCondition,
+        this.isDidacticMode,
       );
 
       const addedCount = this.getStatusCount("ADDED");
@@ -94,6 +235,95 @@ export class AddBulkComponent {
       return 0;
     }
     return this.result.results.filter((row) => row.status === status).length;
+  }
+
+  async fixRowManually(row: BulkImportRowResult) {
+    this.errorMessage = "";
+    this.successMessage = "";
+    this.isUploading = true;
+    try {
+      // Same search logic as add-isbn
+      const libraryBook = await this.bookService.getBookByIsbnFromLibrary(
+        row.isbn,
+        this.selectedSchoolId ?? undefined,
+      );
+
+      const book =
+        libraryBook || (await this.bookService.fetchBookByIsbn(row.isbn));
+      const isAlreadyInLibrary = libraryBook !== null;
+
+      let copiesTotalCount = 0;
+      if (isAlreadyInLibrary && libraryBook?.id) {
+        const summary = await this.loanService.getCopySummary(libraryBook.id);
+        copiesTotalCount = summary.total;
+      }
+
+      this.pendingFixBook = {
+        isbn: row.isbn,
+        book: book,
+        isAlreadyInLibrary,
+        copiesTotalCount,
+      };
+      this.aantalExemplaren = 1;
+      this.copyConditionsArray = ["GOOD"];
+      this.showFixModal = true;
+    } catch (err) {
+      this.errorMessage = "Boek details konden niet worden opgehaald.";
+    } finally {
+      this.isUploading = false;
+    }
+  }
+
+  updateCopyConditionsArray(): void {
+    const newLength = Math.max(1, this.aantalExemplaren);
+    if (this.copyConditionsArray.length < newLength) {
+      this.copyConditionsArray = [
+        ...this.copyConditionsArray,
+        ...Array(newLength - this.copyConditionsArray.length).fill("GOOD"),
+      ];
+    } else if (this.copyConditionsArray.length > newLength) {
+      this.copyConditionsArray = this.copyConditionsArray.slice(0, newLength);
+    }
+  }
+
+  async confirmFix() {
+    if (!this.pendingFixBook || this.isConfirmingFix) return;
+    this.isConfirmingFix = true;
+    this.errorMessage = "";
+
+    try {
+      const isbn = this.pendingFixBook.isbn;
+      const savedBook = await this.bookService.importBookByIsbn(
+        isbn,
+        this.selectedSchoolId ?? undefined,
+      );
+
+      if (savedBook?.id && this.aantalExemplaren > 0) {
+        const promises = this.copyConditionsArray.map((condition) =>
+          this.loanService.addCopy(savedBook.id, condition),
+        );
+        await Promise.all(promises);
+      }
+
+      if (this.result) {
+        const idx = this.result.results.findIndex((r) => r.isbn === isbn);
+        if (idx !== -1) {
+          this.result.results[idx].status = "ADDED";
+          this.result.results[idx].message = "Handmatig toegevoegd";
+        }
+      }
+      this.successMessage = `Boek succesvol toegevoegd met ${this.aantalExemplaren} exemplaren.`;
+      this.showFixModal = false;
+    } catch (err) {
+      this.errorMessage = "Fout bij handmatig toevoegen.";
+    } finally {
+      this.isConfirmingFix = false;
+    }
+  }
+
+  cancelFix() {
+    this.showFixModal = false;
+    this.pendingFixBook = null;
   }
 
   get unresolvedRows(): BulkImportRowResult[] {

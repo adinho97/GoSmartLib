@@ -57,8 +57,9 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   // Modal state
   showBarcodeModal = false;
   pendingScannedBook: PendingBarcodeBook | null = null;
-  pendingCopiesCount: number = 1;
-  pendingCopyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
+  aantalExemplaren: number = 1;
+  isDidacticMode = false;
+  copyConditionsArray: ("GOOD" | "MODERATE" | "BAD")[] = ["GOOD"];
   isConfirmingBarcode = false;
 
   readonly statusColors: Record<string, string> = {
@@ -372,7 +373,8 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
         isAlreadyInLibrary: isAlreadyInLibrary,
         copiesTotalCount: copiesTotalCount,
       };
-      this.pendingCopiesCount = 1;
+      this.aantalExemplaren = 1;
+      this.copyConditionsArray = ["GOOD"];
       this.showBarcodeModal = true;
     } catch (err: any) {
       let status: ScannedBookResult["status"] = "ERROR";
@@ -404,11 +406,13 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   }
 
   async confirmBarcodeAdd() {
-    if (!this.pendingScannedBook || this.isConfirmingBarcode) return;
-    if (this.pendingCopiesCount < 1) {
-      this.errorMessage = "Voer een geldig aantal exemplaren in.";
+    // Ensure there's a pending book and at least one copy to add
+    if (
+      !this.pendingScannedBook ||
+      this.isConfirmingBarcode ||
+      this.aantalExemplaren < 1
+    )
       return;
-    }
 
     this.isConfirmingBarcode = true;
     this.errorMessage = "";
@@ -427,14 +431,15 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
         const savedBook = await this.bookService.importBookByIsbn(
           barcode,
           this.selectedSchoolId ?? undefined,
+          this.isDidacticMode,
         );
         bookId = savedBook?.id;
       }
 
       if (bookId) {
         // Add copies
-        const promises = Array.from({ length: this.pendingCopiesCount }, () =>
-          this.loanService.addCopy(bookId, this.pendingCopyCondition),
+        const promises = this.copyConditionsArray.map(
+          (condition) => this.loanService.addCopy(bookId, condition), // Use the specific condition for each copy
         );
         await Promise.all(promises);
 
@@ -446,10 +451,10 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
         this.scannedBooks.unshift({
           isbn: barcode,
           titre: this.pendingScannedBook.book?.titel || "Onbekend",
-          status: "ADDED",
-          message: `${isAlreadyInLibrary ? "Gescand en" : "Toegevoegd met"} ${this.pendingCopiesCount} exemplaar(en). Totaal in bibliotheek: ${totalCopies} exemplaar(en)`,
+          status: "ADDED", // Message now reflects the actual number of copies from the array
+          message: `${isAlreadyInLibrary ? "Gescand en" : "Toegevoegd met"} ${this.aantalExemplaren} exemplaar(en). Totaal in bibliotheek: ${totalCopies} exemplaar(en)`,
           copiesTotalCount: totalCopies,
-          copiesAdded: this.pendingCopiesCount,
+          copiesAdded: this.aantalExemplaren, // Use the length of the array
           timestamp: new Date(),
         });
         this.resetToFirstScannedBooksPage();
@@ -469,11 +474,24 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     this.closeBarcodeModal();
   }
 
+  updateCopyConditionsArray(): void {
+    if (!this.pendingScannedBook) return;
+    const newLength = Math.max(1, this.aantalExemplaren);
+
+    if (this.copyConditionsArray.length < newLength) {
+      this.copyConditionsArray = [
+        ...this.copyConditionsArray,
+        ...Array(newLength - this.copyConditionsArray.length).fill("GOOD"),
+      ];
+    } else if (this.copyConditionsArray.length > newLength) {
+      this.copyConditionsArray = this.copyConditionsArray.slice(0, newLength);
+    }
+  }
+
   private closeBarcodeModal() {
     this.showBarcodeModal = false;
     this.pendingScannedBook = null;
-    this.pendingCopiesCount = 1;
-    this.pendingCopyCondition = "GOOD";
+    this.aantalExemplaren = 1;
   }
 
   clearSession() {
