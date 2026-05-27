@@ -13,6 +13,18 @@
         (change)="onFileSelected($event)"
         [disabled]="isUploading"
       />
+      <label for="copyCondition"
+        >Standaard staat (indien niet in bestand)</label
+      >
+      <select
+        id="copyCondition"
+        [(ngModel)]="copyCondition"
+        [disabled]="isUploading"
+      >
+        <option value="GOOD">Goed</option>
+        <option value="MODERATE">Matig</option>
+        <option value="BAD">Slecht</option>
+      </select>
       <button (click)="uploadFile()" [disabled]="isUploading || !selectedFile">
         {{ isUploading ? "Verwerken..." : "Upload en verwerk" }}
       </button>
@@ -29,8 +41,9 @@
       Ondersteund: CSV, XLS, XLSX. Zorg dat je bestand minimaal een kolom heeft
       met het ISBN. Optioneel kun je een kolom 'Aantal' toevoegen voor de
       hoeveelheid exemplaren, en een kolom 'Staat' voor de conditie (GOOD,
-      MODERATE, of BAD). Duplicaten in hetzelfde bestand worden automatisch
-      overgeslagen.
+      MODERATE, of BAD). Je kunt ook een standaard staat instellen hieronder die
+      wordt gebruikt voor alle exemplaren zonder gespecificeerde staat in het
+      bestand. Duplicaten in hetzelfde bestand worden automatisch overgeslagen.
     </p>
 
     @if (errorMessage) {
