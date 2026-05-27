@@ -240,7 +240,7 @@ export const appRoutes: Routes = [
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
   {
-    path: "settings",
+    path: "instellingen",
     component: SettingsComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"]}
