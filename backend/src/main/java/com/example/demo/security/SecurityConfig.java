@@ -3,7 +3,7 @@ package com.example.demo.security;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; 
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -63,12 +63,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/setup").permitAll()
                         .requestMatchers("/api/admin/setup-status").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/admin/genres", "/api/admin/genres/**").authenticated()
-
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/admin/genres", "/api/admin/genres/**",
+                                "/api/admin/tags", "/api/admin/tags/**")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/settings/school/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/settings/school/**").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/uitleningen/all-active").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
-                        .requestMatchers("/api/uitleningen/inspectie/conditie").hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
-                        
+                        .requestMatchers("/api/uitleningen/inspectie/conditie")
+                        .hasAnyRole("BIBBEHEERDER", "SUPER_ADMIN")
+
                         .requestMatchers("/api/proxy/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -97,7 +102,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-User-Role", "X-User-Sub", "X-User-Name"));
+        configuration.setAllowedHeaders(
+                Arrays.asList("Authorization", "Content-Type", "X-User-Role", "X-User-Sub", "X-User-Name"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
