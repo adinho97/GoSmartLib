@@ -15,6 +15,7 @@ export class AddIsbnComponent {
   aantalExemplaren: number = 1;
   copyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
   readonly copyConditions = ["GOOD", "MODERATE", "BAD"] as const;
+  copyConditionsArray: ("GOOD" | "MODERATE" | "BAD")[] = ["GOOD"];
   isLoading = false;
   isImporting = false;
   isAlreadyInLibrary = false;
@@ -105,8 +106,8 @@ export class AddIsbnComponent {
       console.log("savedBook:", savedBook);
 
       if (savedBook?.id && this.aantalExemplaren > 0) {
-        const promises = Array.from({ length: this.aantalExemplaren }, () =>
-          this.loanService.addCopy(savedBook.id, this.copyCondition),
+        const promises = this.copyConditionsArray.map((condition) =>
+          this.loanService.addCopy(savedBook.id, condition),
         );
         await Promise.all(promises);
       }
@@ -145,8 +146,8 @@ export class AddIsbnComponent {
     this.successMessage = "";
 
     try {
-      const promises = Array.from({ length: this.aantalExemplaren }, () =>
-        this.loanService.addCopy(this.book.id, this.copyCondition),
+      const promises = this.copyConditionsArray.map((condition) =>
+        this.loanService.addCopy(this.book.id, condition),
       );
       await Promise.all(promises);
 
@@ -156,12 +157,27 @@ export class AddIsbnComponent {
 
       this.successMessage = `${this.aantalExemplaren} exemplaar(en) toegevoegd. Totaal: ${this.copiesTotalCount} exemplaren.`;
       this.aantalExemplaren = 1; // Reset to default
+      this.copyConditionsArray = ["GOOD"];
     } catch (err: any) {
       this.errorMessage =
         "Er ging iets mis bij het toevoegen van de exemplaren.";
       console.error("Error adding copies:", err);
     } finally {
       this.isImporting = false;
+    }
+  }
+
+  updateCopyConditionsArray(): void {
+    const newLength = Math.max(1, this.aantalExemplaren);
+    if (this.copyConditionsArray.length < newLength) {
+      // Add default conditions
+      this.copyConditionsArray = [
+        ...this.copyConditionsArray,
+        ...Array(newLength - this.copyConditionsArray.length).fill("GOOD"),
+      ];
+    } else if (this.copyConditionsArray.length > newLength) {
+      // Trim array
+      this.copyConditionsArray = this.copyConditionsArray.slice(0, newLength);
     }
   }
 }

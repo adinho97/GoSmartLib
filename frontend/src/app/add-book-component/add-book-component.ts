@@ -79,6 +79,7 @@ export class AddBookComponent implements OnInit {
   aantalExemplaren: number = 1;
   copyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
   readonly copyConditions = ["GOOD", "MODERATE", "BAD"] as const;
+  copyConditionsArray: ("GOOD" | "MODERATE" | "BAD")[] = ["GOOD"];
 
   book = {
     titel: "",
@@ -383,6 +384,20 @@ export class AddBookComponent implements OnInit {
     }
   }
 
+  updateCopyConditionsArray(): void {
+    const newLength = Math.max(1, this.aantalExemplaren);
+    if (this.copyConditionsArray.length < newLength) {
+      // Add default conditions
+      this.copyConditionsArray = [
+        ...this.copyConditionsArray,
+        ...Array(newLength - this.copyConditionsArray.length).fill("GOOD"),
+      ];
+    } else if (this.copyConditionsArray.length > newLength) {
+      // Trim array
+      this.copyConditionsArray = this.copyConditionsArray.slice(0, newLength);
+    }
+  }
+
   private resetForm(bookForm: NgForm) {
     this.book = {
       titel: "",
@@ -403,6 +418,7 @@ export class AddBookComponent implements OnInit {
     this.selectedNonDidacticGenres = [];
     this.selectedDidacticSubgenres = [];
     this.aantalExemplaren = 1;
+    this.copyConditionsArray = ["GOOD"];
     this.copyCondition = "GOOD";
     this.selectedCoverFile = null;
     this.goNumberLookup = "";

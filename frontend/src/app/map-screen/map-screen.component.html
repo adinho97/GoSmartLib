@@ -33,6 +33,7 @@
           <li
             class="school-item"
             [class.selected]="selectedSchool?.id === school.id"
+            [class.no-location]="!hasLocation(school)"
             (click)="zoomToSchool(school)"
           >
             <div class="school-details">
@@ -40,6 +41,9 @@
               <span class="school-address">{{
                 school.adres || "Geen adres beschikbaar"
               }}</span>
+              @if (!hasLocation(school)) {
+                <span class="no-location-hint">Locatie niet beschikbaar op kaart</span>
+              }
             </div>
           </li>
         } @empty {
