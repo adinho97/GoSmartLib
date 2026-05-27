@@ -52,7 +52,7 @@ public class BookCopyService {
                 .collect(Collectors.toList());
     }
 
-    public CopyDto addCopy(Long bookId) {
+    public CopyDto addCopy(Long bookId, BookCopy.CopyCondition condition) {
         Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
         Book book = bookRepository.findById(resolvedBookId)
                 .orElseThrow(() -> new ApiException("Boek niet gevonden", HttpStatus.NOT_FOUND, "BOOK_NOT_FOUND"));
@@ -60,7 +60,7 @@ public class BookCopyService {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
-        copy.setCondition(BookCopy.CopyCondition.GOOD);
+        copy.setCondition(condition != null ? condition : BookCopy.CopyCondition.GOOD);
         BookCopy saved = bookCopyRepository.save(copy);
         return toDto(saved);
     }

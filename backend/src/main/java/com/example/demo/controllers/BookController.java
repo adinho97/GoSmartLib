@@ -8,6 +8,7 @@ import com.example.demo.dto.PagedBookResponse;
 import com.example.demo.dto.ReviewDto;
 import com.example.demo.dto.UpdateLestipRequest;
 import com.example.demo.dto.UpdateReviewRequest;
+import com.example.demo.dto.ImportByIsbnRequest;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.services.BookDeletionService;
 import com.example.demo.services.BookImportService;
@@ -170,10 +171,21 @@ public class BookController {
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/isbn/{isbn}")
     public ResponseEntity<BookDto> importByIsbn(@PathVariable @NonNull String isbn,
-            @RequestParam(required = false) Long schoolId) {
+            @RequestParam(required = false) Long schoolId,
+            @RequestBody(required = false) ImportByIsbnRequest request) {
         BookDto dto;
         try {
-            dto = bookImportService.importByIsbn(isbn, schoolId);
+            int quantity = 1;
+            if (request != null && request.getCopyQuantity() != null) {
+                quantity = request.getCopyQuantity();
+            }
+            
+            for (int i = 0; i < quantity; i++) {
+                dto = bookImportService.importByIsbn(isbn, schoolId);
+                if (i == quantity - 1) {
+                    return ResponseEntity.ok(dto);
+                }
+            }
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().build();
         }

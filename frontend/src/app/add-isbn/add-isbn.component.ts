@@ -13,6 +13,8 @@ export class AddIsbnComponent {
   selectedSchoolId: number | null = null;
   isbn = "";
   aantalExemplaren: number = 1;
+  copyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
+  readonly copyConditions = ["GOOD", "MODERATE", "BAD"] as const;
   isLoading = false;
   isImporting = false;
   isAlreadyInLibrary = false;
@@ -54,7 +56,7 @@ export class AddIsbnComponent {
         trimmed,
         this.selectedSchoolId ?? undefined,
       );
-      
+
       if (libraryBook) {
         // Book exists in library
         this.book = libraryBook;
@@ -100,11 +102,11 @@ export class AddIsbnComponent {
         isbnToImport,
         this.selectedSchoolId ?? undefined,
       );
-      console.log('savedBook:', savedBook);
+      console.log("savedBook:", savedBook);
 
       if (savedBook?.id && this.aantalExemplaren > 0) {
         const promises = Array.from({ length: this.aantalExemplaren }, () =>
-          this.loanService.addCopy(savedBook.id),
+          this.loanService.addCopy(savedBook.id, this.copyCondition),
         );
         await Promise.all(promises);
       }
@@ -144,14 +146,14 @@ export class AddIsbnComponent {
 
     try {
       const promises = Array.from({ length: this.aantalExemplaren }, () =>
-        this.loanService.addCopy(this.book.id),
+        this.loanService.addCopy(this.book.id, this.copyCondition),
       );
       await Promise.all(promises);
 
       // Refresh copy count
       const summary = await this.loanService.getCopySummary(this.book.id);
       this.copiesTotalCount = summary.total;
-      
+
       this.successMessage = `${this.aantalExemplaren} exemplaar(en) toegevoegd. Totaal: ${this.copiesTotalCount} exemplaren.`;
       this.aantalExemplaren = 1; // Reset to default
     } catch (err: any) {

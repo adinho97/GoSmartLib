@@ -60,6 +60,7 @@ public class BookImportService {
         for (BulkImportService.IsbnQuantityPair pair : parsed.isbnQuantityPairs()) {
             String isbn = pair.isbn();
             int quantity = pair.quantity();
+            BookCopy.CopyCondition condition = pair.condition();
             try {
                 ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(isbn, school);
                 Book bookToAssociateCopies = null;
@@ -74,6 +75,7 @@ public class BookImportService {
                             BookCopy copy = new BookCopy();
                             copy.setBook(bookToAssociateCopies);
                             copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
+                            copy.setCondition(condition);
                             bookCopyRepository.save(copy);
                         }
                         totalCopiesAdded += quantity;
@@ -112,6 +114,7 @@ public class BookImportService {
                         BookCopy copy = new BookCopy();
                         copy.setBook(bookToAssociateCopies);
                         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
+                        copy.setCondition(condition);
                         bookCopyRepository.save(copy);
                     }
                     totalCopiesAdded += quantity;

@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.dto.ImportResultDto;
+import com.example.demo.entities.BookCopy;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -31,7 +32,10 @@ public class BulkImportService {
         this.isbnService = isbnService;
     }
 
-    public record IsbnQuantityPair(String isbn, int quantity) {
+    public record IsbnQuantityPair(String isbn, int quantity, BookCopy.CopyCondition condition) {
+        public IsbnQuantityPair(String isbn, int quantity) {
+            this(isbn, quantity, BookCopy.CopyCondition.GOOD);
+        }
     }
 
     public ParsedBulkIsbn parseAndValidate(MultipartFile file) {
@@ -80,7 +84,7 @@ public class BulkImportService {
                     continue;
                 }
 
-                String[] columns = splitColumns(trimmedLine);
+                String[] columns = splitCsvColumns(trimmedLine);
                 String rawFirstColumn = columns[0].trim();
 
                 if (lineNumber == 1 && rawFirstColumn.equalsIgnoreCase("isbn")) {
@@ -110,10 +114,25 @@ public class BulkImportService {
                     }
                 }
 
+                BookCopy.CopyCondition condition = BookCopy.CopyCondition.GOOD;
+                if (columns.length > 2 && !columns[2].trim().isEmpty()) {
+                    try {
+                        condition = BookCopy.CopyCondition.valueOf(columns[2].trim().toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        invalidRows.add(new ImportResultDto.RowResult(
+                                rawFirstColumn,
+                                ImportResultDto.Status.INVALID_ISBN,
+                                "Ongeldige staat. Gebruik GOOD, MODERATE of BAD",
+                                null));
+                        continue;
+                    }
+                }
+
                 RowProcessResult rowResult = processParsedIsbnValue(
                         rawFirstColumn,
                         lineNumber,
                         quantity,
+                        condition,
                         isbnQuantityPairs,
                         invalidRows,
                         true);
@@ -185,10 +204,29 @@ public class BulkImportService {
                     }
                 }
 
+                BookCopy.CopyCondition condition = BookCopy.CopyCondition.GOOD;
+                Cell conditionCell = row.getCell(2);
+                if (conditionCell != null) {
+                    String conditionStr = formatter.formatCellValue(conditionCell).trim();
+                    if (!conditionStr.isEmpty()) {
+                        try {
+                            condition = BookCopy.CopyCondition.valueOf(conditionStr.toUpperCase());
+                        } catch (IllegalArgumentException e) {
+                            invalidRows.add(new ImportResultDto.RowResult(
+                                    rawFirstColumn,
+                                    ImportResultDto.Status.INVALID_ISBN,
+                                    "Ongeldige staat. Gebruik GOOD, MODERATE of BAD",
+                                    null));
+                            continue;
+                        }
+                    }
+                }
+
                 RowProcessResult rowResult = processParsedIsbnValue(
                         rawFirstColumn,
                         lineNumber,
                         quantity,
+                        condition,
                         isbnQuantityPairs,
                         invalidRows,
                         false);
@@ -203,6 +241,26 @@ public class BulkImportService {
         }
 
         return new ParsedBulkIsbn(isbnQuantityPairs, invalidRows, totalRows, duplicateRowsSkipped);
+    }
+
+    private String[] splitCsvColumns(String line) {
+        List<String> result = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+        
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            } else if ((c == ',' || c == ';' || c == '\t') && !inQuotes) {
+                result.add(current.toString());
+                current = new StringBuilder();
+            } else {
+                current.append(c);
+            }
+        }
+        result.add(current.toString());
+        return result.toArray(new String[0]);
     }
 
     private String[] splitColumns(String line) {
@@ -237,6 +295,7 @@ public class BulkImportService {
             String rawFirstColumn,
             int lineNumber,
             int quantity,
+            BookCopy.CopyCondition condition,
             List<IsbnQuantityPair> isbnQuantityPairs,
             List<ImportResultDto.RowResult> invalidRows,
             boolean treatEmptyAsInvalid) {
@@ -269,7 +328,7 @@ public class BulkImportService {
             return RowProcessResult.DUPLICATE;
         }
 
-        isbnQuantityPairs.add(new IsbnQuantityPair(isbn, quantity));
+        isbnQuantityPairs.add(new IsbnQuantityPair(isbn, quantity, condition));
         return RowProcessResult.ADDED;
     }
 
