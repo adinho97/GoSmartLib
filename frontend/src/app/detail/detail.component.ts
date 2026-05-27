@@ -821,16 +821,32 @@ export class DetailComponent implements OnInit, OnDestroy {
     const badgeMap: Record<number, BadgeUnlocked> = {
       1: {
         title: "Ontgrendeld: je eerste review",
-        icon: "✍️",
+        iconKey: "rev",
         category: "review",
       },
-      5: { title: "Ontgrendeld: 5 reviews", icon: "✍️", category: "review" },
-      10: { title: "Ontgrendeld: 10 reviews", icon: "📝", category: "review" },
-      20: { title: "Ontgrendeld: 20 reviews", icon: "📝", category: "review" },
-      50: { title: "Ontgrendeld: 50 reviews", icon: "🌟", category: "review" },
+      5: {
+        title: "Ontgrendeld: 5 reviews",
+        iconKey: "recens",
+        category: "review",
+      },
+      10: {
+        title: "Ontgrendeld: 10 reviews",
+        iconKey: "crit",
+        category: "review",
+      },
+      20: {
+        title: "Ontgrendeld: 20 reviews",
+        iconKey: "schr",
+        category: "review",
+      },
+      50: {
+        title: "Ontgrendeld: 50 reviews",
+        iconKey: "lit",
+        category: "review",
+      },
       100: {
         title: "Ontgrendeld: 100 reviews",
-        icon: "👑",
+        iconKey: "master",
         category: "review",
       },
     };

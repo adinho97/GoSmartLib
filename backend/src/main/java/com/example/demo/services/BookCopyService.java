@@ -23,13 +23,16 @@ public class BookCopyService {
     private final BookCopyRepository bookCopyRepository;
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
+    private final BookDeletionService bookDeletionService;
 
     public BookCopyService(BookCopyRepository bookCopyRepository,
             BookRepository bookRepository,
-            LoanRepository loanRepository) {
+            LoanRepository loanRepository,
+            BookDeletionService bookDeletionService) {
         this.bookCopyRepository = bookCopyRepository;
         this.bookRepository = bookRepository;
         this.loanRepository = loanRepository;
+        this.bookDeletionService = bookDeletionService;
     }
 
     public Map<String, Long> getSummary(Long bookId) {
@@ -49,7 +52,7 @@ public class BookCopyService {
                 .collect(Collectors.toList());
     }
 
-    public CopyDto addCopy(Long bookId) {
+    public CopyDto addCopy(Long bookId, BookCopy.CopyCondition condition) {
         Long resolvedBookId = Objects.requireNonNull(bookId, "bookId is required");
         Book book = bookRepository.findById(resolvedBookId)
                 .orElseThrow(() -> new ApiException("Boek niet gevonden", HttpStatus.NOT_FOUND, "BOOK_NOT_FOUND"));
@@ -57,7 +60,7 @@ public class BookCopyService {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
-        copy.setCondition(BookCopy.CopyCondition.GOOD);
+        copy.setCondition(condition != null ? condition : BookCopy.CopyCondition.GOOD);
         BookCopy saved = bookCopyRepository.save(copy);
         return toDto(saved);
     }
@@ -97,8 +100,18 @@ public class BookCopyService {
                     "COPY_LOANED");
         }
 
+        Book book = copy.getBook();
+        Long bookId = book.getId();
+        Long schoolId = book.getSchool() != null ? book.getSchool().getId() : null;
+
         loanRepository.deleteByCopy_Id(resolvedId);
         bookCopyRepository.deleteById(resolvedId);
+
+        // Automatically delete book if it has no more copies
+        long remainingCopies = bookCopyRepository.countByBook_Id(bookId);
+        if (remainingCopies == 0) {
+            bookDeletionService.deleteBook(bookId, schoolId);
+        }
     }
 
     private CopyDto toDto(BookCopy copy) {

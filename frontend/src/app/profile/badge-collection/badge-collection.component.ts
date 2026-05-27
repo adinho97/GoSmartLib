@@ -2,6 +2,7 @@ import { Component, HostListener, OnDestroy, OnInit } from "@angular/core";
 import { BookService } from "../../services/book.service";
 import { LoanService } from "../../services/loan.service";
 import {
+  BadgeIconKey,
   BadgeNotificationService,
   BadgeUnlocked,
 } from "../../services/badge-notification.service";
@@ -210,7 +211,7 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     const badge = newlyUnlockedBadges[0];
     const toastPayload: BadgeUnlocked = {
       title: badge.title,
-      icon: this.getBadgeIcon(badge),
+      iconKey: this.getBadgeIconKey(badge),
       category: badge.category,
     };
 
@@ -274,18 +275,22 @@ export class BadgeCollectionComponent implements OnInit, OnDestroy {
     return category === "loan" ? "Uitleen" : "Reviews";
   }
 
-  getBadgeIcon(badge: ProfileBadge): string {
+  getBadgeIconKey(badge: ProfileBadge): BadgeIconKey {
     if (badge.category === "loan") {
-      if (badge.threshold >= 100) return "🏛️";
-      if (badge.threshold >= 50) return "🏆";
-      if (badge.threshold >= 20) return "📚";
-      return "📘";
+      if (badge.threshold >= 100) return "leg";
+      if (badge.threshold >= 50) return "bib";
+      if (badge.threshold >= 20) return "klas";
+      if (badge.threshold >= 10) return "nacht";
+      if (badge.threshold >= 5) return "rij";
+      return "boek";
     }
 
-    if (badge.threshold >= 100) return "👑";
-    if (badge.threshold >= 50) return "🌟";
-    if (badge.threshold >= 20) return "📝";
-    return "✍️";
+    if (badge.threshold >= 100) return "master";
+    if (badge.threshold >= 50) return "lit";
+    if (badge.threshold >= 20) return "schr";
+    if (badge.threshold >= 10) return "crit";
+    if (badge.threshold >= 5) return "recens";
+    return "rev";
   }
 
   toggleBadgeMenu(badge: ProfileBadge, event: Event) {

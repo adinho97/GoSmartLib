@@ -195,8 +195,12 @@ export class LoanService {
     return (res.data || []) as BookCopyInfo[];
   }
 
-  async addCopy(bookId: number): Promise<void> {
-    await axios.post(`${this.copyApi}/boek/${bookId}`, {}, this.headers());
+  async addCopy(
+    bookId: number,
+    condition?: "GOOD" | "MODERATE" | "BAD",
+  ): Promise<void> {
+    const body = condition ? { condition } : {};
+    await axios.post(`${this.copyApi}/boek/${bookId}`, body, this.headers());
   }
 
   async updateCopyState(

@@ -24,9 +24,41 @@
         min="1"
         max="99"
         [(ngModel)]="aantalExemplaren"
+        (change)="updateCopyConditionsArray()"
         class="exemplaren-input"
       />
     </div>
+
+    @if (aantalExemplaren === 1) {
+      <div class="isbn-input-row exemplaren-row">
+        <label>Staat van exemplaren</label>
+        <select [(ngModel)]="copyConditionsArray[0]" class="exemplaren-input">
+          <option value="GOOD">Goed</option>
+          <option value="MODERATE">Matig</option>
+          <option value="BAD">Slecht</option>
+        </select>
+      </div>
+    } @else {
+      <div class="isbn-input-row exemplaren-row">
+        <label>Staat van elk exemplaar</label>
+        <div class="copy-conditions-list">
+          @for (condition of copyConditionsArray; track $index) {
+            <div class="copy-condition-row">
+              <span class="copy-number">Exemplaar {{ $index + 1 }}</span>
+              <select
+                [(ngModel)]="copyConditionsArray[$index]"
+                [name]="'copyCondition_' + $index"
+                class="exemplaren-input"
+              >
+                <option value="GOOD">Goed</option>
+                <option value="MODERATE">Matig</option>
+                <option value="BAD">Slecht</option>
+              </select>
+            </div>
+          }
+        </div>
+      </div>
+    }
 
     @if (errorMessage) {
       <p class="error-message">{{ errorMessage }}</p>

@@ -1,8 +1,10 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.AddCopyRequest;
 import com.example.demo.dto.CopyDto;
 import com.example.demo.dto.UpdateCopyStateRequest;
 import com.example.demo.services.BookCopyService;
+import com.example.demo.entities.BookCopy;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +36,10 @@ public class BookCopyController {
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/boek/{bookId}")
-    public ResponseEntity<CopyDto> addCopy(@PathVariable Long bookId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(bookCopyService.addCopy(bookId));
+    public ResponseEntity<CopyDto> addCopy(@PathVariable Long bookId,
+            @RequestBody(required = false) AddCopyRequest request) {
+        BookCopy.CopyCondition condition = request != null ? request.getCondition() : BookCopy.CopyCondition.GOOD;
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookCopyService.addCopy(bookId, condition));
     }
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")

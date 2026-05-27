@@ -4,6 +4,7 @@ import { BookService } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
 import { AdminGenreService, Genre } from "../services/admin-genre.service";
 import { SettingsService } from "../services/settings.service";
+import { LoanService } from "../services/loan.service";
 
 export enum Language {
   Nederlands = "Nederlands",
@@ -76,6 +77,9 @@ export class AddBookComponent implements OnInit {
   submitMessage = "";
   submitState: "success" | "error" | "" = "";
   aantalExemplaren: number = 1;
+  copyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
+  readonly copyConditions = ["GOOD", "MODERATE", "BAD"] as const;
+  copyConditionsArray: ("GOOD" | "MODERATE" | "BAD")[] = ["GOOD"];
 
   book = {
     titel: "",
@@ -98,6 +102,7 @@ export class AddBookComponent implements OnInit {
     private schoolService: SchoolService,
     private genreService: AdminGenreService,
     private settingsService: SettingsService,
+    private loanService: LoanService,
   ) {}
 
   async ngOnInit() {
@@ -275,10 +280,22 @@ export class AddBookComponent implements OnInit {
         genre: undefined, // Remove old property if it leaked in
       } as any;
 
-      await this.bookService.addBook(payload, this.selectedSchoolId);
+      const savedBook = await this.bookService.addBook(
+        payload,
+        this.selectedSchoolId,
+      );
+
+      // Add copies with specified condition
+      if (savedBook?.id && this.aantalExemplaren > 0) {
+        const promises = Array.from({ length: this.aantalExemplaren }, () =>
+          this.loanService.addCopy(savedBook.id, this.copyCondition),
+        );
+        await Promise.all(promises);
+      }
+
       this.resetForm(bookForm);
       this.submitState = "success";
-      this.submitMessage = "Boek succesvol toegevoegd aan de bibliotheek.";
+      this.submitMessage = `Boek succesvol toegevoegd met ${this.aantalExemplaren} exemplaar/exemplaren.`;
     } catch {
       this.submitState = "error";
       this.submitMessage = "Fout bij opslaan. Controleer de verbinding.";
@@ -367,6 +384,20 @@ export class AddBookComponent implements OnInit {
     }
   }
 
+  updateCopyConditionsArray(): void {
+    const newLength = Math.max(1, this.aantalExemplaren);
+    if (this.copyConditionsArray.length < newLength) {
+      // Add default conditions
+      this.copyConditionsArray = [
+        ...this.copyConditionsArray,
+        ...Array(newLength - this.copyConditionsArray.length).fill("GOOD"),
+      ];
+    } else if (this.copyConditionsArray.length > newLength) {
+      // Trim array
+      this.copyConditionsArray = this.copyConditionsArray.slice(0, newLength);
+    }
+  }
+
   private resetForm(bookForm: NgForm) {
     this.book = {
       titel: "",
@@ -387,6 +418,8 @@ export class AddBookComponent implements OnInit {
     this.selectedNonDidacticGenres = [];
     this.selectedDidacticSubgenres = [];
     this.aantalExemplaren = 1;
+    this.copyConditionsArray = ["GOOD"];
+    this.copyCondition = "GOOD";
     this.selectedCoverFile = null;
     this.goNumberLookup = "";
     if (this.coverPreviewUrl) URL.revokeObjectURL(this.coverPreviewUrl);

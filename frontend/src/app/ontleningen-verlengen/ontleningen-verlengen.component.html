@@ -1,0 +1,175 @@
+<div class="ov-page">
+  <header class="ov-head">
+    <h1 class="ov-title">Ontleningen verlengen</h1>
+    <p class="ov-subtitle">
+      Pas de inleverdatum van actieve uitleningen aan voor leerlingen die meer
+      tijd nodig hebben om hun boek uit te lezen.
+    </p>
+  </header>
+
+  <div class="ov-content">
+    @if (extensionSuccessMessage) {
+      <div class="ext-success" role="status">{{ extensionSuccessMessage }}</div>
+    }
+
+    @if (!selectedStudentForExtension) {
+      <!-- Stap 1: Leerling Zoeken -->
+      <div class="ext-search-bar">
+        <div class="ext-input-wrap">
+          <svg
+            class="ext-search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            class="ext-search-input"
+            [(ngModel)]="studentSearchQuery"
+            (input)="onSearchStudents()"
+            placeholder="Zoek leerling op naam..."
+            autocomplete="off"
+          />
+        </div>
+        <select
+          class="ext-class-select"
+          [(ngModel)]="studentClassFilter"
+          (change)="onSearchStudents()"
+        >
+          <option value="">Alle klassen</option>
+          @for (klas of availableClasses; track klas) {
+            <option [value]="klas">{{ klas }}</option>
+          }
+        </select>
+      </div>
+
+      @if (studentsLoading) {
+        <div class="ext-state">
+          <div class="ext-spinner"></div>
+          <p>Leerlingen laden...</p>
+        </div>
+      } @else if (studentsError) {
+        <p class="ext-error">{{ studentsError }}</p>
+      } @else if (!hasSearchInput) {
+        <div class="ext-state ext-empty">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <p>Begin met typen om een leerling te zoeken.</p>
+        </div>
+      } @else if (filteredStudents.length === 0) {
+        <div class="ext-state ext-empty">
+          <p>Geen leerlingen gevonden met deze zoekterm</p>
+        </div>
+      } @else {
+        <ul class="ext-leerling-list">
+          @for (s of filteredStudents; track s.sub) {
+            <li
+              class="ext-leerling-item"
+              (click)="selectStudentForExtension(s)"
+            >
+              <div class="ext-avatar">{{ s.displayName.charAt(0).toUpperCase() }}</div>
+              <div class="ext-leerling-info">
+                <span class="ext-leerling-name">{{ s.displayName }}</span>
+                @if (s.klas) {
+                  <span class="ext-leerling-klas">{{ s.klas }}</span>
+                }
+              </div>
+              <span class="ext-chevron" aria-hidden="true">→</span>
+            </li>
+          }
+        </ul>
+      }
+    } @else {
+      <!-- Stap 2: Ontleningen van leerling tonen -->
+      <div class="extension-view">
+        <button
+          type="button"
+          class="ext-back-btn"
+          (click)="selectedStudentForExtension = null"
+        >
+          <span aria-hidden="true">←</span> Terug naar zoeken
+        </button>
+
+        <div class="ext-student-header">
+          <div class="ext-avatar ext-avatar-lg">
+            {{ selectedStudentForExtension.displayName.charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <h4 class="ext-student-name">
+              {{ selectedStudentForExtension.displayName }}
+            </h4>
+            @if (selectedStudentForExtension.klas) {
+              <p class="ext-student-klas">
+                {{ selectedStudentForExtension.klas }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <p class="ext-section-label">Actieve ontleningen</p>
+
+        @if (loansLoading) {
+          <div class="ext-state">
+            <div class="ext-spinner"></div>
+            <p>Ontleningen laden...</p>
+          </div>
+        } @else if (loansError) {
+          <p class="ext-error">{{ loansError }}</p>
+        } @else {
+          <ul class="ext-loans-list">
+            @for (loan of studentLoans; track loan.id) {
+              <li class="ext-loan-row">
+                <div class="ext-loan-info">
+                  <span class="ext-loan-title">{{ loan.bookTitel }}</span>
+                  <span
+                    class="ext-loan-due"
+                    [class.overdue]="isOverdue(loan.dueDate)"
+                  >
+                    Vervalmoment: {{ loan.dueDate | date: "dd/MM/yyyy" }}
+                  </span>
+                </div>
+                <div class="ext-loan-actions">
+                  <input
+                    type="date"
+                    [(ngModel)]="loan.tempNewDueDate"
+                    [min]="today"
+                    class="ext-date-input"
+                  />
+                  <button
+                    type="button"
+                    class="ext-primary-btn"
+                    (click)="confirmExtension(loan)"
+                    [disabled]="!loan.tempNewDueDate"
+                  >
+                    Verlengen
+                  </button>
+                </div>
+              </li>
+            } @empty {
+              <div class="ext-state ext-empty">
+                <p>Deze leerling heeft momenteel geen actieve ontleningen.</p>
+              </div>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+</div>

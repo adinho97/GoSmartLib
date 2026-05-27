@@ -857,6 +857,21 @@
 .lib-icon-stats {
   background-color: #3b82f6;
 }
+.lib-icon-create-list {
+  background-color: #14b8a6;
+}
+.lib-icon-renew {
+  background-color: #8b5cf6;
+}
+.lib-icon-promote {
+  background-color: #ec4899;
+}
+.lib-icon-bulk {
+  background-color: #0ea5e9;
+}
+.lib-icon-settings {
+  background-color: #64748b;
+}
 
 .lib-card-text {
   display: flex;
