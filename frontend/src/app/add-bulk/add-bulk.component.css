@@ -449,3 +449,174 @@ tbody tr:hover td {
     font-size: 0.8rem;
   }
 }
+
+/* ── Preview section ──────────────────────────────── */
+.preview-section {
+  border: 1px solid #e5c8d4;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: #fdf7fa;
+}
+
+.preview-header {
+  margin-bottom: 1.5rem;
+}
+
+.preview-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.preview-count {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.preview-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.preview-table th {
+  background: #f9fafb;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.preview-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.preview-table tbody tr:hover td {
+  background: #fafafa;
+}
+
+.preview-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.isbn-cell {
+  font-family: monospace;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.input-cell {
+  text-align: center;
+}
+
+.checkbox-cell {
+  text-align: center;
+}
+
+.preview-input,
+.preview-select {
+  width: 100%;
+  max-width: 120px;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: Arial, sans-serif;
+}
+
+.preview-input:focus,
+.preview-select:focus {
+  outline: none;
+  border-color: #871f42;
+  box-shadow: 0 0 0 2px rgba(135, 31, 66, 0.1);
+}
+
+.preview-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #871f42;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-confirm,
+.btn-cancel {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.1s;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
+  color: #fff;
+}
+
+.btn-confirm:hover:not([disabled]) {
+  box-shadow: 0 4px 16px rgba(135, 31, 66, 0.25);
+}
+
+.btn-cancel {
+  background: #fff;
+  color: #871f42;
+  border: 1.5px solid #871f42;
+}
+
+.btn-cancel:hover:not([disabled]) {
+  background: #fff0f4;
+}
+
+.btn-confirm[disabled],
+.btn-cancel[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .preview-section {
+    padding: 1rem;
+  }
+
+  .preview-input,
+  .preview-select {
+    max-width: 100%;
+  }
+
+  .preview-table {
+    min-width: 500px;
+  }
+
+  .preview-actions {
+    flex-direction: column;
+  }
+
+  .btn-confirm,
+  .btn-cancel {
+    width: 100%;
+  }
+}
