@@ -406,9 +406,13 @@ export class BookService {
   async importBooksByUpload(
     file: File,
     schoolId?: number,
+    copyCondition?: "GOOD" | "MODERATE" | "BAD",
   ): Promise<BulkImportResult> {
     const formData = new FormData();
     formData.append("file", file);
+    if (copyCondition) {
+      formData.append("defaultCondition", copyCondition);
+    }
 
     const res = await axios.post<BulkImportResult>(
       this.withSchoolId(`${this.apiUrl}/isbn/bulk`, schoolId),

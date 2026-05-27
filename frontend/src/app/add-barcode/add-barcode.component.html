@@ -245,6 +245,19 @@
             />
           </div>
 
+          <div class="modal-copies-section">
+            <label for="barcodeCopyCondition">Staat van exemplaren:</label>
+            <select
+              id="barcodeCopyCondition"
+              [(ngModel)]="pendingCopyCondition"
+              class="copies-input"
+            >
+              <option value="GOOD">Goed</option>
+              <option value="MODERATE">Matig</option>
+              <option value="BAD">Slecht</option>
+            </select>
+          </div>
+
           <div class="modal-actions">
             <button
               class="btn-cancel"

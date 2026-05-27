@@ -200,9 +200,10 @@ public class BookController {
     @PostMapping("/isbn/bulk")
     public ResponseEntity<ImportResultDto> importBulkByIsbn(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(required = false) Long schoolId) {
+            @RequestParam(required = false) Long schoolId,
+            @RequestParam(required = false) String defaultCondition) {
         try {
-            ImportResultDto result = bookImportService.importBulkByIsbn(file, schoolId);
+            ImportResultDto result = bookImportService.importBulkByIsbn(file, schoolId, defaultCondition);
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().build();
