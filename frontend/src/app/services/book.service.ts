@@ -394,9 +394,23 @@ export class BookService {
     }
   }
 
-  async importBookByIsbn(isbn: string, schoolId?: number) {
+  async importBookByIsbn(
+    isbn: string,
+    schoolId?: number,
+    isDidactisch?: boolean,
+  ) {
+    const params = new URLSearchParams();
+    if (isDidactisch) {
+      params.append("isDidactisch", "true");
+    }
+
+    const url = this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId);
+    const urlWithParams = params.toString()
+      ? `${url}?${params.toString()}`
+      : url;
+
     const res = await axios.post(
-      this.withSchoolId(`${this.apiUrl}/isbn/${isbn}`, schoolId),
+      urlWithParams,
       undefined,
       this.getFullAuthHeaders(),
     );
@@ -406,9 +420,17 @@ export class BookService {
   async importBooksByUpload(
     file: File,
     schoolId?: number,
+    copyCondition?: "GOOD" | "MODERATE" | "BAD",
+    isDidactisch?: boolean,
   ): Promise<BulkImportResult> {
     const formData = new FormData();
     formData.append("file", file);
+    if (copyCondition) {
+      formData.append("defaultCondition", copyCondition);
+    }
+    if (isDidactisch) {
+      formData.append("isDidactisch", "true");
+    }
 
     const res = await axios.post<BulkImportResult>(
       this.withSchoolId(`${this.apiUrl}/isbn/bulk`, schoolId),

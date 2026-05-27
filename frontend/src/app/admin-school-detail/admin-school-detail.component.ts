@@ -12,15 +12,12 @@ import {
   SchoolStatus,
 } from "../models/admin-school";
 import { formatUserInfoDisplayName } from "../utils/name-utils";
+import {
+  SpotlightBook,
+  SpotlightState,
+} from "../spotlight-manage/spotlight-manage.component";
 
 type PaginationItem = number | "...";
-
-interface SpotlightBook {
-  bookId: number;
-  titel: string;
-  auteur: string;
-  cover: string;
-}
 
 interface NominatimResult {
   lat: string;
@@ -79,35 +76,10 @@ export class AdminSchoolDetailComponent implements OnInit {
       icon: "return",
     },
     {
-      label: "Actieve uitleningen",
-      sub: "Lopende uitleningen bekijken",
-      route: "/uitleen-overzicht",
-      icon: "active",
-    },
-    {
-      label: "Uitleenhistoriek",
-      sub: "Alle voorbije uitleningen",
-      route: "/uitleen-catalogus",
-      icon: "history",
-    },
-    {
-      label: "Conditieoverzicht",
-      sub: "Staat van de collectie",
-      route: "/uitleen-conditie",
-      icon: "condition",
-    },
-    {
       label: "Klasleeslijsten",
-      sub: "Leeslijsten beheren",
-      route: "/mijn-lijsten",
-      fragment: "klasleeslijst",
-      icon: "list",
-    },
-    {
-      label: "Leeslijst aanmaken",
-      sub: "Nieuwe leeslijst opstellen",
+      sub: "Leeslijsten aanmaken & beheren",
       route: "/leeslijst-create",
-      icon: "create-list",
+      icon: "list",
     },
     {
       label: "Ontleningen verlengen",
@@ -116,21 +88,9 @@ export class AdminSchoolDetailComponent implements OnInit {
       icon: "renew",
     },
     {
-      label: "Leerkracht promoten",
-      sub: "Rol upgraden naar bibbeheerder",
-      route: "/teacher-promotion",
-      icon: "promote",
-    },
-    {
-      label: "ISBN bulk toevoegen",
-      sub: "Meerdere boeken via ISBN",
-      route: "/isbn-bulk",
-      icon: "bulk",
-    },
-    {
       label: "School-instellingen",
       sub: "Openingsuren, berichten, genres",
-      route: "/settings",
+      route: "/instellingen",
       icon: "settings",
     },
     {
@@ -140,25 +100,20 @@ export class AdminSchoolDetailComponent implements OnInit {
       icon: "faq",
     },
     {
-      label: "Schoolstatistieken",
-      sub: "School-brede cijfers",
-      route: "/statistieken/school",
+      label: "Statistieken",
+      sub: "Uitleningen, historiek, conditie & cijfers",
+      route: "/statistieken",
       icon: "stats",
     },
   ];
 
-  // Spotlight management
-  spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = {
-    maand: null,
-    thema: null,
-  };
+  // Spotlight management (handled by <app-spotlight-manage>)
+  spotlight: SpotlightState = { maand: null, thema: null };
   spotlightLoading = false;
-  spotlightSaving: "MAAND" | "THEMA" | null = null;
-  spotlightClearing: "MAAND" | "THEMA" | null = null;
-  spotlightError = "";
-  spotlightSuccess = "";
-  maandBookIdInput: number | null = null;
-  themaBookIdInput: number | null = null;
+  highlightedBooks: { titel: string; auteur: string; cover?: string | null }[] =
+    [];
+  highlightedBookIds = new Set<number>();
+  booksLoading = false;
 
   // Info edit form
   infoExpanded = false;
@@ -225,6 +180,7 @@ export class AdminSchoolDetailComponent implements OnInit {
     this.schoolId = Number(this.route.snapshot.paramMap.get("id"));
     this.loadAll();
     this.loadSpotlights();
+    this.loadHighlights();
   }
 
   loadAll(): void {
@@ -668,69 +624,68 @@ export class AdminSchoolDetailComponent implements OnInit {
 
   loadSpotlights(): void {
     this.spotlightLoading = true;
-    this.http
-      .get<{
-        maand: SpotlightBook | null;
-        thema: SpotlightBook | null;
-      }>(`/api/spotlight/${this.schoolId}`)
-      .subscribe({
-        next: (data) => {
-          this.spotlight = data;
-          this.spotlightLoading = false;
-        },
-        error: () => {
-          this.spotlightLoading = false;
-        },
-      });
-  }
-
-  setSpotlight(type: "MAAND" | "THEMA"): void {
-    const bookId =
-      type === "MAAND" ? this.maandBookIdInput : this.themaBookIdInput;
-    if (!bookId) return;
-    this.spotlightSaving = type;
-    this.spotlightError = "";
-    this.spotlightSuccess = "";
-    this.http
-      .put<SpotlightBook>(`/api/spotlight/${this.schoolId}/${type}`, { bookId })
-      .subscribe({
-        next: (book) => {
-          if (type === "MAAND") {
-            this.spotlight.maand = book;
-            this.maandBookIdInput = null;
-          } else {
-            this.spotlight.thema = book;
-            this.themaBookIdInput = null;
-          }
-          this.spotlightSaving = null;
-          this.spotlightSuccess = "Opgeslagen.";
-          setTimeout(() => (this.spotlightSuccess = ""), 3000);
-        },
-        error: (err) => {
-          this.spotlightError =
-            err?.error?.message || "Opslaan mislukt. Controleer het boek-ID.";
-          this.spotlightSaving = null;
-        },
-      });
-  }
-
-  clearSpotlight(type: "MAAND" | "THEMA"): void {
-    this.spotlightClearing = type;
-    this.spotlightError = "";
-    this.spotlightSuccess = "";
-    this.http.delete(`/api/spotlight/${this.schoolId}/${type}`).subscribe({
-      next: () => {
-        if (type === "MAAND") this.spotlight.maand = null;
-        else this.spotlight.thema = null;
-        this.spotlightClearing = null;
-        this.spotlightSuccess = "Gewist.";
-        setTimeout(() => (this.spotlightSuccess = ""), 3000);
+    this.http.get<SpotlightState>(`/api/spotlight/${this.schoolId}`).subscribe({
+      next: (data) => {
+        this.spotlight = data ?? { maand: null, thema: null };
+        this.spotlightLoading = false;
       },
-      error: (err) => {
-        this.spotlightError = err?.error?.message || "Wissen mislukt.";
-        this.spotlightClearing = null;
+      error: () => {
+        this.spotlight = { maand: null, thema: null };
+        this.spotlightLoading = false;
       },
     });
+  }
+
+  loadHighlights(): void {
+    this.booksLoading = true;
+    this.bookService
+      .getHighlightedBookIds(this.schoolId)
+      .then(async (ids) => {
+        this.highlightedBookIds = new Set(ids || []);
+        if (ids?.length) {
+          const enriched = await this.bookService.enrichBooksWithDetails(
+            ids.map((id: number) => ({ bookId: id })),
+          );
+          this.highlightedBooks = enriched.map((b: any) => ({
+            titel: b.titel,
+            auteur: b.auteur,
+            cover: b.cover || null,
+          }));
+        } else {
+          this.highlightedBooks = [];
+        }
+      })
+      .catch(() => {
+        this.highlightedBooks = [];
+        this.highlightedBookIds = new Set();
+      })
+      .finally(() => {
+        this.booksLoading = false;
+      });
+  }
+
+  onSpotlightSaved({
+    type,
+    book,
+  }: {
+    type: "MAAND" | "THEMA";
+    book: SpotlightBook;
+  }): void {
+    this.spotlight = {
+      ...this.spotlight,
+      [type === "MAAND" ? "maand" : "thema"]: book,
+    };
+  }
+
+  onSpotlightCleared(type: "MAAND" | "THEMA"): void {
+    this.spotlight = {
+      ...this.spotlight,
+      [type === "MAAND" ? "maand" : "thema"]: null,
+    };
+  }
+
+  onHighlightsAdded(): void {
+    this.loadHighlights();
   }
 
   goBack(): void {

@@ -240,10 +240,33 @@
               type="number"
               min="1"
               max="99"
-              [(ngModel)]="pendingCopiesCount"
+              [(ngModel)]="aantalExemplaren"
+              (ngModelChange)="updateCopyConditionsArray()"
               class="copies-input"
             />
           </div>
+
+          <!-- Didactisch toggle -->
+          <div class="modal-copies-section">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="isDidacticMode" />
+              Didactisch boek (lerarencollectie)
+            </label>
+          </div>
+
+          @for (condition of copyConditionsArray; track $index) {
+            <div class="modal-copies-section">
+              <label>Staat van exemplaar {{ $index + 1 }}:</label>
+              <select
+                [(ngModel)]="copyConditionsArray[$index]"
+                class="copies-input"
+              >
+                <option value="GOOD">Goed</option>
+                <option value="MODERATE">Matig</option>
+                <option value="BAD">Slecht</option>
+              </select>
+            </div>
+          }
 
           <div class="modal-actions">
             <button
@@ -256,7 +279,7 @@
             <button
               class="btn-confirm"
               (click)="confirmBarcodeAdd()"
-              [disabled]="isConfirmingBarcode || pendingCopiesCount < 1"
+              [disabled]="isConfirmingBarcode || aantalExemplaren < 1"
             >
               {{ isConfirmingBarcode ? "Toevoegen..." : "Toevoegen" }}
             </button>

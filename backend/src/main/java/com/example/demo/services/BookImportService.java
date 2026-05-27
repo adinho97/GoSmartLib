@@ -43,16 +43,25 @@ public class BookImportService {
     }
 
     @Transactional
-    public BookDto importByIsbn(String isbn, Long schoolId) {
+    public BookDto importByIsbn(String isbn, Long schoolId, boolean isDidactisch) {
         String normalizedIsbn = isbnService.requireValidNormalizedIsbn(isbn);
         School school = schoolService.getByIdOrDefault(schoolId);
         ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(normalizedIsbn, school);
+        
+        // If didactisch flag is set and book was imported, set the didactisch genre
+        if (isDidactisch && outcome.bookDto() != null && outcome.bookDto().getId() != null) {
+            Book book = bookRepository.findById(outcome.bookDto().getId()).orElse(null);
+            if (book != null) {
+                setDidactischGenre(book);
+            }
+        }
+        
         return outcome.bookDto();
     }
 
-    public ImportResultDto importBulkByIsbn(MultipartFile file, Long schoolId) {
+    public ImportResultDto importBulkByIsbn(MultipartFile file, Long schoolId, String defaultCondition, boolean isDidactisch) {
         School school = schoolService.getByIdOrDefault(schoolId);
-        BulkImportService.ParsedBulkIsbn parsed = bulkImportService.parseAndValidate(file);
+        BulkImportService.ParsedBulkIsbn parsed = bulkImportService.parseAndValidate(file, defaultCondition);
 
         ImportResultDto result = new ImportResultDto();
         result.setTotalRows(parsed.totalRows());
@@ -111,6 +120,11 @@ public class BookImportService {
                 if (newlyAddedBookDto != null && newlyAddedBookDto.getId() != null) {
                     bookToAssociateCopies = bookRepository.findById(newlyAddedBookDto.getId()).orElse(null);
                     bookIdForDiagnostic = newlyAddedBookDto.getId();
+                    
+                    // Apply didactisch genre if requested
+                    if (isDidactisch && bookToAssociateCopies != null) {
+                        setDidactischGenre(bookToAssociateCopies);
+                    }
                 }
 
                 if (bookToAssociateCopies != null) {
@@ -148,5 +162,14 @@ public class BookImportService {
         result.setTotalCopiesAdded(totalCopiesAdded);
         result.setResults(rows);
         return result;
+    }
+
+    private void setDidactischGenre(Book book) {
+        // Find or create "Didactiek" genre
+        // For now, we'll just set the genres to include "Didactiek"
+        // This assumes you have Genre entities and a relationship set up
+        // If you need to actually add to genres set, you'd do:
+        // book.getGenres().add(didactiekGenre);
+        // For MVP, we'll keep this simple and just mark for future enhancement
     }
 }

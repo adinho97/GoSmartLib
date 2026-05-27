@@ -4,34 +4,128 @@
   </div>
 
   <div class="main-card">
-    <div class="input-row">
-      <label for="bulkFile">Bestand</label>
-      <input
-        id="bulkFile"
-        type="file"
-        accept=".csv,.xls,.xlsx"
-        (change)="onFileSelected($event)"
-        [disabled]="isUploading"
-      />
-      <button (click)="uploadFile()" [disabled]="isUploading || !selectedFile">
-        {{ isUploading ? "Verwerken..." : "Upload en verwerk" }}
-      </button>
-      <button
-        class="secondary"
-        (click)="downloadImportTemplate()"
-        [disabled]="isUploading"
-      >
-        Download sjabloon
-      </button>
-    </div>
+    @if (!showPreview) {
+      <div class="input-row">
+        <label for="bulkFile">Bestand</label>
+        <input
+          id="bulkFile"
+          type="file"
+          accept=".csv,.xls,.xlsx"
+          (change)="onFileSelected($event)"
+          [disabled]="isUploading"
+        />
+        <button
+          class="secondary"
+          (click)="downloadImportTemplate()"
+          [disabled]="isUploading"
+        >
+          Download sjabloon
+        </button>
+      </div>
 
-    <p class="hint">
-      Ondersteund: CSV, XLS, XLSX. Zorg dat je bestand minimaal een kolom heeft
-      met het ISBN. Optioneel kun je een kolom 'Aantal' toevoegen voor de
-      hoeveelheid exemplaren, en een kolom 'Staat' voor de conditie (GOOD,
-      MODERATE, of BAD). Duplicaten in hetzelfde bestand worden automatisch
-      overgeslagen.
-    </p>
+      <p class="hint">
+        Ondersteund: CSV, XLS, XLSX. Zorg dat je bestand minimaal een kolom
+        heeft met het ISBN. Optioneel kun je een kolom 'Aantal' toevoegen voor
+        de hoeveelheid exemplaren. Duplicaten in hetzelfde bestand worden
+        automatisch overgeslagen.
+      </p>
+    }
+
+    <!-- Preview section -->
+    @if (showPreview && previewBooks.length > 0) {
+      <div class="preview-section">
+        <div class="preview-header">
+          <h2>Overzicht van boeken om toe te voegen</h2>
+          <p class="preview-count">
+            {{ previewBooks.length }} boek(en) gevonden
+          </p>
+        </div>
+
+        <div class="preview-table-wrapper">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>ISBN</th>
+                <th>Aantal exemplaren</th>
+                <th>Staat</th>
+                <th>Didactisch</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (book of previewBooks; track $index; let i = $index) {
+                <tr>
+                  <td class="isbn-cell">{{ book.isbn }}</td>
+                  <td class="input-cell">
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      [value]="book.quantity"
+                      (change)="
+                        updatePreviewBook(
+                          i,
+                          'quantity',
+                          $any($event).target.value
+                        )
+                      "
+                      class="preview-input"
+                    />
+                  </td>
+                  <td class="input-cell">
+                    <select
+                      [value]="book.condition"
+                      (change)="
+                        updatePreviewBook(
+                          i,
+                          'condition',
+                          $any($event).target.value
+                        )
+                      "
+                      class="preview-select"
+                    >
+                      <option value="GOOD">Goed</option>
+                      <option value="MODERATE">Matig</option>
+                      <option value="BAD">Slecht</option>
+                    </select>
+                  </td>
+                  <td class="checkbox-cell">
+                    <input
+                      type="checkbox"
+                      [checked]="book.isDidactisch"
+                      (change)="
+                        updatePreviewBook(
+                          i,
+                          'isDidactisch',
+                          $any($event).target.checked
+                        )
+                      "
+                      class="preview-checkbox"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="preview-actions">
+          <button
+            class="btn-cancel"
+            (click)="cancelPreview()"
+            [disabled]="isUploading"
+          >
+            Annuleren
+          </button>
+          <button
+            class="btn-confirm"
+            (click)="saveBooks()"
+            [disabled]="isUploading"
+          >
+            {{ isUploading ? "Toevoegen..." : "Boeken opslaan" }}
+          </button>
+        </div>
+      </div>
+    }
 
     @if (errorMessage) {
       <p class="error-message">{{ errorMessage }}</p>

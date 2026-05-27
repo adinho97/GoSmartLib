@@ -792,7 +792,7 @@
 /* Bibliotheek navigation cards */
 .lib-cards-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
@@ -821,56 +821,12 @@
   height: 36px;
   border-radius: 8px;
   flex-shrink: 0;
-  background-color: #871f42;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.lib-icon-catalog {
-  background-color: #6366f1;
-}
-.lib-icon-add {
-  background-color: #0284c7;
-}
-.lib-icon-loan {
-  background-color: #871f42;
-}
-.lib-icon-active {
-  background-color: #059669;
-}
-.lib-icon-history {
-  background-color: #d97706;
-}
-.lib-icon-condition {
-  background-color: #7c3aed;
-}
-.lib-icon-return {
-  background-color: #e11d48;
-}
-.lib-icon-list {
-  background-color: #10b981;
-}
-.lib-icon-faq {
-  background-color: #f59e0b;
-}
-.lib-icon-stats {
-  background-color: #3b82f6;
-}
-.lib-icon-create-list {
-  background-color: #14b8a6;
-}
-.lib-icon-renew {
-  background-color: #8b5cf6;
-}
-.lib-icon-promote {
-  background-color: #ec4899;
-}
-.lib-icon-bulk {
-  background-color: #0ea5e9;
-}
-.lib-icon-settings {
-  background-color: #64748b;
+  color: #475569;
 }
 
 .lib-card-text {
@@ -1047,71 +1003,6 @@
 .btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Spotlight section */
-.spotlight-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.spotlight-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.spotlight-row:last-child {
-  border-bottom: none;
-}
-
-.spotlight-label {
-  font-weight: 600;
-  font-size: 14px;
-  min-width: 160px;
-  color: #374151;
-}
-
-.spotlight-current {
-  font-size: 14px;
-  color: #111827;
-  flex: 1;
-}
-
-.spotlight-id {
-  font-size: 12px;
-  color: #6b7280;
-  margin-left: 4px;
-}
-
-.spotlight-empty {
-  font-size: 14px;
-  color: #9ca3af;
-  font-style: italic;
-  flex: 1;
-}
-
-.spotlight-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.spotlight-input {
-  width: 100px;
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-}
-
-.spotlight-input:focus {
-  border-color: var(--brand, #4f46e5);
 }
 
 .btn-sm {

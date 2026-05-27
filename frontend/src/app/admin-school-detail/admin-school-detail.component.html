@@ -443,46 +443,6 @@
       }
     </div>
 
-    <!-- Bibliotheek card -->
-    <div class="card">
-      <h2 class="card-title">Bibliotheek</h2>
-
-      <div class="lib-stats-row">
-        <div class="lib-stat-box">
-          <span class="lib-stat-label">Boeken</span>
-          <span class="lib-stat-value">{{ detail.bookCount }}</span>
-        </div>
-        <div class="lib-stat-box">
-          <span class="lib-stat-label">Uitgeleend</span>
-          <span class="lib-stat-value">{{ detail.activeLoansCount }}</span>
-        </div>
-        <div class="lib-stat-box">
-          <span class="lib-stat-label">Verlanglijst</span>
-          <span class="lib-stat-value">{{ detail.wishlistCount }}</span>
-        </div>
-        <div class="lib-stat-box">
-          <span class="lib-stat-label">Klasleeslijst</span>
-          <span class="lib-stat-value">{{ isLoadingLeeslijsten ? "..." : classReadingListCount }}</span>
-        </div>
-      </div>
-
-      <div class="lib-cards-grid">
-        @for (card of libraryCards; track card.route) {
-          <button
-            type="button"
-            class="lib-card"
-            (click)="navigateToLibrary(card.route, card.fragment)"
-          >
-            <span class="lib-card-icon lib-icon-{{ card.icon }}"></span>
-            <div class="lib-card-text">
-              <span class="lib-card-title">{{ card.label }}</span>
-              <span class="lib-card-sub">{{ card.sub }}</span>
-            </div>
-          </button>
-        }
-      </div>
-    </div>
-
     <!-- Klassen card -->
     <div class="card">
       <h2 class="card-title">
@@ -561,96 +521,130 @@
         }
       }
     </div>
-    <!-- Spotlights card -->
+
+    <!-- Bibliotheek card -->
     <div class="card">
-      <h2 class="card-title">Spotlights</h2>
+      <h2 class="card-title">Bibliotheek</h2>
 
-      @if (spotlightLoading) {
-        <p class="loading-text">Laden...</p>
-      } @else {
-        <div class="spotlight-rows">
-
-          <!-- Boek van de maand -->
-          <div class="spotlight-row">
-            <span class="spotlight-label">Boek van de maand</span>
-            @if (spotlight.maand) {
-              <span class="spotlight-current">
-                {{ spotlight.maand.titel }} – {{ spotlight.maand.auteur }}
-                <span class="spotlight-id">(ID: {{ spotlight.maand.bookId }})</span>
-              </span>
-            } @else {
-              <span class="spotlight-empty">Niet ingesteld</span>
-            }
-            <div class="spotlight-actions">
-              <input
-                type="number"
-                class="spotlight-input"
-                [(ngModel)]="maandBookIdInput"
-                placeholder="Boek-ID"
-                min="1"
-              />
-              <button
-                type="button"
-                class="btn-primary btn-sm"
-                (click)="setSpotlight('MAAND')"
-                [disabled]="!maandBookIdInput || spotlightSaving === 'MAAND'"
-              >{{ spotlightSaving === 'MAAND' ? '...' : 'Instellen' }}</button>
-              @if (spotlight.maand) {
-                <button
-                  type="button"
-                  class="btn-secondary btn-sm"
-                  (click)="clearSpotlight('MAAND')"
-                  [disabled]="spotlightClearing === 'MAAND'"
-                >{{ spotlightClearing === 'MAAND' ? '...' : 'Wissen' }}</button>
-              }
-            </div>
-          </div>
-
-          <!-- Themaboek -->
-          <div class="spotlight-row">
-            <span class="spotlight-label">Themaboek</span>
-            @if (spotlight.thema) {
-              <span class="spotlight-current">
-                {{ spotlight.thema.titel }} – {{ spotlight.thema.auteur }}
-                <span class="spotlight-id">(ID: {{ spotlight.thema.bookId }})</span>
-              </span>
-            } @else {
-              <span class="spotlight-empty">Niet ingesteld</span>
-            }
-            <div class="spotlight-actions">
-              <input
-                type="number"
-                class="spotlight-input"
-                [(ngModel)]="themaBookIdInput"
-                placeholder="Boek-ID"
-                min="1"
-              />
-              <button
-                type="button"
-                class="btn-primary btn-sm"
-                (click)="setSpotlight('THEMA')"
-                [disabled]="!themaBookIdInput || spotlightSaving === 'THEMA'"
-              >{{ spotlightSaving === 'THEMA' ? '...' : 'Instellen' }}</button>
-              @if (spotlight.thema) {
-                <button
-                  type="button"
-                  class="btn-secondary btn-sm"
-                  (click)="clearSpotlight('THEMA')"
-                  [disabled]="spotlightClearing === 'THEMA'"
-                >{{ spotlightClearing === 'THEMA' ? '...' : 'Wissen' }}</button>
-              }
-            </div>
-          </div>
-
+      <div class="lib-stats-row">
+        <div class="lib-stat-box">
+          <span class="lib-stat-label">Boeken</span>
+          <span class="lib-stat-value">{{ detail.bookCount }}</span>
         </div>
-        @if (spotlightError) {
-          <p class="inline-error">{{ spotlightError }}</p>
+        <div class="lib-stat-box">
+          <span class="lib-stat-label">Uitgeleend</span>
+          <span class="lib-stat-value">{{ detail.activeLoansCount }}</span>
+        </div>
+        <div class="lib-stat-box">
+          <span class="lib-stat-label">Verlanglijst</span>
+          <span class="lib-stat-value">{{ detail.wishlistCount }}</span>
+        </div>
+        <div class="lib-stat-box">
+          <span class="lib-stat-label">Klasleeslijst</span>
+          <span class="lib-stat-value">{{ isLoadingLeeslijsten ? "..." : classReadingListCount }}</span>
+        </div>
+      </div>
+
+      <div class="lib-cards-grid">
+        @for (card of libraryCards; track card.route) {
+          <button
+            type="button"
+            class="lib-card"
+            (click)="navigateToLibrary(card.route)"
+          >
+            <span class="lib-card-icon lib-icon-{{ card.icon }}">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                @switch (card.icon) {
+                  @case ("catalog") {
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                  }
+                  @case ("add") {
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                  }
+                  @case ("loan") {
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  }
+                  @case ("return") {
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  }
+                  @case ("list") {
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                  }
+                  @case ("renew") {
+                    <polyline points="23 4 23 10 17 10" />
+                    <polyline points="1 20 1 14 7 14" />
+                    <path
+                      d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+                    />
+                  }
+                  @case ("settings") {
+                    <line x1="4" y1="21" x2="4" y2="14" />
+                    <line x1="4" y1="10" x2="4" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12" y2="3" />
+                    <line x1="20" y1="21" x2="20" y2="16" />
+                    <line x1="20" y1="12" x2="20" y2="3" />
+                    <line x1="1" y1="14" x2="7" y2="14" />
+                    <line x1="9" y1="8" x2="15" y2="8" />
+                    <line x1="17" y1="16" x2="23" y2="16" />
+                  }
+                  @case ("faq") {
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  }
+                  @case ("stats") {
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  }
+                }
+              </svg>
+            </span>
+            <div class="lib-card-text">
+              <span class="lib-card-title">{{ card.label }}</span>
+              <span class="lib-card-sub">{{ card.sub }}</span>
+            </div>
+          </button>
         }
-        @if (spotlightSuccess) {
-          <p class="inline-success">{{ spotlightSuccess }}</p>
-        }
-      }
+      </div>
     </div>
+
+    <!-- Spotlight beheer -->
+    <app-spotlight-manage
+      [spotlight]="spotlight"
+      [spotlightLoading]="spotlightLoading"
+      [highlightedBooks]="highlightedBooks"
+      [highlightedBookIds]="highlightedBookIds"
+      [highlightedCount]="highlightedBookIds.size"
+      [booksLoading]="booksLoading"
+      [schoolId]="schoolId"
+      (spotlightSaved)="onSpotlightSaved($event)"
+      (spotlightCleared)="onSpotlightCleared($event)"
+      (highlightsAdded)="onHighlightsAdded()"
+    ></app-spotlight-manage>
   }
 
   <!-- Modal for Class Users -->

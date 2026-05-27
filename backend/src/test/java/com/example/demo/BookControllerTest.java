@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -127,7 +128,7 @@ class BookControllerTest {
 
         @Test
         void importByIsbnShouldReturn404WhenNotFoundInOpenLibrary() throws Exception {
-                when(bookImportService.importByIsbn("0000000000000", null)).thenReturn(null);
+                when(bookImportService.importByIsbn("0000000000000", null, false)).thenReturn(null);
 
                 mockMvc.perform(post("/api/boeken/isbn/0000000000000"))
                                 .andExpect(status().isNotFound());
@@ -151,7 +152,7 @@ class BookControllerTest {
                                 "Boek toegevoegd.",
                                 1L)));
 
-                when(bookImportService.importBulkByIsbn(any(), any())).thenReturn(result);
+                when(bookImportService.importBulkByIsbn(any(), any(), any(), anyBoolean())).thenReturn(result);
 
                 mockMvc.perform(multipart("/api/boeken/isbn/bulk")
                                 .file(file)
@@ -170,7 +171,7 @@ class BookControllerTest {
                                 "text/plain",
                                 "abc".getBytes());
 
-                when(bookImportService.importBulkByIsbn(any(), any()))
+                when(bookImportService.importBulkByIsbn(any(), any(), any(), anyBoolean()))
                                 .thenThrow(new IllegalArgumentException("invalid"));
 
                 mockMvc.perform(multipart("/api/boeken/isbn/bulk").file(file))
