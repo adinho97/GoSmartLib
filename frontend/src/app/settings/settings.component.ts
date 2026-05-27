@@ -200,7 +200,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.schoolName = res.schoolInfo.name;
         this.messages = res.settings.messages ?? [];
-        // Merge de opgeslagen uren met de defaults zodat alle 7 dagen altijd aanwezig zijn
+
+        // Merge de opgeslagen uren met de defaults zodat alle 7 dagen altijd aanwezig zijn in de UI
         const savedHours = res.settings.hours as any;
         const defaults = this.defaultHours();
         this.hours = {
@@ -212,7 +213,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
           sat: savedHours?.sat ?? defaults.sat,
           sun: savedHours?.sun ?? defaults.sun,
         };
-        this.levels = res.settings.levels ?? [];
+
+        // Gebruik de default niveaus (A-D) als de database nog geen niveaus bevat
+        this.levels = (res.settings.levels && res.settings.levels.length > 0)
+          ? res.settings.levels
+          : this.defaultLevels();
+
         this.loanDays = res.loanDays;
         this.tags = res.apiTags;
         this.genres = res.apiGenres.map(g => this.mapApiGenre(g));
@@ -251,6 +257,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
       sat: { open: false, from: "10:00", to: "12:00" },
       sun: { open: false, from: "10:00", to: "12:00" },
     };
+  }
+
+  private defaultLevels(): ReadingLevel[] {
+    return [
+      { id: 'l1', code: 'A', name: 'Niveau A', desc: 'Beginnende lezers', active: true, isDefault: true },
+      { id: 'l2', code: 'B', name: 'Niveau B', desc: 'Gevorderde lezers', active: true, isDefault: false },
+      { id: 'l3', code: 'C', name: 'Niveau C', desc: 'Ervaren lezers', active: true, isDefault: false },
+      { id: 'l4', code: 'D', name: 'Niveau D', desc: 'Top lezers', active: true, isDefault: false },
+    ];
   }
 
   markDirty(): void {

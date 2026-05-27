@@ -14,7 +14,7 @@ describe("SettingsComponent", () => {
   beforeEach(async () => {
     const settingsMock = {
       getSchoolName: () => of({ name: "Test School" }),
-      getSettings: () => of({ messages: [], hours: {}, levels: [] }),
+      getSettings: () => of({ messages: [], hours: null, levels: null }),
     };
     const schoolMock = {
       getSelectedSchoolId: () => 1,

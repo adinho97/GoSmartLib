@@ -10,6 +10,7 @@ import com.example.demo.dto.admin.school.UpdateSchoolInfoRequest;
 import com.example.demo.dto.admin.user.AdminUserListItem;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.School;
+import com.example.demo.entities.SchoolSettings;
 import com.example.demo.entities.SchoolStatus;
 import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.AppUserRepository;
@@ -17,6 +18,7 @@ import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.SchoolRepository;
+import com.example.demo.repositories.SchoolSettingsRepository;
 import com.example.demo.repositories.WishlistRepository;
 import java.util.Objects;
 import java.util.List;
@@ -35,6 +37,7 @@ public class SchoolAdminService {
     private final LoanRepository loanRepository;
     private final WishlistRepository wishlistRepository;
     private final ClassReadingListItemRepository classReadingListItemRepository;
+    private final SchoolSettingsRepository schoolSettingsRepository;
 
     public SchoolAdminService(SchoolRepository schoolRepository,
             KlasRepository klasRepository,
@@ -43,7 +46,8 @@ public class SchoolAdminService {
             BookRepository bookRepository,
             LoanRepository loanRepository,
             WishlistRepository wishlistRepository,
-            ClassReadingListItemRepository classReadingListItemRepository) {
+            ClassReadingListItemRepository classReadingListItemRepository,
+            SchoolSettingsRepository schoolSettingsRepository) {
         this.schoolRepository = schoolRepository;
         this.klasRepository = klasRepository;
         this.appUserRepository = appUserRepository;
@@ -52,6 +56,7 @@ public class SchoolAdminService {
         this.loanRepository = loanRepository;
         this.wishlistRepository = wishlistRepository;
         this.classReadingListItemRepository = classReadingListItemRepository;
+        this.schoolSettingsRepository = schoolSettingsRepository;
     }
 
     @Transactional
@@ -69,7 +74,17 @@ public class SchoolAdminService {
         school.setStatus(SchoolStatus.PENDING);
 
         School saved = schoolRepository.save(school);
+        ensureSettingsExist(saved);
         return toCreateResponse(saved);
+    }
+
+    private void ensureSettingsExist(School school) {
+        if (!schoolSettingsRepository.existsById(school.getId())) {
+            SchoolSettings settings = new SchoolSettings();
+            settings.setSchool(school);
+            settings.setSchoolId(school.getId());
+            schoolSettingsRepository.save(settings);
+        }
     }
 
     @Transactional(readOnly = true)

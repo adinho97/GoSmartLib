@@ -16,6 +16,7 @@ import com.example.demo.oneroster.dto.OneRosterUser;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.SchoolRepository;
+import com.example.demo.repositories.SchoolSettingsRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +52,8 @@ class OneRosterSyncServiceTest {
     private AppUserRepository appUserRepository;
     @Autowired
     private KlasRepository klasRepository;
+    @Autowired
+    private SchoolSettingsRepository schoolSettingsRepository;
 
     private OneRosterClient oneRosterClient;
     private OneRosterProperties properties;
@@ -72,7 +75,7 @@ class OneRosterSyncServiceTest {
         properties.getSchools().put(SUBDOMAIN, cfg);
 
         syncService = new OneRosterSyncService(properties, oneRosterClient,
-                schoolRepository, klasRepository, appUserRepository);
+                schoolRepository, klasRepository, appUserRepository, schoolSettingsRepository);
     }
 
     @Test
