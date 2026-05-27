@@ -1,7 +1,15 @@
 import { Component, OnInit } from "@angular/core";
 import { LoanService, Loan } from "../services/loan.service";
 import { BibbeheerderService } from "../services/bibbeheerder.service";
+import { AdminSchoolService } from "../services/admin-school.service";
+import { AuthContextService } from "../services/auth-context.service";
+import { SchoolService } from "../services/school.service";
+import { Observable } from "rxjs";
 import { firstValueFrom } from "rxjs";
+import {
+  AdminUserListItem,
+  KlasListItem,
+} from "../models/admin-school";
 
 type Student = { sub: string; displayName: string; klas: string };
 
@@ -41,6 +49,9 @@ export class OntleningenVerlengenComponent implements OnInit {
   constructor(
     private loanService: LoanService,
     private bibbeheerderService: BibbeheerderService,
+    private adminSchoolService: AdminSchoolService,
+    private authContext: AuthContextService,
+    private schoolService: SchoolService,
   ) {
     this.today = new Date().toISOString().split("T")[0];
   }
@@ -49,8 +60,29 @@ export class OntleningenVerlengenComponent implements OnInit {
     this.loadAvailableClasses();
   }
 
+  /**
+   * Super-admins browse a specific school via the admin endpoints (no own
+   * `sub`/role), so route through AdminSchoolService when in admin mode.
+   * Regular bibbeheerders use the school-scoped bibbeheerder endpoints.
+   */
+  private klassenSource(): Observable<KlasListItem[]> {
+    if (this.authContext.isAdminMode()) {
+      const schoolId = this.schoolService.getSelectedSchoolId();
+      if (schoolId) return this.adminSchoolService.getSchoolKlassen(schoolId);
+    }
+    return this.bibbeheerderService.getKlassen();
+  }
+
+  private usersSource(): Observable<AdminUserListItem[]> {
+    if (this.authContext.isAdminMode()) {
+      const schoolId = this.schoolService.getSelectedSchoolId();
+      if (schoolId) return this.adminSchoolService.getSchoolUsers(schoolId);
+    }
+    return this.bibbeheerderService.getAllUsers();
+  }
+
   private loadAvailableClasses(): void {
-    this.bibbeheerderService.getKlassen().subscribe({
+    this.klassenSource().subscribe({
       next: (klassen) => {
         this.availableClasses = klassen.map((k) => k.naam);
       },
@@ -66,9 +98,7 @@ export class OntleningenVerlengenComponent implements OnInit {
     this.studentsError = "";
 
     try {
-      const users = await firstValueFrom(
-        this.bibbeheerderService.getAllUsers(),
-      );
+      const users = await firstValueFrom(this.usersSource());
 
       this.allStudents = users.map((u) => ({
         sub: u.sub,

@@ -792,7 +792,7 @@
 /* Bibliotheek navigation cards */
 .lib-cards-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
@@ -821,47 +821,12 @@
   height: 36px;
   border-radius: 8px;
   flex-shrink: 0;
-  background-color: #871f42;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.lib-icon-catalog {
-  background-color: #6366f1;
-}
-.lib-icon-add {
-  background-color: #0284c7;
-}
-.lib-icon-loan {
-  background-color: #871f42;
-}
-.lib-icon-return {
-  background-color: #e11d48;
-}
-.lib-icon-list {
-  background-color: #10b981;
-}
-.lib-icon-faq {
-  background-color: #f59e0b;
-}
-.lib-icon-stats {
-  background-color: #3b82f6;
-}
-.lib-icon-create-list {
-  background-color: #14b8a6;
-}
-.lib-icon-renew {
-  background-color: #8b5cf6;
-}
-.lib-icon-promote {
-  background-color: #ec4899;
-}
-.lib-icon-bulk {
-  background-color: #0ea5e9;
-}
-.lib-icon-settings {
-  background-color: #64748b;
+  color: #475569;
 }
 
 .lib-card-text {
