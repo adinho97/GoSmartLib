@@ -52,7 +52,105 @@ public class BookImportService {
 
     public ImportResultDto importBulkByIsbn(MultipartFile file, Long schoolId) {
         School school = schoolService.getByIdOrDefault(schoolId);
-        BulkImportService.ParsedBulkIsbn parsed = bulkImportService.parseAndValidate(file);
+        BulkImportService.ParsedBulkIsbn parsed = bulkImportService.parseAndValidate(file, null);
+
+        ImportResultDto result = new ImportResultDto();
+        result.setTotalRows(parsed.totalRows());
+        result.setUniqueIsbnsProcessed(parsed.isbnQuantityPairs().size());
+        result.setDuplicateRowsSkipped(parsed.duplicateRowsSkipped());
+
+        List<ImportResultDto.RowResult> rows = new ArrayList<>(parsed.invalidRows());
+        int totalCopiesAdded = 0;
+        for (BulkImportService.IsbnQuantityPair pair : parsed.isbnQuantityPairs()) {
+            String isbn = pair.isbn();
+            int quantity = pair.quantity();
+            BookCopy.CopyCondition condition = pair.condition();
+            try {
+                ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(isbn, school);
+                Book bookToAssociateCopies = null;
+                Long bookIdForDiagnostic = null;
+
+                if (outcome.status() == ImportCoreService.ImportStatus.ALREADY_EXISTS) {
+                    Book book = bookRepository.findByIsbnAndSchool_Id(isbn, school.getId()).orElse(null);
+                    if (book != null) {
+                        bookToAssociateCopies = book;
+                        bookIdForDiagnostic = book.getId();
+                        for (int i = 0; i < quantity; i++) {
+                            BookCopy copy = new BookCopy();
+                            copy.setBook(bookToAssociateCopies);
+                            copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
+                            copy.setCondition(condition);
+                            bookCopyRepository.save(copy);
+                        }
+                        totalCopiesAdded += quantity;
+                        rows.add(new ImportResultDto.RowResult(
+                                isbn,
+                                ImportResultDto.Status.ADDED,
+                                "Boek al in bibliotheek - " + quantity + " exemplaren toegevoegd.",
+                                bookIdForDiagnostic));
+                    } else {
+                        rows.add(new ImportResultDto.RowResult(
+                                isbn,
+                                ImportResultDto.Status.ERROR,
+                                "Boek bestaat maar kon niet worden gevonden.",
+                                null));
+                    }
+                    continue;
+                }
+
+                if (outcome.status() == ImportCoreService.ImportStatus.NOT_FOUND) {
+                    rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.NOT_FOUND,
+                            "Geen boek gevonden voor dit ISBN.",
+                            null));
+                    continue;
+                }
+
+                BookDto newlyAddedBookDto = outcome.bookDto();
+                if (newlyAddedBookDto != null && newlyAddedBookDto.getId() != null) {
+                    bookToAssociateCopies = bookRepository.findById(newlyAddedBookDto.getId()).orElse(null);
+                    bookIdForDiagnostic = newlyAddedBookDto.getId();
+                }
+
+                if (bookToAssociateCopies != null) {
+                    for (int i = 0; i < quantity; i++) {
+                        BookCopy copy = new BookCopy();
+                        copy.setBook(bookToAssociateCopies);
+                        copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
+                        copy.setCondition(condition);
+                        bookCopyRepository.save(copy);
+                    }
+                    totalCopiesAdded += quantity;
+                    rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.ADDED,
+                            "Boek toegevoegd met " + quantity + " exemplaar(en).",
+                            bookIdForDiagnostic));
+                } else {
+                        rows.add(new ImportResultDto.RowResult(
+                            isbn,
+                            ImportResultDto.Status.ERROR,
+                            "Boek is geimporteerd, maar er is een fout opgetreden bij het toevoegen van exemplaren.",
+                            bookIdForDiagnostic));
+                }
+            } catch (Exception ex) {
+                rows.add(new ImportResultDto.RowResult(
+                        isbn,
+                        ImportResultDto.Status.ERROR,
+                        "Fout bij verwerken van ISBN: " + ex.getMessage(),
+                        null));
+            }
+        }
+
+        result.setTotalCopiesAdded(totalCopiesAdded);
+        result.setResults(rows);
+        return result;
+    }
+
+    public ImportResultDto importBulkByIsbn(MultipartFile file, Long schoolId, String defaultCondition) {
+        School school = schoolService.getByIdOrDefault(schoolId);
+        BulkImportService.ParsedBulkIsbn parsed = bulkImportService.parseAndValidate(file, defaultCondition);
 
         ImportResultDto result = new ImportResultDto();
         result.setTotalRows(parsed.totalRows());

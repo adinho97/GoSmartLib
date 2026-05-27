@@ -58,6 +58,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
   showBarcodeModal = false;
   pendingScannedBook: PendingBarcodeBook | null = null;
   pendingCopiesCount: number = 1;
+  pendingCopyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
   isConfirmingBarcode = false;
 
   readonly statusColors: Record<string, string> = {
@@ -433,7 +434,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
       if (bookId) {
         // Add copies
         const promises = Array.from({ length: this.pendingCopiesCount }, () =>
-          this.loanService.addCopy(bookId),
+          this.loanService.addCopy(bookId, this.pendingCopyCondition),
         );
         await Promise.all(promises);
 
@@ -472,6 +473,7 @@ export class AddBarcodeComponent implements OnInit, OnDestroy {
     this.showBarcodeModal = false;
     this.pendingScannedBook = null;
     this.pendingCopiesCount = 1;
+    this.pendingCopyCondition = "GOOD";
   }
 
   clearSession() {

@@ -100,8 +100,10 @@ public class LestipService {
         }
 
         if (StringUtils.hasText(originalBook.getIsbn())) {
-            return bookRepository.findByIsbn(originalBook.getIsbn())
+            // Handle multiple books with same ISBN - find first one with lestip
+            return bookRepository.findAllByIsbn(originalBook.getIsbn()).stream()
                     .filter(b -> hasLestip(b.getLestip()))
+                    .findFirst()
                     .orElse(originalBook);
         }
 

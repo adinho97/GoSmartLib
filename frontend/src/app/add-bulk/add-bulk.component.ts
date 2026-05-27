@@ -6,7 +6,7 @@ import {
   BulkImportStatus,
 } from "../services/book.service";
 import { SchoolService } from "../services/school.service";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 
 @Component({
   selector: "app-add-bulk",
@@ -27,6 +27,7 @@ export class AddBulkComponent {
   selectedSchoolId: number | null = null;
   selectedFile: File | null = null;
   selectedStatusFilter: "" | BulkImportStatus = "";
+  copyCondition: "GOOD" | "MODERATE" | "BAD" = "GOOD";
   currentPage = 1;
 
   isUploading = false;
@@ -74,6 +75,7 @@ export class AddBulkComponent {
       this.result = await this.bookService.importBooksByUpload(
         this.selectedFile,
         this.selectedSchoolId ?? undefined,
+        this.copyCondition,
       );
 
       const addedCount = this.getStatusCount("ADDED");
@@ -193,18 +195,14 @@ export class AddBulkComponent {
   }
 
   downloadImportTemplate(): void {
-  const headers = [['ISBN', 'Aantal']];
+    const headers = [["ISBN", "Aantal"]];
 
-  const worksheet = XLSX.utils.aoa_to_sheet(headers);
-  worksheet['!cols'] = [
-    { wch: 20 }, 
-    { wch: 10 }, 
-  ];
+    const worksheet = XLSX.utils.aoa_to_sheet(headers);
+    worksheet["!cols"] = [{ wch: 20 }, { wch: 10 }];
 
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
 
-  XLSX.writeFile(workbook, 'isbn-import-template.xlsx');
-}
-
+    XLSX.writeFile(workbook, "isbn-import-template.xlsx");
+  }
 }
