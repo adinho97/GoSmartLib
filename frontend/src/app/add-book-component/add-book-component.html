@@ -232,6 +232,7 @@
           min="0"
           max="99"
           [(ngModel)]="aantalExemplaren"
+          (change)="updateCopyConditionsArray()"
         />
         <small class="helper-text"
           >Hoeveel fysieke exemplaren voeg je toe?</small
@@ -239,18 +240,39 @@
       </div>
 
       <!-- Staat van exemplaren -->
+      @if (aantalExemplaren === 1) {
       <div class="form-row">
         <label for="copyCondition">Staat van exemplaren</label>
         <select
           id="copyCondition"
           name="copyCondition"
-          [(ngModel)]="copyCondition"
+          [(ngModel)]="copyConditionsArray[0]"
         >
           <option value="GOOD">Goed</option>
           <option value="MODERATE">Matig</option>
           <option value="BAD">Slecht</option>
         </select>
       </div>
+      } @else {
+      <div class="form-row">
+        <label>Staat van elk exemplaar</label>
+        <div class="copy-conditions-list">
+          @for (condition of copyConditionsArray; track $index) {
+          <div class="copy-condition-row">
+            <span class="copy-number">Exemplaar {{ $index + 1 }}</span>
+            <select
+              [(ngModel)]="copyConditionsArray[$index]"
+              [name]="'copyCondition_' + $index"
+            >
+              <option value="GOOD">Goed</option>
+              <option value="MODERATE">Matig</option>
+              <option value="BAD">Slecht</option>
+            </select>
+          </div>
+          }
+        </div>
+      </div>
+      }
 
       <button
         type="submit"
