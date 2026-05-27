@@ -76,24 +76,6 @@ export class AdminSchoolDetailComponent implements OnInit {
       icon: "return",
     },
     {
-      label: "Actieve uitleningen",
-      sub: "Lopende uitleningen bekijken",
-      route: "/uitleen-overzicht",
-      icon: "active",
-    },
-    {
-      label: "Uitleenhistoriek",
-      sub: "Alle voorbije uitleningen",
-      route: "/uitleen-catalogus",
-      icon: "history",
-    },
-    {
-      label: "Conditieoverzicht",
-      sub: "Staat van de collectie",
-      route: "/uitleen-conditie",
-      icon: "condition",
-    },
-    {
       label: "Klasleeslijsten",
       sub: "Leeslijsten beheren",
       route: "/mijn-lijsten",
@@ -131,9 +113,9 @@ export class AdminSchoolDetailComponent implements OnInit {
       icon: "faq",
     },
     {
-      label: "Schoolstatistieken",
-      sub: "School-brede cijfers",
-      route: "/statistieken/school",
+      label: "Statistieken",
+      sub: "Uitleningen, historiek, conditie & cijfers",
+      route: "/statistieken",
       icon: "stats",
     },
   ];
