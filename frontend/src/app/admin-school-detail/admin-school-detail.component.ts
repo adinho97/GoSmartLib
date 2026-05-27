@@ -687,8 +687,4 @@ export class AdminSchoolDetailComponent implements OnInit {
   onHighlightsAdded(): void {
     this.loadHighlights();
   }
-
-  goBack(): void {
-    this.router.navigate(["/admin/dashboard"]);
-  }
 }

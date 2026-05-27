@@ -12,30 +12,6 @@
   align-items: center;
 }
 
-.btn-back-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 42px;
-  height: 42px;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  color: #374151;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    border-color 0.15s,
-    color 0.15s;
-}
-
-.btn-back-icon:hover {
-  background: #fdf2f5;
-  border-color: #c8a0b0;
-  color: #871f42;
-}
-
 .loading-text {
   color: #888;
   font-size: 14px;
