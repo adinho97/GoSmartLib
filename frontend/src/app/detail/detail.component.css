@@ -439,6 +439,34 @@
   line-height: 1.5;
 }
 
+.lestip-attachment {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #d4c1c9;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #871f42;
+  color: #871f42;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.download-btn:hover {
+  background: #fff8fb;
+}
+
+.file-upload-wrapper {
+  margin-top: 8px;
+}
+
 .lestip-author {
   margin-top: 6px !important;
   font-size: 13px;
