@@ -11,17 +11,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @SuppressWarnings("null")
+@Transactional
 public class LestipService {
 
     private final BookRepository bookRepository;
@@ -34,6 +39,7 @@ public class LestipService {
         this.bookRepository = bookRepository;
     }
 
+    @Transactional(readOnly = true)
     public LestipDto getLestip(Long bookId, String scope, String userName) {
         Book localBook = requireBook(bookId);
         String normalizedUserName = normalizeUserName(userName);
@@ -59,6 +65,7 @@ public class LestipService {
         return dto;
     }
 
+    @Transactional
     public LestipDto updateLestip(Long bookId, UpdateLestipRequest request, String userName) {
         String normalizedUserName = normalizeUserName(userName);
         Book book = requireBook(bookId);
@@ -72,20 +79,13 @@ public class LestipService {
             throw new ApiException("Lestip mag niet leeg zijn", HttpStatus.BAD_REQUEST, "LESTIP_EMPTY");
         }
 
-        // Ensure the book entity is valid (has description) before we try to save a lestip.
-        // This prevents a 500 Internal Server Error when hitting legacy data without a description.
-        if (!StringUtils.hasText(book.getBeschrijving())) {
-            throw new ApiException("Boekgegevens zijn incompleet (beschrijving ontbreekt). Pas eerst de boekgegevens aan.", 
-                HttpStatus.BAD_REQUEST, "BOOK_DESCRIPTION_REQUIRED");
-        }
-
         if (normalizedLestip.startsWith("{")) {
             try {
                 var json = objectMapper.readTree(normalizedLestip);
 
                 String text = json.path("text").asText("").trim();
                 if (text.isEmpty()) {
-                    throw new ApiException("Omschrijving is verplicht bij een bijlage", HttpStatus.BAD_REQUEST, "LESTIP_TEXT_REQUIRED");
+                    throw new ApiException("Een beschrijving is verplicht bij een lestip.", HttpStatus.BAD_REQUEST, "LESTIP_TEXT_REQUIRED");
                 }
 
                 // Clear existing attachments to replace with new set
@@ -158,6 +158,7 @@ public class LestipService {
         }
     }
 
+    @Transactional
     public void deleteLestip(Long bookId, String userName) {
         String normalizedUserName = normalizeUserName(userName);
         Book book = requireBook(bookId);
@@ -218,14 +219,27 @@ public class LestipService {
         if (StringUtils.hasText(lestipText) && lestipText.trim().startsWith("{")) {
             try {
                 var json = objectMapper.readTree(lestipText);
-                dto.setLestip(json.path("text").asText(""));
+                String text = json.path("text").asText("");
+                dto.setLestip(text);
 
-                // Return data for the first attachment to maintain backward compatibility with LestipDto
                 if (book.getLestipAttachments() != null && !book.getLestipAttachments().isEmpty()) {
-                    LestipAttachment first = book.getLestipAttachments().iterator().next();
+                    // Vul de lijst met alle bijlagen voor de frontend
+                    List<LestipDto.AttachmentDto> attachmentDtos = book.getLestipAttachments().stream()
+                            .map(att -> {
+                                LestipDto.AttachmentDto a = new LestipDto.AttachmentDto();
+                                a.setFileName(att.getFileName());
+                                a.setContentType(att.getContentType());
+                                // Base64 encoding voor transfer naar frontend
+                                a.setFileData(Base64.getEncoder().encodeToString(att.getFileData()));
+                                return a;
+                            })
+                            .collect(Collectors.toList());
+                    dto.setAttachments(attachmentDtos);
+                    
+                    // Behoud compatibiliteit voor de velden op het hoofdniveau van de DTO
+                    LestipDto.AttachmentDto first = attachmentDtos.get(0);
                     dto.setFileName(first.getFileName());
                     dto.setFileContentType(first.getContentType());
-                    dto.setFileData(first.getFileData());
                 } else {
                     dto.setFileName(json.path("fileName").asText(null));
                     dto.setFileContentType(json.path("fileContentType").asText(null));
