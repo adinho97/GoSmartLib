@@ -7,7 +7,6 @@ import {
   AdminGenreService,
   Genre as ApiGenre,
 } from "../services/admin-genre.service";
-import { AdminTagService, Tag } from "../services/admin-tag.service";
 import { UiToastService } from "../services/ui-toast.service";
 import { forkJoin, from } from "rxjs";
 import { catchError, of } from 'rxjs';
@@ -42,6 +41,7 @@ interface ReadingLevel {
   desc: string;
   active: boolean;
   isDefault: boolean;
+  isProtected?: boolean;
 }
 
 interface AccentOption {
@@ -79,6 +79,7 @@ interface ConfirmTarget {
 
 const ROTATE_MS = 20000;
 const NETWORK_DEFAULT_LOAN_DAYS = 14;
+const DEFAULT_LEVEL_IDS = ['l1', 'l2', 'l3', 'l4'];
 
 @Component({
   selector: "app-settings",
@@ -96,7 +97,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     { id: "hours", label: "Openingsuren" },
     { id: "loanterm", label: "Uitleentermijn" },
     { id: "genres", label: "Genres" },
-    { id: "tags", label: "Thema's (Tags)" },
     { id: "levels", label: "Leesniveaus" },
   ];
 
@@ -127,6 +127,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   readonly networkLoanDays = NETWORK_DEFAULT_LOAN_DAYS;
   readonly minLoanDays = 1;
   readonly maxLoanDays = 90;
+  readonly genrePageSize = 5;
 
   activeAnchor = "motd";
 
@@ -134,7 +135,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   hours: DefaultHours = this.defaultHours();
   loanDays = 7;
   genres: Genre[] = [];
-  tags: Tag[] = [];
   levels: ReadingLevel[] = [];
 
   isLoading = true;
@@ -156,13 +156,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private rotateTimer: ReturnType<typeof setInterval> | null = null;
 
   // Genres section UI state
-  genreQuery = "";
+  private _genreQuery = "";
+  get genreQuery(): string { return this._genreQuery; }
+  set genreQuery(v: string) { this._genreQuery = v; this.genrePage = 1; }
+
+  genrePage = 1;
   editingGenreId: string | null = null;
   editingGenreName = "";
   addingSubFor: string | null = null;
   subDraft = "";
   newGenreName = "";
-  newTagName = "";
+
+  // Levels section UI state
+  addingLevel = false;
+  levelDraft: Partial<ReadingLevel> | null = null;
 
   confirmTarget: ConfirmTarget | null = null;
 
@@ -170,7 +177,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private settingsService: SettingsService,
     public schoolService: SchoolService,
     private genreService: AdminGenreService,
-    private tagService: AdminTagService,
     private toastService: UiToastService,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -195,13 +201,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
       settings: this.settingsService.getSettings(this.schoolId),
       loanDays: from(this.schoolService.getDefaultLoanDays(this.schoolId)),
       apiGenres: this.genreService.getAll().pipe(catchError(() => of([]))),
-      apiTags: this.tagService.getAll().pipe(catchError(() => of([]))),
     }).subscribe({
       next: (res) => {
         this.schoolName = res.schoolInfo.name;
         this.messages = res.settings.messages ?? [];
 
-        // Merge de opgeslagen uren met de defaults zodat alle 7 dagen altijd aanwezig zijn in de UI
         const savedHours = res.settings.hours as any;
         const defaults = this.defaultHours();
         this.hours = {
@@ -214,14 +218,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
           sun: savedHours?.sun ?? defaults.sun,
         };
 
-        // Gebruik de default niveaus (A-D) als de database nog geen niveaus bevat
-        this.levels = (res.settings.levels && res.settings.levels.length > 0)
+        const rawLevels = (res.settings.levels && res.settings.levels.length > 0)
           ? res.settings.levels
           : this.defaultLevels();
+        this.levels = rawLevels.map((l: ReadingLevel) => ({
+          ...l,
+          isProtected: DEFAULT_LEVEL_IDS.includes(l.id),
+        }));
 
         this.loanDays = res.loanDays;
-        this.tags = res.apiTags;
-        this.genres = res.apiGenres.map(g => this.mapApiGenre(g));
+        this.genres = res.apiGenres.map((g: ApiGenre) => this.mapApiGenre(g));
         this.snapshotInitial();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -247,7 +253,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private defaultHours(): DefaultHours {
-    // Default structure for new schools
     return {
       mon: { open: true, from: "08:30", to: "16:30" },
       tue: { open: true, from: "08:30", to: "16:30" },
@@ -261,10 +266,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   private defaultLevels(): ReadingLevel[] {
     return [
-      { id: 'l1', code: 'A', name: 'Niveau A', desc: 'Beginnende lezers', active: true, isDefault: true },
-      { id: 'l2', code: 'B', name: 'Niveau B', desc: 'Gevorderde lezers', active: true, isDefault: false },
-      { id: 'l3', code: 'C', name: 'Niveau C', desc: 'Ervaren lezers', active: true, isDefault: false },
-      { id: 'l4', code: 'D', name: 'Niveau D', desc: 'Top lezers', active: true, isDefault: false },
+      { id: 'l1', code: 'A', name: 'Niveau A', desc: 'Beginnende lezers', active: true, isDefault: true, isProtected: true },
+      { id: 'l2', code: 'B', name: 'Niveau B', desc: 'Gevorderde lezers', active: true, isDefault: false, isProtected: true },
+      { id: 'l3', code: 'C', name: 'Niveau C', desc: 'Ervaren lezers', active: true, isDefault: false, isProtected: true },
+      { id: 'l4', code: 'D', name: 'Niveau D', desc: 'Top lezers', active: true, isDefault: false, isProtected: true },
     ];
   }
 
@@ -277,7 +282,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.dirty = d;
   }
 
-  /* ── Dirty tracking & save ───────────────── */
   private snapshotInitial(): void {
     this.initialState = {
       messages: JSON.stringify(this.messages),
@@ -526,44 +530,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return `${d} dagen ruimer dan het netwerk (${this.networkLoanDays} dagen).`;
   }
 
-  /* ── Tags (Thema's) ─────────────────────── */
-  addTag(): void {
-    const v = this.newTagName.trim();
-    if (!v) return;
-    this.tagService.create(v).subscribe({
-      next: (t) => {
-        this.tags = [...this.tags, t];
-        this.newTagName = "";
-        this.toastService.success(`Thema "${v}" toegevoegd.`);
-      },
-      error: () => this.toastService.error("Fout bij het toevoegen van thema."),
-    });
-  }
-
-  requestDeleteTag(t: Tag): void {
-    this.confirmTarget = {
-      title: `Thema "${t.naam}" verwijderen?`,
-      body: `Dit thema wordt verwijderd uit de lijst. Boeken die dit label hebben, behouden de tekst maar het label is niet langer beschikbaar voor nieuwe boeken.`,
-      confirmLabel: "Verwijderen",
-      onConfirm: () => {
-        this.tagService.delete(t.id).subscribe({
-          next: () => (this.tags = this.tags.filter((x) => x.id !== t.id)),
-          error: () =>
-            this.toastService.error("Fout bij het verwijderen van thema."),
-        });
-      },
-    };
-  }
-
   /* ── Genres ─────────────────────────────── */
-  get visibleGenres(): Genre[] {
-    const q = this.genreQuery.trim().toLowerCase();
+  get filteredGenres(): Genre[] {
+    const q = this._genreQuery.trim().toLowerCase();
     if (!q) return this.genres;
     return this.genres.filter(
       (g) =>
         g.naam.toLowerCase().includes(q) ||
         g.subs.some((s) => s.naam.toLowerCase().includes(q)),
     );
+  }
+
+  get genreTotalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredGenres.length / this.genrePageSize));
+  }
+
+  get genrePageRange(): number[] {
+    return Array.from({ length: this.genreTotalPages }, (_, i) => i + 1);
+  }
+
+  get visibleGenres(): Genre[] {
+    const start = (this.genrePage - 1) * this.genrePageSize;
+    return this.filteredGenres.slice(start, start + this.genrePageSize);
   }
 
   startEditGenre(g: Genre): void {
@@ -644,6 +632,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.genres = [...this.genres, this.mapApiGenre(newApiGenre)];
         this.newGenreName = "";
         this.toastService.success(`Genre "${v}" aangemaakt.`);
+        this.genrePage = this.genreTotalPages;
         this.cdr.detectChanges();
       },
       error: () => this.toastService.error("Fout bij het aanmaken van genre."),
@@ -662,6 +651,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.genreService.delete(Number(g.id)).subscribe({
           next: () => {
             this.genres = this.genres.filter((x) => x.id !== g.id);
+            const total = this.genreTotalPages;
+            if (this.genrePage > total) this.genrePage = total;
             this.toastService.success(`Genre "${g.naam}" verwijderd.`);
           },
           error: () =>
@@ -673,6 +664,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   clearGenreQuery(): void {
     this.genreQuery = "";
+  }
+
+  goToGenrePage(page: number): void {
+    this.genrePage = Math.max(1, Math.min(page, this.genreTotalPages));
   }
 
   /* ── Levels ─────────────────────────────── */
@@ -709,6 +704,52 @@ export class SettingsComponent implements OnInit, OnDestroy {
     cls.push(l.active ? "active" : "inactive");
     if (l.isDefault) cls.push("default");
     return cls.join(" ");
+  }
+
+  startAddLevel(): void {
+    this.addingLevel = true;
+    this.levelDraft = { code: '', name: '', desc: '', active: true, isDefault: false };
+  }
+
+  cancelAddLevel(): void {
+    this.addingLevel = false;
+    this.levelDraft = null;
+  }
+
+  saveAddLevel(): void {
+    if (!this.levelDraft) return;
+    const code = (this.levelDraft.code ?? '').trim().slice(0, 6);
+    const name = (this.levelDraft.name ?? '').trim();
+    if (!code || !name) return;
+
+    const newLevel: ReadingLevel = {
+      id: `l-${Date.now()}`,
+      code,
+      name,
+      desc: (this.levelDraft.desc ?? '').trim(),
+      active: true,
+      isDefault: false,
+      isProtected: false,
+    };
+    this.levels = [...this.levels, newLevel];
+    this.cancelAddLevel();
+    this.markDirty();
+  }
+
+  requestDeleteLevel(l: ReadingLevel): void {
+    this.confirmTarget = {
+      title: `Niveau "${l.name}" verwijderen?`,
+      body: `Dit leesniveau wordt verwijderd. Boeken die dit niveau hebben, behouden de waarde maar het niveau is niet langer beschikbaar voor nieuwe boeken.`,
+      confirmLabel: "Verwijderen",
+      onConfirm: () => {
+        if (l.isDefault) {
+          const next = this.levels.find((x) => x.id !== l.id && x.active);
+          if (next) this.setDefaultLevel(next.id);
+        }
+        this.levels = this.levels.filter((x) => x.id !== l.id);
+        this.markDirty();
+      },
+    };
   }
 
   /* ── Modal ──────────────────────────────── */

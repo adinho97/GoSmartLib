@@ -57,11 +57,6 @@
                   <line x1="7" y1="7" x2="7.01" y2="7"/>
                 </svg>
               }
-              @case ('tags') {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              }
               @case ('levels') {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -404,7 +399,8 @@
             class="genre-search-input"
             type="search"
             placeholder="Zoek genres of subgenres…"
-            [(ngModel)]="genreQuery"
+            [ngModel]="genreQuery"
+            (ngModelChange)="genreQuery = $event"
           />
           @if (genreQuery) {
             <button type="button" class="genre-search-clear" (click)="clearGenreQuery()" aria-label="Wis zoekopdracht">
@@ -486,10 +482,41 @@
 
           @if (visibleGenres.length === 0) {
             <div class="genre-empty">
-              Geen genres gevonden voor "<strong>{{ genreQuery }}</strong>".
+              @if (genreQuery) {
+                Geen genres gevonden voor "<strong>{{ genreQuery }}</strong>".
+              } @else {
+                Nog geen genres geconfigureerd.
+              }
             </div>
           }
         </div>
+
+        @if (genreTotalPages > 1) {
+          <nav class="genre-pager" aria-label="Genres paginering">
+            <button
+              type="button"
+              class="pagination-button"
+              [disabled]="genrePage === 1"
+              (click)="goToGenrePage(genrePage - 1)"
+              title="Vorige pagina"
+            >&lt;</button>
+            @for (p of genrePageRange; track p) {
+              <button
+                type="button"
+                class="pagination-button"
+                [class.active]="p === genrePage"
+                (click)="goToGenrePage(p)"
+              >{{ p }}</button>
+            }
+            <button
+              type="button"
+              class="pagination-button"
+              [disabled]="genrePage === genreTotalPages"
+              (click)="goToGenrePage(genrePage + 1)"
+              title="Volgende pagina"
+            >&gt;</button>
+          </nav>
+        }
 
         <div class="genre-add-form">
           <input
@@ -504,47 +531,6 @@
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
             Genre toevoegen
-          </button>
-        </div>
-      </section>
-
-      <!-- ── Thema's (Tags) ──────────────────── -->
-      <section class="s-card" id="tags">
-        <div class="s-card-head">
-          <div class="head-text">
-            <h2>Thema's (Tags)</h2>
-            <p class="s-card-sub">Gebruik thema's om boeken flexibel te groeperen rond projecten zoals 'Jeugdboekenmaand' of 'Leesjury'.</p>
-          </div>
-          <div class="head-aside">
-            <span class="scope-tag muted">{{ tags.length }} thema's</span>
-          </div>
-        </div>
-
-        <div class="sub-list" style="margin-top: 0; padding: 0;">
-          @for (t of tags; track t.id) {
-            <span class="sub-chip" style="font-size: 13px; padding: 6px 12px;">
-              {{ t.naam }}
-              <button type="button" class="sub-remove" [attr.aria-label]="t.naam + ' verwijderen'" (click)="requestDeleteTag(t)">×</button>
-            </span>
-          }
-          @if (tags.length === 0) {
-            <p class="closed-label">Nog geen thema's geconfigureerd</p>
-          }
-        </div>
-
-        <div class="genre-add-form">
-          <input
-            class="input"
-            placeholder="Nieuw thema toevoegen (bv. Jeugdboekenmaand)…"
-            [(ngModel)]="newTagName"
-            (keydown.enter)="addTag()"
-          />
-          <button type="button" class="btn btn-primary" [disabled]="!newTagName.trim()" (click)="addTag()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Thema toevoegen
           </button>
         </div>
       </section>
@@ -592,17 +578,34 @@
                     <span class="toggle-track"></span>
                     <span class="toggle-label">{{ l.active ? 'In gebruik' : 'Niet gebruikt' }}</span>
                   </label>
-                  <button
-                    type="button"
-                    class="lvl-radio"
-                    [class.is-default]="l.isDefault"
-                    (click)="l.active && setDefaultLevel(l.id)"
-                    [disabled]="!l.active"
-                    [title]="l.isDefault ? 'Standaardniveau van de school' : 'Maak dit het standaardniveau'"
-                  >
-                    <span class="lvl-radio-dot"></span>
-                    Standaard
-                  </button>
+                  <div class="lvl-footer-right">
+                    <button
+                      type="button"
+                      class="lvl-radio"
+                      [class.is-default]="l.isDefault"
+                      (click)="l.active && setDefaultLevel(l.id)"
+                      [disabled]="!l.active"
+                      [title]="l.isDefault ? 'Standaardniveau van de school' : 'Maak dit het standaardniveau'"
+                    >
+                      <span class="lvl-radio-dot"></span>
+                      Standaard
+                    </button>
+                    @if (!l.isProtected) {
+                      <button
+                        type="button"
+                        class="icon-btn danger lvl-delete-btn"
+                        title="Niveau verwijderen"
+                        (click)="requestDeleteLevel(l)"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6l-1.4 14.1a2 2 0 0 1-2 1.9H8.4a2 2 0 0 1-2-1.9L5 6"/>
+                          <path d="M10 11v6M14 11v6"/>
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                        </svg>
+                      </button>
+                    }
+                  </div>
                 </div>
               </div>
             </div>
@@ -615,8 +618,67 @@
             <line x1="12" y1="16" x2="12" y2="12"/>
             <line x1="12" y1="8" x2="12.01" y2="8"/>
           </svg>
-          <span>De codes (A, B, C, D) en namen mag je hernoemen naar de woordenschat van jouw school (bv. "A → Ace", "B → Beer"). Het standaardniveau wordt voorgeselecteerd bij het toevoegen van een nieuw boek. Niveaus die je uitschakelt verdwijnen uit nieuwe formulieren en filters.</span>
+          <span>De codes (A, B, C, D) en namen mag je hernoemen naar de woordenschat van jouw school (bv. "A → Ace", "B → Beer"). Het standaardniveau wordt voorgeselecteerd bij het toevoegen van een nieuw boek. Niveaus die je uitschakelt verdwijnen uit nieuwe formulieren en filters. De 4 standaardniveaus (A–D) kunnen niet worden verwijderd.</span>
         </div>
+
+        @if (!addingLevel) {
+          <button type="button" class="msg-add-btn" (click)="startAddLevel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Niveau toevoegen
+          </button>
+        } @else {
+          @if (levelDraft) {
+            <div class="lvl-add-form">
+              <div class="form-grid-2">
+                <div class="form-row">
+                  <label>Code (max. 6 tekens)</label>
+                  <input
+                    class="input"
+                    type="text"
+                    [(ngModel)]="levelDraft.code"
+                    placeholder="bv. E"
+                    maxlength="6"
+                  />
+                </div>
+                <div class="form-row">
+                  <label>Naam</label>
+                  <input
+                    class="input"
+                    type="text"
+                    [(ngModel)]="levelDraft.name"
+                    placeholder="bv. Niveau E"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <label>Omschrijving (optioneel)</label>
+                <input
+                  class="input"
+                  type="text"
+                  [(ngModel)]="levelDraft.desc"
+                  placeholder="bv. Expert lezers"
+                />
+              </div>
+              <div class="msg-edit-actions">
+                <button type="button" class="btn btn-ghost" (click)="cancelAddLevel()">Annuleren</button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  [disabled]="!levelDraft.code?.trim() || !levelDraft.name?.trim()"
+                  (click)="saveAddLevel()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Niveau toevoegen
+                </button>
+              </div>
+            </div>
+          }
+        }
       </section>
 
       <div class="save-bar" [class.hidden]="!dirty">

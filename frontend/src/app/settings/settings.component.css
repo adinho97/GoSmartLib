@@ -1273,8 +1273,13 @@
 /* ── Leesniveaus ── */
 .lvl-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+}
+@media (max-width: 600px) {
+  .lvl-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .lvl-card {
   display: flex;
@@ -1404,6 +1409,23 @@
   justify-content: space-between;
   gap: 8px;
 }
+.lvl-footer-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.lvl-delete-btn {
+  width: 26px;
+  height: 26px;
+}
+.lvl-add-form {
+  margin-top: var(--s-4);
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--brand-100);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-1);
+}
 .lvl-radio {
   display: inline-flex;
   align-items: center;
@@ -1466,6 +1488,47 @@
   color: var(--ink-4);
   flex-shrink: 0;
   margin-top: 2px;
+}
+
+/* ── Genre pagination ── */
+.genre-pager {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px dashed var(--line);
+}
+.pagination-button {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.pagination-button:hover:not(:disabled) {
+  background: var(--brand-50);
+  border-color: var(--brand-100);
+  color: var(--brand);
+}
+.pagination-button.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.pagination-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ── Sticky save bar ── */
