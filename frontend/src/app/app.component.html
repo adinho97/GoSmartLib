@@ -1,6 +1,77 @@
+<!-- Admin Impersonation Bar -->
+<div class="admin-bar" *ngIf="showAdminBar">
+  <div class="admin-bar-content">
+    <span class="admin-context-info">
+      Beheer van: <strong>{{ adminSchoolName }}</strong>
+    </span>
+    <button class="admin-exit-btn" (click)="goBackToAdmin()">
+      Terug naar Admin Paneel
+    </button>
+  </div>
+</div>
+
 <header class="app-header" *ngIf="showNavbar">
   <nav class="main-nav">
-    <div class="nav-brand" routerLink="/home">GoSmartLib</div>
+    <div class="nav-left">
+      <button
+        class="menu-toggle"
+        (click)="toggleMainNav($event)"
+        aria-label="Menu openen"
+      >
+        <span class="hamburger-box">
+          <span class="hamburger-inner"></span>
+        </span>
+      </button>
+      <div class="nav-brand" routerLink="/home">GoSmartLib</div>
+
+      <!-- Desktop Navigation Links -->
+      <ul class="nav-links" *ngIf="!isStudent">
+        <li>
+          <a
+            routerLink="/home"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            >Home</a
+          >
+        </li>
+        <li>
+          <a
+            routerLink="/books"
+            routerLinkActive="active"
+            [class.active]="isBooksListActive"
+            >Boeken</a
+          >
+        </li>
+        <li>
+          <a
+            routerLink="/books"
+            [queryParams]="{ genre: 'didactiek' }"
+            [class.active]="isDidacticCollectionActive"
+            >Didactiek</a
+          >
+        </li>
+        <li *ngIf="canAccessLoans">
+          <a
+            routerLink="/mijn-taken"
+            routerLinkActive="active"
+            [class.active]="isTakenMenuActive"
+            >Mijn Taken</a
+          >
+        </li>
+      </ul>
+
+      <ul class="nav-links" *ngIf="isStudent">
+        <li>
+          <a
+            routerLink="/home"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            >Home</a
+          >
+        </li>
+        <li><a routerLink="/books" routerLinkActive="active">Boeken</a></li>
+      </ul>
+    </div>
 
     <div class="header-actions">
       @if (isLibrarian) {
@@ -8,7 +79,6 @@
           class="notification-bell"
           routerLink="/mijn-taken/review-beheer"
           title="Review meldingen"
-          aria-label="Review meldingen"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -27,15 +97,92 @@
           }
         </button>
       }
-      <!-- Profile menu logic here -->
+
+      <div class="profile-trigger" (click)="toggleProfileMenu($event)">
+        <div class="user-avatar">{{ userInitial }}</div>
+        <span class="user-name-display">{{ userName }}</span>
+        <svg
+          class="chevron-icon"
+          [class.rotated]="profileMenuOpen"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
     </div>
   </nav>
+
+  <!-- Profile Dropdown Menu -->
+  <div
+    class="profile-menu-dropdown"
+    *ngIf="profileMenuOpen"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="profile-header">
+      <p class="profile-name">{{ userName }}</p>
+      <p class="profile-role">{{ userRoleLabel }}</p>
+
+      <div class="level-badge-container" *ngIf="levelInfo$ | async as info">
+        <span class="level-pill" [attr.data-tier]="getLevelTier(info.level)">
+          Level {{ info.level }} -
+          {{ getLevelTierLabel(info.level) }}
+        </span>
+      </div>
+    </div>
+    <div class="profile-divider"></div>
+    <ul class="profile-menu-links">
+      <li>
+        <a routerLink="/settings" (click)="profileMenuOpen = false"
+          >Instellingen</a
+        >
+      </li>
+      <li><button class="logout-link" (click)="logout()">Uitloggen</button></li>
+    </ul>
+  </div>
+
+  <!-- Mobile Side Navigation -->
+  <div
+    class="mobile-nav-overlay"
+    *ngIf="mainNavOpen"
+    (click)="mainNavOpen = false"
+  ></div>
+  <div class="side-nav" [class.open]="mainNavOpen">
+    <div class="side-nav-header">
+      <div class="nav-brand">GoSmartLib</div>
+      <button class="close-nav" (click)="mainNavOpen = false">✕</button>
+    </div>
+    <ul class="side-nav-links">
+      <li><a routerLink="/home" (click)="mainNavOpen = false">Home</a></li>
+      <li><a routerLink="/books" (click)="mainNavOpen = false">Boeken</a></li>
+      <li *ngIf="!isStudent">
+        <a
+          routerLink="/books"
+          [queryParams]="{ genre: 'didactiek' }"
+          (click)="mainNavOpen = false"
+          >Didactische Collectie</a
+        >
+      </li>
+      <li *ngIf="canAccessLoans">
+        <a routerLink="/mijn-taken" (click)="mainNavOpen = false">Mijn Taken</a>
+      </li>
+      <div class="profile-divider"></div>
+      <li>
+        <a routerLink="/settings" (click)="mainNavOpen = false">Instellingen</a>
+      </li>
+      <li>
+        <button class="logout-btn-mobile" (click)="logout()">Uitloggen</button>
+      </li>
+    </ul>
+  </div>
 </header>
 
 <main class="app-main">
   <router-outlet></router-outlet>
 </main>
-
-<footer *ngIf="showFooter">
-  <!-- Footer content -->
-</footer>
