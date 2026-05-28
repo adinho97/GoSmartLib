@@ -1422,11 +1422,18 @@
   align-items: center;
   gap: 8px;
 }
+.lvl-icon-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
 .lvl-delete-btn {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 2;
+  opacity: 0.6;
+}
+.lvl-delete-btn:hover {
+  opacity: 1;
 }
 .lvl-add-form {
   margin-top: var(--s-4);
