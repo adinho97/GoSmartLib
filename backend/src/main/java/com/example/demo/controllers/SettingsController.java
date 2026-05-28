@@ -48,7 +48,6 @@ public class SettingsController {
                     .orElse(new SchoolSettings());
 
             existing.setSchool(school);
-            existing.setSchoolId(schoolId);
             existing.setMessages(settings.getMessages());
             existing.setHours(settings.getHours());
             existing.setLevels(settings.getLevels());
