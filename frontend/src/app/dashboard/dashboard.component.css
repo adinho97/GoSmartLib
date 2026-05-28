@@ -269,13 +269,14 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
   flex-shrink: 0;
 }
-.dash-motd-nav-btn svg { width: 15px; height: 15px; }
+.dash-motd-nav-btn svg { width: 15px; height: 15px; stroke: var(--ink); fill: none; }
 .dash-motd-nav-btn:hover {
   background: var(--brand-50);
   border-color: var(--brand-100);
   color: var(--brand);
   transform: scale(1.08);
 }
+.dash-motd-nav-btn:hover svg { stroke: var(--brand); }
 .dash-motd-nav-btn:active { transform: scale(0.95); }
 
 .dash-motd-pager {
