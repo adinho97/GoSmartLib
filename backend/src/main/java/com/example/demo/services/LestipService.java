@@ -72,6 +72,13 @@ public class LestipService {
             throw new ApiException("Lestip mag niet leeg zijn", HttpStatus.BAD_REQUEST, "LESTIP_EMPTY");
         }
 
+        // Ensure the book entity is valid (has description) before we try to save a lestip.
+        // This prevents a 500 Internal Server Error when hitting legacy data without a description.
+        if (!StringUtils.hasText(book.getBeschrijving())) {
+            throw new ApiException("Boekgegevens zijn incompleet (beschrijving ontbreekt). Pas eerst de boekgegevens aan.", 
+                HttpStatus.BAD_REQUEST, "BOOK_DESCRIPTION_REQUIRED");
+        }
+
         if (normalizedLestip.startsWith("{")) {
             try {
                 var json = objectMapper.readTree(normalizedLestip);
