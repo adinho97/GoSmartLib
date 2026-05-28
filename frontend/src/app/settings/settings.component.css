@@ -1420,6 +1420,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
+  min-width: 100px; /* Ensure there is enough room for the buttons */
 }
 .lvl-icon-col {
   display: flex;
@@ -1428,11 +1429,27 @@
   gap: 8px;
   flex-shrink: 0;
 }
-.lvl-delete-btn {
-  opacity: 0.6;
+.lvl-delete-text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #dc2626;
+  cursor: pointer;
+  font-family: inherit;
+  background: transparent;
+  border: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
 }
-.lvl-delete-btn:hover {
-  opacity: 1;
+.lvl-delete-text-btn:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.lvl-delete-text-btn svg {
+  width: 14px;
+  height: 14px;
 }
 .lvl-add-form {
   margin-top: var(--s-4);
