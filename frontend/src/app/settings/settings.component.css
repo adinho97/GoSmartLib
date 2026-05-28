@@ -273,11 +273,11 @@
   border-color: var(--line-strong);
 }
 .btn-danger {
-  background: #dc2626;
+  background: var(--brand);
   color: #fff;
 }
 .btn-danger:hover {
-  background: #b91c1c;
+  background: var(--brand-600);
 }
 
 /* Inputs */
@@ -1290,21 +1290,30 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--r);
-  background: var(--bg);
+  background: var(--surface);
   position: relative;
+  box-shadow: var(--shadow-1);
   transition:
     border-color 0.15s,
-    background 0.15s;
+    background 0.15s,
+    box-shadow 0.15s;
+}
+.lvl-card:hover {
+  box-shadow: var(--shadow-2, 0 2px 8px rgba(0,0,0,0.1));
+  border-color: var(--line-strong);
 }
 .lvl-card.active {
   border-color: var(--brand-100);
   background: var(--brand-50);
 }
+.lvl-card.active:hover {
+  border-color: var(--brand);
+}
 .lvl-card.inactive {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 .lvl-card.default {
   border-color: var(--brand);
@@ -1420,6 +1429,21 @@
   flex-direction: row;
   align-items: center;
   gap: 4px;
+}
+.lvl-delete-btn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: 6px;
+  color: var(--ink-3);
+  transition: background 0.15s, color 0.15s;
+}
+.lvl-delete-btn:hover {
+  background: var(--brand-100);
+  color: var(--brand);
 }
 .lvl-icon-col {
   display: flex;
