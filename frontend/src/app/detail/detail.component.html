@@ -572,6 +572,42 @@
     </div>
   }
 
+  @if (reportReviewDialogOpen) {
+    <div class="publish-review-overlay" role="dialog" aria-modal="true">
+      <div class="publish-review-card">
+        <h3>Review rapporteren</h3>
+        <p>Waarom wil je deze review rapporteren?</p>
+        <textarea
+          id="reportReason"
+          name="reportReason"
+          rows="3"
+          maxlength="255"
+          [(ngModel)]="reportReason"
+          placeholder="Geef hier je reden op..."
+        ></textarea>
+        @if (reviewError) {
+          <p class="review-error">{{ reviewError }}</p>
+        }
+        <div class="publish-review-actions">
+          <button
+            type="button"
+            class="publish-name-btn"
+            (click)="confirmReportReview()"
+          >
+            Rapporteren
+          </button>
+          <button
+            type="button"
+            class="publish-cancel-btn"
+            (click)="cancelReportReviewDialog()"
+          >
+            Annuleren
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   @if (previewModalOpen && previewUrl) {
     <div class="preview-modal-overlay" role="dialog" aria-modal="true">
       <div class="preview-modal-container">

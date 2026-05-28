@@ -1,0 +1,138 @@
+<div class="reported-reviews-container">
+  <div class="header-section">
+    <h2>Review beheer</h2>
+    <p class="subtitle">Beheer meldingen van ongepaste reviews</p>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Meldingen laden...</p>
+    </div>
+  } @else if (error) {
+    <div class="error-state">
+      <p>{{ error }}</p>
+      <button (click)="loadReportedReviews()" class="retry-btn">
+        Opnieuw proberen
+      </button>
+    </div>
+  } @else if (reportedReviews.length === 0) {
+    <div class="empty-state">
+      <p>
+        Er zijn momenteel geen gerapporteerde reviews die aandacht vereisen.
+      </p>
+    </div>
+  } @else {
+    <div class="reports-grid">
+      @for (report of reportedReviews; track report.id) {
+        <div class="report-card" [class.pending]="report.status === 'PENDING'">
+          <div class="report-header">
+            <span class="report-date">{{
+              getFormattedDate(report.reportedAt)
+            }}</span>
+            <span class="status-badge" [attr.data-status]="report.status">
+              {{ getStatusLabel(report.status) }}
+            </span>
+          </div>
+
+          <div class="book-info-link" (click)="goToBookDetail(report.book.id)">
+            <h3>{{ report.book.titel }}</h3>
+            <span class="view-book">Bekijk boek details</span>
+          </div>
+
+          <div class="review-preview">
+            <p class="review-author">
+              Auteur: <strong>{{ getAuthorDisplayName(report.review) }}</strong>
+            </p>
+            <div class="rating-display">
+              Score: {{ report.review.rating }}/5
+            </div>
+            <blockquote class="review-comment">
+              "{{ report.review.comment }}"
+            </blockquote>
+          </div>
+
+          <div class="report-reason-box">
+            <span class="reason-label">Reden van rapportage:</span>
+            <p class="reason-text">{{ report.reason }}</p>
+            <p class="reporter-info">
+              Gerapporteerd door: {{ report.reporterUserName }}
+            </p>
+          </div>
+
+          @if (report.status === "PENDING") {
+            <div class="action-footer">
+              <button
+                class="resolve-btn"
+                (click)="openResolveDialog(report.id)"
+              >
+                Review behouden
+              </button>
+              <button class="delete-btn" (click)="openDeleteDialog(report)">
+                Review verwijderen
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Bevestigingsvensters -->
+
+@if (deleteReviewDialogOpen) {
+  <div class="publish-review-overlay" role="dialog" aria-modal="true">
+    <div class="publish-review-card">
+      <h3>Review permanent verwijderen?</h3>
+      <p>
+        Weet je zeker dat je deze review wilt verwijderen? De melding wordt
+        hiermee ook afgehandeld. Deze actie kan niet ongedaan worden gemaakt.
+      </p>
+      <div class="publish-review-actions">
+        <button
+          type="button"
+          class="publish-name-btn"
+          (click)="confirmDeleteReview()"
+        >
+          Verwijderen
+        </button>
+        <button
+          type="button"
+          class="publish-cancel-btn"
+          (click)="closeDeleteDialog()"
+        >
+          Annuleren
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (resolveReportDialogOpen) {
+  <div class="publish-review-overlay" role="dialog" aria-modal="true">
+    <div class="publish-review-card">
+      <h3>Melding afhandelen</h3>
+      <p>
+        Vind je de gerapporteerde inhoud gepast? De melding wordt gemarkeerd als
+        afgehandeld en de review blijft zichtbaar voor iedereen.
+      </p>
+      <div class="publish-review-actions">
+        <button
+          type="button"
+          class="publish-name-btn"
+          (click)="confirmResolveReport()"
+        >
+          Bevestigen
+        </button>
+        <button
+          type="button"
+          class="publish-cancel-btn"
+          (click)="closeResolveDialog()"
+        >
+          Annuleren
+        </button>
+      </div>
+    </div>
+  </div>
+}
