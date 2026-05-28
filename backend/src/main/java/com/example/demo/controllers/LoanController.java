@@ -3,7 +3,8 @@ package com.example.demo.controllers;
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
-import com.example.demo.dto.BerichtBibRequest;
+import com.example.demo.dto.LoanExtensionRequestDto;
+import com.example.demo.dto.ExtensionRequestTicket;
 import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.dto.UpdateDueDateRequest;
 import com.example.demo.entities.AppUser;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.example.demo.exception.ApiException;
 
 import java.util.List;
 import java.util.Map;
@@ -118,6 +120,7 @@ public class LoanController {
         return loanService.getLoanHistoryForUser(userSub);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/mijn")
     public List<LoanDto> getMyActiveLoans(Authentication authentication) {
         if (authentication == null) {
@@ -126,6 +129,7 @@ public class LoanController {
         return loanService.getActiveLoansForUser(authentication.getName());
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/mijn/historiek")
     public List<LoanDto> getMyLoanHistory(Authentication authentication) {
         if (authentication == null) {
@@ -207,14 +211,56 @@ public class LoanController {
     }
 
     @PreAuthorize("isAuthenticated()") // Allow any authenticated user to send a message
-    @PostMapping("/{id}/bericht-bib") 
-    public ResponseEntity<Void> sendMessageToLibrarian(@PathVariable Long id, @RequestBody BerichtBibRequest request) {
+    @PostMapping("/{id}/verlenging-aanvragen")
+    public ResponseEntity<Void> createExtensionRequest(@PathVariable Long id,
+            @RequestBody ExtensionRequestTicket request) {
         try {
-            loanService.sendLibrarianMessage(id, request);
+            loanService.createExtensionRequest(id, request);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/verlenging-aanvragen/openstaand")
+    public ResponseEntity<List<LoanExtensionRequestDto>> getPendingExtensionRequests(Authentication authentication) {
+        AppUser user = appUserRepository.findBySub(authentication.getName())
+                .orElseThrow(() -> new ApiException("Gebruiker niet gevonden", HttpStatus.FORBIDDEN, "USER_NOT_FOUND"));
+
+        if (user.getSchool() == null) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        return ResponseEntity.ok(loanService.getPendingExtensionRequests(user.getSchool().getId()));
+    }
+
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/verlenging-aanvragen/count")
+    public ResponseEntity<Long> getPendingExtensionRequestsCount(Authentication authentication) {
+        AppUser user = appUserRepository.findBySub(authentication.getName())
+                .orElseThrow(() -> new ApiException("Gebruiker niet gevonden", HttpStatus.FORBIDDEN, "USER_NOT_FOUND"));
+
+        if (user.getSchool() == null) {
+            return ResponseEntity.ok(0L);
+        }
+
+        return ResponseEntity.ok(loanService.getPendingExtensionRequestsCount(user.getSchool().getId()));
+    }
+
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PostMapping("/verlenging-aanvragen/{requestId}/goedkeuren")
+    public ResponseEntity<Void> approveExtensionRequest(@PathVariable Long requestId, Authentication authentication) {
+        loanService.approveExtensionRequest(requestId, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PostMapping("/verlenging-aanvragen/{requestId}/afwijzen")
+    public ResponseEntity<Void> rejectExtensionRequest(@PathVariable Long requestId,
+            @RequestBody Map<String, String> body, Authentication authentication) {
+        String notes = body.getOrDefault("notes", "");
+        loanService.rejectExtensionRequest(requestId, authentication.getName(), notes);
+        return ResponseEntity.ok().build();
+    }
 }

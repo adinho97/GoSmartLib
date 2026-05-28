@@ -5,7 +5,6 @@ public class SmartschoolMessageRequest {
     private String platformUrl;
     private String subject;
     private String body;
-    private String recipientSub;
 
     public SmartschoolMessageRequest() {
     }
@@ -32,13 +31,5 @@ public class SmartschoolMessageRequest {
 
     public void setBody(String body) {
         this.body = body;
-    }
-
-    public String getRecipientSub() {
-        return recipientSub;
-    }
-
-    public void setRecipientSub(String recipientSub) {
-        this.recipientSub = recipientSub;
     }
 }

@@ -86,6 +86,20 @@ export interface LoanConditionOverview {
   lostCopies: LostCopyOverview[];
 }
 
+export interface LoanExtensionRequestDto {
+  id: number;
+  loanId: number;
+  bookTitle: string;
+  bookCover: string;
+  requesterSub: string;
+  requesterName?: string;
+  requestDate: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  currentDueDate: string;
+  newDueDate?: string;
+  librarianNotes?: string;
+}
+
 @Injectable({ providedIn: "root" })
 export class LoanService {
   private api = "/api/uitleningen";
@@ -243,18 +257,53 @@ export class LoanService {
     );
   }
 
-  async sendMessageToLibrarian(
+  async createLoanExtensionRequestTicket(
     loanId: number,
     librarianSub: string,
     senderSub: string,
   ): Promise<void> {
     await axios.post(
-      `${this.api}/${loanId}/bericht-bib`,
+      `${this.api}/${loanId}/verlenging-aanvragen`,
       {
         librarianSub,
         senderSub,
       },
       this.headers(),
     );
+  }
+
+  async getPendingExtensionRequests(): Promise<LoanExtensionRequestDto[]> {
+    const res = await axios.get(
+      `${this.api}/verlenging-aanvragen/openstaand`,
+      this.headers(),
+    );
+    return res.data;
+  }
+
+  async approveExtensionRequest(requestId: number): Promise<void> {
+    await axios.post(
+      `${this.api}/verlenging-aanvragen/${requestId}/goedkeuren`,
+      {},
+      this.headers(),
+    );
+  }
+
+  async rejectExtensionRequest(
+    requestId: number,
+    notes: string,
+  ): Promise<void> {
+    await axios.post(
+      `${this.api}/verlenging-aanvragen/${requestId}/afwijzen`,
+      { notes },
+      this.headers(),
+    );
+  }
+
+  async getPendingExtensionRequestsCount(): Promise<number> {
+    const res = await axios.get(
+      `${this.api}/verlenging-aanvragen/count`,
+      this.headers(),
+    );
+    return res.data;
   }
 }
