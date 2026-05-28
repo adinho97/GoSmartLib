@@ -625,9 +625,9 @@
 
 /* Button for messaging librarian */
 .btn-message-bib {
-  background: none;
-  border: 1px solid var(--line);
-  color: var(--ink-2);
+  background-color: #871f42;
+  border: none;
+  color: white;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 13px;
@@ -639,16 +639,22 @@
   justify-content: center;
   width: 100%;
   gap: 6px;
+  box-shadow: var(--shadow-1);
 }
 
 .btn-message-bib:hover {
-  background-color: var(--surface-3);
-  color: var(--ink);
+  background-color: #6d1834;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
 }
 
 .btn-message-bib:disabled {
-  opacity: 0.6;
+  background-color: var(--line-strong);
+  color: var(--ink-4);
   cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-message-bib i {
