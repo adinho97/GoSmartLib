@@ -207,10 +207,11 @@
                   ></textarea>
                   <div class="file-upload-wrapper">
                     <label for="lestipFile" class="file-label"
-                      >Bijlage toevoegen (PDF, PPT, DOC):</label
+                      >Bijlagen toevoegen (PDF, PPT, DOC):</label
                     >
                     <input
                       type="file"
+                      multiple
                       id="lestipFile"
                       (change)="onLestipFileSelected($event)"
                       accept=".pdf,.ppt,.pptx,.doc,.docx,.txt"

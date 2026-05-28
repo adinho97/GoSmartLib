@@ -1134,11 +1134,18 @@ export class DetailComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Package text and attachments into a JSON payload for the 'lestip' field.
+    // This matches the backend's logic for parsing metadata and files.
+    const finalPayload = JSON.stringify({
+      text: lestipToSave,
+      attachments: attachmentsPayload,
+    });
+
     try {
-      const savedLestipData = await this.bookService.updateBookLestip(
+      await this.bookService.updateBookLestip(
         this.currentBookId,
-        lestipToSave, // Send text separately
-        attachmentsPayload, // Send attachments as an array
+        finalPayload,
+        [], // Attachments are now embedded in the JSON payload above
       );
       this.loadLestip(this.currentBookId, this.lestipScope);
       this.newLestipText = "";
