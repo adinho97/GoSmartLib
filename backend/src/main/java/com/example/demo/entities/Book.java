@@ -68,8 +68,11 @@ public class Book {
     private String leesniveau;
 
     @Column(columnDefinition = "TEXT")
-    @Size(max = 500)
     private String lestip;
+
+    @Lob
+    @Column(name = "lestip_file", columnDefinition = "LONGBLOB")
+    private byte[] lestipFile;
 
     @Size(max = 255)
     private String lestipAuteur;
@@ -226,5 +229,13 @@ public class Book {
 
     public void setReviews(Set<Review> reviews) {
         this.reviews = reviews;
+    }
+
+    public byte[] getLestipFile() {
+        return lestipFile;
+    }
+
+    public void setLestipFile(byte[] lestipFile) {
+        this.lestipFile = lestipFile;
     }
 }
