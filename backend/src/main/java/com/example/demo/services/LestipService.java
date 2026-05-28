@@ -78,8 +78,14 @@ public class LestipService {
                 
                 if (fileData != null && fileData.contains("base64,")) {
                     // Extract the raw Base64 part and decode into a binary BLOB (byte array)
-                    byte[] binaryData = Base64.getDecoder().decode(fileData.substring(fileData.indexOf(",") + 1));
+                    String pureBase64 = fileData.substring(fileData.indexOf(",") + 1);
+                    byte[] binaryData = Base64.getDecoder().decode(pureBase64);
                     validateAttachment(fileName, binaryData);
+                    
+                    // Move data to binary field and remove from JSON to keep the string column small
+                    book.setLestipFile(binaryData);
+                    ((ObjectNode) json).remove("fileData");
+                    normalizedLestip = json.toString();
                 }
             } catch (Exception e) {
                 // Not valid JSON, treat as raw text
@@ -153,13 +159,9 @@ public class LestipService {
                 dto.setLestip(json.path("text").asText(""));
                 dto.setFileName(json.path("fileName").asText(null));
                 dto.setFileContentType(json.path("fileContentType").asText(null));
-                
-                String b64 = json.path("fileData").asText(null);
-                if (b64 != null) {
-                    // Decode stored Base64 string back into a binary byte array for the DTO
-                    String pureBase64 = b64.contains("base64,") ? b64.substring(b64.indexOf(",") + 1) : b64;
-                    dto.setFileData(Base64.getDecoder().decode(pureBase64));
-                }
+
+                // Read directly from the binary BLOB field instead of parsing JSON
+                dto.setFileData(book.getLestipFile());
             } catch (Exception e) {
                 dto.setLestip(lestipText);
             }
