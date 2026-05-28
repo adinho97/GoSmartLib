@@ -7,12 +7,14 @@ import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.School;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BookImportService {
@@ -55,9 +57,12 @@ public class BookImportService {
         return outcome.bookDto();
     }
 
-    public ImportResultDto importBulkByIsbn(MultipartFile file, Long schoolId, String defaultCondition, boolean isDidactisch) {
+    public ImportResultDto importBulkByIsbn(MultipartFile file, Long schoolId, String defaultCondition, String booksConfig, boolean isDidactisch) {
         School school = schoolService.getByIdOrDefault(schoolId);
         BulkImportService.ParsedBulkIsbn parsed = bulkImportService.parseAndValidate(file, defaultCondition);
+
+        // Parse booksConfig if provided to override conditions
+        Map<String, List<String>> configMap = parseBooksConfig(booksConfig);
 
         ImportResultDto result = new ImportResultDto();
         result.setTotalRows(parsed.totalRows());
@@ -68,8 +73,21 @@ public class BookImportService {
         int totalCopiesAdded = 0;
         for (BulkImportService.IsbnQuantityPair pair : parsed.isbnQuantityPairs()) {
             String isbn = pair.isbn();
-            int quantity = pair.quantity();
-            BookCopy.CopyCondition condition = pair.condition();
+            int quantity = pair.getQuantity();
+            List<BookCopy.CopyCondition> conditions = pair.conditions();
+
+            // Override conditions from booksConfig if provided
+            if (!configMap.isEmpty() && configMap.containsKey(isbn)) {
+                List<String> configConditions = configMap.get(isbn);
+                conditions = new ArrayList<>();
+                for (String condStr : configConditions) {
+                    try {
+                        conditions.add(BookCopy.CopyCondition.valueOf(condStr.toUpperCase()));
+                    } catch (IllegalArgumentException e) {
+                        conditions.add(BookCopy.CopyCondition.GOOD);
+                    }
+                }
+            }
             try {
                 ImportCoreService.ImportOutcome outcome = importCoreService.importByNormalizedIsbn(isbn, school);
                 Book bookToAssociateCopies = null;
@@ -84,7 +102,7 @@ public class BookImportService {
                             BookCopy copy = new BookCopy();
                             copy.setBook(bookToAssociateCopies);
                             copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
-                            copy.setCondition(condition);
+                            copy.setCondition(conditions.get(i));
                             bookCopyRepository.save(copy);
                         }
                         totalCopiesAdded += quantity;
@@ -128,7 +146,7 @@ public class BookImportService {
                         BookCopy copy = new BookCopy();
                         copy.setBook(bookToAssociateCopies);
                         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
-                        copy.setCondition(condition);
+                        copy.setCondition(conditions.get(i));
                         bookCopyRepository.save(copy);
                     }
                     totalCopiesAdded += quantity;
@@ -156,6 +174,39 @@ public class BookImportService {
         result.setTotalCopiesAdded(totalCopiesAdded);
         result.setResults(rows);
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, List<String>> parseBooksConfig(String booksConfigJson) {
+        Map<String, List<String>> configMap = new java.util.HashMap<>();
+        if (booksConfigJson == null || booksConfigJson.isEmpty()) {
+            return configMap;
+        }
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Map<String, Object>> books = mapper.readValue(booksConfigJson,
+                    mapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+
+            for (Map<String, Object> book : books) {
+                String isbn = (String) book.get("isbn");
+                if (isbn != null) {
+                    List<Map<String, String>> copies = (List<Map<String, String>>) book.get("copies");
+                    if (copies != null) {
+                        List<String> conditions = new ArrayList<>();
+                        for (Map<String, String> copy : copies) {
+                            String condition = copy.get("condition");
+                            conditions.add(condition != null ? condition : "GOOD");
+                        }
+                        configMap.put(isbn, conditions);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // If parsing fails, just return empty map and use defaults
+        }
+
+        return configMap;
     }
 
     private void setDidactischGenre(Book book) {

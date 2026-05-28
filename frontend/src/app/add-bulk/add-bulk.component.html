@@ -37,7 +37,8 @@
         <div class="preview-header">
           <h2>Overzicht van boeken om toe te voegen</h2>
           <p class="preview-count">
-            {{ previewBooks.length }} boek(en) gevonden
+            {{ previewBooks.length }} boek(en) met
+            {{ getTotalCopies() }} exemplaar(en)
           </p>
         </div>
 
@@ -46,63 +47,63 @@
             <thead>
               <tr>
                 <th>ISBN</th>
-                <th>Aantal exemplaren</th>
+                <th>Exemplaar #</th>
                 <th>Staat</th>
                 <th>Didactisch</th>
               </tr>
             </thead>
             <tbody>
-              @for (book of previewBooks; track $index; let i = $index) {
-                <tr>
-                  <td class="isbn-cell">{{ book.isbn }}</td>
-                  <td class="input-cell">
-                    <input
-                      type="number"
-                      min="1"
-                      max="99"
-                      [value]="book.quantity"
-                      (change)="
-                        updatePreviewBook(
-                          i,
-                          'quantity',
-                          $any($event).target.value
-                        )
-                      "
-                      class="preview-input"
-                    />
-                  </td>
-                  <td class="input-cell">
-                    <select
-                      [value]="book.condition"
-                      (change)="
-                        updatePreviewBook(
-                          i,
-                          'condition',
-                          $any($event).target.value
-                        )
-                      "
-                      class="preview-select"
-                    >
-                      <option value="GOOD">Goed</option>
-                      <option value="MODERATE">Matig</option>
-                      <option value="BAD">Slecht</option>
-                    </select>
-                  </td>
-                  <td class="checkbox-cell">
-                    <input
-                      type="checkbox"
-                      [checked]="book.isDidactisch"
-                      (change)="
-                        updatePreviewBook(
-                          i,
-                          'isDidactisch',
-                          $any($event).target.checked
-                        )
-                      "
-                      class="preview-checkbox"
-                    />
-                  </td>
-                </tr>
+              @for (book of previewBooks; track book.isbn; let i = $index) {
+                @for (copy of book.copies; track $index; let j = $index) {
+                  <tr>
+                    @if (j === 0) {
+                      <td class="isbn-cell" [attr.rowspan]="book.copies.length">
+                        {{ book.isbn }}
+                      </td>
+                    }
+                    <td class="copy-number">
+                      {{ j + 1 }} van {{ book.copies.length }}
+                    </td>
+                    <td class="input-cell">
+                      <select
+                        [value]="copy.condition"
+                        (change)="
+                          updatePreviewBook(
+                            i,
+                            j,
+                            'condition',
+                            $any($event).target.value
+                          )
+                        "
+                        class="preview-select"
+                      >
+                        <option value="GOOD">Goed</option>
+                        <option value="MODERATE">Matig</option>
+                        <option value="BAD">Slecht</option>
+                      </select>
+                    </td>
+                    @if (j === 0) {
+                      <td
+                        class="checkbox-cell"
+                        [attr.rowspan]="book.copies.length"
+                      >
+                        <input
+                          type="checkbox"
+                          [checked]="book.isDidactisch"
+                          (change)="
+                            updatePreviewBook(
+                              i,
+                              -1,
+                              'isDidactisch',
+                              $any($event).target.checked
+                            )
+                          "
+                          class="preview-checkbox"
+                        />
+                      </td>
+                    }
+                  </tr>
+                }
               }
             </tbody>
           </table>
@@ -246,6 +247,100 @@
           </button>
         </div>
       }
+    }
+
+    <!-- Fix Modal -->
+    @if (showFixModal && pendingFixBook) {
+      <div class="modal-overlay" (click)="cancelFix()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Boek handmatig toevoegen</h3>
+            <button class="modal-close" (click)="cancelFix()">&times;</button>
+          </div>
+
+          <div class="modal-body">
+            <p class="modal-intro">
+              ISBN: <strong>{{ pendingFixBook.isbn }}</strong>
+            </p>
+            @if (pendingFixBook.book) {
+              <p class="modal-intro">
+                Boek: <strong>{{ pendingFixBook.book.titel }}</strong>
+              </p>
+            }
+
+            <div class="modal-field">
+              <label for="fixAantalExemplaren">Aantal exemplaren</label>
+              <input
+                id="fixAantalExemplaren"
+                type="number"
+                min="1"
+                max="99"
+                [(ngModel)]="aantalExemplaren"
+                (change)="updateCopyConditionsArray()"
+                class="modal-input"
+              />
+            </div>
+
+            @if (aantalExemplaren === 1) {
+              <div class="modal-field">
+                <label for="fixCopyCondition">Staat van exemplaar</label>
+                <select
+                  id="fixCopyCondition"
+                  [(ngModel)]="copyConditionsArray[0]"
+                  class="modal-input"
+                >
+                  <option value="GOOD">Goed</option>
+                  <option value="MODERATE">Matig</option>
+                  <option value="BAD">Slecht</option>
+                </select>
+              </div>
+            } @else {
+              <div class="modal-field">
+                <label>Staat van elk exemplaar</label>
+                <div class="copy-conditions-list">
+                  @for (condition of copyConditionsArray; track $index) {
+                    <div class="copy-condition-row">
+                      <span class="copy-number"
+                        >Exemplaar {{ $index + 1 }}</span
+                      >
+                      <select
+                        [(ngModel)]="copyConditionsArray[$index]"
+                        [name]="'fixCopyCondition_' + $index"
+                        class="modal-input"
+                      >
+                        <option value="GOOD">Goed</option>
+                        <option value="MODERATE">Matig</option>
+                        <option value="BAD">Slecht</option>
+                      </select>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button
+              class="btn-cancel"
+              (click)="cancelFix()"
+              [disabled]="isConfirmingFix"
+            >
+              Annuleren
+            </button>
+            <button
+              class="btn-confirm"
+              (click)="confirmFix()"
+              [disabled]="isConfirmingFix || aantalExemplaren < 1"
+            >
+              {{ isConfirmingFix ? "Toevoegen..." : "Toevoegen" }}
+            </button>
+          </div>
+
+          @if (errorMessage) {
+            <p class="modal-error">{{ errorMessage }}</p>
+          }
+        </div>
+      </div>
     }
   </div>
 </div>

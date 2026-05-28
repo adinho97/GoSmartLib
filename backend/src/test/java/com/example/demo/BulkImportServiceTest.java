@@ -34,7 +34,7 @@ class BulkImportServiceTest {
                 assertEquals(3, parsed.totalRows());
                 assertEquals(1, parsed.isbnQuantityPairs().size());
                 assertEquals("9780553808049", parsed.isbnQuantityPairs().get(0).isbn());
-                assertEquals(1, parsed.isbnQuantityPairs().get(0).quantity());
+                assertEquals(1, parsed.isbnQuantityPairs().get(0).getQuantity());
                 assertEquals(1, parsed.duplicateRowsSkipped());
                 assertEquals(1, parsed.invalidRows().size());
                 assertEquals(ImportResultDto.Status.INVALID_ISBN, parsed.invalidRows().get(0).status());

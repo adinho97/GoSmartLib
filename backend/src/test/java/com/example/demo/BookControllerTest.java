@@ -152,7 +152,7 @@ class BookControllerTest {
                                 "Boek toegevoegd.",
                                 1L)));
 
-                when(bookImportService.importBulkByIsbn(any(), any(), any(), anyBoolean())).thenReturn(result);
+                when(bookImportService.importBulkByIsbn(any(), any(), any(), any(), anyBoolean())).thenReturn(result);
 
                 mockMvc.perform(multipart("/api/boeken/isbn/bulk")
                                 .file(file)
@@ -171,7 +171,7 @@ class BookControllerTest {
                                 "text/plain",
                                 "abc".getBytes());
 
-                when(bookImportService.importBulkByIsbn(any(), any(), any(), anyBoolean()))
+                when(bookImportService.importBulkByIsbn(any(), any(), any(), any(), anyBoolean()))
                                 .thenThrow(new IllegalArgumentException("invalid"));
 
                 mockMvc.perform(multipart("/api/boeken/isbn/bulk").file(file))

@@ -254,7 +254,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(existingBook));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, null, false);
         assertEquals(3, result.getUniqueIsbnsProcessed());
         assertEquals(0, result.getDuplicateRowsSkipped());
         assertEquals(4, result.getResults().size());
@@ -288,7 +288,7 @@ class BookServiceTest {
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenThrow(new RuntimeException("boom"));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, null, false);
 
         assertEquals(1, result.getResults().size());
         ImportResultDto.RowResult row = result.getResults().get(0);
@@ -318,7 +318,7 @@ class BookServiceTest {
         // ADDED branch resolves the new book via findById(dto.getId()).
         when(bookRepository.findById(1L)).thenReturn(Optional.of(savedBook));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, null, false);
 
         // Verify 3 copies were created
         ArgumentCaptor<BookCopy> newBookCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
@@ -353,7 +353,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780553808049", 1L))
                 .thenReturn(Optional.of(existingBook));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, null, false);
 
         // Verify 5 copies were created
         ArgumentCaptor<BookCopy> existingBookCopiesCaptor = ArgumentCaptor.forClass(BookCopy.class);
@@ -400,7 +400,7 @@ class BookServiceTest {
         when(bookRepository.findByIsbnAndSchool_Id("9780156012195", 1L))
                 .thenReturn(Optional.of(book2));
 
-        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, false);
+        ImportResultDto result = bookImportService.importBulkByIsbn(file, 1L, null, null, false);
 
         // Verify total is 2 + 3 = 5 copies
         assertEquals(5, result.getTotalCopiesAdded());
@@ -430,7 +430,7 @@ class BookServiceTest {
         // ADDED branch resolves the new book via findById(dto.getId()).
         when(bookRepository.findById(1L)).thenReturn(Optional.of(savedBook));
 
-        bookImportService.importBulkByIsbn(file, 1L, null, false);
+        bookImportService.importBulkByIsbn(file, 1L, null, null, false);
 
         // Verify each saved copy has AVAILABLE status
         ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);
