@@ -155,87 +155,10 @@ class BookControllerTest {
         mockMvc.perform(delete("/api/boeken/" + savedBookId)
                         .header("X-User-Role", "bibbeheerder"))
                 .andExpect(status().isNoContent());
+
+                verify(bookDeletionService, never()).deleteBook(any(), any());
     }
 
-        @Test
-        void importBulkByIsbnShouldReturnResultWhenUploadIsValid() throws Exception {
-                MockMultipartFile file = new MockMultipartFile(
-                                "file",
-                                "bulk.csv",
-                                "text/csv",
-                                "isbn\n9780553808049".getBytes());
-
-                var result = new com.example.demo.dto.ImportResultDto();
-                result.setTotalRows(1);
-                result.setUniqueIsbnsProcessed(1);
-                result.setDuplicateRowsSkipped(0);
-                result.setResults(List.of(new com.example.demo.dto.ImportResultDto.RowResult(
-                                "9780553808049",
-                                com.example.demo.dto.ImportResultDto.Status.ADDED,
-                                "Boek toegevoegd.",
-                                1L)));
-
-                when(bookImportService.importBulkByIsbn(any(), any(), any(), any(), anyBoolean())).thenReturn(result);
-
-                mockMvc.perform(multipart("/api/boeken/isbn/bulk")
-                                .file(file)
-                                .param("schoolId", "1"))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.totalRows").value(1))
-                                .andExpect(jsonPath("$.uniqueIsbnsProcessed").value(1))
-                                .andExpect(jsonPath("$.results[0].status").value("ADDED"));
-        }
-
-        @Test
-        void importBulkByIsbnShouldReturnBadRequestWhenServiceRejectsFile() throws Exception {
-                MockMultipartFile file = new MockMultipartFile(
-                                "file",
-                                "bulk.txt",
-                                "text/plain",
-                                "abc".getBytes());
-
-                when(bookImportService.importBulkByIsbn(any(), any(), any(), any(), anyBoolean()))
-                                .thenThrow(new IllegalArgumentException("invalid"));
-
-                mockMvc.perform(multipart("/api/boeken/isbn/bulk").file(file))
-                                .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        void deleteShouldReturnForbiddenWhenRoleHeaderMissing() throws Exception {
-                mockMvc.perform(delete("/api/boeken/1"))
-                                .andExpect(status().isForbidden());
-
-                verify(bookDeletionService, never()).deleteBook(any(), any());
-        }
-
-        @Test
-        void deleteShouldReturnForbiddenBeforeCheckingExistenceWhenRoleHeaderMissing() throws Exception {
-                mockMvc.perform(delete("/api/boeken/999"))
-                                .andExpect(status().isForbidden());
-
-                verify(bookDeletionService, never()).deleteBook(any(), any());
-        }
-
-        @Test
-        void deleteShouldReturnNoContentForLibrarianWhenBookExists() throws Exception {
-                doNothing().when(bookDeletionService).deleteBook(1L, null);
-
-                mockMvc.perform(delete("/api/boeken/1")
-                                .header("X-User-Role", "bibbeheerder"))
-                                .andExpect(status().isNoContent());
-        }
-
-        @Test
-        void getByIsbnShouldReturnBookWhenFoundInDb() throws Exception {
-                when(bookLookupService.findByIsbn("9780553808049", null)).thenReturn(Optional.of(makeDto()));
-
-                mockMvc.perform(get("/api/boeken/isbn/9780553808049"))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.titel").value("Dune"))
-                                .andExpect(jsonPath("$.auteur").value("Frank Herbert"))
-                                .andExpect(jsonPath("$.isbn").value("9780553808049"));
-        }
     @Test
     @WithMockUser
     void getByIsbnShouldReturnBookWhenFoundInDb() throws Exception {
