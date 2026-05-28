@@ -1,5 +1,7 @@
 package com.example.demo.dto;
 
+import java.util.List;
+
 public class LestipDto {
     private String lestip;
     private String auteurNaam;
@@ -7,6 +9,7 @@ public class LestipDto {
     private String fileName;
     private String fileContentType;
     private byte[] fileData;
+    private List<AttachmentDto> attachments;
 
     public String getLestip() {
         return lestip;
@@ -54,5 +57,43 @@ public class LestipDto {
 
     public void setFileData(byte[] fileData) {
         this.fileData = fileData;
+    }
+
+    public List<AttachmentDto> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(List<AttachmentDto> attachments) {
+        this.attachments = attachments;
+    }
+
+    public static class AttachmentDto {
+        private String fileName;
+        private String contentType;
+        private String fileData;
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public void setContentType(String contentType) {
+            this.contentType = contentType;
+        }
+
+        public String getFileData() {
+            return fileData;
+        }
+
+        public void setFileData(String fileData) {
+            this.fileData = fileData;
+        }
     }
 }
