@@ -1274,6 +1274,7 @@
 .lvl-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
 }
 @media (max-width: 600px) {
@@ -1411,8 +1412,12 @@
 }
 .lvl-footer-right {
   display: inline-flex;
+
+.lvl-footer-actions {
+  display: flex;
   align-items: center;
   gap: 4px;
+  gap: 10px;
 }
 .lvl-delete-btn {
   width: 26px;
@@ -1426,6 +1431,7 @@
   border-radius: var(--r);
   box-shadow: var(--shadow-1);
 }
+
 .lvl-radio {
   display: inline-flex;
   align-items: center;

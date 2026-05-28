@@ -45,4 +45,24 @@ describe("SettingsComponent", () => {
   it("should create", () => {
     expect(component).toBeTruthy();
   });
+
+  it("should mark as dirty and open confirm modal when requesting message deletion", () => {
+    const mockMsg = { id: 'm1', title: 'Test', body: 'Body', enabled: true } as any;
+    component.messages = [mockMsg];
+    component.requestDeleteMessage(mockMsg);
+    
+    expect(component.confirmTarget).toBeTruthy();
+    expect(component.confirmTarget?.title).toContain("verwijderen");
+  });
+
+  it("should successfully delete a custom reading level", () => {
+    const customLevel = { id: 'custom-1', name: 'Expert', isProtected: false, active: true } as any;
+    component.levels = [customLevel];
+    
+    component.requestDeleteLevel(customLevel);
+    // Trigger confirmation logic
+    component.confirmTarget?.onConfirm();
+
+    expect(component.levels.find(l => l.id === 'custom-1')).toBeUndefined();
+  });
 });

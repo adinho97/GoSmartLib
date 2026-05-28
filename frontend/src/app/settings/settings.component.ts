@@ -10,6 +10,7 @@ import {
 import { UiToastService } from "../services/ui-toast.service";
 import { forkJoin, from } from "rxjs";
 import { catchError, of } from 'rxjs';
+import { InfoButtonComponent } from "../components/info-button/info-button.component";
 
 interface Message {
   id: string;
@@ -86,7 +87,7 @@ const DEFAULT_LEVEL_IDS = ['l1', 'l2', 'l3', 'l4'];
   templateUrl: "./settings.component.html",
   styleUrls: ["./settings.component.css"],
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, InfoButtonComponent],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   schoolName = "Laden...";
@@ -737,6 +738,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   requestDeleteLevel(l: ReadingLevel): void {
+    if (l.isProtected) return;
     this.confirmTarget = {
       title: `Niveau "${l.name}" verwijderen?`,
       body: `Dit leesniveau wordt verwijderd. Boeken die dit niveau hebben, behouden de waarde maar het niveau is niet langer beschikbaar voor nieuwe boeken.`,
