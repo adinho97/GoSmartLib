@@ -430,16 +430,11 @@ public class BookController {
     }
 
     private String resolveUserSub(Authentication authentication, String subHeader, String roleHeader) {
-        if (authentication != null && StringUtils.hasText(authentication.getName())) {
-            return authentication.getName().trim();
-        }
-        if (StringUtils.hasText(subHeader)) {
-            return subHeader.trim();
-        }
+        String name = (authentication != null) ? authentication.getName() : null;
+        if (StringUtils.hasText(name)) return name.trim();
+        if (StringUtils.hasText(subHeader)) return subHeader.trim();
+        
         String normalizedRole = normalizeRole(roleHeader);
-        if (StringUtils.hasText(normalizedRole)) {
-            return "role:" + normalizedRole;
-        }
-        return null;
+        return StringUtils.hasText(normalizedRole) ? "role:" + normalizedRole : null;
     }
 }
