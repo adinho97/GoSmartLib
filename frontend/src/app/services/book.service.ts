@@ -420,14 +420,21 @@ export class BookService {
   async importBooksByUpload(
     file: File,
     schoolId?: number,
-    copyCondition?: "GOOD" | "MODERATE" | "BAD",
+    previewBooksOrCondition?: any,
     isDidactisch?: boolean,
   ): Promise<BulkImportResult> {
     const formData = new FormData();
     formData.append("file", file);
-    if (copyCondition) {
-      formData.append("defaultCondition", copyCondition);
+
+    // Check if previewBooksOrCondition is an array (new format) or a string (legacy)
+    if (Array.isArray(previewBooksOrCondition)) {
+      // New format: send per-copy conditions
+      formData.append("booksConfig", JSON.stringify(previewBooksOrCondition));
+    } else if (typeof previewBooksOrCondition === "string") {
+      // Legacy format: single default condition for all copies
+      formData.append("defaultCondition", previewBooksOrCondition);
     }
+
     if (isDidactisch) {
       formData.append("isDidactisch", "true");
     }

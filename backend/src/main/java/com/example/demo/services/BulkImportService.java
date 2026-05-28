@@ -32,9 +32,34 @@ public class BulkImportService {
         this.isbnService = isbnService;
     }
 
-    public record IsbnQuantityPair(String isbn, int quantity, BookCopy.CopyCondition condition) {
+    public record IsbnQuantityPair(String isbn, List<BookCopy.CopyCondition> conditions) {
         public IsbnQuantityPair(String isbn, int quantity) {
-            this(isbn, quantity, BookCopy.CopyCondition.GOOD);
+            this(isbn, createDefaultConditions(quantity));
+        }
+
+        public IsbnQuantityPair(String isbn, int quantity, BookCopy.CopyCondition condition) {
+            this(isbn, createConditions(quantity, condition));
+        }
+
+        private static List<BookCopy.CopyCondition> createDefaultConditions(int quantity) {
+            List<BookCopy.CopyCondition> conditions = new ArrayList<>();
+            for (int i = 0; i < quantity; i++) {
+                conditions.add(BookCopy.CopyCondition.GOOD);
+            }
+            return conditions;
+        }
+
+        private static List<BookCopy.CopyCondition> createConditions(int quantity,
+                BookCopy.CopyCondition condition) {
+            List<BookCopy.CopyCondition> conditions = new ArrayList<>();
+            for (int i = 0; i < quantity; i++) {
+                conditions.add(condition);
+            }
+            return conditions;
+        }
+
+        public int getQuantity() {
+            return conditions.size();
         }
     }
 

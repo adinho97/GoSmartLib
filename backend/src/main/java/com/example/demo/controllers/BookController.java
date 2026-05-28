@@ -203,9 +203,10 @@ public class BookController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) Long schoolId,
             @RequestParam(required = false) String defaultCondition,
+            @RequestParam(required = false) String booksConfig,
             @RequestParam(required = false, defaultValue = "false") boolean isDidactisch) {
         try {
-            ImportResultDto result = bookImportService.importBulkByIsbn(file, schoolId, defaultCondition, isDidactisch);
+            ImportResultDto result = bookImportService.importBulkByIsbn(file, schoolId, defaultCondition, booksConfig, isDidactisch);
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().build();
