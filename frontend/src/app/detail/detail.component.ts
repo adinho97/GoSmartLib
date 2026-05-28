@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, NavigationEnd } from "@angular/router";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
-import { BookService } from "../services/book.service";
+import { BookService, LestipAttachment } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
 import {
   BadgeNotificationService,
@@ -131,6 +131,14 @@ export class DetailComponent implements OnInit, OnDestroy {
   magLestipVerwijderen = false;
   lestipScope: "all" | "school" = "all";
   newLestipText = ""; // The textual description for the lestip
+
+  // Compatibility getter to prevent HTML build errors while the template is updated
+  get lestipFileName(): string {
+    return this.lestipAttachments.length > 0
+      ? this.lestipAttachments[0].fileName
+      : "";
+  }
+
   selectedLestipFiles: File[] = []; // Array to hold multiple selected files
   lestipAttachments: LestipAttachment[] = []; // Attachments received from the backend
   lestipError = "";
@@ -1057,12 +1065,14 @@ export class DetailComponent implements OnInit, OnDestroy {
       if (!extension || !allowedExtensions.includes(extension)) {
         this.lestipError = `Bestand '${file.name}': Alleen PDF, Office documenten en tekstbestanden zijn toegestaan.`;
         input.value = "";
+        this.selectedLestipFiles = [];
         return;
       }
 
       if (file.size > maxFileSize) {
         this.lestipError = `Bestand '${file.name}': is te groot (max 25MB).`;
         input.value = "";
+        this.selectedLestipFiles = [];
         return;
       }
       validFiles.push(file);
@@ -1072,12 +1082,16 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.lestipError = "";
   }
 
-  downloadLestipFile(attachment: any): void {
-    if (!attachment || !attachment.fileBlob) return;
-    const url = window.URL.createObjectURL(attachment.fileBlob);
+  downloadLestipFile(attachment?: LestipAttachment): void {
+    // If no attachment is passed, default to the first one to support existing template calls
+    const target =
+      attachment ||
+      (this.lestipAttachments.length > 0 ? this.lestipAttachments[0] : null);
+    if (!target || !target.fileBlob) return;
+    const url = window.URL.createObjectURL(target.fileBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = attachment.fileName;
+    link.download = target.fileName;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -1203,7 +1217,7 @@ export class DetailComponent implements OnInit, OnDestroy {
             bytes[i] = binaryString.charCodeAt(i);
           }
           // Store the Blob directly on the attachment object for easy download
-          (attachment as any).fileBlob = new Blob([bytes], {
+          attachment.fileBlob = new Blob([bytes], {
             type: attachment.contentType,
           });
         }

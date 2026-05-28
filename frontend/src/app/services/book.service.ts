@@ -1,7 +1,14 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, Subject } from "rxjs";
-import { LestipAttachment } from "../detail/detail.component"; // Import the new interface
+
+export interface LestipAttachment {
+  fileName: string;
+  contentType: string;
+  fileData?: string; // Base64 encoded, optional for display
+  fileBlob?: Blob; // Stores the processed blob for local downloads
+}
+
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
