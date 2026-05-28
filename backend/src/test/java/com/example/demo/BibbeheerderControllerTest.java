@@ -33,204 +33,220 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BibbeheerderController.class)
-@Import({SecurityConfig.class, CustomAccessDeniedHandler.class})
+@Import({ SecurityConfig.class, CustomAccessDeniedHandler.class })
 @TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 class BibbeheerderControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @MockBean
-    private BibbeheerderService bibbeheerderService;
+        @MockBean
+        private BibbeheerderService bibbeheerderService;
 
-    @MockBean
-    private JwtTokenProvider jwtTokenProvider;
+        @MockBean
+        private JwtTokenProvider jwtTokenProvider;
 
-    @MockBean
-    private SuperAdminRepository superAdminRepository;
+        @MockBean
+        private SuperAdminRepository superAdminRepository;
 
-    @MockBean
-    private AppUserRepository appUserRepository;
+        @MockBean
+        private AppUserRepository appUserRepository;
 
-    @MockBean
-    private DisplayNameResolver displayNameResolver;
+        @MockBean
+        private DisplayNameResolver displayNameResolver;
 
-    @MockBean
-    private ConnectionPoolMonitor connectionPoolMonitor;
+        @MockBean
+        private ConnectionPoolMonitor connectionPoolMonitor;
 
-    // --- GET /api/bibbeheerder/leerkrachten ---
+        // --- GET /api/bibbeheerder/leerkrachten ---
 
-    @Test
-    @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
-    void getLeerkrachten_shouldReturnListForBibbeheerder() throws Exception {
-        AdminUserListItem item = makeItem(10L, "leerkracht-sub", "leerkracht");
+        @Test
+        @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
+        void getLeerkrachten_shouldReturnListForBibbeheerder() throws Exception {
+                AdminUserListItem item = makeItem(10L, "leerkracht-sub", "leerkracht");
 
-        when(bibbeheerderService.getLeerkrachtenInOwnSchool("bib-sub"))
-                .thenReturn(List.of(item));
+                when(bibbeheerderService.getLeerkrachtenInOwnSchool("bib-sub"))
+                                .thenReturn(List.of(item));
 
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
-                        .header("X-User-Sub", "bib-sub"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(10))
-                .andExpect(jsonPath("$[0].sub").value("leerkracht-sub"))
-                .andExpect(jsonPath("$[0].role").value("leerkracht"));
-    }
+                mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                                .header("X-User-Sub", "bib-sub"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(10))
+                                .andExpect(jsonPath("$[0].sub").value("leerkracht-sub"))
+                                .andExpect(jsonPath("$[0].role").value("leerkracht"));
+        }
 
-    @Test
-    @WithMockUser(username = "admin-sub", roles = "SUPER_ADMIN")
-    void getLeerkrachten_shouldReturnListForSuperAdmin() throws Exception {
-        AdminUserListItem item = makeItem(11L, "teacher-sub", "leerkracht");
+        @Test
+        @WithMockUser(username = "admin-sub", roles = "SUPER_ADMIN")
+        void getLeerkrachten_shouldReturnListForSuperAdmin() throws Exception {
+                AdminUserListItem item = makeItem(11L, "teacher-sub", "leerkracht");
 
-        when(bibbeheerderService.getLeerkrachtenInOwnSchool("admin-sub"))
-                .thenReturn(List.of(item));
+                when(bibbeheerderService.getLeerkrachtenInOwnSchool("admin-sub"))
+                                .thenReturn(List.of(item));
 
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
-                        .header("X-User-Sub", "admin-sub"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(11));
-    }
+                mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                                .header("X-User-Sub", "admin-sub"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(11));
+        }
 
-    @Test
-    @WithMockUser(roles = "LEERKRACHT")
-    void getLeerkrachten_shouldReturn403ForLeerkracht() throws Exception {
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
-                        .header("X-User-Sub", "leerkracht-sub"))
-                .andExpect(status().isForbidden());
-    }
+        @Test
+        @WithMockUser(roles = "LEERKRACHT")
+        void getLeerkrachten_shouldReturn403ForLeerkracht() throws Exception {
+                mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                                .header("X-User-Sub", "leerkracht-sub"))
+                                .andExpect(status().isForbidden());
+        }
 
-    @Test
-    @WithMockUser(roles = "LEERLING")
-    void getLeerkrachten_shouldReturn403ForLeerling() throws Exception {
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
-                        .header("X-User-Sub", "leerling-sub"))
-                .andExpect(status().isForbidden());
-    }
+        @Test
+        @WithMockUser(roles = "LEERLING")
+        void getLeerkrachten_shouldReturn403ForLeerling() throws Exception {
+                mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                                .header("X-User-Sub", "leerling-sub"))
+                                .andExpect(status().isForbidden());
+        }
 
-    @Test
-    void getLeerkrachten_shouldReturn403ForUnauthenticated() throws Exception {
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten"))
-                .andExpect(status().isForbidden());
-    }
+        @Test
+        void getLeerkrachten_shouldReturn403ForUnauthenticated() throws Exception {
+                mockMvc.perform(get("/api/bibbeheerder/leerkrachten"))
+                                .andExpect(status().isForbidden());
+        }
 
-    @Test
-    @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
-    void getLeerkrachten_shouldReturnEmptyListWhenNoLeerkrachten() throws Exception {
-        when(bibbeheerderService.getLeerkrachtenInOwnSchool("bib-sub"))
-                .thenReturn(List.of());
+        @Test
+        @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
+        void getLeerkrachten_shouldReturnEmptyListWhenNoLeerkrachten() throws Exception {
+                when(bibbeheerderService.getLeerkrachtenInOwnSchool("bib-sub"))
+                                .thenReturn(List.of());
 
-        mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
-                        .header("X-User-Sub", "bib-sub"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isEmpty());
-    }
+                mockMvc.perform(get("/api/bibbeheerder/leerkrachten")
+                                .header("X-User-Sub", "bib-sub"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$").isEmpty());
+        }
 
-    // --- PATCH /api/bibbeheerder/leerkrachten/{userId}/promote ---
+        // --- PATCH /api/bibbeheerder/leerkrachten/{userId}/promote ---
 
-    @Test
-    @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
-    void promoteLeerkracht_shouldReturn200ForBibbeheerder() throws Exception {
-        AdminUserListItem promoted = makeItem(20L, "target-sub", "bibbeheerder");
+        @Test
+        @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
+        void promoteLeerkracht_shouldReturn200ForBibbeheerder() throws Exception {
+                AdminUserListItem promoted = makeItem(20L, "target-sub", "bibbeheerder");
 
-        when(bibbeheerderService.promoteLeerkrachtToBibbeheerder("bib-sub", 20L))
-                .thenReturn(promoted);
+                when(bibbeheerderService.promoteLeerkrachtToBibbeheerder("bib-sub", 20L))
+                                .thenReturn(promoted);
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
-                        .header("X-User-Sub", "bib-sub")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(20))
-                .andExpect(jsonPath("$.sub").value("target-sub"))
-                .andExpect(jsonPath("$.role").value("bibbeheerder"));
-    }
+                mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                                .header("X-User-Sub", "bib-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{}"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(20))
+                                .andExpect(jsonPath("$.sub").value("target-sub"))
+                                .andExpect(jsonPath("$.role").value("bibbeheerder"));
+        }
 
-    @Test
-    @WithMockUser(username = "admin-sub", roles = "SUPER_ADMIN")
-    void promoteLeerkracht_shouldReturn200ForSuperAdmin() throws Exception {
-        AdminUserListItem promoted = makeItem(21L, "target-sub-2", "bibbeheerder");
+        @Test
+        @WithMockUser(username = "admin-sub", roles = "SUPER_ADMIN")
+        void promoteLeerkracht_shouldReturn200ForSuperAdmin() throws Exception {
+                AdminUserListItem promoted = makeItem(21L, "target-sub-2", "bibbeheerder");
 
-        when(bibbeheerderService.promoteLeerkrachtToBibbeheerder("admin-sub", 21L))
-                .thenReturn(promoted);
+                when(bibbeheerderService.promoteLeerkrachtToBibbeheerder("admin-sub", 21L))
+                                .thenReturn(promoted);
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/21/promote")
-                        .header("X-User-Sub", "admin-sub")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(21));
-    }
+                mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/21/promote")
+                                .header("X-User-Sub", "admin-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{}"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(21));
+        }
 
-    @Test
-    @WithMockUser(roles = "LEERKRACHT")
-    void promoteLeerkracht_shouldReturn403ForLeerkracht() throws Exception {
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
-                        .header("X-User-Sub", "leerkracht-sub")
-                        .content("{}"))
-                .andExpect(status().isForbidden());
-    }
+        @Test
+        @WithMockUser(roles = "LEERKRACHT")
+        void promoteLeerkracht_shouldReturn403ForLeerkracht() throws Exception {
+                mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                                .header("X-User-Sub", "leerkracht-sub")
+                                .content("{}"))
+                                .andExpect(status().isForbidden());
+        }
 
-    @Test
-    @WithMockUser(roles = "LEERLING")
-    void promoteLeerkracht_shouldReturn403ForLeerling() throws Exception {
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
-                        .header("X-User-Sub", "leerling-sub")
-                        .content("{}"))
-                .andExpect(status().isForbidden());
-    }
+        @Test
+        @WithMockUser(roles = "LEERLING")
+        void promoteLeerkracht_shouldReturn403ForLeerling() throws Exception {
+                mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                                .header("X-User-Sub", "leerling-sub")
+                                .content("{}"))
+                                .andExpect(status().isForbidden());
+        }
 
-    @Test
-    void promoteLeerkracht_shouldReturn403ForUnauthenticated() throws Exception {
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote"))
-                .andExpect(status().isForbidden());
-    }
+        @Test
+        void promoteLeerkracht_shouldReturn403ForUnauthenticated() throws Exception {
+                mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote"))
+                                .andExpect(status().isForbidden());
+        }
 
-    @Test
-    @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
-    void promoteLeerkracht_shouldReturn404WhenUserNotFound() throws Exception {
-        when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(99L)))
-                .thenThrow(new ApiException("Gebruiker niet gevonden", HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
+        @Test
+        @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
+        void promoteLeerkracht_shouldReturn404WhenUserNotFound() throws Exception {
+                when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(99L)))
+                                .thenThrow(new ApiException("Gebruiker niet gevonden", HttpStatus.NOT_FOUND,
+                                                "USER_NOT_FOUND"));
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/99/promote")
-                        .header("X-User-Sub", "bib-sub")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isNotFound());
-    }
+                mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/99/promote")
+                                .header("X-User-Sub", "bib-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{}"))
+                                .andExpect(status().isNotFound());
+        }
 
-    @Test
-    @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
-    void promoteLeerkracht_shouldReturn400WhenInvalidRoleTransition() throws Exception {
-        when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(20L)))
-                .thenThrow(new ApiException("Alleen leerkrachten kunnen worden gepromoveerd", HttpStatus.BAD_REQUEST, "INVALID_ROLE_TRANSITION"));
+        @Test
+        @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
+        void promoteLeerkracht_shouldReturn400WhenInvalidRoleTransition() throws Exception {
+                when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(20L)))
+                                .thenThrow(new ApiException("Alleen leerkrachten kunnen worden gepromoveerd",
+                                                HttpStatus.BAD_REQUEST, "INVALID_ROLE_TRANSITION"));
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
-                        .header("X-User-Sub", "bib-sub")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest());
-    }
+                mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                                .header("X-User-Sub", "bib-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{}"))
+                                .andExpect(status().isBadRequest());
+        }
 
-    @Test
-    @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
-    void promoteLeerkracht_shouldReturn403WhenCrossSchoolAccess() throws Exception {
-        when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(20L)))
-                .thenThrow(new ApiException("Gebruiker behoort niet tot uw school", HttpStatus.FORBIDDEN, "ACCESS_DENIED"));
+        @Test
+        @WithMockUser(username = "bib-sub", roles = "BIBBEHEERDER")
+        void promoteLeerkracht_shouldReturn403WhenCrossSchoolAccess() throws Exception {
+                when(bibbeheerderService.promoteLeerkrachtToBibbeheerder(any(), eq(20L)))
+                                .thenThrow(new ApiException("Gebruiker behoort niet tot uw school",
+                                                HttpStatus.FORBIDDEN, "ACCESS_DENIED"));
 
-        mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
-                        .header("X-User-Sub", "bib-sub")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isForbidden());
-    }
+                mockMvc.perform(patch("/api/bibbeheerder/leerkrachten/20/promote")
+                                .header("X-User-Sub", "bib-sub")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{}"))
+                                .andExpect(status().isForbidden());
+        }
 
-    // --- helpers ---
+        @Test
+        @WithMockUser
+        void getLibrariansForSchool_shouldReturnList() throws Exception {
+                AdminUserListItem item = makeItem(1L, "lib-sub", "bibbeheerder");
+                when(bibbeheerderService.getLibrariansInSchool(1L)).thenReturn(List.of(item));
+                when(displayNameResolver.resolveAll(eq(1L), any())).thenReturn(java.util.Map.of("lib-sub", "Lib Name"));
 
-    private AdminUserListItem makeItem(Long id, String sub, String role) {
-        AdminUserListItem item = new AdminUserListItem();
-        item.setId(id);
-        item.setSub(sub);
-        item.setRole(role);
-        item.setActive(true);
-        return item;
-    }
+                mockMvc.perform(get("/api/bibbeheerder/school/1"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].sub").value("lib-sub"))
+                                .andExpect(jsonPath("$[0].displayName").value("Lib Name"));
+        }
+
+        // --- helpers ---
+
+        private AdminUserListItem makeItem(Long id, String sub, String role) {
+                AdminUserListItem item = new AdminUserListItem();
+                item.setId(id);
+                item.setSub(sub);
+                item.setRole(role);
+                item.setActive(true);
+                return item;
+        }
 }

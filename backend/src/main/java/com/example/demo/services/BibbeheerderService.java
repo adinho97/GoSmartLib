@@ -48,6 +48,14 @@ public class BibbeheerderService {
     }
 
     @Transactional(readOnly = true)
+    public List<AdminUserListItem> getLibrariansInSchool(Long schoolId) {
+        return appUserRepository.findBySchool_IdAndRole(schoolId, "bibbeheerder")
+                .stream()
+                .map(this::toUserListItem)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<KlasListItem> getKlassenInOwnSchool(String callerSub) {
         AppUser caller = resolveCaller(callerSub);
         Long schoolId = Objects.requireNonNull(caller.getSchool().getId(), "schoolId is required");

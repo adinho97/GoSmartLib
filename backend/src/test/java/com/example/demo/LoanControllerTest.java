@@ -18,7 +18,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.demo.dto.BerichtBibRequest;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -28,12 +31,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(LoanController.class)
-@Import({SecurityConfig.class, CustomAccessDeniedHandler.class})
+@Import({ SecurityConfig.class, CustomAccessDeniedHandler.class })
 @TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
 class LoanControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     private LoanService loanService;
@@ -83,5 +89,34 @@ class LoanControllerTest {
     void getAllActiveLoansShouldRejectNonLibrarianUsers() throws Exception {
         mockMvc.perform(get("/api/uitleningen/all-active"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser
+    void sendMessageToLibrarianShouldReturnOk() throws Exception {
+        BerichtBibRequest req = new BerichtBibRequest();
+        req.setLibrarianSub("lib");
+        req.setSenderSub("sender");
+
+        mockMvc.perform(post("/api/uitleningen/1/bericht-bib")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(req))
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                        .csrf()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "LEERLING") // Allow leerling to send message
+    void sendMessageToLibrarianShouldReturnOkForLeerling() throws Exception {
+        BerichtBibRequest req = new BerichtBibRequest();
+        req.setLibrarianSub("lib");
+        req.setSenderSub("sender");
+
+        mockMvc.perform(post("/api/uitleningen/1/bericht-bib")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(req))
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk());
     }
 }

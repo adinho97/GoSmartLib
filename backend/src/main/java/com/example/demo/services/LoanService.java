@@ -3,6 +3,7 @@ package com.example.demo.services;
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
+import com.example.demo.dto.BerichtBibRequest;
 import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.BookCopy;
@@ -427,6 +428,69 @@ public class LoanService {
                    .replace("<", "&lt;")
                    .replace(">", "&gt;")
                    .replace("\"", "&quot;");
+    }
+
+    public void sendLibrarianMessage(Long loanId, BerichtBibRequest request) {
+        Loan loan = loanRepo.findById(Objects.requireNonNull(loanId, "loanId"))
+                .orElseThrow(() -> new IllegalArgumentException("Lening niet gevonden"));
+
+        try {
+            authService.getUserInfoBySub(request.getSenderSub())
+                .flatMap(userInfo -> {
+                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                        : smartschoolProperties.getApiBaseUrl();
+
+                    req.setPlatformUrl(platform);
+                    req.setRecipientSub(request.getLibrarianSub()); // Ensure this field exists in SmartschoolMessageRequest
+                    req.setSubject("Vraag over boek: " + loan.getCopy().getBook().getTitel());
+                    req.setBody(buildLibrarianMessageHtml(
+                        userInfo.getName() != null ? userInfo.getName() : "Een leerling",
+                        loan.getCopy().getBook().getTitel(),
+                        loan.getDueDate() != null ? loan.getDueDate().toString() : "onbekend"
+                    ));
+
+                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                })
+                .doOnSuccess(res -> logger.info("Bericht verzonden naar bibliothecaris {} door {}", request.getLibrarianSub(), request.getSenderSub()))
+                .doOnError(err -> logger.error("Fout bij verzenden bericht naar bibliothecaris: {}", err.getMessage()))
+                .subscribe();
+        } catch (RuntimeException ex) {
+            logger.warn("Kon Smartschool-bericht naar beheerder niet starten: {}", ex.getMessage());
+        }
+    }
+
+    private String buildLibrarianMessageHtml(String senderName, String title, String dueDateStr) {
+        return String.format("""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+              <div style="background-color: #1a3a5c; padding: 24px 32px;">
+                <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
+                   Bibliotheek — Vraag van lener
+                </h1>
+              </div>
+              <div style="padding: 28px 32px;">
+                <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste bibliothecaris,</p>
+                <p style="margin: 0 0 24px; font-size: 15px; color: #333;">Lener <strong>%s</strong> heeft een vraag over het volgende boek:</p>
+                <table style="width: 100%%; border-collapse: collapse; margin-bottom: 24px; font-family: Arial, sans-serif;">
+                  <thead>
+                    <tr style="background-color: #1a3a5c; color: #fff;">
+                      <th style="padding: 10px 12px; text-align: left; font-size: 13px;">Titel</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="background-color: #f9f9f9;">
+                      <td style="padding: 8px 12px; font-size: 14px; color: #222;">%s</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p style="margin: 0 0 16px; font-size: 14px; color: #555;">Dit boek heeft als inleverdatum: <strong>%s</strong>.</p>
+                <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>GoSmartLib Systeem</strong></p>
+              </div>
+              <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
+                <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">Dit is een automatisch gegenereerd bericht.</p>
+              </div>
+            </div>
+            """, escapeHtml(senderName), escapeHtml(title), dueDateStr);
     }
 
     @Transactional

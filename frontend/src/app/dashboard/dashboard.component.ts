@@ -91,7 +91,9 @@ export class DashboardComponent implements OnInit {
   schoolSettings: SchoolSettings | null = null;
   activeMessages: SchoolMessage[] = [];
   currentMessageIdx = 0;
+  messageAnimClass = '';
   private messageRotationTimer: any;
+  private messageBusy = false;
 
   spotlight: { maand: SpotlightBook | null; thema: SpotlightBook | null } = { maand: null, thema: null };
 
@@ -102,9 +104,11 @@ export class DashboardComponent implements OnInit {
 
   // Config popover state
   configOpen = false;
+  hoursOpen = false;
   dragId: string | null = null;
   dragOverId: string | null = null;
   @ViewChild('configWrap') configWrapRef?: ElementRef<HTMLElement>;
+  @ViewChild('hoursWrap') hoursWrapRef?: ElementRef<HTMLElement>;
 
   private readonly RECOMMENDATION_LIMIT = 25;
   today = new Date().toISOString().split("T")[0];
@@ -298,6 +302,13 @@ export class DashboardComponent implements OnInit {
     ) {
       this.configOpen = false;
     }
+    if (
+      this.hoursOpen &&
+      this.hoursWrapRef &&
+      !this.hoursWrapRef.nativeElement.contains(event.target as Node)
+    ) {
+      this.hoursOpen = false;
+    }
   }
 
   // ── Drag-to-reorder ──
@@ -337,6 +348,66 @@ export class DashboardComponent implements OnInit {
   onDragEnd() {
     this.dragId = null;
     this.dragOverId = null;
+  }
+
+  // ── Opening hours ──
+
+  toggleHoursOpen() {
+    this.hoursOpen = !this.hoursOpen;
+  }
+
+  get todayKey(): string {
+    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    return days[new Date().getDay()];
+  }
+
+  get weekHours(): Array<{ label: string; key: string; hours: DayHours | null; isToday: boolean }> {
+    const days = [
+      { label: 'Maandag', key: 'mon' },
+      { label: 'Dinsdag', key: 'tue' },
+      { label: 'Woensdag', key: 'wed' },
+      { label: 'Donderdag', key: 'thu' },
+      { label: 'Vrijdag', key: 'fri' },
+      { label: 'Zaterdag', key: 'sat' },
+      { label: 'Zondag', key: 'sun' },
+    ];
+    const key = this.todayKey;
+    return days.map(d => ({
+      label: d.label,
+      key: d.key,
+      hours: this.schoolSettings?.hours?.[d.key as keyof typeof this.schoolSettings.hours] ?? null,
+      isToday: d.key === key,
+    }));
+  }
+
+  // ── Message carousel ──
+
+  prevMessage() {
+    if (this.activeMessages.length < 2 || this.messageBusy) return;
+    this.messageBusy = true;
+    this.messageAnimClass = 'slide-out-right';
+    setTimeout(() => {
+      this.currentMessageIdx = (this.currentMessageIdx - 1 + this.activeMessages.length) % this.activeMessages.length;
+      this.messageAnimClass = 'slide-in-left';
+      setTimeout(() => {
+        this.messageAnimClass = '';
+        this.messageBusy = false;
+      }, 300);
+    }, 180);
+  }
+
+  nextMessage() {
+    if (this.activeMessages.length < 2 || this.messageBusy) return;
+    this.messageBusy = true;
+    this.messageAnimClass = 'slide-out-left';
+    setTimeout(() => {
+      this.currentMessageIdx = (this.currentMessageIdx + 1) % this.activeMessages.length;
+      this.messageAnimClass = 'slide-in-right';
+      setTimeout(() => {
+        this.messageAnimClass = '';
+        this.messageBusy = false;
+      }, 300);
+    }, 180);
   }
 
   // ── Carousel page builders ──
@@ -635,13 +706,7 @@ export class DashboardComponent implements OnInit {
 
   private startMessageRotation() {
     if (this.activeMessages.length < 2) return;
-    this.messageRotationTimer = setInterval(() => {
-      if (this.activeMessages.length > 0) {
-        this.currentMessageIdx = (this.currentMessageIdx + 1) % this.activeMessages.length;
-      } else {
-        this.currentMessageIdx = 0;
-      }
-    }, 20000);
+    this.messageRotationTimer = setInterval(() => this.nextMessage(), 20000);
   }
 
   get currentMessage(): SchoolMessage | null {

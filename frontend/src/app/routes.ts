@@ -154,7 +154,7 @@ export const appRoutes: Routes = [
     path: "uitleen",
     component: LoanPageComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["leerkracht", "bibbeheerder"] },
+    data: { roles: ["bibbeheerder"] },
   },
   {
     path: "map",
@@ -220,13 +220,13 @@ export const appRoutes: Routes = [
     path: "boek-terugbrengen",
     component: BoekTerugbrengenComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["leerkracht", "bibbeheerder"] },
+    data: { roles: ["bibbeheerder"] },
   },
   {
     path: "ontleningen-verlengen",
     component: OntleningenVerlengenComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["leerkracht", "bibbeheerder"] },
+    data: { roles: ["bibbeheerder"] },
   },
   {
     path: "statistieken",

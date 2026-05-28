@@ -3,6 +3,8 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { BookService } from "../services/book.service";
 import { LoanService, Loan } from "../services/loan.service";
 import { SchoolService } from "../services/school.service";
+import { BibbeheerderService } from "../services/bibbeheerder.service";
+import { AuthContextService } from "../services/auth-context.service";
 import { RecommendedBook } from "../services/recommendation.service";
 
 type Tab =
@@ -59,6 +61,17 @@ export class MijnLijstenComponent implements OnInit {
   highlightedLoading = true;
   historyLoading = true;
 
+  // Librarian Message Modal
+  showLibrarianMessageModal = false;
+  selectedLoanForMessage: Loan | null = null;
+  availableLibrarians: any[] = []; // Of AdminUserListItem[]
+  selectedLibrarianForMessage: any | null = null;
+  confirmSendMessageToLibrarianCheckbox = false;
+  isSendingLibrarianMessage = false;
+  librarianMessageCooldowns: Map<number, number> = new Map(); // loanId -> timestamp of last message sent
+  readonly MESSAGE_COOLDOWN_DAYS = 3;
+  messageSentSuccess = '';
+  messageSentError = '';
   today = new Date().toISOString().split("T")[0];
 
   get userSub(): string {
@@ -94,6 +107,8 @@ export class MijnLijstenComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private bookService: BookService,
+    private authContext: AuthContextService,
+    private bibbeheerderService: BibbeheerderService,
     private loanService: LoanService,
     private schoolService: SchoolService,
   ) {}
@@ -107,6 +122,7 @@ export class MijnLijstenComponent implements OnInit {
       this.activeTab = "geleend";
     }
     this.loadAll();
+    this.loadLibrarianMessageCooldowns();
   }
 
   private async loadAll(): Promise<void> {
@@ -372,6 +388,117 @@ export class MijnLijstenComponent implements OnInit {
       item.notificationEnabled = !item.notificationEnabled;
     } catch {
       // keep current state on error
+    }
+  }
+
+  // --- Librarian Message Logic ---
+  openLibrarianMessageModal(loan: Loan): void {
+    this.selectedLoanForMessage = loan;
+    this.selectedLibrarianForMessage = null;
+    this.confirmSendMessageToLibrarianCheckbox = false;
+    this.messageSentSuccess = '';
+    this.messageSentError = '';
+    this.showLibrarianMessageModal = true;
+    this.fetchLibrariansForSchool();
+  }
+
+  closeLibrarianMessageModal(): void {
+    this.showLibrarianMessageModal = false;
+    this.selectedLoanForMessage = null;
+    this.selectedLibrarianForMessage = null;
+    this.confirmSendMessageToLibrarianCheckbox = false;
+    this.messageSentSuccess = '';
+    this.messageSentError = '';
+  }
+
+  async fetchLibrariansForSchool(): Promise<void> {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) {
+      this.messageSentError = "Geen school geselecteerd om bibliothecarissen te laden.";
+      return;
+    }
+    try {
+      this.availableLibrarians = await this.bibbeheerderService.getLibrariansForSchool(schoolId);
+    } catch (error) {
+      console.error("Error fetching librarians:", error);
+      this.messageSentError = "Fout bij het laden van bibliothecarissen.";
+    }
+  }
+
+  onLibrarianSelectedForMessage(event: any): void {
+    const selectedSub = event.target.value;
+    this.selectedLibrarianForMessage = this.availableLibrarians.find(
+      (lib) => lib.sub === selectedSub,
+    ) || null;
+  }
+
+  async confirmAndSendMessageToLibrarian(): Promise<void> {
+    if (
+      !this.selectedLoanForMessage ||
+      !this.selectedLibrarianForMessage ||
+      !this.confirmSendMessageToLibrarianCheckbox ||
+      this.isSendingLibrarianMessage
+    ) {
+      return;
+    }
+
+    if (!this.canSendMessageToLibrarian(this.selectedLoanForMessage.id)) {
+      this.messageSentError = "Je kunt pas over een paar dagen weer een bericht sturen voor dit boek.";
+      return;
+    }
+
+    this.isSendingLibrarianMessage = true;
+    this.messageSentError = '';
+    this.messageSentSuccess = '';
+
+    try {
+      await this.loanService.sendMessageToLibrarian(
+        this.selectedLoanForMessage.id,
+        this.selectedLibrarianForMessage.sub,
+        this.authContext.getEffectiveSub(),
+      );
+      this.messageSentSuccess = `Bericht succesvol verzonden naar ${this.selectedLibrarianForMessage.displayName}.`;
+      this.setLibrarianMessageCooldown(this.selectedLoanForMessage.id);
+      this.closeLibrarianMessageModal();
+    } catch (error) {
+      console.error("Error sending message to librarian:", error);
+      this.messageSentError = "Fout bij het verzenden van het bericht. Probeer opnieuw.";
+    } finally {
+      this.isSendingLibrarianMessage = false;
+    }
+  }
+
+  canSendMessageToLibrarian(loanId: number): boolean {
+    const lastSent = this.librarianMessageCooldowns.get(loanId);
+    if (!lastSent) return true;
+    const cooldownEndTime = lastSent + this.MESSAGE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+    return Date.now() > cooldownEndTime;
+  }
+
+  getLibrarianMessageCooldownText(loanId: number): string {
+    const lastSent = this.librarianMessageCooldowns.get(loanId);
+    if (!lastSent) return '';
+    const cooldownEndTime = lastSent + this.MESSAGE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+    const remainingMs = cooldownEndTime - Date.now();
+    if (remainingMs <= 0) return '';
+    const remainingDays = Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
+    return `Je kunt pas over ${remainingDays} dag(en) weer een bericht sturen voor dit boek.`;
+  }
+
+  private setLibrarianMessageCooldown(loanId: number): void {
+    this.librarianMessageCooldowns.set(loanId, Date.now());
+    localStorage.setItem('librarianMessageCooldowns', JSON.stringify(Array.from(this.librarianMessageCooldowns.entries())));
+  }
+
+  private loadLibrarianMessageCooldowns(): void {
+    const stored = localStorage.getItem('librarianMessageCooldowns');
+    if (stored) {
+      try {
+        this.librarianMessageCooldowns = new Map(JSON.parse(stored));
+      } catch (e) {
+        console.error("Error parsing librarian message cooldowns from localStorage", e);
+        this.librarianMessageCooldowns = new Map();
+      }
     }
   }
 }
