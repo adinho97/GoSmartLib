@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, Subject } from "rxjs";
+import { LestipAttachment } from "../detail/detail.component"; // Import the new interface
 import { Book } from "../models/book";
 import { Review } from "../models/review";
 import { inferNameParts, composeFullName } from "../utils/name-utils";
@@ -42,6 +43,7 @@ export interface LestipResponse {
   lestip: string;
   auteurNaam: string;
   magVerwijderen: boolean;
+  attachments?: LestipAttachment[]; // Add this for multiple attachments
 }
 
 export interface PagedBooksResponse {
@@ -349,11 +351,12 @@ export class BookService {
 
   async updateBookLestip(
     bookId: number,
-    lestip: string,
+    lestipText: string,
+    attachments: LestipAttachment[], // New parameter for attachments
   ): Promise<LestipResponse> {
     const res = await axios.put<LestipResponse>(
       this.withSchoolId(`${this.apiUrl}/${bookId}/lestip`),
-      { lestip },
+      { lestip: lestipText, attachments }, // Send text and attachments separately
       this.getFullAuthHeaders(),
     );
     return res.data;
