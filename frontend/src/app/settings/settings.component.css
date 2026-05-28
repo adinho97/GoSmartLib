@@ -1295,7 +1295,6 @@
   border-radius: var(--r);
   background: var(--bg);
   position: relative;
-  overflow: hidden;
   transition:
     border-color 0.15s,
     background 0.15s;
@@ -1430,10 +1429,15 @@
   flex-shrink: 0;
 }
 .lvl-delete-btn {
-  opacity: 0.6;
+  opacity: 0.8;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
 }
 .lvl-delete-btn:hover {
   opacity: 1;
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 .lvl-add-form {
   margin-top: var(--s-4);
