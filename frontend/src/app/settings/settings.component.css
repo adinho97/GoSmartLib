@@ -1082,9 +1082,13 @@
   background: var(--surface);
   color: var(--ink);
 }
+.icon-btn.danger {
+  color: #b53737;
+}
 .icon-btn.danger:hover {
   background: #fbecec;
   color: #b53737;
+  opacity: 1;
 }
 .icon-btn svg {
   width: 14px;
@@ -1411,17 +1415,19 @@
   gap: 8px;
 }
 .lvl-footer-right {
-  display: inline-flex;
-
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .lvl-footer-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
-  gap: 10px;
+  gap: 8px;
 }
 .lvl-delete-btn {
   width: 26px;
   height: 26px;
+  flex-shrink: 0;
 }
 .lvl-add-form {
   margin-top: var(--s-4);
