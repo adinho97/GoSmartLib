@@ -3,17 +3,62 @@
   <h1 class="lk-greeting">
     {{ greeting }}, <em>{{ currentFirstName }}</em>
     @if (todayHoursDisplay) {
-      <span class="lk-hours-badge" title="Openingsuren van vandaag">{{ todayHoursDisplay }}</span>
+      <span class="lk-hours-wrap" #hoursWrap>
+        <button
+          class="lk-hours-badge"
+          type="button"
+          (click)="toggleHoursOpen()"
+          [attr.aria-expanded]="hoursOpen"
+          title="Openingsuren van de week"
+        >
+          <svg class="lk-hours-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          {{ todayHoursDisplay }}
+          <svg class="lk-hours-chevron" [class.open]="hoursOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        @if (hoursOpen) {
+          <div class="lk-hours-pop" role="dialog" aria-label="Openingsuren van de week">
+            <div class="lk-hours-pop-head">Openingsuren</div>
+            @for (day of weekHours; track day.key) {
+              <div class="lk-hours-row" [class.today]="day.isToday">
+                <span class="lk-hours-day">{{ day.label }}</span>
+                @if (day.hours && day.hours.open) {
+                  <span class="lk-hours-time">{{ day.hours.from }} – {{ day.hours.to }}</span>
+                } @else {
+                  <span class="lk-hours-closed">Gesloten</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </span>
     }
   </h1>
 
   <!-- School Meldingen (MOTD) -->
   @if (currentMessage) {
-    <div class="lk-motd-banner" [ngClass]="'accent-' + currentMessage.accent">
+    <div
+      class="lk-motd-banner"
+      [ngClass]="['accent-' + currentMessage.accent, messageAnimClass]"
+    >
       <div class="lk-motd-icon">
         @if (currentMessage.accent === 'warn') {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        } @else if (currentMessage.accent === 'good') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        } @else if (currentMessage.accent === 'info') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="8"/>
+            <line x1="12" y1="12" x2="12" y2="16"/>
           </svg>
         } @else {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -22,14 +67,35 @@
         }
       </div>
       <div class="lk-motd-content">
-        <div class="lk-motd-header">
-          <span class="lk-motd-title">{{ currentMessage.title }}</span>
-          @if (activeMessages.length > 1) {
-            <span class="lk-motd-pager">{{ currentMessageIdx + 1 }} / {{ activeMessages.length }}</span>
-          }
-        </div>
+        <p class="lk-motd-label">Schoolmelding</p>
+        <span class="lk-motd-title">{{ currentMessage.title }}</span>
         <p class="lk-motd-text">{{ currentMessage.body }}</p>
       </div>
+      @if (activeMessages.length > 1) {
+        <div class="lk-motd-controls">
+          <button
+            class="lk-motd-nav-btn"
+            type="button"
+            (click)="prevMessage()"
+            aria-label="Vorige melding"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <span class="lk-motd-pager">{{ currentMessageIdx + 1 }} / {{ activeMessages.length }}</span>
+          <button
+            class="lk-motd-nav-btn"
+            type="button"
+            (click)="nextMessage()"
+            aria-label="Volgende melding"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      }
     </div>
   }
 
