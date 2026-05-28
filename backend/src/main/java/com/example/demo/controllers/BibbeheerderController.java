@@ -84,6 +84,15 @@ public class BibbeheerderController {
         return ResponseEntity.ok(bibbeheerderService.getKlassenInOwnSchool(callerSub));
     }
 
+    @GetMapping("/school/{schoolId}")
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN', 'LEERLING', 'LEERKRACHT')")
+    public ResponseEntity<List<AdminUserListItem>> getLibrariansForSchool(@PathVariable Long schoolId) { // Changed to
+                                                                                                         // getLibrariansForSchool
+        List<AdminUserListItem> users = bibbeheerderService.getLibrariansInSchool(schoolId);
+        applyDisplayNames(schoolId, users);
+        return ResponseEntity.ok(users);
+    }
+
     @PatchMapping("/leerkrachten/{userId}/promote")
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     public ResponseEntity<AdminUserListItem> promoteLeerkracht(

@@ -19,14 +19,22 @@ public class SmartschoolMessageService {
     }
 
     public Mono<String> sendMessage(String accessToken, SmartschoolMessageRequest request) {
-        String urlTemplate = request.getPlatformUrl() + "/Api/V1/sendmsg" +
-                "?access_token={token}" +
-                "&messageTitle={title}" +
-                "&messageBody={body}" +
-                "&senderName={senderName}";
+        StringBuilder urlBuilder = new StringBuilder(request.getPlatformUrl())
+                .append("/Api/V1/sendmsg")
+                .append("?access_token={token}")
+                .append("&messageTitle={title}")
+                .append("&messageBody={body}")
+                .append("&senderName={senderName}");
+
+        Object[] vars = new Object[]{accessToken, request.getSubject(), request.getBody(), "GoSmartLib"};
+
+        if (request.getRecipientSub() != null && !request.getRecipientSub().isBlank()) {
+            urlBuilder.append("&userSub={recipientSub}");
+            vars = new Object[]{accessToken, request.getSubject(), request.getBody(), "GoSmartLib", request.getRecipientSub()};
+        }
 
         return webClient.post()
-                .uri(urlTemplate, accessToken, request.getSubject(), request.getBody(), "GoSmartLib")
+                .uri(urlBuilder.toString(), vars)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(String.class)

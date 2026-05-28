@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { Observable, firstValueFrom } from "rxjs";
 import { AdminUserListItem, KlasListItem } from "../models/admin-school";
 
 @Injectable({ providedIn: "root" })
@@ -49,5 +49,11 @@ export class BibbeheerderService {
       {},
       { headers: this.getHeaders() },
     );
+  }
+
+  getLibrariansForSchool(schoolId: number): Promise<AdminUserListItem[]> {
+    return firstValueFrom(this.http.get<AdminUserListItem[]>(`${this.apiUrl}/school/${schoolId}`, {
+      headers: this.getHeaders(),
+    }));
   }
 }

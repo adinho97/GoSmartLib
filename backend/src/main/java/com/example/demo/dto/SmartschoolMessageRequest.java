@@ -1,17 +1,14 @@
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
 public class SmartschoolMessageRequest {
 
-    @NotBlank(message = "Platform URL is required")
     private String platformUrl;
-
-    @NotBlank(message = "Subject is required")
     private String subject;
-
-    @NotBlank(message = "Message body is required")
     private String body;
+    private String recipientSub;
+
+    public SmartschoolMessageRequest() {
+    }
 
     public String getPlatformUrl() {
         return platformUrl;
@@ -35,5 +32,13 @@ public class SmartschoolMessageRequest {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public String getRecipientSub() {
+        return recipientSub;
+    }
+
+    public void setRecipientSub(String recipientSub) {
+        this.recipientSub = recipientSub;
     }
 }
