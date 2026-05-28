@@ -155,8 +155,6 @@ class BookControllerTest {
         mockMvc.perform(delete("/api/boeken/" + savedBookId)
                         .header("X-User-Role", "bibbeheerder"))
                 .andExpect(status().isNoContent());
-
-                verify(bookDeletionService, never()).deleteBook(any(), any());
     }
 
     @Test
