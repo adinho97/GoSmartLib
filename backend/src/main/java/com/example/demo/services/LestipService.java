@@ -77,7 +77,8 @@ public class LestipService {
                 String fileData = json.path("fileData").asText(null);
                 
                 if (fileData != null && fileData.contains("base64,")) {
-                    byte[] binaryData = Base64.getDecoder().decode(fileData.split("base64,")[1]);
+                    // Extract the raw Base64 part and decode into a binary BLOB (byte array)
+                    byte[] binaryData = Base64.getDecoder().decode(fileData.substring(fileData.indexOf(",") + 1));
                     validateAttachment(fileName, binaryData);
                 }
             } catch (Exception e) {
@@ -155,7 +156,9 @@ public class LestipService {
                 
                 String b64 = json.path("fileData").asText(null);
                 if (b64 != null) {
-                    dto.setFileData(Base64.getDecoder().decode(b64.contains("base64,") ? b64.split("base64,")[1] : b64));
+                    // Decode stored Base64 string back into a binary byte array for the DTO
+                    String pureBase64 = b64.contains("base64,") ? b64.substring(b64.indexOf(",") + 1) : b64;
+                    dto.setFileData(Base64.getDecoder().decode(pureBase64));
                 }
             } catch (Exception e) {
                 dto.setLestip(lestipText);

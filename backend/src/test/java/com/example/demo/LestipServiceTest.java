@@ -228,7 +228,7 @@ class LestipServiceTest {
     void updateLestipShouldRejectFileTooLarge() {
         UpdateLestipRequest req = new UpdateLestipRequest();
         // Large data string to exceed the 25MB limit
-        String bigData = "a".repeat(40 * 1024 * 1024);
+        String bigData = "YQ==".repeat(30 * 1024 * 1024); // Creating a massive Base64 string
         req.setLestip("{\"text\":\"tip\",\"fileName\":\"test.pdf\",\"fileData\":\"data:application/pdf;base64," + bigData + "\"}");
         
         Book existing = book(1L, null, null);
