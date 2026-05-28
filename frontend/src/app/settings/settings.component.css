@@ -273,11 +273,11 @@
   border-color: var(--line-strong);
 }
 .btn-danger {
-  background: #b53737;
+  background: #dc2626;
   color: #fff;
 }
 .btn-danger:hover {
-  background: #962b2b;
+  background: #b91c1c;
 }
 
 /* Inputs */
@@ -1083,11 +1083,11 @@
   color: var(--ink);
 }
 .icon-btn.danger {
-  color: #b53737;
+  color: #dc2626;
 }
 .icon-btn.danger:hover {
-  background: #fbecec;
-  color: #b53737;
+  background: #fef2f2;
+  color: #b91c1c;
   opacity: 1;
 }
 .icon-btn svg {
@@ -1295,6 +1295,7 @@
   border-radius: var(--r);
   background: var(--bg);
   position: relative;
+  overflow: hidden;
   transition:
     border-color 0.15s,
     background 0.15s;
@@ -1422,9 +1423,10 @@
   gap: 8px;
 }
 .lvl-delete-btn {
-  padding: 4px 10px;
-  height: 28px;
-  font-size: 11px;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
 }
 .lvl-add-form {
   margin-top: var(--s-4);
