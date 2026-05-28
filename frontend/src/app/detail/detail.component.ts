@@ -1170,17 +1170,16 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.lestipFileName = lestipData.fileName || "";
 
       if (lestipData.fileData) {
-        // Convert the Base64 response into a binary Uint8Array
+        // The blob comes from the backend as a raw Base64 string (no 'data:' prefix)
         const base64String = lestipData.fileData.includes("base64,")
           ? lestipData.fileData.split(",")[1]
           : lestipData.fileData;
 
-        const binaryString = window.atob(base64String);
+        const binaryString = atob(base64String);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
-        // Store as a proper Blob object
         this.lestipFileBlob = new Blob([bytes], {
           type: lestipData.fileContentType,
         });
