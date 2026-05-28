@@ -3,7 +3,7 @@ package com.example.demo.dto;
 import jakarta.validation.constraints.Size;
 
 public class UpdateLestipRequest {
-    @Size(max = 10000000) // Increase to ~10MB to accommodate Base64 file data
+    @Size(max = 100000000) // Support up to 100MB of character data (Base64 is ~33% larger than binary)
     private String lestip;
 
     public String getLestip() {
