@@ -41,8 +41,7 @@ export class AddBulkComponent {
   showPreview = false;
   previewBooks: Array<{
     isbn: string;
-    quantity: number;
-    condition: "GOOD" | "MODERATE" | "BAD";
+    copies: Array<{ condition: "GOOD" | "MODERATE" | "BAD" }>;
     isDidactisch: boolean;
   }> = [];
 
@@ -107,10 +106,14 @@ export class AddBulkComponent {
           const quantity =
             parseInt(rowData["Aantal"] || rowData["Quantity"] || "1") || 1;
 
+          // Create copies array with individual conditions
+          const copies = Array.from({ length: Math.max(1, quantity) }, () => ({
+            condition: "GOOD" as const,
+          }));
+
           this.previewBooks.push({
             isbn,
-            quantity: Math.max(1, quantity),
-            condition: "GOOD",
+            copies,
             isDidactisch: false,
           });
         }
@@ -150,25 +153,10 @@ export class AddBulkComponent {
     this.currentPage = 1;
 
     try {
-      // Create a FormData with all the preview book data
-      const formData = new FormData();
-      formData.append("file", this.selectedFile);
-
-      // Append each preview book's configuration
-      this.previewBooks.forEach((book, index) => {
-        formData.append(`books[${index}].isbn`, book.isbn);
-        formData.append(`books[${index}].quantity`, book.quantity.toString());
-        formData.append(`books[${index}].condition`, book.condition);
-        formData.append(
-          `books[${index}].isDidactisch`,
-          book.isDidactisch.toString(),
-        );
-      });
-
       this.result = await this.bookService.importBooksByUpload(
         this.selectedFile,
         this.selectedSchoolId ?? undefined,
-        this.previewBooks[0]?.condition || this.copyCondition,
+        this.previewBooks,
         this.previewBooks.some((b) => b.isDidactisch),
       );
 
@@ -185,13 +173,20 @@ export class AddBulkComponent {
     }
   }
 
-  updatePreviewBook(index: number, field: string, value: any) {
+  updatePreviewBook(
+    index: number,
+    copyIndex: number,
+    field: string,
+    value: any,
+  ) {
     if (index >= 0 && index < this.previewBooks.length) {
       const book = this.previewBooks[index];
-      if (field === "quantity") {
-        book.quantity = Math.max(1, parseInt(value) || 1);
-      } else if (field === "condition") {
-        book.condition = value as "GOOD" | "MODERATE" | "BAD";
+      if (
+        field === "condition" &&
+        copyIndex >= 0 &&
+        copyIndex < book.copies.length
+      ) {
+        book.copies[copyIndex].condition = value as "GOOD" | "MODERATE" | "BAD";
       } else if (field === "isDidactisch") {
         book.isDidactisch = value;
       }
@@ -235,6 +230,13 @@ export class AddBulkComponent {
       return 0;
     }
     return this.result.results.filter((row) => row.status === status).length;
+  }
+
+  getTotalCopies(): number {
+    return this.previewBooks.reduce(
+      (total, book) => total + book.copies.length,
+      0,
+    );
   }
 
   async fixRowManually(row: BulkImportRowResult) {
