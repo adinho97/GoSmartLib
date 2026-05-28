@@ -5,18 +5,28 @@ import com.example.demo.dto.UpdateLestipRequest;
 import com.example.demo.entities.Book;
 import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.BookRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Base64;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @SuppressWarnings("null")
 public class LestipService {
 
     private final BookRepository bookRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final long MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+    private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(
+            Arrays.asList("pdf", "ppt", "pptx", "doc", "docx", "txt"));
 
     public LestipService(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
@@ -58,6 +68,21 @@ public class LestipService {
         String normalizedLestip = normalizeLestip(request.getLestip());
         if (normalizedLestip == null) {
             throw new ApiException("Lestip mag niet leeg zijn", HttpStatus.BAD_REQUEST, "LESTIP_EMPTY");
+        }
+
+        if (normalizedLestip.startsWith("{")) {
+            try {
+                var json = objectMapper.readTree(normalizedLestip);
+                String fileName = json.path("fileName").asText(null);
+                String fileData = json.path("fileData").asText(null);
+                
+                if (fileData != null && fileData.contains("base64,")) {
+                    byte[] binaryData = Base64.getDecoder().decode(fileData.split("base64,")[1]);
+                    validateAttachment(fileName, binaryData);
+                }
+            } catch (Exception e) {
+                // Not valid JSON, treat as raw text
+            }
         }
 
         book.setLestip(normalizedLestip);
@@ -121,13 +146,46 @@ public class LestipService {
         String lestipText = book.getLestip();
         String lestipAuteur = book.getLestipAuteur();
 
-        dto.setLestip(lestipText == null ? "" : lestipText);
+        if (StringUtils.hasText(lestipText) && lestipText.trim().startsWith("{")) {
+            try {
+                var json = objectMapper.readTree(lestipText);
+                dto.setLestip(json.path("text").asText(""));
+                dto.setFileName(json.path("fileName").asText(null));
+                dto.setFileContentType(json.path("fileContentType").asText(null));
+                
+                String b64 = json.path("fileData").asText(null);
+                if (b64 != null) {
+                    dto.setFileData(Base64.getDecoder().decode(b64.contains("base64,") ? b64.split("base64,")[1] : b64));
+                }
+            } catch (Exception e) {
+                dto.setLestip(lestipText);
+            }
+        } else {
+            dto.setLestip(lestipText == null ? "" : lestipText);
+        }
+
         dto.setAuteurNaam(lestipAuteur == null ? "" : lestipAuteur);
         boolean magVerwijderen = hasLestip(lestipText)
                 && (!StringUtils.hasText(lestipAuteur)
                         || (currentUserName != null && isSameUser(currentUserName, lestipAuteur)));
         dto.setMagVerwijderen(magVerwijderen);
         return dto;
+    }
+
+    private void validateAttachment(String fileName, byte[] fileData) {
+        if (!StringUtils.hasText(fileName) || fileData == null || fileData.length == 0) return;
+
+        String extension = "";
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) extension = fileName.substring(i + 1).toLowerCase();
+
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new ApiException("Bestandstype niet toegestaan", HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE");
+        }
+
+        if (fileData.length > MAX_FILE_SIZE) {
+            throw new ApiException("Bestand is te groot (max 25MB)", HttpStatus.BAD_REQUEST, "FILE_TOO_LARGE");
+        }
     }
 
     private static String normalizeLestip(String lestip) {
