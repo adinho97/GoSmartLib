@@ -288,11 +288,22 @@ export class LoanService {
     );
   }
 
-  async rejectExtensionRequest(requestId: number, notes: string): Promise<void> {
+  async rejectExtensionRequest(
+    requestId: number,
+    notes: string,
+  ): Promise<void> {
     await axios.post(
       `${this.api}/verlenging-aanvragen/${requestId}/afwijzen`,
       { notes },
       this.headers(),
     );
+  }
+
+  async getPendingExtensionRequestsCount(): Promise<number> {
+    const res = await axios.get(
+      `${this.api}/verlenging-aanvragen/count`,
+      this.headers(),
+    );
+    return res.data;
   }
 }

@@ -10,4 +10,5 @@ import java.util.List;
 public interface LoanExtensionRequestRepository extends JpaRepository<LoanExtensionRequest, Long> {
     List<LoanExtensionRequest> findByLibrarianUserSubAndStatus(String librarianUserSub, LoanExtensionRequest.RequestStatus status);
     List<LoanExtensionRequest> findByLoan_Copy_Book_School_IdAndStatus(Long schoolId, LoanExtensionRequest.RequestStatus status);
+    long countByLoan_Copy_Book_School_IdAndStatus(Long schoolId, LoanExtensionRequest.RequestStatus status);
 }

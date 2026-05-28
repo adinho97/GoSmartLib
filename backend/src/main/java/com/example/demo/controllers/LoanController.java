@@ -120,6 +120,7 @@ public class LoanController {
         return loanService.getLoanHistoryForUser(userSub);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/mijn")
     public List<LoanDto> getMyActiveLoans(Authentication authentication) {
         if (authentication == null) {
@@ -128,6 +129,7 @@ public class LoanController {
         return loanService.getActiveLoansForUser(authentication.getName());
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/mijn/historiek")
     public List<LoanDto> getMyLoanHistory(Authentication authentication) {
         if (authentication == null) {
@@ -231,6 +233,19 @@ public class LoanController {
         }
 
         return ResponseEntity.ok(loanService.getPendingExtensionRequests(user.getSchool().getId()));
+    }
+
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
+    @GetMapping("/verlenging-aanvragen/count")
+    public ResponseEntity<Long> getPendingExtensionRequestsCount(Authentication authentication) {
+        AppUser user = appUserRepository.findBySub(authentication.getName())
+                .orElseThrow(() -> new ApiException("Gebruiker niet gevonden", HttpStatus.FORBIDDEN, "USER_NOT_FOUND"));
+
+        if (user.getSchool() == null) {
+            return ResponseEntity.ok(0L);
+        }
+
+        return ResponseEntity.ok(loanService.getPendingExtensionRequestsCount(user.getSchool().getId()));
     }
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")

@@ -451,6 +451,11 @@ public class LoanService {
     }
 
     @Transactional(readOnly = true)
+    public long getPendingExtensionRequestsCount(Long schoolId) {
+        return loanExtensionRequestRepository.countByLoan_Copy_Book_School_IdAndStatus(schoolId, LoanExtensionRequest.RequestStatus.PENDING);
+    }
+
+    @Transactional(readOnly = true)
     public List<LoanExtensionRequestDto> getPendingExtensionRequests(Long schoolId) {
         return loanExtensionRequestRepository.findByLoan_Copy_Book_School_IdAndStatus(schoolId, LoanExtensionRequest.RequestStatus.PENDING)
                 .stream()

@@ -220,6 +220,18 @@
         @if (isLibrarian) {
           <button
             type="button"
+            class="bell-btn"
+            aria-label="Verlengingsaanvragen"
+            title="Verlengingsaanvragen"
+            [routerLink]="['/extension-requests']"
+          >
+            <i class="fas fa-bell"></i>
+            @if (pendingExtensionsCount > 0) {
+              <span class="notification-badge">{{ pendingExtensionsCount }}</span>
+            }
+          </button>
+          <button
+            type="button"
             class="cog-btn"
             [class.active]="isSettingsActive"
             aria-label="Instellingen"
