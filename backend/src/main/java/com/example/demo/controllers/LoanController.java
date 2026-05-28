@@ -3,6 +3,7 @@ package com.example.demo.controllers;
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
+import com.example.demo.dto.BerichtBibRequest;
 import com.example.demo.dto.ReturnLoanRequest;
 import com.example.demo.dto.UpdateDueDateRequest;
 import com.example.demo.entities.AppUser;
@@ -33,8 +34,8 @@ public class LoanController {
     private final DisplayNameResolver displayNameResolver;
 
     public LoanController(LoanService loanService,
-                          AppUserRepository appUserRepository,
-                          DisplayNameResolver displayNameResolver) {
+            AppUserRepository appUserRepository,
+            DisplayNameResolver displayNameResolver) {
         this.loanService = loanService;
         this.appUserRepository = appUserRepository;
         this.displayNameResolver = displayNameResolver;
@@ -148,7 +149,8 @@ public class LoanController {
         AppUser currentUser = currentSub == null ? null : appUserRepository.findBySub(currentSub).orElse(null);
         Long schoolId = (currentUser != null && currentUser.getSchool() != null
                 && !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole()))
-                ? currentUser.getSchool().getId() : null;
+                        ? currentUser.getSchool().getId()
+                        : null;
 
         if (overview.getWorsenedReturns() != null && !overview.getWorsenedReturns().isEmpty()) {
             List<String> subs = overview.getWorsenedReturns().stream()
@@ -173,7 +175,8 @@ public class LoanController {
         AppUser currentUser = currentSub == null ? null : appUserRepository.findBySub(currentSub).orElse(null);
         Long schoolId = (currentUser != null && currentUser.getSchool() != null
                 && !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole()))
-                ? currentUser.getSchool().getId() : null;
+                        ? currentUser.getSchool().getId()
+                        : null;
 
         List<String> subs = loans.stream()
                 .map(LoanDto::getUserSub)
@@ -200,6 +203,17 @@ public class LoanController {
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PreAuthorize("isAuthenticated()") // Allow any authenticated user to send a message
+    @PostMapping("/{id}/bericht-bib") 
+    public ResponseEntity<Void> sendMessageToLibrarian(@PathVariable Long id, @RequestBody BerichtBibRequest request) {
+        try {
+            loanService.sendLibrarianMessage(id, request);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 

@@ -4,6 +4,7 @@ import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
 import com.example.demo.dto.SmartschoolMessageRequest;
+import com.example.demo.dto.BerichtBibRequest;
 import com.example.demo.config.SmartschoolProperties;
 import com.example.demo.dto.SmartschoolUserInfo;
 import com.example.demo.entities.AppUser;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import java.util.Optional;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
@@ -460,5 +462,41 @@ class LoanServiceTest {
         loan.setReturnedCondition(returnedCondition);
         loan.setReturnedStatus(returnedStatus);
         return loan;
+    }
+
+    @Test
+    void sendLibrarianMessage_ShouldTriggerSmartschoolMessage() {
+        // Arrange
+        Long loanId = 1L;
+        BerichtBibRequest request = new BerichtBibRequest();
+        request.setLibrarianSub("lib-sub");
+        request.setSenderSub("sender-sub");
+
+        Book book = buildBook(1L, "Test Boek");
+        BookCopy copy = buildCopy(10L, book, BookCopy.CopyStatus.LOANED, BookCopy.CopyCondition.GOOD);
+        Loan loan = new Loan();
+        loan.setId(loanId);
+        loan.setCopy(copy);
+        loan.setUserSub("sender-sub");
+        loan.setDueDate(LocalDate.now());
+
+        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        
+        SmartschoolUserInfo userInfo = new SmartschoolUserInfo();
+        userInfo.setName("Test Lener");
+        userInfo.setAccessToken("token");
+        when(authService.getUserInfoBySub("sender-sub")).thenReturn(Mono.just(userInfo));
+        when(smartschoolMessageService.sendMessage(eq("token"), any())).thenReturn(Mono.just("ok"));
+
+        // Act
+        loanService.sendLibrarianMessage(loanId, request);
+
+        // Assert
+        verify(smartschoolMessageService).sendMessage(eq("token"), any(SmartschoolMessageRequest.class));
+        ArgumentCaptor<SmartschoolMessageRequest> msgCaptor = ArgumentCaptor.forClass(SmartschoolMessageRequest.class);
+        verify(smartschoolMessageService).sendMessage(anyString(), msgCaptor.capture());
+        
+        assertTrue(msgCaptor.getValue().getSubject().contains("Test Boek"));
+        assertEquals("lib-sub", msgCaptor.getValue().getRecipientSub());
     }
 }
