@@ -661,8 +661,8 @@ tbody tr:hover td {
   justify-content: flex-end;
 }
 
-.btn-cancel,
-.btn-confirm {
+.modal-actions .btn-cancel,
+.modal-actions .btn-confirm {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 6px;
@@ -672,27 +672,27 @@ tbody tr:hover td {
   transition: all 0.2s;
 }
 
-.btn-cancel {
+.modal-actions .btn-cancel {
   background: #f3f4f6;
   color: #1a1a1a;
 }
 
-.btn-cancel:hover:not(:disabled) {
+.modal-actions .btn-cancel:hover:not(:disabled) {
   background: #e5e7eb;
 }
 
-.btn-confirm {
+.modal-actions .btn-confirm {
   background: #8b5cf6;
   color: white;
 }
 
-.btn-confirm:hover:not(:disabled) {
+.modal-actions .btn-confirm:hover:not(:disabled) {
   background: #7c3aed;
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
-.btn-cancel:disabled,
-.btn-confirm:disabled {
+.modal-actions .btn-cancel:disabled,
+.modal-actions .btn-confirm:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
