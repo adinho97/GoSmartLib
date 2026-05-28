@@ -77,6 +77,21 @@ public class BookController {
         this.reportedReviewService = reportedReviewService;
     }
 
+    // Overloaded constructor voor backward compatibility met bestaande unit testen
+    public BookController(AppUserRepository appUserRepository,
+                          BookLookupService bookLookupService,
+                          BookImportService bookImportService,
+                          BookStatsService bookStatsService,
+                          BookDeletionService bookDeletionService,
+                          BookQueryService bookQueryService,
+                          BookWriteService bookWriteService,
+                          ReviewService reviewService,
+                          LestipService lestipService) {
+        this(appUserRepository, bookLookupService, bookImportService, bookStatsService,
+             bookDeletionService, bookQueryService, bookWriteService, reviewService,
+             lestipService, null);
+    }
+
     @GetMapping
     public List<BookDto> getAll(
             @RequestParam(required = false) Long schoolId,
@@ -141,7 +156,7 @@ public class BookController {
             @RequestParam(required = false) Long schoolId,
             Authentication authentication) {
         try {
-            Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
+            Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, null);
             return bookLookupService.findByIsbn(isbn, effectiveSchoolId)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
@@ -154,7 +169,7 @@ public class BookController {
     public ResponseEntity<BookDto> getByGoNumber(@PathVariable @NonNull String goNumber,
             @RequestParam(required = false) Long schoolId,
             Authentication authentication) {
-        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication);
+        Long effectiveSchoolId = resolveEffectiveSchoolId(schoolId, authentication, null);
         return ResponseEntity.ok(bookQueryService.getBookByGoNumber(goNumber, effectiveSchoolId));
     }
 
@@ -411,27 +426,8 @@ public class BookController {
         return "leerling".equals(normalizeRole(roleHeader));
     }
 
-    private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication) {
-        boolean studentCaller = isStudentRole(authentication, null);
-        if (requestedSchoolId != null && !studentCaller) {
-            return requestedSchoolId;
-        }
-        if (authentication == null) {
-            return null;
-        }
-        String sub = authentication.getName();
-        if (!StringUtils.hasText(sub)) {
-            return null;
-        }
-        return appUserRepository.findBySub(sub.trim())
-                .filter(user -> user.getSchool() != null)
-                .map(user -> Objects.requireNonNull(user.getSchool().getId(), "schoolId is required"))
-                .orElse(null);
-    }
-
     private Long resolveEffectiveSchoolId(Long requestedSchoolId, Authentication authentication, String subHeader) {
-        boolean studentCaller = isStudentRole(authentication, null);
-        if (requestedSchoolId != null && !studentCaller) {
+        if (requestedSchoolId != null && !isStudentRole(authentication, null)) {
             return requestedSchoolId;
         }
 
