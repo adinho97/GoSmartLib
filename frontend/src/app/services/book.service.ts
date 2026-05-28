@@ -53,6 +53,32 @@ export interface LestipResponse {
   attachments?: LestipAttachment[]; // Add this for multiple attachments
 }
 
+export enum ReportedReviewStatus {
+  PENDING = "PENDING",
+  RESOLVED_DELETED = "RESOLVED_DELETED",
+  RESOLVED_KEPT = "RESOLVED_KEPT",
+}
+
+export interface ReportedReview {
+  id: number;
+  book: {
+    id: number;
+    titel: string;
+  };
+  review: {
+    id: number;
+    rating: number;
+    comment: string;
+    reviewerUserName: string;
+    anonymous: boolean;
+  };
+  reporterUserSub: string;
+  reporterUserName: string;
+  reason: string;
+  reportedAt: string;
+  status: ReportedReviewStatus;
+}
+
 export interface PagedBooksResponse {
   items: Book[];
   total: number;
@@ -376,6 +402,19 @@ export class BookService {
     );
   }
 
+  async reportReview(
+    bookId: number,
+    reviewId: number,
+    reason: string,
+  ): Promise<void> {
+    await axios.post(
+      `${this.apiUrl}/${bookId}/reviews/${reviewId}/report`,
+      {
+        reason,
+      },
+      this.getFullAuthHeaders(),
+    );
+  }
   async fetchBookByIsbn(isbn: string) {
     const res = await axios.get(`${this.apiUrl}/preview/${isbn}`);
     return res.data;

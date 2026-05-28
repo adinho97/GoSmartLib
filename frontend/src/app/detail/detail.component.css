@@ -847,6 +847,17 @@
   box-shadow: none;
 }
 
+.action-icon-btn.report-review-btn {
+  border: 1px solid #e2d6db;
+  background: #fff;
+  color: #7f5f6d;
+}
+
+.action-icon-btn.report-review-btn:hover {
+  border-color: #f5a524;
+  color: #f5a524;
+  background: #fffbf2;
+}
 /* Edit form */
 .review-edit-form {
   display: grid;
@@ -968,6 +979,18 @@
   border: 1px solid #e5e7eb;
   background: #fff;
   color: #4b5563;
+}
+
+.publish-review-card textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d4c1c9;
+  border-radius: 10px;
+  padding: 0.62rem 0.7rem;
+  font: inherit;
+  resize: vertical;
+  background: #ffffff;
 }
 
 .publish-cancel-btn:hover {
