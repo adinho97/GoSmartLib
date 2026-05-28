@@ -40,6 +40,7 @@ public class Book {
     private String cover;
 
     @Column(columnDefinition = "TEXT")
+    @NotBlank(message = "Beschrijving is verplicht")
     @Size(max = 5000)
     private String beschrijving;
 
@@ -67,12 +68,13 @@ public class Book {
     @Size(max = 50)
     private String leesniveau;
 
+    // The lestip field will now only store the textual description.
+    // File attachments will be managed via the lestipAttachments collection.
     @Column(columnDefinition = "TEXT")
     private String lestip;
 
-    @Lob
-    @Column(name = "lestip_file", columnDefinition = "LONGBLOB")
-    private byte[] lestipFile;
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<LestipAttachment> lestipAttachments = new HashSet<>();
 
     @Size(max = 255)
     private String lestipAuteur;
@@ -231,11 +233,11 @@ public class Book {
         this.reviews = reviews;
     }
 
-    public byte[] getLestipFile() {
-        return lestipFile;
+    public Set<LestipAttachment> getLestipAttachments() {
+        return lestipAttachments;
     }
 
-    public void setLestipFile(byte[] lestipFile) {
-        this.lestipFile = lestipFile;
+    public void setLestipAttachments(Set<LestipAttachment> lestipAttachments) {
+        this.lestipAttachments = lestipAttachments;
     }
 }

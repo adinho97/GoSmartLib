@@ -267,4 +267,17 @@ class LestipServiceTest {
         assertEquals("Check this out", dto.getLestip());
         assertEquals("lesson.pdf", dto.getFileName());
     }
+
+    @Test
+    void updateLestipShouldThrowBadRequestWhenJsonHasEmptyText() {
+        UpdateLestipRequest req = new UpdateLestipRequest();
+        req.setLestip("{\"text\":\"  \",\"fileName\":\"test.pdf\",\"fileData\":\"data:application/pdf;base64,YmFk\"}");
+
+        Book existing = book(1L, null, null);
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        ApiException ex = assertThrows(ApiException.class,
+                () -> lestipService.updateLestip(1L, req, "Alice"));
+        assertEquals("LESTIP_TEXT_REQUIRED", ex.getCode());
+    }
 }

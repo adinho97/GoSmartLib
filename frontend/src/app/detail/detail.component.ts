@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, NavigationEnd } from "@angular/router";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
-import { BookService } from "../services/book.service";
+import { BookService, LestipAttachment } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
 import {
   BadgeNotificationService,
@@ -130,11 +130,17 @@ export class DetailComponent implements OnInit, OnDestroy {
   lestipAuteurNaam = "";
   magLestipVerwijderen = false;
   lestipScope: "all" | "school" = "all";
-  newLestipText = "";
-  selectedLestipFile: File | null = null;
-  lestipFileName = "";
-  lestipFileBlob: Blob | null = null;
-  lestipFileContentType = "";
+  newLestipText = ""; // The textual description for the lestip
+
+  // Compatibility getter to prevent HTML build errors while the template is updated
+  get lestipFileName(): string {
+    return this.lestipAttachments.length > 0
+      ? this.lestipAttachments[0].fileName
+      : "";
+  }
+
+  selectedLestipFiles: File[] = []; // Array to hold multiple selected files
+  lestipAttachments: LestipAttachment[] = []; // Attachments received from the backend
   lestipError = "";
   lestipSuccess = "";
 
@@ -1039,36 +1045,53 @@ export class DetailComponent implements OnInit, OnDestroy {
     return !!this.lestipText.trim();
   }
 
-  onLestipFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (!file) return;
+  onLestipFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files || []);
+
+    if (files.length === 0) {
+      this.selectedLestipFiles = [];
+      this.lestipError = "";
+      return;
+    }
 
     const allowedExtensions = ["pdf", "ppt", "pptx", "doc", "docx", "txt"];
-    const extension = file.name.split(".").pop()?.toLowerCase();
+    const maxFileSize = 25 * 1024 * 1024; // 25MB
 
-    if (!extension || !allowedExtensions.includes(extension)) {
-      this.lestipError =
-        "Alleen PDF, Office documenten en tekstbestanden zijn toegestaan.";
-      event.target.value = "";
-      return;
+    const validFiles: File[] = [];
+    for (const file of files) {
+      const extension = file.name.split(".").pop()?.toLowerCase();
+
+      if (!extension || !allowedExtensions.includes(extension)) {
+        this.lestipError = `Bestand '${file.name}': Alleen PDF, Office documenten en tekstbestanden zijn toegestaan.`;
+        input.value = "";
+        this.selectedLestipFiles = [];
+        return;
+      }
+
+      if (file.size > maxFileSize) {
+        this.lestipError = `Bestand '${file.name}': is te groot (max 25MB).`;
+        input.value = "";
+        this.selectedLestipFiles = [];
+        return;
+      }
+      validFiles.push(file);
     }
 
-    if (file.size > 25 * 1024 * 1024) {
-      this.lestipError = "Bestand is te groot (max 25MB).";
-      event.target.value = "";
-      return;
-    }
-
-    this.selectedLestipFile = file;
+    this.selectedLestipFiles = validFiles;
     this.lestipError = "";
   }
 
-  downloadLestipFile(): void {
-    if (!this.lestipFileBlob) return;
-    const url = window.URL.createObjectURL(this.lestipFileBlob);
+  downloadLestipFile(attachment?: LestipAttachment): void {
+    // If no attachment is passed, default to the first one to support existing template calls
+    const target =
+      attachment ||
+      (this.lestipAttachments.length > 0 ? this.lestipAttachments[0] : null);
+    if (!target || !target.fileBlob) return;
+    const url = window.URL.createObjectURL(target.fileBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = this.lestipFileName;
+    link.download = target.fileName;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -1079,38 +1102,47 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
 
     const lestipToSave = this.newLestipText.trim();
-    if (!lestipToSave && !this.selectedLestipFile) {
+    if (!lestipToSave) {
       this.lestipSuccess = "";
-      this.lestipError = "Voeg tekst of een bestand toe.";
+      this.lestipError = "Voeg een beschrijving toe bij de lestip.";
       return;
     }
 
-    let finalPayload: string = lestipToSave;
+    const attachmentsPayload: LestipAttachment[] = [];
 
-    if (this.selectedLestipFile) {
-      const reader = new FileReader();
-      const filePromise = new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(this.selectedLestipFile!);
-      });
+    if (this.selectedLestipFiles.length > 0) {
+      for (const file of this.selectedLestipFiles) {
+        const reader = new FileReader();
+        const filePromise = new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
 
-      const base64Data = await filePromise;
-      finalPayload = JSON.stringify({
-        text: lestipToSave,
-        fileName: this.selectedLestipFile.name,
-        fileContentType: this.selectedLestipFile.type,
-        fileData: base64Data,
-      });
+        try {
+          const base64Data = await filePromise;
+          attachmentsPayload.push({
+            fileName: file.name,
+            contentType: file.type,
+            fileData: base64Data,
+          });
+        } catch (error) {
+          this.lestipError = `Fout bij het lezen van bestand ${file.name}.`;
+          this.lestipSuccess = "";
+          return;
+        }
+      }
     }
 
     try {
       const savedLestipData = await this.bookService.updateBookLestip(
         this.currentBookId,
-        finalPayload,
+        lestipToSave, // Send text separately
+        attachmentsPayload, // Send attachments as an array
       );
       this.loadLestip(this.currentBookId, this.lestipScope);
       this.newLestipText = "";
-      this.selectedLestipFile = null;
+      this.selectedLestipFiles = [];
       this.lestipError = "";
       this.lestipSuccess = "Lestip opgeslagen.";
     } catch (error: unknown) {
@@ -1146,6 +1178,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.lestipText = "";
       this.newLestipText = "";
       this.lestipAuteurNaam = "";
+      this.lestipAttachments = []; // Clear attachments
       this.magLestipVerwijderen = false;
       this.lestipError = "";
       this.lestipSuccess = "Lestip verwijderd.";
@@ -1162,30 +1195,34 @@ export class DetailComponent implements OnInit, OnDestroy {
     try {
       // Assuming getBookLestipDetails supports an optional scope parameter
       // or handles the filtering logic based on teacher context.
-      const lestipData: any = await this.bookService.getBookLestipDetails(
-        bookId,
-        scope,
-      );
+      const lestipData: {
+        lestip: string;
+        auteurNaam: string;
+        magVerwijderen: boolean;
+        attachments?: LestipAttachment[]; // New field for multiple attachments
+      } = await this.bookService.getBookLestipDetails(bookId, scope);
       this.lestipText = lestipData.lestip || "";
-      this.lestipFileName = lestipData.fileName || "";
+      this.lestipAttachments = lestipData.attachments || [];
 
-      if (lestipData.fileData) {
-        // The blob comes from the backend as a raw Base64 string (no 'data:' prefix)
-        const base64String = lestipData.fileData.includes("base64,")
-          ? lestipData.fileData.split(",")[1]
-          : lestipData.fileData;
+      // Convert base64 fileData in attachments to Blob for download
+      this.lestipAttachments = this.lestipAttachments.map((attachment) => {
+        if (attachment.fileData) {
+          const base64String = attachment.fileData.includes("base64,")
+            ? attachment.fileData.split(",")[1]
+            : attachment.fileData;
 
-        const binaryString = atob(base64String);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
+          const binaryString = atob(base64String);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          // Store the Blob directly on the attachment object for easy download
+          attachment.fileBlob = new Blob([bytes], {
+            type: attachment.contentType,
+          });
         }
-        this.lestipFileBlob = new Blob([bytes], {
-          type: lestipData.fileContentType,
-        });
-      }
-
-      this.lestipFileContentType = lestipData.fileContentType || "";
+        return attachment;
+      });
 
       this.lestipAuteurNaam = normalizeReviewAuthorName(
         lestipData.auteurNaam || "",
