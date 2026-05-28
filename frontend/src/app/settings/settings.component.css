@@ -1410,24 +1410,21 @@
   padding-top: 10px;
   border-top: 1px dashed var(--line);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 .lvl-footer-right {
   display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.lvl-footer-actions {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 .lvl-delete-btn {
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
+  padding: 4px 10px;
+  height: 28px;
+  font-size: 11px;
 }
 .lvl-add-form {
   margin-top: var(--s-4);
