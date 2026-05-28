@@ -40,6 +40,7 @@ public class Book {
     private String cover;
 
     @Column(columnDefinition = "TEXT")
+    @NotBlank(message = "Beschrijving is verplicht")
     @Size(max = 5000)
     private String beschrijving;
 

@@ -1079,9 +1079,9 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
 
     const lestipToSave = this.newLestipText.trim();
-    if (!lestipToSave && !this.selectedLestipFile) {
+    if (!lestipToSave) {
       this.lestipSuccess = "";
-      this.lestipError = "Voeg tekst of een bestand toe.";
+      this.lestipError = "Voeg een beschrijving toe bij de lestip.";
       return;
     }
 

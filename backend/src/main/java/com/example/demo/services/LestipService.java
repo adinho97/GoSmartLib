@@ -73,6 +73,12 @@ public class LestipService {
         if (normalizedLestip.startsWith("{")) {
             try {
                 var json = objectMapper.readTree(normalizedLestip);
+
+                String text = json.path("text").asText("").trim();
+                if (text.isEmpty()) {
+                    throw new ApiException("Omschrijving is verplicht bij een bijlage", HttpStatus.BAD_REQUEST, "LESTIP_TEXT_REQUIRED");
+                }
+
                 String fileName = json.path("fileName").asText(null);
                 String fileData = json.path("fileData").asText(null);
                 
@@ -87,6 +93,8 @@ public class LestipService {
                     ((ObjectNode) json).remove("fileData");
                     normalizedLestip = json.toString();
                 }
+            } catch (ApiException e) {
+                throw e;
             } catch (Exception e) {
                 // Not valid JSON, treat as raw text
             }
