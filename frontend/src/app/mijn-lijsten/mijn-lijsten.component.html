@@ -118,7 +118,7 @@
               [disabled]="!canSendMessageToLibrarian(loan.id)"
               [title]="getLibrarianMessageCooldownText(loan.id)"
             >
-              <i class="fas fa-envelope"></i> Verlenging aanvragen
+              <i class="fas fa-calendar-plus"></i> Verlenging aanvragen
             </button>
           </div>
         }
@@ -400,7 +400,7 @@
     >
       <div class="return-modal" (click)="$event.stopPropagation()">
         <header class="return-modal-header">
-          <h3>Bericht naar bibliothecaris</h3>
+          <h3>Aanvraag tot verlenging</h3>
           <button
             type="button"
             class="return-modal-close"
@@ -413,9 +413,9 @@
 
         <div class="return-modal-content">
           <p class="return-modal-intro">
-            Stuur een officieel bericht over
-            <strong>{{ selectedLoanForMessage?.bookTitel }}</strong> naar een
-            beheerder.
+            Dien een aanvraag in voor een verlenging van
+            <strong>{{ selectedLoanForMessage?.bookTitel }}</strong>.
+            Een bibliothecaris zal je aanvraag beoordelen.
           </p>
 
           <div class="return-modal-field">
@@ -439,7 +439,7 @@
                 type="checkbox"
                 [(ngModel)]="confirmSendMessageToLibrarianCheckbox"
               />
-              Ik bevestig dat ik dit bericht wil verzenden naar
+              Ik bevestig dat ik een aanvraag tot verlenging wil indienen bij
               {{ selectedLibrarianForMessage.displayName }}.
             </label>
           }
@@ -467,7 +467,7 @@
             (click)="confirmAndSendMessageToLibrarian()"
           >
             {{
-              isSendingLibrarianMessage ? "Verzenden..." : "Bericht verzenden"
+              isSendingLibrarianMessage ? "Verzenden..." : "Verstuur aanvraag"
             }}
           </button>
         </footer>
