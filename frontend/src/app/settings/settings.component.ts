@@ -9,7 +9,7 @@ import {
 } from "../services/admin-genre.service";
 import { UiToastService } from "../services/ui-toast.service";
 import { forkJoin, from } from "rxjs";
-import { catchError, of } from 'rxjs';
+import { catchError, of } from "rxjs";
 import { InfoButtonComponent } from "../components/info-button/info-button.component";
 
 interface Message {
@@ -80,7 +80,7 @@ interface ConfirmTarget {
 
 const ROTATE_MS = 20000;
 const NETWORK_DEFAULT_LOAN_DAYS = 14;
-const DEFAULT_LEVEL_IDS = ['l1', 'l2', 'l3', 'l4'];
+const DEFAULT_LEVEL_IDS = ["l1", "l2", "l3", "l4"];
 
 @Component({
   selector: "app-settings",
@@ -158,8 +158,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   // Genres section UI state
   private _genreQuery = "";
-  get genreQuery(): string { return this._genreQuery; }
-  set genreQuery(v: string) { this._genreQuery = v; this.genrePage = 1; }
+  get genreQuery(): string {
+    return this._genreQuery;
+  }
+  set genreQuery(v: string) {
+    this._genreQuery = v;
+    this.genrePage = 1;
+  }
 
   genrePage = 1;
   editingGenreId: string | null = null;
@@ -219,9 +224,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
           sun: savedHours?.sun ?? defaults.sun,
         };
 
-        const rawLevels = (res.settings.levels && res.settings.levels.length > 0)
-          ? res.settings.levels
-          : this.defaultLevels();
+        const rawLevels =
+          res.settings.levels && res.settings.levels.length > 0
+            ? res.settings.levels
+            : this.defaultLevels();
         this.levels = rawLevels.map((l: ReadingLevel) => ({
           ...l,
           isProtected: DEFAULT_LEVEL_IDS.includes(l.id),
@@ -267,10 +273,42 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   private defaultLevels(): ReadingLevel[] {
     return [
-      { id: 'l1', code: 'A', name: 'Niveau A', desc: 'Beginnende lezers', active: true, isDefault: true, isProtected: true },
-      { id: 'l2', code: 'B', name: 'Niveau B', desc: 'Gevorderde lezers', active: true, isDefault: false, isProtected: true },
-      { id: 'l3', code: 'C', name: 'Niveau C', desc: 'Ervaren lezers', active: true, isDefault: false, isProtected: true },
-      { id: 'l4', code: 'D', name: 'Niveau D', desc: 'Top lezers', active: true, isDefault: false, isProtected: true },
+      {
+        id: "l1",
+        code: "A",
+        name: "Niveau A",
+        desc: "Beginnende lezers",
+        active: true,
+        isDefault: true,
+        isProtected: true,
+      },
+      {
+        id: "l2",
+        code: "B",
+        name: "Niveau B",
+        desc: "Gevorderde lezers",
+        active: true,
+        isDefault: false,
+        isProtected: true,
+      },
+      {
+        id: "l3",
+        code: "C",
+        name: "Niveau C",
+        desc: "Ervaren lezers",
+        active: true,
+        isDefault: false,
+        isProtected: true,
+      },
+      {
+        id: "l4",
+        code: "D",
+        name: "Niveau D",
+        desc: "Top lezers",
+        active: true,
+        isDefault: false,
+        isProtected: true,
+      },
     ];
   }
 
@@ -543,7 +581,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   get genreTotalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredGenres.length / this.genrePageSize));
+    return Math.max(
+      1,
+      Math.ceil(this.filteredGenres.length / this.genrePageSize),
+    );
   }
 
   get genrePageRange(): number[] {
@@ -709,7 +750,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   startAddLevel(): void {
     this.addingLevel = true;
-    this.levelDraft = { code: '', name: '', desc: '', active: true, isDefault: false };
+    this.levelDraft = {
+      code: "",
+      name: "",
+      desc: "",
+      active: true,
+      isDefault: false,
+    };
   }
 
   cancelAddLevel(): void {
@@ -719,15 +766,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   saveAddLevel(): void {
     if (!this.levelDraft) return;
-    const code = (this.levelDraft.code ?? '').trim().slice(0, 6);
-    const name = (this.levelDraft.name ?? '').trim();
+    const code = (this.levelDraft.code ?? "").trim().slice(0, 6);
+    const name = (this.levelDraft.name ?? "").trim();
     if (!code || !name) return;
 
     const newLevel: ReadingLevel = {
       id: `l-${Date.now()}`,
       code,
       name,
-      desc: (this.levelDraft.desc ?? '').trim(),
+      desc: (this.levelDraft.desc ?? "").trim(),
       active: true,
       isDefault: false,
       isProtected: false,
@@ -744,11 +791,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
       body: `Dit leesniveau wordt verwijderd. Boeken die dit niveau hebben, behouden de waarde maar het niveau is niet langer beschikbaar voor nieuwe boeken.`,
       confirmLabel: "Verwijderen",
       onConfirm: () => {
-        if (l.isDefault) {
-          const next = this.levels.find((x) => x.id !== l.id && x.active);
-          if (next) this.setDefaultLevel(next.id);
-        }
+        // Filter out the deleted level
         this.levels = this.levels.filter((x) => x.id !== l.id);
+
+        // If the deleted level was the default, pick a new one from remaining active levels
+        if (l.isDefault) {
+          const firstActive = this.levels.find((lvl) => lvl.active);
+          if (firstActive) this.setDefaultLevel(firstActive.id);
+        }
+
         this.markDirty();
       },
     };
