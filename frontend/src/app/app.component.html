@@ -401,8 +401,7 @@
           </div>
         }
         @if (isLibrarian) {
-          <button
-            type="button"
+          <a
             class="notification-bell"
             routerLink="/mijn-taken/review-beheer"
             title="Review meldingen"
@@ -420,7 +419,7 @@
             @if (pendingReportsCount > 0) {
               <span class="bell-badge">{{ pendingReportsCount }}</span>
             }
-          </button>
+          </a>
           <button
             type="button"
             class="cog-btn"
