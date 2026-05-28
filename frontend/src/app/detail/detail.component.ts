@@ -131,6 +131,10 @@ export class DetailComponent implements OnInit, OnDestroy {
   magLestipVerwijderen = false;
   lestipScope: "all" | "school" = "all";
   newLestipText = "";
+  selectedLestipFile: File | null = null;
+  lestipFileName = "";
+  lestipFileBlob: Blob | null = null;
+  lestipFileContentType = "";
   lestipError = "";
   lestipSuccess = "";
 
@@ -1035,33 +1039,78 @@ export class DetailComponent implements OnInit, OnDestroy {
     return !!this.lestipText.trim();
   }
 
+  onLestipFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedExtensions = ["pdf", "ppt", "pptx", "doc", "docx", "txt"];
+    const extension = file.name.split(".").pop()?.toLowerCase();
+
+    if (!extension || !allowedExtensions.includes(extension)) {
+      this.lestipError =
+        "Alleen PDF, Office documenten en tekstbestanden zijn toegestaan.";
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      this.lestipError = "Bestand is te groot (max 25MB).";
+      event.target.value = "";
+      return;
+    }
+
+    this.selectedLestipFile = file;
+    this.lestipError = "";
+  }
+
+  downloadLestipFile(): void {
+    if (!this.lestipFileBlob) return;
+    const url = window.URL.createObjectURL(this.lestipFileBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = this.lestipFileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
   async saveLestip(): Promise<void> {
     if (!this.isTeacherOrLibrarian || this.currentBookId === null) {
       return;
     }
 
     const lestipToSave = this.newLestipText.trim();
-    if (!lestipToSave) {
+    if (!lestipToSave && !this.selectedLestipFile) {
       this.lestipSuccess = "";
-      this.lestipError = "Voeg eerst een lestip toe.";
+      this.lestipError = "Voeg tekst of een bestand toe.";
       return;
     }
 
-    if (this.hasLestip) {
-      this.lestipSuccess = "";
-      this.lestipError = "Een bestaande lestip kan niet bewerkt worden.";
-      return;
+    let finalPayload: string = lestipToSave;
+
+    if (this.selectedLestipFile) {
+      const reader = new FileReader();
+      const filePromise = new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(this.selectedLestipFile!);
+      });
+
+      const base64Data = await filePromise;
+      finalPayload = JSON.stringify({
+        text: lestipToSave,
+        fileName: this.selectedLestipFile.name,
+        fileContentType: this.selectedLestipFile.type,
+        fileData: base64Data,
+      });
     }
 
     try {
       const savedLestipData = await this.bookService.updateBookLestip(
         this.currentBookId,
-        lestipToSave,
+        finalPayload,
       );
-      this.lestipText = savedLestipData.lestip || "";
+      this.loadLestip(this.currentBookId, this.lestipScope);
       this.newLestipText = "";
-      this.lestipAuteurNaam = savedLestipData.auteurNaam || "";
-      this.magLestipVerwijderen = !!savedLestipData.magVerwijderen;
+      this.selectedLestipFile = null;
       this.lestipError = "";
       this.lestipSuccess = "Lestip opgeslagen.";
     } catch (error: unknown) {
@@ -1113,12 +1162,33 @@ export class DetailComponent implements OnInit, OnDestroy {
     try {
       // Assuming getBookLestipDetails supports an optional scope parameter
       // or handles the filtering logic based on teacher context.
-      const lestipData = await this.bookService.getBookLestipDetails(
+      const lestipData: any = await this.bookService.getBookLestipDetails(
         bookId,
         scope,
       );
       this.lestipText = lestipData.lestip || "";
-      this.lestipAuteurNaam = normalizeReviewAuthorName(lestipData.auteurNaam || "");
+      this.lestipFileName = lestipData.fileName || "";
+
+      if (lestipData.fileData) {
+        // Convert base64 string from JSON to a binary Blob for handling in the browser
+        const byteCharacters = atob(
+          lestipData.fileData.split(",")[1] || lestipData.fileData,
+        );
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        this.lestipFileBlob = new Blob([byteArray], {
+          type: lestipData.fileContentType,
+        });
+      }
+
+      this.lestipFileContentType = lestipData.fileContentType || "";
+
+      this.lestipAuteurNaam = normalizeReviewAuthorName(
+        lestipData.auteurNaam || "",
+      );
       this.magLestipVerwijderen = !!lestipData.magVerwijderen;
       this.newLestipText = "";
       this.lestipError = "";

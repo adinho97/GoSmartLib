@@ -223,4 +223,48 @@ class LestipServiceTest {
         assertNull(existing.getLestip());
         verify(bookRepository).save(existing);
     }
+
+    @Test
+    void updateLestipShouldRejectFileTooLarge() {
+        UpdateLestipRequest req = new UpdateLestipRequest();
+        // Large data string to exceed the 25MB limit
+        String bigData = "a".repeat(40 * 1024 * 1024);
+        req.setLestip("{\"text\":\"tip\",\"fileName\":\"test.pdf\",\"fileData\":\"data:application/pdf;base64," + bigData + "\"}");
+        
+        Book existing = book(1L, null, null);
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        ApiException ex = assertThrows(ApiException.class,
+                () -> lestipService.updateLestip(1L, req, "Alice"));
+        assertEquals("FILE_TOO_LARGE", ex.getCode());
+    }
+
+    @Test
+    void updateLestipShouldRejectInvalidExtension() {
+        UpdateLestipRequest req = new UpdateLestipRequest();
+        req.setLestip("{\"text\":\"tip\",\"fileName\":\"malicious.exe\",\"fileData\":\"data:application/x-msdownload;base64,YmFk\"}");
+
+        Book existing = book(1L, null, null);
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        ApiException ex = assertThrows(ApiException.class,
+                () -> lestipService.updateLestip(1L, req, "Alice"));
+        assertEquals("INVALID_FILE_TYPE", ex.getCode());
+    }
+
+    @Test
+    void updateLestipShouldPersistValidJsonPayload() {
+        UpdateLestipRequest req = new UpdateLestipRequest();
+        String payload = "{\"text\":\"Check this out\",\"fileName\":\"lesson.pdf\",\"fileData\":\"data:application/pdf;base64,U01PTA==\"}";
+        req.setLestip(payload);
+
+        Book existing = book(1L, null, null);
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(bookRepository.save(existing)).thenReturn(existing);
+
+        LestipDto dto = lestipService.updateLestip(1L, req, "Alice");
+
+        assertEquals("Check this out", dto.getLestip());
+        assertEquals("lesson.pdf", dto.getFileName());
+    }
 }
