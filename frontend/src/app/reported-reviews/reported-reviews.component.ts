@@ -118,10 +118,9 @@ export class ReportedReviewsComponent implements OnInit {
       return;
 
     try {
-      await this.bookService.deleteReportedReview(
+      await this.bookService.resolveReportedReview(
         this.pendingReportId,
-        this.pendingBookId,
-        this.pendingReviewId,
+        "inappropriate",
       );
       this.uiToastService.success("Review verwijderd en melding afgehandeld.");
       await this.loadReportedReviews();
@@ -150,7 +149,7 @@ export class ReportedReviewsComponent implements OnInit {
     try {
       await this.bookService.resolveReportedReview(
         this.pendingReportId,
-        ReportedReviewStatus.RESOLVED_KEPT,
+        "appropriate",
       );
       this.uiToastService.success(
         "De melding is afgehandeld en de review is behouden.",

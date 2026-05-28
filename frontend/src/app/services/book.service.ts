@@ -104,8 +104,7 @@ export class BookService {
   private apiUrl = "/api/boeken";
   private wishlistChangedSource = new Subject<void>();
   wishlistChanged$ = this.wishlistChangedSource.asObservable();
-
-  private bookCache: Map<number | null, any[]> = new Map(); // TODO: Clear this cache when a book is updated/deleted
+  private bookCache: Map<number | null, any[]> = new Map();
 
   constructor(
     private http: HttpClient,
@@ -180,8 +179,10 @@ export class BookService {
   }
 
   getBookById(id: number): Observable<Book> {
-    // TODO: This should use axios for consistency
-    return this.http.get<Book>(this.withSchoolId(`${this.apiUrl}/${id}`));
+    return this.http.get<Book>(
+      this.withSchoolId(`${this.apiUrl}/${id}`),
+      this.getFullAuthHeaders(),
+    );
   }
 
   async addBook(
@@ -211,6 +212,7 @@ export class BookService {
       payload,
       this.getFullAuthHeaders(),
     );
+    this.clearCache();
     return res.data;
   }
 
@@ -310,6 +312,7 @@ export class BookService {
       this.withSchoolId(`${this.apiUrl}/${id}`, schoolId),
       this.getFullAuthHeaders(),
     );
+    this.clearCache();
   }
 
   async getBookReviews(bookId: number): Promise<Review[]> {
@@ -415,6 +418,34 @@ export class BookService {
       this.getFullAuthHeaders(),
     );
   }
+
+  async getReportedReviews(): Promise<ReportedReview[]> {
+    const res = await axios.get<ReportedReview[]>(
+      `/api/review-reports`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data;
+  }
+
+  async getReportedReviewCount(): Promise<number> {
+    const res = await axios.get<{ count: number }>(
+      `/api/review-reports/count`,
+      this.getFullAuthHeaders(),
+    );
+    return res.data?.count ?? 0;
+  }
+
+  async resolveReportedReview(
+    reportId: number,
+    action: "inappropriate" | "appropriate",
+  ): Promise<void> {
+    await axios.patch(
+      `/api/review-reports/${reportId}/resolve`,
+      { action },
+      this.getFullAuthHeaders(),
+    );
+  }
+
   async fetchBookByIsbn(isbn: string) {
     const res = await axios.get(`${this.apiUrl}/preview/${isbn}`);
     return res.data;
@@ -534,6 +565,7 @@ export class BookService {
       book,
       this.getFullAuthHeaders(),
     );
+    this.clearCache();
     return res.data;
   }
 

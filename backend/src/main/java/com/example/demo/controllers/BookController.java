@@ -8,6 +8,7 @@ import com.example.demo.dto.PagedBookResponse;
 import com.example.demo.dto.ReviewDto;
 import com.example.demo.dto.UpdateLestipRequest;
 import com.example.demo.dto.UpdateReviewRequest;
+import com.example.demo.dto.ReportReviewRequest;
 import com.example.demo.dto.ImportByIsbnRequest;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.services.BookDeletionService;
@@ -16,6 +17,7 @@ import com.example.demo.services.BookLookupService;
 import com.example.demo.services.BookQueryService;
 import com.example.demo.services.BookStatsService;
 import com.example.demo.services.BookWriteService;
+import com.example.demo.services.ReportedReviewService;
 import com.example.demo.services.LestipService;
 import com.example.demo.services.ReviewContext;
 import com.example.demo.services.ReviewService;
@@ -51,6 +53,7 @@ public class BookController {
     private final BookWriteService bookWriteService;
     private final ReviewService reviewService;
     private final LestipService lestipService;
+    private final ReportedReviewService reportedReviewService;
 
     public BookController(AppUserRepository appUserRepository,
             BookLookupService bookLookupService,
@@ -60,7 +63,8 @@ public class BookController {
             BookQueryService bookQueryService,
             BookWriteService bookWriteService,
             ReviewService reviewService,
-            LestipService lestipService) {
+            LestipService lestipService,
+            ReportedReviewService reportedReviewService) {
         this.appUserRepository = appUserRepository;
         this.bookLookupService = bookLookupService;
         this.bookImportService = bookImportService;
@@ -70,6 +74,7 @@ public class BookController {
         this.bookWriteService = bookWriteService;
         this.reviewService = reviewService;
         this.lestipService = lestipService;
+        this.reportedReviewService = reportedReviewService;
     }
 
     @GetMapping
@@ -321,6 +326,20 @@ public class BookController {
         ReviewDto dto = reviewService.updateReview(bookId, reviewId, request,
                 buildReviewContext(authentication, roleHeader, subHeader));
         return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/{bookId}/reviews/{reviewId}/report")
+    public ResponseEntity<Void> reportReview(@PathVariable @NonNull Long bookId,
+            @PathVariable @NonNull Long reviewId,
+            Authentication authentication,
+            @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
+            @RequestHeader(value = "X-User-Name", required = false) String userNameHeader,
+            @Valid @RequestBody ReportReviewRequest request) {
+        String reporterSub = resolveUserSub(authentication, subHeader, null);
+        String reporterName = userNameHeader != null ? userNameHeader : "Onbekende gebruiker";
+        String reason = request.getReason();
+        reportedReviewService.reportReview(bookId, reviewId, reporterSub, reporterName, reason);
+        return ResponseEntity.accepted().build();
     }
 
     // ---- auth / context helpers ---------------------------------------------
