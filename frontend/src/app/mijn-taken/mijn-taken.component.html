@@ -1,8 +1,19 @@
-<div class="mt-page">
-  <header class="mt-head">
-    <h1 class="mt-title">Mijn taken</h1>
-    <p class="mt-subtitle">Snelle toegang tot je dagelijkse taken</p>
-  </header>
+<div class="tasks-grid">
+  <!-- Bestaande kaarten ... -->
+
+
+  @if (isLibrarian) {
+    <div class="task-card" routerLink="/mijn-taken/review-beheer">
+      <div class="task-icon">🚩</div>
+      <div class="task-info">
+        <h3>Review beheer</h3>
+        <p>Bekijk en behandel gerapporteerde reviews door leerlingen.</p>
+      </div>
+      @if (pendingReportsCount > 0) {
+        <span class="task-badge">{{ pendingReportsCount }}</span>
+      }
+    </div>
+  }
 
   <div class="mt-cards">
     @if (isLibrarian) {
@@ -217,4 +228,3 @@
     }
   </div>
 </div>
-
