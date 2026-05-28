@@ -11,6 +11,7 @@ import { BookService } from "../services/book.service";
 import { LoanService } from "../services/loan.service";
 import { AuthContextService } from "../services/auth-context.service";
 import { SchoolService } from "../services/school.service";
+import { BibbeheerderService } from "../services/bibbeheerder.service";
 import { UserService } from "../services/user.service";
 import { of } from "rxjs";
 import { HttpClientTestingModule } from "@angular/common/http/testing";
@@ -22,6 +23,7 @@ describe("MijnLijstenComponent", () => {
   let loanServiceSpy: jasmine.SpyObj<LoanService>;
   let authContextServiceSpy: jasmine.SpyObj<AuthContextService>;
   let schoolServiceSpy: jasmine.SpyObj<SchoolService>;
+  let bibbeheerderServiceSpy: jasmine.SpyObj<BibbeheerderService>;
   let userServiceSpy: jasmine.SpyObj<UserService>;
   let routerSpy: jasmine.SpyObj<Router>;
   let activatedRouteSpy: any;
@@ -72,6 +74,9 @@ describe("MijnLijstenComponent", () => {
       "getSelectedSchoolId",
     ]);
     schoolServiceSpy.getSelectedSchoolId.and.returnValue(1);
+    bibbeheerderServiceSpy = jasmine.createSpyObj("BibbeheerderService", [
+      "getLibrariansForSchool",
+    ]);
 
     userServiceSpy = jasmine.createSpyObj("UserService", ["getUserProfile"]);
     userServiceSpy.getUserProfile.and.returnValue(Promise.resolve({}));
@@ -90,6 +95,7 @@ describe("MijnLijstenComponent", () => {
         { provide: LoanService, useValue: loanServiceSpy },
         { provide: AuthContextService, useValue: authContextServiceSpy },
         { provide: SchoolService, useValue: schoolServiceSpy },
+        { provide: BibbeheerderService, useValue: bibbeheerderServiceSpy },
         { provide: UserService, useValue: userServiceSpy },
         { provide: Router, useValue: routerSpy },
         { provide: ActivatedRoute, useValue: activatedRouteSpy },
@@ -120,5 +126,25 @@ describe("MijnLijstenComponent", () => {
     authContextServiceSpy.getEffectiveRole.and.returnValue("leerkracht");
     component.ngOnInit(); // Re-initialize component
     expect(bookServiceSpy.getMyLeeslisten).toHaveBeenCalled();
+  });
+
+  it("should open the librarian message modal and fetch librarians", async () => {
+    const mockLoan = { id: 123, bookTitel: "Test Boek" } as any;
+    bibbeheerderServiceSpy.getLibrariansForSchool.and.returnValue(
+      Promise.resolve([{ sub: "lib1", displayName: "Librarian 1" }]),
+    );
+
+    component.openLibrarianMessageModal(mockLoan);
+
+    expect(component.showLibrarianMessageModal).toBeTrue();
+    expect(component.selectedLoanForMessage).toBe(mockLoan);
+    expect(bibbeheerderServiceSpy.getLibrariansForSchool).toHaveBeenCalled();
+  });
+
+  it("should respect the cooldown for sending messages", () => {
+    const loanId = 999;
+    component.librarianMessageCooldowns.set(loanId, Date.now());
+    const canSend = component.canSendMessageToLibrarian(loanId);
+    expect(canSend).toBeFalse();
   });
 });

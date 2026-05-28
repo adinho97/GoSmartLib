@@ -458,3 +458,197 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* --- Modal Styling (reused from loan-page for consistency) --- */
+.return-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.return-modal {
+  background-color: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.return-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  background-color: var(--surface-2);
+}
+
+.return-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.return-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.return-modal-close:hover {
+  color: var(--ink);
+}
+
+.return-modal-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.return-modal-intro {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.return-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.return-modal-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.return-modal-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: var(--surface);
+  color: var(--ink);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%236B7280" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+.return-modal-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.return-modal-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.return-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--line);
+  background-color: var(--surface-2);
+}
+
+.cancel-return-btn,
+.confirm-return-btn {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancel-return-btn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+}
+
+.cancel-return-btn:hover {
+  background-color: var(--surface-3);
+}
+
+.confirm-return-btn {
+  background-color: var(--brand);
+  color: white;
+  border: 1px solid var(--brand);
+}
+
+.confirm-return-btn:hover {
+  background-color: var(--brand-600);
+  border-color: var(--brand-600);
+}
+
+.confirm-return-btn:disabled {
+  background-color: var(--line);
+  border-color: var(--line);
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+
+.field-error {
+  color: var(--error);
+  font-size: 13px;
+  margin-top: -8px;
+}
+
+/* Button for messaging librarian */
+.btn-message-bib {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-message-bib:hover {
+  background-color: var(--surface-3);
+  color: var(--ink);
+}
+
+.btn-message-bib:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-message-bib i {
+  font-size: 14px;
+}

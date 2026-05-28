@@ -242,4 +242,19 @@ export class LoanService {
       },
     );
   }
+
+  async sendMessageToLibrarian(
+    loanId: number,
+    librarianSub: string,
+    senderSub: string,
+  ): Promise<void> {
+    await axios.post(
+      `${this.api}/${loanId}/bericht-bib`,
+      {
+        librarianSub,
+        senderSub,
+      },
+      this.headers(),
+    );
+  }
 }

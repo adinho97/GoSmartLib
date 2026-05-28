@@ -108,7 +108,17 @@
             [profileVariant]="'history'"
             [loanDate]="formatDate(loan.dueDate)"
             (viewDetails)="goToDetail(loan.bookId)"
-          ></app-recommendation-card>
+          >
+            <button
+              type="button"
+              class="btn-message-bib"
+              (click)="openLibrarianMessageModal(loan)"
+              [disabled]="!canSendMessageToLibrarian(loan.id)"
+              [title]="getLibrarianMessageCooldownText(loan.id)"
+            >
+              <i class="fas fa-envelope"></i> Verlenging aanvragen
+            </button>
+          </app-recommendation-card>
         }
       </div>
       @if (loans.length > visibleCount) {
@@ -248,13 +258,17 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z" />
+                  <path
+                    d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z"
+                  />
                   <path d="M4 19.5A2.5 2.5 0 016.5 22H20v-5" />
                 </svg>
               </div>
               <span class="leeslijst-count">
                 {{ leeslijst.books.length }}
-                <span>{{ leeslijst.books.length === 1 ? "boek" : "boeken" }}</span>
+                <span>{{
+                  leeslijst.books.length === 1 ? "boek" : "boeken"
+                }}</span>
               </span>
             </div>
 
@@ -372,5 +386,90 @@
         </button>
       }
     }
+  }
+
+  <!-- Librarian Message Modal -->
+  @if (showLibrarianMessageModal) {
+    <div
+      class="return-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeLibrarianMessageModal()"
+    >
+      <div class="return-modal" (click)="$event.stopPropagation()">
+        <header class="return-modal-header">
+          <h3>Bericht naar bibliothecaris</h3>
+          <button
+            type="button"
+            class="return-modal-close"
+            (click)="closeLibrarianMessageModal()"
+            aria-label="Sluit dialoog"
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="return-modal-content">
+          <p class="return-modal-intro">
+            Stuur een officieel bericht over
+            <strong>{{ selectedLoanForMessage?.bookTitel }}</strong> naar een
+            beheerder.
+          </p>
+
+          <div class="return-modal-field">
+            <label for="librarian-select">Kies een bibliothecaris</label>
+            <select
+              id="librarian-select"
+              (change)="onLibrarianSelectedForMessage($event)"
+            >
+              <option value="" disabled selected>
+                Selecteer een beheerder...
+              </option>
+              @for (lib of availableLibrarians; track lib.sub) {
+                <option [value]="lib.sub">{{ lib.displayName }}</option>
+              }
+            </select>
+          </div>
+
+          @if (selectedLibrarianForMessage) {
+            <label class="return-modal-checkbox">
+              <input
+                type="checkbox"
+                [(ngModel)]="confirmSendMessageToLibrarianCheckbox"
+              />
+              Ik bevestig dat ik dit bericht wil verzenden naar
+              {{ selectedLibrarianForMessage.displayName }}.
+            </label>
+          }
+
+          @if (messageSentError) {
+            <p class="field-error">{{ messageSentError }}</p>
+          }
+        </div>
+
+        <footer class="return-modal-actions">
+          <button
+            type="button"
+            class="cancel-return-btn"
+            (click)="closeLibrarianMessageModal()"
+          >
+            Annuleren
+          </button>
+          <button
+            type="button"
+            class="confirm-return-btn"
+            [disabled]="
+              !confirmSendMessageToLibrarianCheckbox ||
+              isSendingLibrarianMessage
+            "
+            (click)="confirmAndSendMessageToLibrarian()"
+          >
+            {{
+              isSendingLibrarianMessage ? "Verzenden..." : "Bericht verzenden"
+            }}
+          </button>
+        </footer>
+      </div>
+    </div>
   }
 </div>
