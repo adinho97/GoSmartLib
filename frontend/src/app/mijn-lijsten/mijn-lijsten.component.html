@@ -103,12 +103,14 @@
     } @else {
       <div class="book-grid">
         @for (loan of loans.slice(0, visibleCount); track loan.id) {
-          <app-recommendation-card
-            [book]="loanToBook(loan)"
-            [profileVariant]="'history'"
-            [loanDate]="formatDate(loan.dueDate)"
-            (viewDetails)="goToDetail(loan.bookId)"
-          >
+          <div class="loan-card-item">
+            <app-recommendation-card
+              [book]="loanToBook(loan)"
+              [profileVariant]="'history'"
+              [loanDate]="formatDate(loan.dueDate)"
+              (viewDetails)="goToDetail(loan.bookId)"
+            ></app-recommendation-card>
+
             <button
               type="button"
               class="btn-message-bib"
@@ -118,7 +120,7 @@
             >
               <i class="fas fa-envelope"></i> Verlenging aanvragen
             </button>
-          </app-recommendation-card>
+          </div>
         }
       </div>
       @if (loans.length > visibleCount) {
