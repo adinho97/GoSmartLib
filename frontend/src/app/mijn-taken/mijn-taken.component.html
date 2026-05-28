@@ -5,61 +5,65 @@
   </header>
 
   <div class="mt-cards">
-    <a class="mt-card" routerLink="/uitleen">
-      <div class="mt-card-icon mt-icon-primary">
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-          <line x1="12" y1="8" x2="12" y2="14" />
-          <line x1="9" y1="11" x2="15" y2="11" />
-        </svg>
-      </div>
-      <div class="mt-card-body">
-        <h2 class="mt-card-title">Boek uitlenen</h2>
-        <p class="mt-card-desc">
-          Leen een boek uit aan een leerling via de balie. Selecteer een
-          leerling, kies de boeken en bevestig de uitlening.
-        </p>
-      </div>
-      <span class="mt-card-arrow">→</span>
-    </a>
+    @if (isLibrarian) {
+      <a class="mt-card" routerLink="/uitleen">
+        <div class="mt-card-icon mt-icon-primary">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            <line x1="12" y1="8" x2="12" y2="14" />
+            <line x1="9" y1="11" x2="15" y2="11" />
+          </svg>
+        </div>
+        <div class="mt-card-body">
+          <h2 class="mt-card-title">Boek uitlenen</h2>
+          <p class="mt-card-desc">
+            Leen een boek uit aan een leerling via de balie. Selecteer een
+            leerling, kies de boeken en bevestig de uitlening.
+          </p>
+        </div>
+        <span class="mt-card-arrow">→</span>
+      </a>
+    }
 
-    <a class="mt-card" routerLink="/boek-terugbrengen">
-      <div class="mt-card-icon mt-icon-good">
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <polyline points="1 4 1 10 7 10" />
-          <path d="M3.51 15a9 9 0 1 0 .49-3.5" />
-        </svg>
-      </div>
-      <div class="mt-card-body">
-        <h2 class="mt-card-title">Boek terugbrengen</h2>
-        <p class="mt-card-desc">
-          Registreer de terugkeer van een geleend boek. Selecteer een leerling
-          en geef de staat van het boek aan.
-        </p>
-      </div>
-      <span class="mt-card-arrow">→</span>
-    </a>
+    @if (isLibrarian) {
+      <a class="mt-card" routerLink="/boek-terugbrengen">
+        <div class="mt-card-icon mt-icon-good">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 .49-3.5" />
+          </svg>
+        </div>
+        <div class="mt-card-body">
+          <h2 class="mt-card-title">Boek terugbrengen</h2>
+          <p class="mt-card-desc">
+            Registreer de terugkeer van een geleend boek. Selecteer een leerling
+            en geef de staat van het boek aan.
+          </p>
+        </div>
+        <span class="mt-card-arrow">→</span>
+      </a>
+    }
 
     <a class="mt-card" routerLink="/leeslijst-create">
       <div class="mt-card-icon mt-icon-info">
@@ -90,32 +94,34 @@
       <span class="mt-card-arrow">→</span>
     </a>
 
-    <a class="mt-card" routerLink="/ontleningen-verlengen">
-      <div class="mt-card-icon mt-icon-info">
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      </div>
-      <div class="mt-card-body">
-        <h2 class="mt-card-title">Ontleningen verlengen</h2>
-        <p class="mt-card-desc">
-          Pas de inleverdatum van actieve uitleningen aan voor leerlingen die
-          meer tijd nodig hebben om hun boek uit te lezen.
-        </p>
-      </div>
-      <span class="mt-card-arrow">→</span>
-    </a>
+    @if (isLibrarian) {
+      <a class="mt-card" routerLink="/ontleningen-verlengen">
+        <div class="mt-card-icon mt-icon-info">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+        <div class="mt-card-body">
+          <h2 class="mt-card-title">Ontleningen verlengen</h2>
+          <p class="mt-card-desc">
+            Pas de inleverdatum van actieve uitleningen aan voor leerlingen die
+            meer tijd nodig hebben om hun boek uit te lezen.
+          </p>
+        </div>
+        <span class="mt-card-arrow">→</span>
+      </a>
+    }
 
     @if (isLibrarian) {
       <a class="mt-card" routerLink="/add-general">

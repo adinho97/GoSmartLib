@@ -40,7 +40,7 @@ public class LoanController {
         this.displayNameResolver = displayNameResolver;
     }
 
-    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<LoanDto> createLoan(
             @Valid @RequestBody CreateLoanRequest request,
@@ -65,7 +65,7 @@ public class LoanController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/bulk")
     public ResponseEntity<List<LoanDto>> createLoans(
             @Valid @RequestBody List<CreateLoanRequest> requests,
@@ -91,7 +91,7 @@ public class LoanController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PutMapping("/{id}/teruggeven")
     public ResponseEntity<LoanDto> returnLoan(
             @PathVariable Long id,
@@ -105,13 +105,13 @@ public class LoanController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/gebruiker/{sub}")
     public List<LoanDto> getActiveLoans(@PathVariable("sub") String userSub) {
         return loanService.getActiveLoansForUser(userSub);
     }
 
-    @PreAuthorize("hasAnyRole('LEERKRACHT', 'BIBBEHEERDER', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @GetMapping("/gebruiker/{sub}/historiek")
     public List<LoanDto> getLoanHistory(@PathVariable("sub") String userSub) {
         return loanService.getLoanHistoryForUser(userSub);
