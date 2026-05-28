@@ -1,6 +1,5 @@
 package com.example.demo.exception;
 
-import com.example.demo.exception.RevokedTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

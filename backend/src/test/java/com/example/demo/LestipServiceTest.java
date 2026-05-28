@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -80,7 +81,7 @@ class LestipServiceTest {
         sibling.setIsbn("9780123456789");
 
         when(bookRepository.findById(1L)).thenReturn(Optional.of(local));
-        when(bookRepository.findByIsbn("9780123456789")).thenReturn(Optional.of(sibling));
+        when(bookRepository.findAllByIsbn("9780123456789")).thenReturn(List.of(sibling));
 
         LestipDto dto = lestipService.getLestip(1L, "all", "Alice");
 

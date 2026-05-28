@@ -1,9 +1,13 @@
 package com.example.demo.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +16,8 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     @Value("${jwt.secret:your-super-secret-key-that-should-be-at-least-32-characters-long-change-in-production}")
     private String jwtSecret;
@@ -82,8 +88,12 @@ public class JwtTokenProvider {
         try {
             Claims claims = getAllClaimsFromToken(token);
             return claims.getExpiration().before(new Date());
-        } catch (Exception e) {
-            return true; // If any exception, consider token expired
+        } catch (ExpiredJwtException e) {
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            logger.debug("JWT could not be parsed while checking expiry ({}): {}",
+                    e.getClass().getSimpleName(), e.getMessage());
+            return true;
         }
     }
 
@@ -97,7 +107,8 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(token);
             return !isTokenExpired(token);
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
+            logger.debug("JWT validation failed ({}): {}", e.getClass().getSimpleName(), e.getMessage());
             return false;
         }
     }

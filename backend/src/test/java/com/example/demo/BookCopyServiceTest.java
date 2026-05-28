@@ -9,6 +9,7 @@ import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.BookCopyService;
+import com.example.demo.services.BookDeletionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -38,6 +39,9 @@ class BookCopyServiceTest {
 
     @Mock
     private LoanRepository loanRepository;
+
+    @Mock
+    private BookDeletionService bookDeletionService;
 
     @InjectMocks
     private BookCopyService bookCopyService;
@@ -196,6 +200,7 @@ class BookCopyServiceTest {
         BookCopy copy = new BookCopy();
         copy.setId(copyId);
         copy.setStatus(BookCopy.CopyStatus.AVAILABLE);
+        copy.setBook(makeBook());
 
         when(bookCopyRepository.findById(copyId)).thenReturn(Optional.of(copy));
 

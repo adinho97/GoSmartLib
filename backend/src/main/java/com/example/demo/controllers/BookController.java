@@ -184,6 +184,9 @@ public class BookController {
             for (int i = 0; i < quantity; i++) {
                 dto = bookImportService.importByIsbn(isbn, schoolId, isDidactisch);
                 if (i == quantity - 1) {
+                    if (dto == null) {
+                        return ResponseEntity.notFound().build();
+                    }
                     return ResponseEntity.ok(dto);
                 }
             }
@@ -191,10 +194,7 @@ public class BookController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (dto == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.notFound().build();
     }
 
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")

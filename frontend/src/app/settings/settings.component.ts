@@ -3,10 +3,14 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { SettingsService, SchoolSettings } from "../services/settings.service";
 import { SchoolService } from "../services/school.service";
-import { AdminGenreService, Genre as ApiGenre } from "../services/admin-genre.service";
+import {
+  AdminGenreService,
+  Genre as ApiGenre,
+} from "../services/admin-genre.service";
 import { AdminTagService, Tag } from "../services/admin-tag.service";
 import { UiToastService } from "../services/ui-toast.service";
 import { forkJoin, from } from "rxjs";
+import { catchError, of } from 'rxjs';
 
 interface Message {
   id: string;
@@ -168,7 +172,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private genreService: AdminGenreService,
     private tagService: AdminTagService,
     private toastService: UiToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -190,19 +194,34 @@ export class SettingsComponent implements OnInit, OnDestroy {
       schoolInfo: this.settingsService.getSchoolName(this.schoolId),
       settings: this.settingsService.getSettings(this.schoolId),
       loanDays: from(this.schoolService.getDefaultLoanDays(this.schoolId)),
-      apiGenres: this.genreService.getAll(),
-      apiTags: this.tagService.getAll()
+      apiGenres: this.genreService.getAll().pipe(catchError(() => of([]))),
+      apiTags: this.tagService.getAll().pipe(catchError(() => of([]))),
     }).subscribe({
       next: (res) => {
         this.schoolName = res.schoolInfo.name;
-        this.messages = res.settings.messages;
-        this.hours = res.settings.hours;
-        this.levels = res.settings.levels;
+        this.messages = res.settings.messages ?? [];
+
+        // Merge de opgeslagen uren met de defaults zodat alle 7 dagen altijd aanwezig zijn in de UI
+        const savedHours = res.settings.hours as any;
+        const defaults = this.defaultHours();
+        this.hours = {
+          mon: savedHours?.mon ?? defaults.mon,
+          tue: savedHours?.tue ?? defaults.tue,
+          wed: savedHours?.wed ?? defaults.wed,
+          thu: savedHours?.thu ?? defaults.thu,
+          fri: savedHours?.fri ?? defaults.fri,
+          sat: savedHours?.sat ?? defaults.sat,
+          sun: savedHours?.sun ?? defaults.sun,
+        };
+
+        // Gebruik de default niveaus (A-D) als de database nog geen niveaus bevat
+        this.levels = (res.settings.levels && res.settings.levels.length > 0)
+          ? res.settings.levels
+          : this.defaultLevels();
+
         this.loanDays = res.loanDays;
         this.tags = res.apiTags;
-
         this.genres = res.apiGenres.map(g => this.mapApiGenre(g));
-
         this.snapshotInitial();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -210,7 +229,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       error: () => {
         this.toastService.error("Instellingen konden niet geladen worden.");
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -219,7 +238,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       id: String(g.id),
       naam: g.naam,
       count: 0,
-      subs: g.subgenres.map(s => ({ id: s.id, naam: s.naam }))
+      subs: g.subgenres.map((s) => ({ id: s.id, naam: s.naam })),
     };
   }
 
@@ -238,6 +257,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
       sat: { open: false, from: "10:00", to: "12:00" },
       sun: { open: false, from: "10:00", to: "12:00" },
     };
+  }
+
+  private defaultLevels(): ReadingLevel[] {
+    return [
+      { id: 'l1', code: 'A', name: 'Niveau A', desc: 'Beginnende lezers', active: true, isDefault: true },
+      { id: 'l2', code: 'B', name: 'Niveau B', desc: 'Gevorderde lezers', active: true, isDefault: false },
+      { id: 'l3', code: 'C', name: 'Niveau C', desc: 'Ervaren lezers', active: true, isDefault: false },
+      { id: 'l4', code: 'D', name: 'Niveau D', desc: 'Top lezers', active: true, isDefault: false },
+    ];
   }
 
   markDirty(): void {
@@ -266,14 +294,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const settingsPayload: SchoolSettings = {
       messages: this.messages,
       hours: this.hours,
-      levels: this.levels
+      levels: this.levels,
     };
 
     this.toastService.info("Wijzigingen opslaan...");
 
     forkJoin({
-      settings: this.settingsService.saveSettings(this.schoolId, settingsPayload),
-      loanDays: from(this.schoolService.updateDefaultLoanDays(this.schoolId, this.loanDays))
+      settings: this.settingsService.saveSettings(
+        this.schoolId,
+        settingsPayload,
+      ),
+      loanDays: from(
+        this.schoolService.updateDefaultLoanDays(this.schoolId, this.loanDays),
+      ),
     }).subscribe({
       next: () => {
         const now = new Date();
@@ -286,7 +319,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.toastService.error("Fout bij het opslaan van instellingen.");
-      }
+      },
     });
   }
 
@@ -503,7 +536,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.newTagName = "";
         this.toastService.success(`Thema "${v}" toegevoegd.`);
       },
-      error: () => this.toastService.error("Fout bij het toevoegen van thema.")
+      error: () => this.toastService.error("Fout bij het toevoegen van thema."),
     });
   }
 
@@ -514,10 +547,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
       confirmLabel: "Verwijderen",
       onConfirm: () => {
         this.tagService.delete(t.id).subscribe({
-          next: () => this.tags = this.tags.filter(x => x.id !== t.id),
-          error: () => this.toastService.error("Fout bij het verwijderen van thema.")
+          next: () => (this.tags = this.tags.filter((x) => x.id !== t.id)),
+          error: () =>
+            this.toastService.error("Fout bij het verwijderen van thema."),
         });
-      }
+      },
     };
   }
 
@@ -548,11 +582,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.genreService.update(Number(g.id), naam).subscribe({
       next: () => {
-        this.genres = this.genres.map((x) => (x.id === g.id ? { ...x, naam } : x));
+        this.genres = this.genres.map((x) =>
+          x.id === g.id ? { ...x, naam } : x,
+        );
         this.cancelEditGenre();
         this.toastService.success(`Genre "${naam}" bijgewerkt.`);
       },
-      error: () => this.toastService.error("Fout bij het bijwerken van genre.")
+      error: () => this.toastService.error("Fout bij het bijwerken van genre."),
     });
   }
 
@@ -566,16 +602,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.addingSubFor = null;
     this.subDraft = "";
     if (!v) return;
-    if (g.subs.some(s => s.naam.toLowerCase() === v.toLowerCase())) return;
+    if (g.subs.some((s) => s.naam.toLowerCase() === v.toLowerCase())) return;
 
     this.genreService.createSubgenre(Number(g.id), v).subscribe({
       next: (updatedGenre) => {
-        this.genres = this.genres.map(x =>
-          x.id === g.id ? this.mapApiGenre(updatedGenre) : x
+        this.genres = this.genres.map((x) =>
+          x.id === g.id ? this.mapApiGenre(updatedGenre) : x,
         );
         this.toastService.success(`Subgenre "${v}" toegevoegd.`);
       },
-      error: () => this.toastService.error("Fout bij het toevoegen van subgenre.")
+      error: () =>
+        this.toastService.error("Fout bij het toevoegen van subgenre."),
     });
   }
 
@@ -587,11 +624,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
   removeSub(g: Genre, subId: number): void {
     this.genreService.deleteSubgenre(Number(g.id), subId).subscribe({
       next: () => {
-        this.genres = this.genres.map(x =>
-          x.id === g.id ? { ...x, subs: x.subs.filter(s => s.id !== subId) } : x
+        this.genres = this.genres.map((x) =>
+          x.id === g.id
+            ? { ...x, subs: x.subs.filter((s) => s.id !== subId) }
+            : x,
         );
       },
-      error: () => this.toastService.error("Fout bij het verwijderen van subgenre.")
+      error: () =>
+        this.toastService.error("Fout bij het verwijderen van subgenre."),
     });
   }
 
@@ -601,15 +641,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.genreService.create(v).subscribe({
       next: (newApiGenre) => {
-        this.genres = [
-          ...this.genres,
-          this.mapApiGenre(newApiGenre)
-        ];
+        this.genres = [...this.genres, this.mapApiGenre(newApiGenre)];
         this.newGenreName = "";
         this.toastService.success(`Genre "${v}" aangemaakt.`);
         this.cdr.detectChanges();
       },
-      error: () => this.toastService.error("Fout bij het aanmaken van genre.")
+      error: () => this.toastService.error("Fout bij het aanmaken van genre."),
     });
   }
 
@@ -627,7 +664,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
             this.genres = this.genres.filter((x) => x.id !== g.id);
             this.toastService.success(`Genre "${g.naam}" verwijderd.`);
           },
-          error: () => this.toastService.error("Fout bij het verwijderen van genre.")
+          error: () =>
+            this.toastService.error("Fout bij het verwijderen van genre."),
         });
       },
     };

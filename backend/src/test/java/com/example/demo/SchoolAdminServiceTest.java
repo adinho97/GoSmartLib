@@ -18,6 +18,7 @@ import com.example.demo.repositories.BookRepository;
 import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.repositories.SchoolRepository;
+import com.example.demo.repositories.SchoolSettingsRepository;
 import com.example.demo.repositories.WishlistRepository;
 import com.example.demo.services.SchoolAdminService;
 import com.example.demo.services.SchoolAdminValidationService;
@@ -49,6 +50,7 @@ class SchoolAdminServiceTest {
     @Mock private LoanRepository loanRepository;
     @Mock private WishlistRepository wishlistRepository;
     @Mock private ClassReadingListItemRepository classReadingListItemRepository;
+    @Mock private SchoolSettingsRepository schoolSettingsRepository;
 
     private SchoolAdminService service;
 
@@ -57,7 +59,8 @@ class SchoolAdminServiceTest {
         service = new SchoolAdminService(
                 schoolRepository, klasRepository, appUserRepository,
                 validationService, bookRepository, loanRepository,
-                wishlistRepository, classReadingListItemRepository);
+                wishlistRepository, classReadingListItemRepository,
+                schoolSettingsRepository);
     }
 
     // --- addSchool ---
@@ -75,6 +78,7 @@ class SchoolAdminServiceTest {
         when(validationService.buildSmartschoolUrl("myschool")).thenReturn("https://myschool.smartschool.be");
 
         School saved = makeSchool(1L, "myschool", "https://myschool.smartschool.be");
+        saved.setId(1L);
         saved.setNaam("GO! Atheneum");
         saved.setAdres("Schoolstraat 1");
         saved.setLatitude(51.2);
@@ -97,6 +101,9 @@ class SchoolAdminServiceTest {
 
         assertEquals(1L, response.getId());
         assertEquals("myschool", response.getSubdomain());
+
+        verify(schoolSettingsRepository).existsById(1L);
+        verify(schoolSettingsRepository).save(any());
     }
 
     @Test
@@ -109,7 +116,11 @@ class SchoolAdminServiceTest {
         when(validationService.normalizeSubdomain("school")).thenReturn("school");
         when(validationService.buildSmartschoolUrl("school")).thenReturn("https://school.smartschool.be");
         when(schoolRepository.save(any(School.class)))
-            .thenAnswer(inv -> inv.getArgument(0));
+            .thenAnswer(inv -> {
+                School s = inv.getArgument(0);
+                s.setId(1L);
+                return s;
+            });
 
         service.addSchool(request);
 
@@ -129,7 +140,11 @@ class SchoolAdminServiceTest {
         when(validationService.normalizeSubdomain("school")).thenReturn("school");
         when(validationService.buildSmartschoolUrl("school")).thenReturn("https://school.smartschool.be");
         when(schoolRepository.save(any(School.class)))
-            .thenAnswer(inv -> inv.getArgument(0));
+            .thenAnswer(inv -> {
+                School s = inv.getArgument(0);
+                s.setId(1L);
+                return s;
+            });
 
         service.addSchool(request);
 

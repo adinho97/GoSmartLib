@@ -399,7 +399,11 @@
   justify-content: center;
   background: linear-gradient(135deg, #fbeff4 0%, #f0dde5 100%);
   color: var(--brand);
-  font-size: 1.3rem;
+}
+
+.hc-cover-placeholder svg {
+  width: 55%;
+  height: 55%;
 }
 
 .hc-item-body {

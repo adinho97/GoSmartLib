@@ -4,6 +4,7 @@ import com.example.demo.entities.UserPreference;
 import com.example.demo.repositories.UserPreferenceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -40,7 +41,11 @@ public class UserPreferenceController {
                 result.put(pref.getPreferenceKey(), pref.getPreferenceValue());
             }
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
+            logger.error("Database error fetching preferences for userSub: {}", userSub, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error fetching preferences for userSub: {}", userSub, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -68,7 +73,11 @@ public class UserPreferenceController {
             pref.setPreferenceValue(request.getValue());
             userPreferenceRepository.save(pref);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
+            logger.error("Database error saving preference for userSub: {}, key: {}", userSub, request.getKey(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error saving preference for userSub: {}, key: {}", userSub, request.getKey(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

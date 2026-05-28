@@ -594,9 +594,12 @@ public class AuthService {
                                 .map(json -> {
                                         try {
                                                 return objectMapper.readValue(json, SmartschoolGroupInfo.class);
-                                        } catch (Exception e) {
-                                                logger.error("Error parsing Smartschool groupinfo JSON", e);
-                                                throw new RuntimeException("Failed to parse Smartschool groupinfo JSON",
+                                        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                                                logger.error("Error parsing Smartschool groupinfo JSON: {}",
+                                                                e.getMessage(), e);
+                                                throw new IllegalStateException(
+                                                                "Failed to parse Smartschool groupinfo JSON: "
+                                                                                + e.getMessage(),
                                                                 e);
                                         }
                                 });
@@ -659,11 +662,12 @@ public class AuthService {
                                                                         try {
                                                                                 return objectMapper.readValue(json,
                                                                                                 SmartschoolUserInfo.class);
-                                                                        } catch (Exception e) {
-                                                                                logger.error("Error parsing UserInfo JSON",
-                                                                                                e);
-                                                                                throw new RuntimeException(
-                                                                                                "Failed to parse UserInfo",
+                                                                        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                                                                                logger.error("Error parsing Smartschool UserInfo JSON: {}",
+                                                                                                e.getMessage(), e);
+                                                                                throw new IllegalStateException(
+                                                                                                "Failed to parse UserInfo JSON: "
+                                                                                                                + e.getMessage(),
                                                                                                 e);
                                                                         }
                                                                 });

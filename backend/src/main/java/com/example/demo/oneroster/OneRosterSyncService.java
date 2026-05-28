@@ -4,6 +4,7 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Klas;
 import com.example.demo.entities.School;
 import com.example.demo.entities.SchoolStatus;
+import com.example.demo.entities.SchoolSettings;
 import com.example.demo.oneroster.OneRosterProperties.SchoolConfig;
 import com.example.demo.oneroster.dto.OneRosterClass;
 import com.example.demo.oneroster.dto.OneRosterEnrollment;
@@ -13,6 +14,7 @@ import com.example.demo.oneroster.dto.OneRosterUser;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.KlasRepository;
 import com.example.demo.repositories.SchoolRepository;
+import com.example.demo.repositories.SchoolSettingsRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,6 +58,7 @@ public class OneRosterSyncService {
     private final SchoolRepository schoolRepository;
     private final KlasRepository klasRepository;
     private final AppUserRepository appUserRepository;
+    private final SchoolSettingsRepository schoolSettingsRepository;
 
     // Tracks subdomains with an in-flight sync, so a cron firing while an
     // admin clicks the sync button (or two clicks land at the same time)
@@ -67,12 +70,14 @@ public class OneRosterSyncService {
             OneRosterClient client,
             SchoolRepository schoolRepository,
             KlasRepository klasRepository,
-            AppUserRepository appUserRepository) {
+            AppUserRepository appUserRepository,
+            SchoolSettingsRepository schoolSettingsRepository) {
         this.properties = properties;
         this.client = client;
         this.schoolRepository = schoolRepository;
         this.klasRepository = klasRepository;
         this.appUserRepository = appUserRepository;
+        this.schoolSettingsRepository = schoolSettingsRepository;
     }
 
     @Transactional
@@ -153,9 +158,11 @@ public class OneRosterSyncService {
 
             if (changed) {
                 School saved = schoolRepository.save(existing);
+                ensureSettingsExist(saved);
                 result.incrementSchoolsUpdated();
                 return saved;
             }
+            ensureSettingsExist(existing);
             return existing;
         }
 
@@ -168,8 +175,26 @@ public class OneRosterSyncService {
                 : normalizedSubdomain);
         created.setStatus(SchoolStatus.ACTIVE);
         School saved = schoolRepository.save(created);
+        ensureSettingsExist(saved);
         result.incrementSchoolsCreated();
         return saved;
+    }
+
+    /**
+     * Ensures that a school has a corresponding settings record.
+     * This prevents 404 errors or empty states when the librarian first
+     * visits the settings page for a newly synced school.
+     */
+    private void ensureSettingsExist(School school) {
+        if (!schoolSettingsRepository.existsById(school.getId())) {
+            logger.info("Initializing default school_settings for: {}", school.getSubdomein());
+            SchoolSettings settings = new SchoolSettings();
+            settings.setSchool(school);
+            settings.setSchoolId(school.getId());
+            // The SchoolSettings entity should handle default JSON for levels/hours 
+            // via column definitions or a @PrePersist hook.
+            schoolSettingsRepository.save(settings);
+        }
     }
 
     private void applyEnrollments(School school, List<OneRosterEnrollment> enrollments,

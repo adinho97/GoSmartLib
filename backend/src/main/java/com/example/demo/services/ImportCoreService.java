@@ -34,6 +34,7 @@ public class ImportCoreService {
             return new ImportOutcome(ImportStatus.NOT_FOUND, null);
         }
 
+        fetched.setIsbn(normalizedIsbn);
         fetched.setSchool(school);
         Book saved = bookRepository.save(fetched);
         return new ImportOutcome(ImportStatus.ADDED, bookMapper.toDto(saved));

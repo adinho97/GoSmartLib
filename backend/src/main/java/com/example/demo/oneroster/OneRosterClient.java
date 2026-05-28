@@ -140,9 +140,12 @@ public class OneRosterClient {
                         "OneRoster response missing '" + envelopeKey + "' key: " + truncate(json));
             }
             return objectMapper.treeToValue(node, type);
-        } catch (Exception e) {
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             throw new IllegalStateException(
-                    "Failed to parse OneRoster '" + envelopeKey + "' response: " + e.getMessage(), e);
+                    "Failed to parse OneRoster '" + envelopeKey + "' response as JSON: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException(
+                    "Failed to convert OneRoster '" + envelopeKey + "' response: " + e.getMessage(), e);
         }
     }
 
@@ -154,9 +157,12 @@ public class OneRosterClient {
                 return new ArrayList<>();
             }
             return objectMapper.convertValue(node, typeRef);
-        } catch (Exception e) {
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             throw new IllegalStateException(
-                    "Failed to parse OneRoster '" + envelopeKey + "' list: " + e.getMessage(), e);
+                    "Failed to parse OneRoster '" + envelopeKey + "' list as JSON: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException(
+                    "Failed to convert OneRoster '" + envelopeKey + "' list: " + e.getMessage(), e);
         }
     }
 

@@ -1,37 +1,24 @@
 package com.example.demo;
 
-import com.example.demo.dto.BookDto;
-import com.example.demo.controllers.BookController;
-import com.example.demo.config.ConnectionPoolMonitor;
-import com.example.demo.security.JwtTokenProvider;
-import com.example.demo.repositories.AppUserRepository;
-import com.example.demo.repositories.SuperAdminRepository;
-import com.example.demo.services.BookDeletionService;
-import com.example.demo.services.BookImportService;
-import com.example.demo.services.BookLookupService;
-import com.example.demo.services.BookQueryService;
-import com.example.demo.services.BookStatsService;
-import com.example.demo.services.BookWriteService;
-import com.example.demo.services.LestipService;
-import com.example.demo.services.ReviewService;
+import com.example.demo.entities.Book;
+import com.example.demo.entities.School;
+import com.example.demo.repositories.BookRepository;
+import com.example.demo.repositories.SchoolRepository;
+import com.example.demo.services.OpenLibraryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,99 +27,135 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(BookController.class)
-@AutoConfigureMockMvc(addFilters = false)
-@TestPropertySource(properties = "app.cors.allowed-origins=http://localhost")
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Transactional
 @SuppressWarnings("null")
 class BookControllerTest {
 
-        @Autowired
-        private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-        @MockBean
-        private AppUserRepository appUserRepository;
+    @Autowired
+    private BookRepository bookRepository;
 
-        @MockBean
-        private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private SchoolRepository schoolRepository;
 
-        @MockBean
-        private SuperAdminRepository superAdminRepository;
+    @MockBean
+    private OpenLibraryService openLibraryService;
 
-        @MockBean
-        private BookLookupService bookLookupService;
+    private Long savedBookId;
 
-        @MockBean
-        private BookImportService bookImportService;
+    @BeforeEach
+    void setUp() {
+        School school = new School();
+        school.setSubdomein("test-school");
+        school.setSmartschoolUrl("https://test.smartschool.be");
+        schoolRepository.save(school);
 
-        @MockBean
-        private BookStatsService bookStatsService;
+        Book book = new Book();
+        book.setTitel("Dune");
+        book.setAuteur("Frank Herbert");
+        book.setIsbn("9780553808049");
+        savedBookId = bookRepository.save(book).getId();
+    }
 
-        @MockBean
-        private BookDeletionService bookDeletionService;
+    @Test
+    @WithMockUser(roles = "BIBBEHEERDER")
+    void createShouldReturnBadRequestWhenRequiredFieldIsMissing() throws Exception {
+        String invalidJson = """
+                {
+                  "titel": "",
+                  "auteur": "Auteur"
+                }
+                """;
 
-        @MockBean
-        private BookQueryService bookQueryService;
+        mockMvc.perform(post("/api/boeken")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest());
+    }
 
-        @MockBean
-        private BookWriteService bookWriteService;
+    @Test
+    @WithMockUser
+    void getByIsbnShouldReturn404WhenNotInDb() throws Exception {
+        mockMvc.perform(get("/api/boeken/isbn/0000000000000"))
+                .andExpect(status().isNotFound());
+    }
 
-        @MockBean
-        private ReviewService reviewService;
+    @Test
+    @WithMockUser
+    void previewByIsbnShouldReturn404WhenNotFoundInOpenLibrary() throws Exception {
+        when(openLibraryService.fetchBookFromOpenLibrary(any())).thenReturn(null);
 
-        @MockBean
-        private LestipService lestipService;
+        mockMvc.perform(get("/api/boeken/preview/0000000000000"))
+                .andExpect(status().isNotFound());
+    }
 
-        @MockBean
-        private ConnectionPoolMonitor connectionPoolMonitor;
+    @Test
+    @WithMockUser(roles = "BIBBEHEERDER")
+    void importByIsbnShouldReturn404WhenNotFoundInOpenLibrary() throws Exception {
+        when(openLibraryService.fetchBookFromOpenLibrary(any())).thenReturn(null);
 
-        private BookDto makeDto() {
-                BookDto dto = new BookDto();
-                dto.setId(1L);
-                dto.setTitel("Dune");
-                dto.setAuteur("Frank Herbert");
-                dto.setIsbn("9780553808049");
-                dto.setGenres(List.of("Sciencefiction"));
-                return dto;
-        }
+        mockMvc.perform(post("/api/boeken/isbn/0000000000000"))
+                .andExpect(status().isNotFound());
+    }
 
-        @Test
-        void createShouldReturnBadRequestWhenRequiredFieldIsMissing() throws Exception {
-                String invalidJson = """
-                                {
-                                  "titel": "",
-                                  "auteur": "Auteur"
-                                }
-                                """;
+    @Test
+    @WithMockUser(roles = "BIBBEHEERDER")
+    void importBulkByIsbnShouldReturnResultWhenUploadIsValid() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "bulk.csv",
+                "text/csv",
+                "isbn\n9780553808049".getBytes());
 
-                mockMvc.perform(post("/api/boeken")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(invalidJson))
-                                .andExpect(status().isBadRequest());
-        }
+        Book mockBook = new Book();
+        mockBook.setTitel("Dune");
+        mockBook.setAuteur("Frank Herbert");
+        when(openLibraryService.fetchBookFromOpenLibrary("9780553808049")).thenReturn(mockBook);
 
-        @Test
-        void getByIsbnShouldReturn404WhenNotInDb() throws Exception {
-                when(bookLookupService.findByIsbn("0000000000000", null)).thenReturn(Optional.empty());
+        mockMvc.perform(multipart("/api/boeken/isbn/bulk").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalRows").value(1))
+                .andExpect(jsonPath("$.uniqueIsbnsProcessed").value(1))
+                .andExpect(jsonPath("$.results[0].status").value("ADDED"));
+    }
 
-                mockMvc.perform(get("/api/boeken/isbn/0000000000000"))
-                                .andExpect(status().isNotFound());
-        }
+    @Test
+    @WithMockUser(roles = "BIBBEHEERDER")
+    void importBulkByIsbnShouldReturnBadRequestWhenServiceRejectsFile() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "bulk.txt",
+                "text/plain",
+                "abc".getBytes());
 
-        @Test
-        void previewByIsbnShouldReturn404WhenNotFoundInOpenLibrary() throws Exception {
-                when(bookLookupService.fetchPreviewByIsbn("0000000000000")).thenReturn(null);
+        mockMvc.perform(multipart("/api/boeken/isbn/bulk").file(file))
+                .andExpect(status().isBadRequest());
+    }
 
-                mockMvc.perform(get("/api/boeken/preview/0000000000000"))
-                                .andExpect(status().isNotFound());
-        }
+    @Test
+    void deleteShouldReturnForbiddenWhenRoleHeaderMissing() throws Exception {
+        mockMvc.perform(delete("/api/boeken/" + savedBookId))
+                .andExpect(status().isForbidden());
+    }
 
-        @Test
-        void importByIsbnShouldReturn404WhenNotFoundInOpenLibrary() throws Exception {
-                when(bookImportService.importByIsbn("0000000000000", null, false)).thenReturn(null);
+    @Test
+    void deleteShouldReturnForbiddenBeforeCheckingExistenceWhenRoleHeaderMissing() throws Exception {
+        mockMvc.perform(delete("/api/boeken/999999"))
+                .andExpect(status().isForbidden());
+    }
 
-                mockMvc.perform(post("/api/boeken/isbn/0000000000000"))
-                                .andExpect(status().isNotFound());
-        }
+    @Test
+    @WithMockUser(roles = "BIBBEHEERDER")
+    void deleteShouldReturnNoContentForLibrarianWhenBookExists() throws Exception {
+        mockMvc.perform(delete("/api/boeken/" + savedBookId)
+                        .header("X-User-Role", "bibbeheerder"))
+                .andExpect(status().isNoContent());
+    }
 
         @Test
         void importBulkByIsbnShouldReturnResultWhenUploadIsValid() throws Exception {
@@ -213,4 +236,13 @@ class BookControllerTest {
                                 .andExpect(jsonPath("$.auteur").value("Frank Herbert"))
                                 .andExpect(jsonPath("$.isbn").value("9780553808049"));
         }
+    @Test
+    @WithMockUser
+    void getByIsbnShouldReturnBookWhenFoundInDb() throws Exception {
+        mockMvc.perform(get("/api/boeken/isbn/9780553808049"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.titel").value("Dune"))
+                .andExpect(jsonPath("$.auteur").value("Frank Herbert"))
+                .andExpect(jsonPath("$.isbn").value("9780553808049"));
+    }
 }

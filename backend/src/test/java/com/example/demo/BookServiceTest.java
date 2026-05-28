@@ -239,7 +239,7 @@ class BookServiceTest {
                 0);
 
         when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
-        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(bulkImportService.parseAndValidate(file, null)).thenReturn(parsed);
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(ImportCoreService.ImportStatus.ADDED, makeBookDto()));
         when(importCoreService.importByNormalizedIsbn("9780156012195", school))
@@ -284,7 +284,7 @@ class BookServiceTest {
                 0);
 
         when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
-        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(bulkImportService.parseAndValidate(file, null)).thenReturn(parsed);
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenThrow(new RuntimeException("boom"));
 
@@ -311,7 +311,7 @@ class BookServiceTest {
                 0);
 
         when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
-        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(bulkImportService.parseAndValidate(file, null)).thenReturn(parsed);
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(
                         ImportCoreService.ImportStatus.ADDED, makeBookDto()));
@@ -346,7 +346,7 @@ class BookServiceTest {
                 0);
 
         when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
-        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(bulkImportService.parseAndValidate(file, null)).thenReturn(parsed);
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(
                         ImportCoreService.ImportStatus.ALREADY_EXISTS, makeBookDto()));
@@ -387,7 +387,7 @@ class BookServiceTest {
                 0);
 
         when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
-        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(bulkImportService.parseAndValidate(file, null)).thenReturn(parsed);
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(
                         ImportCoreService.ImportStatus.ADDED, makeBookDto()));
@@ -423,7 +423,7 @@ class BookServiceTest {
                 0);
 
         when(schoolService.getByIdOrDefault(1L)).thenReturn(school);
-        when(bulkImportService.parseAndValidate(file)).thenReturn(parsed);
+        when(bulkImportService.parseAndValidate(file, null)).thenReturn(parsed);
         when(importCoreService.importByNormalizedIsbn("9780553808049", school))
                 .thenReturn(new ImportCoreService.ImportOutcome(
                         ImportCoreService.ImportStatus.ADDED, makeBookDto()));

@@ -33,6 +33,7 @@ import { LeeslijstCreateComponent } from "./leeslijst-create/leeslijst-create.co
 import { LeeslijstViewComponent } from "./leeslijst-view/leeslijst-view.component";
 import { MijnTakenComponent } from "./mijn-taken/mijn-taken.component";
 import { BoekTerugbrengenComponent } from "./boek-terugbrengen/boek-terugbrengen.component";
+import { OntleningenVerlengenComponent } from "./ontleningen-verlengen/ontleningen-verlengen.component";
 import { StatistiekenComponent } from "./statistieken/statistieken.component";
 import { SchoolStatisticsComponent } from "./school-statistics/school-statistics.component";
 import { LeaderboardComponent } from "./leaderboard/leaderboard.component";
@@ -222,6 +223,12 @@ export const appRoutes: Routes = [
     data: { roles: ["leerkracht", "bibbeheerder"] },
   },
   {
+    path: "ontleningen-verlengen",
+    component: OntleningenVerlengenComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["leerkracht", "bibbeheerder"] },
+  },
+  {
     path: "statistieken",
     component: StatistiekenComponent,
     canActivate: [AuthGuard],
@@ -240,7 +247,7 @@ export const appRoutes: Routes = [
     data: { roles: ["leerling", "leerkracht", "bibbeheerder"] },
   },
   {
-    path: "settings",
+    path: "instellingen",
     component: SettingsComponent,
     canActivate: [AuthGuard],
     data: { roles: ["bibbeheerder"]}
