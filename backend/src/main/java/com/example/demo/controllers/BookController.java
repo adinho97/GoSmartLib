@@ -24,6 +24,7 @@ import com.example.demo.services.ReviewService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
@@ -55,6 +56,7 @@ public class BookController {
     private final LestipService lestipService;
     private final ReportedReviewService reportedReviewService;
 
+    @Autowired
     public BookController(AppUserRepository appUserRepository,
             BookLookupService bookLookupService,
             BookImportService bookImportService,
@@ -368,22 +370,22 @@ public class BookController {
         return new ReviewContext(userSub, isLibrarian, leerlingSchoolId);
     }
 
-    private boolean hasAnyLestipRole(Authentication authentication, String roleHeader) {
-        if (authentication != null && authentication.getAuthorities() != null) {
-            boolean matches = authentication.getAuthorities().stream()
-                    .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
-                    .anyMatch(authority -> "ROLE_LEERKRACHT".equalsIgnoreCase(authority)
-                            || "ROLE_BIBBEHEERDER".equalsIgnoreCase(authority)
-                            || "ROLE_SUPER_ADMIN".equalsIgnoreCase(authority));
-            if (matches) {
-                return true;
-            }
-        }
+    private boolean hasAuthority(Authentication authentication, String... roles) {
+        if (authentication == null || authentication.getAuthorities() == null) return false;
+        return authentication.getAuthorities().stream()
+                .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
+                .anyMatch(authority -> {
+                    for (String role : roles) {
+                        if (role.equalsIgnoreCase(authority)) return true;
+                    }
+                    return false;
+                });
+    }
 
+    private boolean hasAnyLestipRole(Authentication authentication, String roleHeader) {
+        if (hasAuthority(authentication, "ROLE_LEERKRACHT", "ROLE_BIBBEHEERDER", "ROLE_SUPER_ADMIN")) return true;
         String normalizedRole = normalizeRole(roleHeader);
-        return "leerkracht".equals(normalizedRole)
-                || "bibbeheerder".equals(normalizedRole)
-                || "super_admin".equals(normalizedRole);
+        return "leerkracht".equals(normalizedRole) || "bibbeheerder".equals(normalizedRole) || "super_admin".equals(normalizedRole);
     }
 
     private String normalizeRole(String role) {
@@ -401,28 +403,13 @@ public class BookController {
     }
 
     private boolean isLibrarianOrAdmin(Authentication authentication, String roleHeader) {
-        if (authentication != null && authentication.getAuthorities() != null) {
-            boolean matches = authentication.getAuthorities().stream()
-                    .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
-                    .anyMatch(authority -> "ROLE_BIBBEHEERDER".equalsIgnoreCase(authority)
-                            || "ROLE_SUPER_ADMIN".equalsIgnoreCase(authority));
-            if (matches) {
-                return true;
-            }
-        }
+        if (hasAuthority(authentication, "ROLE_BIBBEHEERDER", "ROLE_SUPER_ADMIN")) return true;
         String normalizedRole = normalizeRole(roleHeader);
         return "bibbeheerder".equals(normalizedRole) || "super_admin".equals(normalizedRole);
     }
 
     private boolean isStudentRole(Authentication authentication, String roleHeader) {
-        if (authentication != null && authentication.getAuthorities() != null) {
-            boolean matches = authentication.getAuthorities().stream()
-                    .map(auth -> auth.getAuthority() == null ? "" : auth.getAuthority())
-                    .anyMatch(authority -> "ROLE_LEERLING".equalsIgnoreCase(authority));
-            if (matches) {
-                return true;
-            }
-        }
+        if (hasAuthority(authentication, "ROLE_LEERLING")) return true;
         return "leerling".equals(normalizeRole(roleHeader));
     }
 
