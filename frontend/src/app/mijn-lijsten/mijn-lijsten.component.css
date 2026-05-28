@@ -636,6 +636,8 @@
   transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 6px;
 }
 
@@ -651,4 +653,14 @@
 
 .btn-message-bib i {
   font-size: 14px;
+}
+
+.loan-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loan-card-item app-recommendation-card {
+  display: block;
 }
