@@ -3,8 +3,10 @@ package com.example.demo.services;
 import com.example.demo.dto.LestipDto;
 import com.example.demo.dto.UpdateLestipRequest;
 import com.example.demo.entities.Book;
+import com.example.demo.entities.LestipAttachment;
 import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.BookRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.HttpStatus;
@@ -79,19 +81,42 @@ public class LestipService {
                     throw new ApiException("Omschrijving is verplicht bij een bijlage", HttpStatus.BAD_REQUEST, "LESTIP_TEXT_REQUIRED");
                 }
 
-                String fileName = json.path("fileName").asText(null);
-                String fileData = json.path("fileData").asText(null);
-                
-                if (fileData != null && fileData.contains("base64,")) {
-                    // Extract the raw Base64 part and decode into a binary BLOB (byte array)
-                    String pureBase64 = fileData.substring(fileData.indexOf(",") + 1);
-                    byte[] binaryData = Base64.getDecoder().decode(pureBase64);
-                    validateAttachment(fileName, binaryData);
-                    
-                    // Move data to binary field and remove from JSON to keep the string column small
-                    book.setLestipFile(binaryData);
-                    ((ObjectNode) json).remove("fileData");
+                // Clear existing attachments to replace with new set
+                book.getLestipAttachments().clear();
+
+                JsonNode attachmentsNode = json.path("attachments");
+                if (attachmentsNode.isArray() && !attachmentsNode.isEmpty()) {
+                    for (JsonNode attachmentNode : attachmentsNode) {
+                        processAttachmentNode(book, attachmentNode);
+                    }
+                    // Remove binary data from JSON to keep text column small
+                    for (JsonNode attachmentNode : attachmentsNode) {
+                        if (attachmentNode instanceof ObjectNode) {
+                            ((ObjectNode) attachmentNode).remove("fileData");
+                        }
+                    }
                     normalizedLestip = json.toString();
+                } else {
+                    // Fallback to legacy single file logic
+                    String fileName = json.path("fileName").asText(null);
+                    String fileData = json.path("fileData").asText(null);
+                    String contentType = json.path("fileContentType").asText("application/octet-stream");
+
+                    if (fileData != null && fileData.contains("base64,")) {
+                        String pureBase64 = fileData.substring(fileData.indexOf(",") + 1);
+                        byte[] binaryData = Base64.getDecoder().decode(pureBase64);
+                        validateAttachment(fileName, binaryData);
+
+                        LestipAttachment attachment = new LestipAttachment();
+                        attachment.setBook(book);
+                        attachment.setFileName(fileName);
+                        attachment.setContentType(contentType);
+                        attachment.setFileData(binaryData);
+                        book.getLestipAttachments().add(attachment);
+
+                        ((ObjectNode) json).remove("fileData");
+                        normalizedLestip = json.toString();
+                    }
                 }
             } catch (ApiException e) {
                 throw e;
@@ -105,6 +130,25 @@ public class LestipService {
 
         Book savedBook = bookRepository.save(book);
         return toLestipDto(savedBook, normalizedUserName);
+    }
+
+    private void processAttachmentNode(Book book, JsonNode node) {
+        String fileName = node.path("fileName").asText(null);
+        String fileData = node.path("fileData").asText(null);
+        String contentType = node.path("contentType").asText("application/octet-stream");
+
+        if (fileData != null && fileData.contains("base64,")) {
+            String pureBase64 = fileData.substring(fileData.indexOf(",") + 1);
+            byte[] binaryData = Base64.getDecoder().decode(pureBase64);
+            validateAttachment(fileName, binaryData);
+
+            LestipAttachment attachment = new LestipAttachment();
+            attachment.setBook(book);
+            attachment.setFileName(fileName);
+            attachment.setContentType(contentType);
+            attachment.setFileData(binaryData);
+            book.getLestipAttachments().add(attachment);
+        }
     }
 
     public void deleteLestip(Long bookId, String userName) {
@@ -125,6 +169,9 @@ public class LestipService {
 
         book.setLestip(null);
         book.setLestipAuteur(null);
+        if (book.getLestipAttachments() != null) {
+            book.getLestipAttachments().clear();
+        }
         bookRepository.save(book);
     }
 
@@ -165,11 +212,17 @@ public class LestipService {
             try {
                 var json = objectMapper.readTree(lestipText);
                 dto.setLestip(json.path("text").asText(""));
-                dto.setFileName(json.path("fileName").asText(null));
-                dto.setFileContentType(json.path("fileContentType").asText(null));
 
-                // Read directly from the binary BLOB field instead of parsing JSON
-                dto.setFileData(book.getLestipFile());
+                // Return data for the first attachment to maintain backward compatibility with LestipDto
+                if (book.getLestipAttachments() != null && !book.getLestipAttachments().isEmpty()) {
+                    LestipAttachment first = book.getLestipAttachments().iterator().next();
+                    dto.setFileName(first.getFileName());
+                    dto.setFileContentType(first.getContentType());
+                    dto.setFileData(first.getFileData());
+                } else {
+                    dto.setFileName(json.path("fileName").asText(null));
+                    dto.setFileContentType(json.path("fileContentType").asText(null));
+                }
             } catch (Exception e) {
                 dto.setLestip(lestipText);
             }
