@@ -1,0 +1,77 @@
+<div class="extension-requests-page">
+  <header class="page-header">
+    <h1>Verlengingsaanvragen</h1>
+    <p>Beheer openstaande aanvragen voor het verlengen van uitleentermijnen.</p>
+  </header>
+
+  @if (isLoading) {
+    <div class="loader-row">
+      <div class="spinner"></div>
+      <p>Laden...</p>
+    </div>
+  } @else if (requests.length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-calendar-check"></i>
+      <p>Er zijn momenteel geen openstaande verlengingsaanvragen.</p>
+    </div>
+  } @else {
+    <div class="requests-grid">
+      @for (request of requests; track request.id) {
+        <div
+          class="request-card"
+          [class.is-rejecting]="selectedRequestForReject?.id === request.id"
+        >
+          <div class="request-header">
+            <img
+              [src]="request.bookCover || 'assets/img/placeholder-cover.png'"
+              class="book-cover"
+            />
+            <div class="request-info">
+              <h3>{{ request.bookTitle }}</h3>
+              <p>
+                Door:
+                <strong>{{
+                  request.requesterName || "Onbekende lener"
+                }}</strong>
+              </p>
+              <p>
+                Inleverdatum:
+                <span [class.text-danger]="isOverdue(request.currentDueDate)">{{
+                  request.currentDueDate | date: "dd/MM/yyyy"
+                }}</span>
+              </p>
+            </div>
+          </div>
+
+          @if (selectedRequestForReject?.id === request.id) {
+            <div class="reject-form animate-in">
+              <label for="reason">Reden voor afwijzing (optioneel):</label>
+              <textarea
+                id="reason"
+                [(ngModel)]="rejectionReason"
+                placeholder="Type hier de reden..."
+              ></textarea>
+              <div class="reject-actions">
+                <button class="btn-ghost" (click)="cancelReject()">
+                  Annuleren
+                </button>
+                <button class="btn-reject-confirm" (click)="confirmReject()">
+                  Bevestig Afwijzing
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="request-actions">
+              <button class="btn-approve" (click)="approve(request)">
+                <i class="fas fa-check"></i> Goedkeuren
+              </button>
+              <button class="btn-reject" (click)="reject(request)">
+                <i class="fas fa-times"></i> Afwijzen
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

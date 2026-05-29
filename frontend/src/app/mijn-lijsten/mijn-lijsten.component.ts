@@ -450,9 +450,9 @@ export class MijnLijstenComponent implements OnInit {
     this.isSendingLibrarianMessage = true;
     this.messageSentError = '';
     this.messageSentSuccess = '';
-
+    
     try {
-      await this.loanService.sendMessageToLibrarian(
+      await this.loanService.createLoanExtensionRequestTicket( // Nieuwe methode aanroepen
         this.selectedLoanForMessage.id,
         this.selectedLibrarianForMessage.sub,
         this.authContext.getEffectiveSub(),
@@ -472,7 +472,7 @@ export class MijnLijstenComponent implements OnInit {
     const lastSent = this.librarianMessageCooldowns.get(loanId);
     if (!lastSent) return true;
     const cooldownEndTime = lastSent + this.MESSAGE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
-    return Date.now() > cooldownEndTime;
+    return Date.now() > cooldownEndTime; 
   }
 
   getLibrarianMessageCooldownText(loanId: number): string {
@@ -480,7 +480,7 @@ export class MijnLijstenComponent implements OnInit {
     if (!lastSent) return '';
     const cooldownEndTime = lastSent + this.MESSAGE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
     const remainingMs = cooldownEndTime - Date.now();
-    if (remainingMs <= 0) return '';
+    if (remainingMs <= 0) return ''; 
     const remainingDays = Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
     return `Je kunt pas over ${remainingDays} dag(en) weer een bericht sturen voor dit boek.`;
   }

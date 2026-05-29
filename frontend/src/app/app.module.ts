@@ -56,6 +56,7 @@ import { CarouselTileComponent } from "./dashboard/carousel-tile.component";
 import { ReportedReviewsComponent } from "./reported-reviews/reported-reviews.component";
 import { SpotlightManageComponent } from "./spotlight-manage/spotlight-manage.component";
 import { SettingsComponent } from "./settings/settings.component";
+import { ExtensionRequestsComponent } from "./extension-requests/extension-requests.component";
 
 registerLocaleData(localeNl, "nl");
 
@@ -93,6 +94,7 @@ registerLocaleData(localeNl, "nl");
     StatistiekenComponent,
     AdminGenreComponent,
     TeacherPromotionComponent,
+    ExtensionRequestsComponent,
   ],
   imports: [
     BrowserModule,
@@ -113,8 +115,8 @@ registerLocaleData(localeNl, "nl");
     DarkModeToggleComponent,
     CarouselTileComponent,
     SpotlightManageComponent,
-
     ReportedReviewsComponent,
+    SettingsComponent,
   ],
   providers: [
     provideHttpClient(withInterceptors([authInterceptor])),
