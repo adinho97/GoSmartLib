@@ -40,6 +40,7 @@ import { LeaderboardComponent } from "./leaderboard/leaderboard.component";
 import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
 import { TeacherPromotionComponent } from "./teacher-promotion/teacher-promotion.component";
 import { SettingsComponent } from "./settings/settings.component";
+import { ReportedReviewsComponent } from "./reported-reviews/reported-reviews.component";
 
 export const appRoutes: Routes = [
   // Super Admin Routes
@@ -250,8 +251,14 @@ export const appRoutes: Routes = [
     path: "instellingen",
     component: SettingsComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["bibbeheerder"]}
-  }
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
+    path: "reported-reviews",
+    component: ReportedReviewsComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
+  },
 ];
 
 @NgModule({
