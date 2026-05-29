@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.dto.CreateLoanRequest;
 import com.example.demo.dto.LoanConditionOverviewDto;
 import com.example.demo.dto.LoanDto;
+import com.example.demo.dto.ExtensionRequestTicket;
 import com.example.demo.dto.SmartschoolMessageRequest;
 import com.example.demo.dto.BerichtBibRequest;
 import com.example.demo.config.SmartschoolProperties;
@@ -12,12 +13,14 @@ import com.example.demo.entities.Book;
 import com.example.demo.entities.BookCopy;
 import com.example.demo.entities.Loan;
 import com.example.demo.entities.School;
+import com.example.demo.entities.LoanExtensionRequest;
 import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.BookCopyRepository;
 import com.example.demo.repositories.LoanRepository;
 import com.example.demo.services.AuthService;
 import com.example.demo.services.BookAvailabilityNotificationService;
 import com.example.demo.services.DisplayNameResolver;
+import com.example.demo.repositories.LoanExtensionRequestRepository;
 import com.example.demo.services.LoanService;
 import com.example.demo.services.SmartschoolMessageService;
 import org.junit.jupiter.api.Test;
@@ -67,6 +70,9 @@ class LoanServiceTest {
 
     @Mock
     private DisplayNameResolver displayNameResolver;
+
+    @Mock
+    private LoanExtensionRequestRepository loanExtensionRequestRepository;
 
     @InjectMocks
     private LoanService loanService;
@@ -465,12 +471,12 @@ class LoanServiceTest {
     }
 
     @Test
-    void sendLibrarianMessage_ShouldTriggerSmartschoolMessage() {
+    void createExtensionRequest_ShouldSaveNewRequest() {
         // Arrange
         Long loanId = 1L;
-        BerichtBibRequest request = new BerichtBibRequest();
-        request.setLibrarianSub("lib-sub");
-        request.setSenderSub("sender-sub");
+        ExtensionRequestTicket ticket = new ExtensionRequestTicket();
+        ticket.setLibrarianSub("lib-sub");
+        ticket.setSenderSub("sender-sub");
 
         Book book = buildBook(1L, "Test Boek");
         BookCopy copy = buildCopy(10L, book, BookCopy.CopyStatus.LOANED, BookCopy.CopyCondition.GOOD);
@@ -481,22 +487,12 @@ class LoanServiceTest {
         loan.setDueDate(LocalDate.now());
 
         when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
-        
-        SmartschoolUserInfo userInfo = new SmartschoolUserInfo();
-        userInfo.setName("Test Lener");
-        userInfo.setAccessToken("token");
-        when(authService.getUserInfoBySub("sender-sub")).thenReturn(Mono.just(userInfo));
-        when(smartschoolMessageService.sendMessage(eq("token"), any())).thenReturn(Mono.just("ok"));
+        when(loanExtensionRequestRepository.save(any(LoanExtensionRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        loanService.sendLibrarianMessage(loanId, request);
+        loanService.createExtensionRequest(loanId, ticket);
 
         // Assert
-        verify(smartschoolMessageService).sendMessage(eq("token"), any(SmartschoolMessageRequest.class));
-        ArgumentCaptor<SmartschoolMessageRequest> msgCaptor = ArgumentCaptor.forClass(SmartschoolMessageRequest.class);
-        verify(smartschoolMessageService).sendMessage(anyString(), msgCaptor.capture());
-        
-        assertTrue(msgCaptor.getValue().getSubject().contains("Test Boek"));
-        assertEquals("lib-sub", msgCaptor.getValue().getRecipientSub());
+        verify(loanExtensionRequestRepository, times(1)).save(any(LoanExtensionRequest.class));
     }
 }

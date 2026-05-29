@@ -90,33 +90,4 @@ class LoanControllerTest {
         mockMvc.perform(get("/api/uitleningen/all-active"))
                 .andExpect(status().isForbidden());
     }
-
-    @Test
-    @WithMockUser
-    void sendMessageToLibrarianShouldReturnOk() throws Exception {
-        BerichtBibRequest req = new BerichtBibRequest();
-        req.setLibrarianSub("lib");
-        req.setSenderSub("sender");
-
-        mockMvc.perform(post("/api/uitleningen/1/bericht-bib")
-                .contentType("application/json")
-                .content(objectMapper.writeValueAsString(req))
-                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-                        .csrf()))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser(roles = "LEERLING") // Allow leerling to send message
-    void sendMessageToLibrarianShouldReturnOkForLeerling() throws Exception {
-        BerichtBibRequest req = new BerichtBibRequest();
-        req.setLibrarianSub("lib");
-        req.setSenderSub("sender");
-
-        mockMvc.perform(post("/api/uitleningen/1/bericht-bib")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(req))
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
-                .andExpect(status().isOk());
-    }
 }

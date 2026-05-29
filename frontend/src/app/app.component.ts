@@ -16,6 +16,7 @@ import { DashboardConfigService } from "./services/dashboard-config.service";
 import { RecommendationService } from "./services/recommendation.service";
 import { BookService } from "./services/book.service";
 import { SuperAdminAuthService } from "./services/super-admin-auth.service";
+import { LoanService } from "./services/loan.service";
 import {
   inferNameParts,
   composeFullName,
@@ -35,6 +36,7 @@ export class AppComponent implements OnInit {
   adminMobileMenuOpen = false;
   pendingReportsCount = 0;
   levelInfo$: Observable<LevelInfo>;
+  pendingExtensionsCount = 0;
   private readonly roleLikeValues = new Set([
     "leerling",
     "leerkracht",
@@ -54,6 +56,7 @@ export class AppComponent implements OnInit {
     private bookService: BookService,
     private superAdminAuthService: SuperAdminAuthService,
     private dashboardConfigService: DashboardConfigService,
+    private loanService: LoanService,
   ) {
     this.levelInfo$ = this.experienceService.levelInfo$;
   }
@@ -75,9 +78,21 @@ export class AppComponent implements OnInit {
         this.mainNavOpen = false;
         this.adminMobileMenuOpen = false;
         this.changeDetectorRef.detectChanges();
+
+        if (this.isLibrarian) {
+          this.fetchPendingExtensionsCount();
+        }
       });
   }
 
+  private async fetchPendingExtensionsCount() {
+    try {
+      this.pendingExtensionsCount =
+        await this.loanService.getPendingExtensionRequestsCount();
+    } catch (err) {
+      console.warn("Failed to fetch pending extensions count", err);
+    }
+  }
   private async loadPendingReportsCount(): Promise<void> {
     try {
       this.pendingReportsCount =

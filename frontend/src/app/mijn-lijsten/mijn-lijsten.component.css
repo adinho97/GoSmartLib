@@ -54,7 +54,6 @@
   transition:
     color 0.15s,
     border-color 0.15s;
-  /* Larger touch target on mobile */
   min-height: 44px;
 }
 
@@ -120,7 +119,7 @@
   gap: 40px 24px;
   padding-top: 8px;
   padding-bottom: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .didactic-grid app-recommendation-card ::ng-deep .book-card {
@@ -228,445 +227,71 @@
   font-weight: 700;
 }
 
-/* Leeslisten Grid */
-.leeslisten-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-  margin-bottom: var(--s-6);
-}
-
-.leeslijst-card {
-  position: relative;
-  background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
-  border: 1px solid #f0dde5;
-  border-radius: 16px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  text-align: left;
-  font-family: inherit;
-  cursor: pointer;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04);
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.leeslijst-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #a14466 0%, #871f42 100%);
-  border-radius: 16px 16px 0 0;
-}
-
-.leeslijst-card:hover {
-  border-color: #e0c5d3;
-  box-shadow: 0 14px 30px rgba(135, 31, 66, 0.12);
-  transform: translateY(-3px);
-}
-
-.leeslijst-card:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
-}
-
-.leeslijst-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.3rem;
-}
-
-.leeslijst-card-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: #f5e3eb;
-  color: #871f42;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.leeslijst-card-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.leeslijst-count {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--brand);
-  line-height: 1;
-}
-
-.leeslijst-count span {
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #6b7280;
-}
-
-.leeslijst-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--ink);
-  margin: 0;
-  line-height: 1.35;
-  display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.leeslijst-card:hover .leeslijst-title {
-  color: var(--brand);
-}
-
-.leeslijst-description {
-  font-size: 0.86rem;
-  color: #4b5563;
-  margin: 0;
-  line-height: 1.5;
-  display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.leeslijst-author {
-  font-size: 0.78rem;
-  color: #6b7280;
-  margin: 0;
-  font-style: italic;
-}
-
-.leeslijst-klassen {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: auto;
-  padding-top: 0.7rem;
-  border-top: 1px dashed #f0dde5;
-}
-
-.klas-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  background: var(--brand-50);
-  color: var(--brand);
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-/* ── Mobile (≤ 600px) ── */
-@media (max-width: 600px) {
-  .ml-page {
-    padding: var(--s-5) 16px var(--s-7);
-  }
-
-  .ml-title {
-    font-size: 22px;
-  }
-
-  /* Tighter tab padding so all 5 tabs fit more easily */
-  .tab {
-    padding: 12px 12px 10px;
-    font-size: 13px;
-    gap: 5px;
-  }
-
-  /* Hide tab counts on very small screens to save space */
-  .tab-count {
-    display: none;
-  }
-
-  /* Section head stacks vertically so the "Nieuwe Leeslijst" button
-     doesn't get squeezed next to a long title */
-  .section-head {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--s-3);
-  }
-
-  .section-title {
-    font-size: 18px;
-  }
-
-  /* Full-width create button on mobile */
-  .create-new-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* Single-column book grid on phones */
-  .book-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px 12px;
-  }
-
-  /* Single-column leeslisten cards */
-  .leeslisten-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .show-more-btn {
-    width: 100%;
-    margin-top: 24px;
-  }
-}
-
-/* ── Small-medium (601px – 768px) ── */
-@media (min-width: 601px) and (max-width: 768px) {
-  .ml-page {
-    padding: var(--s-6) 20px var(--s-7);
-  }
-
-  .tab {
-    padding: 13px 14px 11px;
-  }
-
-  /* Stack section-head if viewport is still narrow */
-  .section-head {
-    flex-wrap: wrap;
-  }
-
-  .book-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 32px 16px;
-  }
-
-  .leeslisten-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* --- Modal Styling (reused from loan-page for consistency) --- */
-.return-modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.return-modal {
-  background-color: var(--surface);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  width: 90%;
-  max-width: 500px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.return-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--line);
-  background-color: var(--surface-2);
-}
-
-.return-modal-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: var(--ink);
-}
-
-.return-modal-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--ink-3);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.return-modal-close:hover {
-  color: var(--ink);
-}
-
-.return-modal-content {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.return-modal-intro {
-  font-size: 14px;
-  color: var(--ink-2);
-  margin: 0;
-}
-
-.return-modal-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.return-modal-field label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.return-modal-field select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  font-size: 14px;
-  background-color: var(--surface);
-  color: var(--ink);
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%236B7280" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-}
-
-.return-modal-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--ink-2);
-  cursor: pointer;
-}
-
-.return-modal-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-
-.return-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 20px;
-  border-top: 1px solid var(--line);
-  background-color: var(--surface-2);
-}
-
-.cancel-return-btn,
-.confirm-return-btn {
-  padding: 10px 18px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.cancel-return-btn {
-  background: none;
-  border: 1px solid var(--line);
-  color: var(--ink-2);
-}
-
-.cancel-return-btn:hover {
-  background-color: var(--surface-3);
-}
-
-.confirm-return-btn {
-  background-color: var(--brand);
-  color: white;
-  border: 1px solid var(--brand);
-}
-
-.confirm-return-btn:hover {
-  background-color: var(--brand-600);
-  border-color: var(--brand-600);
-}
-
-.confirm-return-btn:disabled {
-  background-color: var(--line);
-  border-color: var(--line);
-  color: var(--ink-3);
-  cursor: not-allowed;
-}
-
-.field-error {
-  color: var(--error);
-  font-size: 13px;
-  margin-top: -8px;
-}
-
-/* Button for messaging librarian */
-.btn-message-bib {
-  background-color: #871f42;
-  border: none;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  gap: 6px;
-  box-shadow: var(--shadow-1);
-}
-
-.btn-message-bib:hover {
-  background-color: #6d1834;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-2);
-}
-
-.btn-message-bib:disabled {
-  background-color: var(--line-strong);
-  color: var(--ink-4);
-  cursor: not-allowed;
-  opacity: 0.7;
-  transform: none;
-  box-shadow: none;
-}
-
-.btn-message-bib i {
-  font-size: 14px;
-}
-
+/* Loan card layout */
 .loan-card-item {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 14px;
+  height: 100%;
 }
 
 .loan-card-item app-recommendation-card {
   display: block;
+  flex: 1;
+}
+
+/* Renewal button */
+.btn-message-bib {
+  appearance: none;
+  border: none;
+  border-radius: 10px;
+  background: var(--brand);
+  color: white;
+  
+  /* Aangepaste hoogte en padding voor "dunnere" knop */
+  height: 40px; /* Iets minder hoog */
+  padding: 0 14px; /* Iets minder padding horizontaal */
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: 100%; /* Behoudt de volledige breedte */
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    transform 0.15s ease,
+    box-shadow 0.18s ease;
+
+  box-shadow: 0 4px 10px rgba(135, 31, 66, 0.18);
+}
+
+.btn-message-bib:hover {
+  background: var(--brand-600);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(135, 31, 66, 0.24);
+}
+
+.btn-message-bib:active {
+  transform: translateY(0);
+}
+
+.btn-message-bib:disabled { /* Styling voor uitgeschakelde knop */
+  background-color: var(--line-strong); /* Grijsachtige achtergrond */
+  color: var(--ink-4); /* Lichtere tekstkleur */
+  cursor: not-allowed;
+  opacity: 0.7; /* Iets transparanter */
+  transform: none; /* Geen transformatie bij hover */
+  box-shadow: none;
+}
+
+.btn-message-bib i {
+  font-size: 13px;
 }
