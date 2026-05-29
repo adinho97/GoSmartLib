@@ -40,6 +40,7 @@ import { LeaderboardComponent } from "./leaderboard/leaderboard.component";
 import { AdminGenreComponent } from "./admin-genre/admin-genre.component";
 import { TeacherPromotionComponent } from "./teacher-promotion/teacher-promotion.component";
 import { SettingsComponent } from "./settings/settings.component";
+import { ReportedReviewsComponent } from "./reported-reviews/reported-reviews.component";
 import { ExtensionRequestsComponent } from "./extension-requests/extension-requests.component";
 
 export const appRoutes: Routes = [
@@ -251,14 +252,20 @@ export const appRoutes: Routes = [
     path: "instellingen",
     component: SettingsComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["bibbeheerder"] }
+    data: { roles: ["bibbeheerder"] },
+  },
+  {
+    path: "reported-reviews",
+    component: ReportedReviewsComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ["bibbeheerder"] },
   },
   {
     path: "extension-requests",
     component: ExtensionRequestsComponent,
     canActivate: [AuthGuard],
-    data: { roles: ["bibbeheerder"] }
-  }
+    data: { roles: ["bibbeheerder"] },
+  },
 ];
 
 @NgModule({
