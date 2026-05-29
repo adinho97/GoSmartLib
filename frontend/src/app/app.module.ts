@@ -93,6 +93,7 @@ registerLocaleData(localeNl, "nl");
     StatistiekenComponent,
     AdminGenreComponent,
     TeacherPromotionComponent,
+    ReportedReviewsComponent,
   ],
   imports: [
     BrowserModule,
@@ -113,8 +114,6 @@ registerLocaleData(localeNl, "nl");
     DarkModeToggleComponent,
     CarouselTileComponent,
     SpotlightManageComponent,
-
-    ReportedReviewsComponent,
   ],
   providers: [
     provideHttpClient(withInterceptors([authInterceptor])),
