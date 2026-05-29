@@ -94,6 +94,7 @@ registerLocaleData(localeNl, "nl");
     StatistiekenComponent,
     AdminGenreComponent,
     TeacherPromotionComponent,
+    ReportedReviewsComponent,
     ExtensionRequestsComponent,
   ],
   imports: [
@@ -115,7 +116,6 @@ registerLocaleData(localeNl, "nl");
     DarkModeToggleComponent,
     CarouselTileComponent,
     SpotlightManageComponent,
-    ReportedReviewsComponent,
     SettingsComponent,
   ],
   providers: [
