@@ -201,4 +201,16 @@ describe("MijnLijstenComponent", () => {
     expect(formatted.toLowerCase()).toContain("mei");
     expect(formatted).toContain("2024");
   });
+
+  it("should return paged leeslisten correctly", () => {
+    component.leeslisten = Array.from({ length: 20 }, (_, i) => ({ id: i }) as any);
+    component.leeslijstPage = 1;
+    
+    // Page size is 12
+    expect(component.pagedLeeslisten.length).toBe(12);
+    expect(component.totalLeeslijstPages).toBe(2);
+
+    component.leeslijstPage = 2;
+    expect(component.pagedLeeslisten.length).toBe(8);
+  });
 });
