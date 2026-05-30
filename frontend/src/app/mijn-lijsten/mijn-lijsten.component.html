@@ -108,18 +108,10 @@
               [book]="loanToBook(loan)"
               [profileVariant]="'history'"
               [loanDate]="formatDate(loan.dueDate)"
+              [hasPendingExtensionRequest]="!!loan.hasPendingExtensionRequest"
               (viewDetails)="goToDetail(loan.bookId)"
-            >
-              <button
-                class="btn-message-bib"
-                type="button"
-                (click)="openLibrarianMessageModal(loan)"
-                [disabled]="!canSendMessageToLibrarian(loan)"
-                [title]="loan.hasPendingExtensionRequest ? 'Er is al een lopende aanvraag voor dit boek.' : 'Verlenging aanvragen'"
-              >
-                <i class="fas fa-calendar-plus"></i> Verlenging aanvragen
-              </button>
-            </app-recommendation-card>
+              (requestExtension)="openLibrarianMessageModal(loan)"
+            ></app-recommendation-card>
           </div>
         }
       </div>
