@@ -420,15 +420,28 @@
             Een bibliothecaris zal je aanvraag beoordelen.
           </p>
 
-          <label class="return-modal-checkbox">
-            <input
-              type="checkbox"
-              [(ngModel)]="confirmSendMessageToLibrarianCheckbox"
-            />
-            Ik bevestig dat ik een aanvraag tot verlenging wil indienen.
-          </label>
-          <!-- The confirmation checkbox and buttons are now part of the parent component's template -->
-          <!-- and are handled by the previous diff. No changes needed here. -->
+          @if (!messageSentSuccess) {
+            <label class="return-modal-checkbox">
+              <input
+                type="checkbox"
+                [(ngModel)]="confirmSendMessageToLibrarianCheckbox"
+                [disabled]="isSendingLibrarianMessage"
+              />
+              Ik bevestig dat ik een aanvraag tot verlenging wil indienen.
+            </label>
+          }
+
+          @if (messageSentSuccess) {
+            <p class="field-success">
+              <i class="fas fa-check-circle"></i> {{ messageSentSuccess }}
+            </p>
+          }
+
+          @if (messageSentError) {
+            <p class="field-error">
+              <i class="fas fa-exclamation-circle"></i> {{ messageSentError }}
+            </p>
+          }
         </div>
 
         <footer class="return-modal-actions">
@@ -436,16 +449,19 @@
             type="button"
             class="cancel-return-btn"
             (click)="closeLibrarianMessageModal()"
+            [disabled]="isSendingLibrarianMessage"
           >
-            Annuleren
+            {{ messageSentSuccess ? 'Sluiten' : 'Annuleren' }}
           </button>
-          <button
-            class="confirm-return-btn"
-            (click)="confirmAndSendMessageToLibrarian()"
-            [disabled]="!confirmSendMessageToLibrarianCheckbox || isSendingLibrarianMessage"
-          >
-            Aanvraag versturen
-          </button>
+          @if (!messageSentSuccess) {
+            <button
+              class="confirm-return-btn"
+              (click)="confirmAndSendMessageToLibrarian()"
+              [disabled]="!confirmSendMessageToLibrarianCheckbox || isSendingLibrarianMessage"
+            >
+              {{ isSendingLibrarianMessage ? 'Bezig...' : 'Aanvraag versturen' }}
+            </button>
+          }
         </footer>
       </div>
     </div>
