@@ -251,7 +251,7 @@ public class LoanController {
     @PreAuthorize("hasAnyRole('BIBBEHEERDER', 'SUPER_ADMIN')")
     @PostMapping("/verlenging-aanvragen/{requestId}/goedkeuren")
     public ResponseEntity<Void> approveExtensionRequest(@PathVariable Long requestId, Authentication authentication) {
-        loanService.approveExtensionRequest(requestId, authentication.getName());
+        loanService.approveExtensionRequest(requestId, authentication.getName(), null);
         return ResponseEntity.ok().build();
     }
 
