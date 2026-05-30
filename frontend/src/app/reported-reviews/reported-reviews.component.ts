@@ -119,7 +119,11 @@ export class ReportedReviewsComponent implements OnInit {
 
   getAuthorDisplayName(review: ReportedReview["review"]): string {
     if (review.anonymous) return "Anoniem";
-    return review.reviewerUserName || "Onbekend";
+    return normalizeReviewAuthorName(review.reviewerUserName || "Onbekend");
+  }
+
+  getReporterDisplayName(reporterName: string): string {
+    return normalizeReviewAuthorName(reporterName || "Onbekende melder");
   }
 
   getStatusLabel(status: ReportedReviewStatus): string {
