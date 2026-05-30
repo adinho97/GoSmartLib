@@ -34,6 +34,7 @@ export class AppComponent implements OnInit {
   adminNavMenuOpen = false;
   mainNavOpen = false;
   adminMobileMenuOpen = false;
+  pendingReportsCount = 0;
   levelInfo$: Observable<LevelInfo>;
   pendingExtensionsCount = 0;
   private readonly roleLikeValues = new Set([
@@ -64,6 +65,11 @@ export class AppComponent implements OnInit {
     // Initialize preferences from cache (localStorage seed is synchronous)
     this.userPreferencesService.init();
     this.dashboardConfigService.init();
+
+    if (this.isLibrarian) {
+      this.loadPendingReportsCount();
+    }
+
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
@@ -87,13 +93,21 @@ export class AppComponent implements OnInit {
       console.warn("Failed to fetch pending extensions count", err);
     }
   }
+  private async loadPendingReportsCount(): Promise<void> {
+    try {
+      this.pendingReportsCount =
+        await this.bookService.getReportedReviewCount();
+    } catch (error) {
+      console.error("Failed to load pending reports count", error);
+    }
+  }
 
   private get currentUrl(): string {
     return (this.router.url || "").toLowerCase();
   }
 
   get userRole(): string {
-    return localStorage.getItem("role") || "";
+    return (localStorage.getItem("role") || "").toLowerCase().trim();
   }
 
   get isTeacher(): boolean {
@@ -101,7 +115,7 @@ export class AppComponent implements OnInit {
   }
 
   get isLibrarian(): boolean {
-    return this.userRole === "bibbeheerder";
+    return this.userRole.includes("bibbeheerder");
   }
 
   get isStudent(): boolean {

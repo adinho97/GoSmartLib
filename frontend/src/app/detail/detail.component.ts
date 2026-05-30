@@ -41,6 +41,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   readonly isLibrarian = this.userRole.includes("bibbeheerder");
   readonly isTeacher = this.userRole.includes("leerkracht");
   readonly isTeacherOrLibrarian = this.isLibrarian || this.isTeacher;
+  readonly isStudent = this.userRole.includes("leerling");
   private readonly roleLikeValues = new Set([
     "leerling",
     "leerkracht",
@@ -63,6 +64,9 @@ export class DetailComponent implements OnInit, OnDestroy {
   pendingDeleteReviewId: number | null = null;
   reviewError = "";
   reviewSuccess = "";
+  reportReviewDialogOpen = false;
+  pendingReportReviewId: number | null = null;
+  reportReason = "";
   editReviewId: number | null = null;
   editReviewRating = 0;
   editReviewComment = "";
@@ -1023,6 +1027,62 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.reviewError = "Review bewerken mislukt. Probeer het opnieuw.";
       this.reviewSuccess = "";
     }
+  }
+
+  openReportReviewDialog(reviewId: number): void {
+    if (this.currentBookId === null) return;
+    const review = this.reviews.find((r) => r.id === reviewId);
+    if (!review) return;
+
+    this.pendingReportReviewId = reviewId;
+    this.reportReviewDialogOpen = true;
+    this.reportReason = ""; // Clear any previous reason
+    this.reviewError = "";
+    this.reviewSuccess = "";
+  }
+
+  async confirmReportReview(): Promise<void> {
+    if (this.currentBookId === null || this.pendingReportReviewId === null) {
+      return;
+    }
+
+    const reviewId = this.pendingReportReviewId;
+    const reason = this.reportReason.trim();
+
+    if (!reason) {
+      this.reviewError = "Geef een reden op voor de melding.";
+      return;
+    }
+
+    try {
+      // Call the new backend service method to report the review
+      await this.bookService.reportReview(this.currentBookId, reviewId, reason);
+      this.reviewSuccess = "Review succesvol gerapporteerd.";
+      this.reviewError = "";
+      this.cancelReportReviewDialog();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        if (typeof apiMessage === "string" && apiMessage.trim()) {
+          this.reviewError = apiMessage;
+          this.reviewSuccess = "";
+          return;
+        }
+      }
+      this.reviewError = "Review rapporteren mislukt. Probeer het opnieuw.";
+      this.reviewSuccess = "";
+    } finally {
+      this.cancelReportReviewDialog();
+    }
+  }
+
+  cancelReportReviewDialog(): void {
+    this.reportReviewDialogOpen = false;
+    this.pendingReportReviewId = null;
+    this.reportReason = "";
+    // Keep reviewError/Success as they might contain messages from the attempt
+    // this.reviewError = "";
+    // this.reviewSuccess = "";
   }
 
   get averageRating(): number {

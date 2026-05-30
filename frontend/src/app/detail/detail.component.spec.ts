@@ -43,6 +43,7 @@ describe("DetailComponent", () => {
       "isClassReadingListItem",
       "getMyReviewCount",
       "getBookLestipDetails",
+      "reportReview", // Added mock for reportReview
       "isWishlisted",
       "toggleHighlight",
       "toggleClassReadingListItem",
@@ -115,6 +116,7 @@ describe("DetailComponent", () => {
       createdAt: "2026-03-18T10:00:00",
     });
     bookServiceSpy.deleteBookReview.and.resolveTo();
+    bookServiceSpy.reportReview.and.resolveTo(); // Mock reportReview
     bookServiceSpy.isHighlighted.and.returnValue(Promise.resolve(false));
     bookServiceSpy.isClassReadingListItem.and.returnValue(
       Promise.resolve(false),
@@ -739,6 +741,89 @@ describe("DetailComponent", () => {
     expect(component.previewModalOpen).toBeFalse();
     expect(component.previewAlertOpen).toBeTrue();
     expect(component.previewAlertTitle).toBe("Geen voorbeeld beschikbaar");
+  });
+
+  it("should show report review button for students on other reviews", async () => {
+    localStorage.setItem("role", "leerling");
+    createComponent();
+    component.currentBookId = 1;
+    component.reviews = [
+      {
+        id: 5,
+        rating: 3,
+        comment: "a",
+        reviewerUserId: 2, // Different user
+        anonymous: false,
+        createdAt: "2026-03-18T06:00:00",
+      },
+    ];
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const reportButton =
+      fixture.nativeElement.querySelector(".report-review-btn");
+    expect(reportButton).toBeTruthy();
+  });
+
+  it("should not show report review button for librarians", async () => {
+    localStorage.setItem("role", "bibbeheerder");
+    createComponent();
+    component.currentBookId = 1;
+    component.reviews = [
+      {
+        id: 5,
+        rating: 3,
+        comment: "a",
+        reviewerUserId: 2,
+        anonymous: false,
+        createdAt: "2026-03-18T06:00:00",
+      },
+    ];
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const reportButton =
+      fixture.nativeElement.querySelector(".report-review-btn");
+    expect(reportButton).toBeFalsy();
+  });
+
+  it("openReportReviewDialog opens dialog and sets pending id", () => {
+    component.openReportReviewDialog(11);
+    expect(component.reportReviewDialogOpen).toBeTrue();
+    expect(component.pendingReportReviewId).toBe(11);
+  });
+
+  it("confirmReportReview calls service and closes dialog on success", async () => {
+    component.currentBookId = 1;
+    component.pendingReportReviewId = 11;
+    component.reportReason = "Bad words";
+    await component.confirmReportReview();
+    expect(bookServiceSpy.reportReview).toHaveBeenCalledWith(
+      1,
+      11,
+      "Bad words",
+    );
+    expect(component.reportReviewDialogOpen).toBeFalse();
+    expect(component.reviewSuccess).toBe("Review succesvol gerapporteerd.");
+  });
+
+  it("confirmReportReview shows error if reason is empty", async () => {
+    component.currentBookId = 1;
+    component.pendingReportReviewId = 11;
+    component.reportReason = "   ";
+    await component.confirmReportReview();
+    expect(bookServiceSpy.reportReview).not.toHaveBeenCalled();
+    expect(component.reviewError).toBe("Geef een reden op voor de melding.");
+  });
+
+  it("cancelReportReviewDialog closes dialog and clears pending id and reason", () => {
+    component.reportReviewDialogOpen = true;
+    component.pendingReportReviewId = 11;
+    component.reportReason = "Some reason";
+    component.cancelReportReviewDialog();
+    expect(component.reportReviewDialogOpen).toBeFalse();
+    expect(component.pendingReportReviewId).toBeNull();
+    expect(component.reportReason).toBe("");
   });
 
   it("openPreview shows preview alert when no readable preview exists", async () => {
