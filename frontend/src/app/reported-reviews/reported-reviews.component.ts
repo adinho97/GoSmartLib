@@ -49,6 +49,13 @@ export class ReportedReviewsComponent implements OnInit {
   pendingBookId: number | null = null;
   pendingReviewId: number | null = null;
 
+  private readonly roleLikeValues = new Set([
+    "leerling",
+    "leerkracht",
+    "bibbeheerder",
+    "gebruiker",
+  ]);
+
   constructor(
     private bookService: BookService,
     private uiToastService: UiToastService,
@@ -57,6 +64,14 @@ export class ReportedReviewsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadReportedReviews();
+  }
+
+  private normalizeDisplayName(raw: string | null): string {
+    const value = (raw || "").trim();
+    if (!value) {
+      return "";
+    }
+    return this.roleLikeValues.has(value.toLowerCase()) ? "" : value;
   }
 
   async loadReportedReviews(): Promise<void> {
@@ -118,12 +133,23 @@ export class ReportedReviewsComponent implements OnInit {
   }
 
   getAuthorDisplayName(review: ReportedReview["review"]): string {
-    if (review.anonymous) return "Anoniem";
-    return normalizeReviewAuthorName(review.reviewerUserName || "Onbekend");
+    const rawName = review.reviewerUserName?.trim() || "Anoniem";
+    if (review.anonymous || rawName === "Anoniem") {
+      return "Anoniem";
+    }
+
+    const normalized = this.normalizeDisplayName(rawName);
+    return normalized ? normalizeReviewAuthorName(normalized) : "Anoniem";
   }
 
   getReporterDisplayName(reporterName: string): string {
-    return normalizeReviewAuthorName(reporterName || "Onbekende melder");
+    const rawName = reporterName?.trim() || "";
+    if (!rawName) return "Onbekende melder";
+
+    const normalized = this.normalizeDisplayName(rawName);
+    return normalized
+      ? normalizeReviewAuthorName(normalized)
+      : "Onbekende melder";
   }
 
   getStatusLabel(status: ReportedReviewStatus): string {
