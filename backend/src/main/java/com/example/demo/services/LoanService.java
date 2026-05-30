@@ -449,11 +449,11 @@ public class LoanService {
 
     @Transactional
     public void createExtensionRequest(Long loanId, ExtensionRequestTicket ticket) {
-        if (ticket == null || ticket.getSenderSub() == null) {
+        if (loanId == null || ticket == null || ticket.getSenderSub() == null || ticket.getSenderSub().isBlank()) {
             throw new ApiException("Ongeldige aanvraag data", HttpStatus.BAD_REQUEST, "INVALID_TICKET");
         }
 
-        Loan loan = loanRepo.findById(Objects.requireNonNull(loanId, "loanId"))
+        Loan loan = loanRepo.findById(loanId)
                 .orElseThrow(() -> new IllegalArgumentException("Lening niet gevonden"));
 
         if (loan.getReturnedAt() != null) {
