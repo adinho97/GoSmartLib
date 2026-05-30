@@ -96,6 +96,7 @@
   justify-content: space-between;
   gap: var(--s-4);
   margin-bottom: var(--s-5);
+  flex-wrap: wrap;
 }
 
 .section-title {
@@ -248,7 +249,7 @@
   border-radius: 10px;
   background: var(--brand);
   color: white;
-  
+
   /* Aangepaste hoogte en padding voor "dunnere" knop */
   height: 40px; /* Iets minder hoog */
   padding: 0 14px; /* Iets minder padding horizontaal */
@@ -257,8 +258,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-
-  width: 100%; /* Behoudt de volledige breedte */
+  width: fit-content;
+  align-self: center;
 
   font-size: 14px;
   font-weight: 600;
@@ -283,7 +284,8 @@
   transform: translateY(0);
 }
 
-.btn-message-bib:disabled { /* Styling voor uitgeschakelde knop */
+.btn-message-bib:disabled {
+  /* Styling voor uitgeschakelde knop */
   background-color: var(--line-strong); /* Grijsachtige achtergrond */
   color: var(--ink-4); /* Lichtere tekstkleur */
   cursor: not-allowed;
@@ -323,8 +325,14 @@
 }
 
 @keyframes modalEnter {
-  from { opacity: 0; transform: scale(0.95) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .return-modal-header {
@@ -444,4 +452,14 @@
 
 .confirm-return-btn:disabled {
   cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .ml-page {
+    padding: var(--s-5) 20px var(--s-7);
+  }
+
+  .btn-message-bib {
+    height: 44px; /* Optimal touch target size for mobile */
+  }
 }
