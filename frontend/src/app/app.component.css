@@ -805,7 +805,7 @@
   position: absolute;
   right: 0;
   top: calc(100% + 10px);
-  width: 300px;
+  width: 280px;
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -842,8 +842,8 @@
 }
 
 .notif-icon-wrap {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
   display: flex;
   align-items: center;
@@ -893,6 +893,11 @@
   box-shadow: 0 4px 12px rgba(135, 31, 66, 0.25);
 }
 
+.bell-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
 .bell-btn.consolidated-bell {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -911,16 +916,16 @@
   background-color: #f43f5e;
   color: white;
   border-radius: 999px;
-  padding: 0 5px;
-  font-size: 11px;
+  padding: 0 4px;
+  font-size: 10px;
   font-weight: 800;
   line-height: 1;
-  min-width: 18px;
-  height: 18px;
+  min-width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2.5px solid #ffffff;
+  border: 2px solid #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
