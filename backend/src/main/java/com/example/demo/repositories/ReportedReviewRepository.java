@@ -9,9 +9,9 @@ import java.util.List;
 
 @Repository
 public interface ReportedReviewRepository extends JpaRepository<ReportedReview, Long> {
-    boolean existsByReviewIdAndReporterUserSub(Long reviewId, String reporterUserSub);
-    
-    long countByStatus(ReportedReviewStatus status);
+    List<ReportedReview> findByReview_Id(Long reviewId);
 
-    List<ReportedReview> findByReviewId(Long reviewId);
+    boolean existsByReview_IdAndReporterUserSub(Long reviewId, String reporterUserSub);
+
+    long countByStatus(ReportedReviewStatus status);
 }
