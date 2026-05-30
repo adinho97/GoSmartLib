@@ -19,8 +19,8 @@ public class LoanExtensionRequest {
     @Column(name = "requester_user_sub", nullable = false)
     private String requesterUserSub;
 
-    @Column(name = "librarian_user_sub", nullable = false)
-    private String librarianUserSub;
+    @Column(name = "librarian_user_sub")
+    private String librarianUserSub; // No longer required at creation
 
     @Column(name = "request_date", nullable = false)
     private LocalDateTime requestDate;
@@ -54,11 +54,10 @@ public class LoanExtensionRequest {
         this.status = RequestStatus.PENDING;
     }
 
-    public LoanExtensionRequest(Loan loan, String requesterUserSub, String librarianUserSub) {
+    public LoanExtensionRequest(Loan loan, String requesterUserSub) {
         this();
         this.loan = loan;
         this.requesterUserSub = requesterUserSub;
-        this.librarianUserSub = librarianUserSub;
     }
 
     // Getters and Setters

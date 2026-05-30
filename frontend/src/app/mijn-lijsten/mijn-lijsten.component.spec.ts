@@ -128,23 +128,18 @@ describe("MijnLijstenComponent", () => {
     expect(bookServiceSpy.getMyLeeslisten).toHaveBeenCalled();
   });
 
-  it("should open the librarian message modal and fetch librarians", async () => {
+  it("should open the librarian message modal without fetching librarians", async () => {
     const mockLoan = { id: 123, bookTitel: "Test Boek" } as any;
-    bibbeheerderServiceSpy.getLibrariansForSchool.and.returnValue(
-      Promise.resolve([{ sub: "lib1", displayName: "Librarian 1" }]),
-    );
 
     component.openLibrarianMessageModal(mockLoan);
 
     expect(component.showLibrarianMessageModal).toBeTrue();
     expect(component.selectedLoanForMessage).toBe(mockLoan);
-    expect(bibbeheerderServiceSpy.getLibrariansForSchool).toHaveBeenCalled();
   });
 
-  it("should respect the cooldown for sending messages", () => {
-    const loanId = 999;
-    component.librarianMessageCooldowns.set(loanId, Date.now());
-    const canSend = component.canSendMessageToLibrarian(loanId);
+  it("should disable sending message if a pending request exists on the loan", () => {
+    const mockLoan = { id: 123, hasPendingExtensionRequest: true } as any;
+    const canSend = component.canSendMessageToLibrarian(mockLoan);
     expect(canSend).toBeFalse();
   });
 });

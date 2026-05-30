@@ -115,8 +115,8 @@
               type="button"
               class="btn-message-bib"
               (click)="openLibrarianMessageModal(loan)"
-              [disabled]="!canSendMessageToLibrarian(loan.id)"
-              [title]="getLibrarianMessageCooldownText(loan.id)"
+              [disabled]="!canSendMessageToLibrarian(loan)"
+              title="Verlenging aanvragen"
             >
               <i class="fas fa-calendar-plus"></i> Verlenging aanvragen
             </button>
@@ -418,35 +418,13 @@
             Een bibliothecaris zal je aanvraag beoordelen.
           </p>
 
-          <div class="return-modal-field">
-            <label for="librarian-select">Kies een bibliothecaris</label>
-            <select
-              id="librarian-select"
-              (change)="onLibrarianSelectedForMessage($event)"
-            >
-              <option value="" disabled selected>
-                Selecteer een beheerder...
-              </option>
-              @for (lib of availableLibrarians; track lib.sub) {
-                <option [value]="lib.sub">{{ lib.displayName }}</option>
-              }
-            </select>
-          </div>
-
-          @if (selectedLibrarianForMessage) {
-            <label class="return-modal-checkbox">
-              <input
-                type="checkbox"
-                [(ngModel)]="confirmSendMessageToLibrarianCheckbox"
-              />
-              Ik bevestig dat ik een aanvraag tot verlenging wil indienen bij
-              {{ selectedLibrarianForMessage.displayName }}.
-            </label>
-          }
-
-          @if (messageSentError) {
-            <p class="field-error">{{ messageSentError }}</p>
-          }
+          <label class="return-modal-checkbox">
+            <input
+              type="checkbox"
+              [(ngModel)]="confirmSendMessageToLibrarianCheckbox"
+            />
+            Ik bevestig dat ik een aanvraag tot verlenging wil indienen.
+          </label>
         </div>
 
         <footer class="return-modal-actions">
@@ -458,17 +436,11 @@
             Annuleren
           </button>
           <button
-            type="button"
             class="confirm-return-btn"
-            [disabled]="
-              !confirmSendMessageToLibrarianCheckbox ||
-              isSendingLibrarianMessage
-            "
             (click)="confirmAndSendMessageToLibrarian()"
+            [disabled]="!confirmSendMessageToLibrarianCheckbox || isSendingLibrarianMessage"
           >
-            {{
-              isSendingLibrarianMessage ? "Verzenden..." : "Verstuur aanvraag"
-            }}
+            Aanvraag versturen
           </button>
         </footer>
       </div>

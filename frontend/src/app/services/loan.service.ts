@@ -14,6 +14,7 @@ export interface Loan {
   loanedAt: string;
   dueDate: string;
   returnedAt: string | null;
+  hasPendingExtensionRequest?: boolean;
 }
 
 export interface CreateLoanRequest {
@@ -259,13 +260,11 @@ export class LoanService {
 
   async createLoanExtensionRequestTicket(
     loanId: number,
-    librarianSub: string,
     senderSub: string,
   ): Promise<void> {
     await axios.post(
       `${this.api}/${loanId}/verlenging-aanvragen`,
       {
-        librarianSub,
         senderSub,
       },
       this.headers(),

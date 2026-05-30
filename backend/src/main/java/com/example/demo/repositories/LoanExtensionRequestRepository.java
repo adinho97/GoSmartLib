@@ -11,4 +11,5 @@ public interface LoanExtensionRequestRepository extends JpaRepository<LoanExtens
     List<LoanExtensionRequest> findByLibrarianUserSubAndStatus(String librarianUserSub, LoanExtensionRequest.RequestStatus status);
     List<LoanExtensionRequest> findByLoan_Copy_Book_School_IdAndStatus(Long schoolId, LoanExtensionRequest.RequestStatus status);
     long countByLoan_Copy_Book_School_IdAndStatus(Long schoolId, LoanExtensionRequest.RequestStatus status);
+    boolean existsByLoan_IdAndStatus(Long loanId, LoanExtensionRequest.RequestStatus status);
 }
