@@ -279,10 +279,12 @@ export class LoanService {
     return res.data;
   }
 
-  async approveExtensionRequest(requestId: number): Promise<void> {
+  async approveExtensionRequest(requestId: number, newDueDate?: string): Promise<void> {
     await axios.post(
       `${this.api}/verlenging-aanvragen/${requestId}/goedkeuren`,
-      {},
+      {
+        newDueDate
+      },
       this.headers(),
     );
   }

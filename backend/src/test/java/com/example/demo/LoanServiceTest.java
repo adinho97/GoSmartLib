@@ -495,4 +495,56 @@ class LoanServiceTest {
         // Assert
         verify(loanExtensionRequestRepository, times(1)).save(any(LoanExtensionRequest.class));
     }
+
+    @Test
+    void approveExtensionRequest_ShouldApproveRequestAndSetNewDueDate() {
+        // Arrange
+        Long requestId = 1L;
+        String librarianSub = "librarian-sub";
+        LocalDate customNewDueDate = LocalDate.now().plusMonths(1);
+
+        Book book = buildBook(1L, "Test Boek");
+        BookCopy copy = buildCopy(10L, book, BookCopy.CopyStatus.LOANED, BookCopy.CopyCondition.GOOD);
+        Loan loan = new Loan();
+        loan.setId(100L);
+        loan.setCopy(copy);
+        loan.setUserSub("requester-sub");
+        loan.setDueDate(LocalDate.now().plusDays(7)); // Original due date
+
+        LoanExtensionRequest pendingRequest = new LoanExtensionRequest(loan, "requester-sub");
+        pendingRequest.setId(requestId);
+        pendingRequest.setStatus(LoanExtensionRequest.RequestStatus.PENDING);
+
+        when(loanExtensionRequestRepository.findById(requestId)).thenReturn(Optional.of(pendingRequest));
+        when(loanRepository.save(any(Loan.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(loanExtensionRequestRepository.save(any(LoanExtensionRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // Mock Smartschool message sending
+        SmartschoolUserInfo userInfo = new SmartschoolUserInfo();
+        userInfo.setName("Test Requester");
+        userInfo.setAccessToken("access-token");
+        userInfo.setPlatform("https://school.example");
+        when(authService.getUserInfoBySub(anyString())).thenReturn(Mono.just(userInfo));
+        when(smartschoolMessageService.sendMessage(anyString(), any(SmartschoolMessageRequest.class)))
+                .thenReturn(Mono.just("ok"));
+
+        // Act
+        loanService.approveExtensionRequest(requestId, librarianSub, customNewDueDate);
+
+        // Assert
+        ArgumentCaptor<Loan> loanCaptor = ArgumentCaptor.forClass(Loan.class);
+        verify(loanRepository, times(1)).save(loanCaptor.capture());
+        assertEquals(customNewDueDate, loanCaptor.getValue().getDueDate());
+
+        ArgumentCaptor<LoanExtensionRequest> requestCaptor = ArgumentCaptor.forClass(LoanExtensionRequest.class);
+        verify(loanExtensionRequestRepository, times(1)).save(requestCaptor.capture());
+        assertEquals(LoanExtensionRequest.RequestStatus.APPROVED, requestCaptor.getValue().getStatus());
+        assertEquals(librarianSub, requestCaptor.getValue().getProcessedByLibrarianSub());
+        assertNotNull(requestCaptor.getValue().getProcessedDate());
+        assertEquals(customNewDueDate, requestCaptor.getValue().getNewDueDate());
+
+        // Verify Smartschool message was sent
+        verify(smartschoolMessageService, times(1)).sendMessage(anyString(), any(SmartschoolMessageRequest.class));
+    }
 }

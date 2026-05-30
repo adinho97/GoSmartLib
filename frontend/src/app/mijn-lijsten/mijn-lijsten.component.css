@@ -420,9 +420,9 @@
 
 .confirm-return-btn {
   padding: 10px 24px;
-  background: var(--brand);
+  background-color: var(--brand);
   border: none;
-  border-radius: 8px;
+  border-radius: 10%;
   font-size: 14px;
   font-weight: 600;
   color: white;
@@ -430,8 +430,11 @@
 }
 
 .confirm-return-btn:disabled {
-  opacity: 0.5;
+  background-color: var(--line-strong) !important;
+  color: var(--ink-4) !important;
   cursor: not-allowed;
+  opacity: 1;
+  box-shadow: none;
 }
 
 .field-error {
