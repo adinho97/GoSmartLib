@@ -116,7 +116,9 @@
               class="btn-message-bib"
               (click)="openLibrarianMessageModal(loan)"
               [disabled]="!canSendMessageToLibrarian(loan)"
-              title="Verlenging aanvragen"
+              [title]="
+                loan.hasPendingExtensionRequest ? 'Er is al een lopende aanvraag voor dit boek.' : 'Verlenging aanvragen'
+              "
             >
               <i class="fas fa-calendar-plus"></i> Verlenging aanvragen
             </button>
@@ -425,6 +427,8 @@
             />
             Ik bevestig dat ik een aanvraag tot verlenging wil indienen.
           </label>
+          <!-- The confirmation checkbox and buttons are now part of the parent component's template -->
+          <!-- and are handled by the previous diff. No changes needed here. -->
         </div>
 
         <footer class="return-modal-actions">
