@@ -1,7 +1,6 @@
 package com.example.demo.exception;
 
 import com.example.demo.config.ConnectionPoolMonitor;
-import com.example.demo.security.oauth.OAuthRefreshTokenHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -21,7 +20,6 @@ import java.time.Instant;
  * Handles:
  * - Connection pool exhaustion (SQLTransientConnectionException)
  * - Database unavailability (DataAccessException)
- * - OAuth token revocation (TokenRevokedException)
  * - Auth filter failures (AccessDeniedException from DB unavailability)
  * 
  * Provides:
@@ -91,51 +89,6 @@ public class ResilientExceptionHandler {
                 "DATABASE_UNAVAILABLE",
                 request.getDescription(false),
                 poolMonitor.getMetrics().toString());
-
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
-    }
-
-    /**
-     * Handle OAuth token revocation.
-     * 
-     * Scenario: Smartschool revoked user's token.
-     * Frontend should redirect to login.
-     */
-    @ExceptionHandler(OAuthRefreshTokenHandler.TokenRevokedException.class)
-    public ResponseEntity<ErrorResponse> handleTokenRevoked(
-            OAuthRefreshTokenHandler.TokenRevokedException ex,
-            WebRequest request) {
-
-        logger.warn("Token revoked: {}", ex.getMessage());
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.UNAUTHORIZED,
-                "Your authentication token has been revoked. Please log in again.",
-                "TOKEN_REVOKED",
-                request.getDescription(false),
-                null);
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-    }
-
-    /**
-     * Handle token refresh failures.
-     * 
-     * Scenario: OAuth service unavailable or token permanently invalid.
-     */
-    @ExceptionHandler(OAuthRefreshTokenHandler.TokenRefreshFailedException.class)
-    public ResponseEntity<ErrorResponse> handleTokenRefreshFailed(
-            OAuthRefreshTokenHandler.TokenRefreshFailedException ex,
-            WebRequest request) {
-
-        logger.warn("Token refresh failed: {}", ex.getMessage());
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "Unable to refresh authentication. Please try again later.",
-                "TOKEN_REFRESH_FAILED",
-                request.getDescription(false),
-                null);
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
