@@ -9,14 +9,14 @@
       <div class="spinner"></div>
       <p>Laden...</p>
     </div>
-  } @else if (requests.length === 0) {
+  } @else if (!requests || requests.length === 0) {
     <div class="empty-state">
       <i class="fas fa-calendar-check"></i>
       <p>Er zijn momenteel geen openstaande verlengingsaanvragen.</p>
     </div>
   } @else {
     <div class="requests-grid">
-      @for (request of requests; track request.id) {
+      @for (request of requests.slice(0, visibleCount); track request.id) {
         <div
           class="request-card"
           [class.is-rejecting]="selectedRequestForReject?.id === request.id"
@@ -24,6 +24,7 @@
           <div class="request-header">
             <img
               [src]="request.bookCover || 'assets/img/placeholder-cover.png'"
+              [alt]="request.bookTitle || 'Boek cover'"
               class="book-cover"
             />
             <div class="request-info">
@@ -45,9 +46,12 @@
 
           @if (selectedRequestForReject?.id === request.id) {
             <div class="reject-form animate-in">
-              <label for="reason">Reden voor afwijzing (optioneel):</label>
+              <label [for]="'reason-' + request.id"
+                >Reden voor afwijzing (optioneel):</label
+              >
               <textarea
-                id="reason"
+                [id]="'reason-' + request.id"
+                name="rejectionReason"
                 [(ngModel)]="rejectionReason"
                 placeholder="Type hier de reden..."
               ></textarea>
@@ -62,7 +66,7 @@
             </div>
           } @else {
             <div class="request-actions">
-              <button class="btn-approve" (click)="approve(request)">
+              <button class="btn-approve" (click)="startApprove(request)">
                 <i class="fas fa-check"></i> Goedkeuren
               </button>
               <button class="btn-reject" (click)="reject(request)">
@@ -72,6 +76,95 @@
           }
         </div>
       }
+    </div>
+
+    @if (requests && requests.length > visibleCount) {
+      <button class="show-more-btn" (click)="showMore()">
+        Toon meer
+        <span class="show-more-count"
+          >({{ requests.length - visibleCount }} meer)</span
+        >
+      </button>
+    }
+  }
+
+  <!-- Modal for choosing extension date -->
+  @if (selectedRequestForApprove) {
+    <div
+      class="return-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      (click)="cancelApprove()"
+    >
+      <div class="return-modal" (click)="$event.stopPropagation()">
+        <header class="return-modal-header">
+          <h3>Verlenging goedkeuren</h3>
+          <button
+            type="button"
+            class="return-modal-close"
+            (click)="cancelApprove()"
+            aria-label="Sluit dialoog"
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="return-modal-content">
+          <p class="return-modal-intro">
+            Kies de nieuwe inleverdatum voor
+            <strong>{{ selectedRequestForApprove.bookTitle }}</strong
+            >. De huidige datum is
+            {{ selectedRequestForApprove.currentDueDate | date: "dd/MM/yyyy" }}.
+          </p>
+
+          <div class="form-row" style="margin-top: 20px">
+            <label
+              for="new-due-date"
+              style="display: block; margin-bottom: 8px; font-weight: 600"
+              >Nieuwe inleverdatum</label>
+            <input
+              type="date"
+              id="new-due-date"
+              name="approveDueDate"
+              [(ngModel)]="approveDueDate"
+              [min]="today"
+              class="date-input"
+            />
+          </div>
+          @if (messageSentSuccess){
+            <p class="field-success">
+              <i class="fas fa-check"></i> {{messageSentSuccess}}
+            </p>
+          }
+
+          @if (messageSentError){
+            <p class="field-error">
+              <i class="fas fa-exclamation-triangle"></i> {{messageSentError}}
+            </p>
+          }
+        </div>
+
+        <footer class="return-modal-actions">
+          <button
+            type="button"
+            class="cancel-return-btn"
+            (click)="cancelApprove()"
+            [disabled]="isProcessing"
+          >
+            {{messageSentSuccess ? 'Sluiten' : 'Annuleren'}}
+          </button>
+          @if (!messageSentSuccess) {
+            <button
+              type="button"
+              class="confirm-return-btn"
+              (click)="confirmApprove()"
+              [disabled]="!approveDueDate || isProcessing"
+            >
+              {{ isProcessing ? 'Bezig...' : 'Bevestigen' }}
+            </button>
+          }
+        </footer>
+      </div>
     </div>
   }
 </div>

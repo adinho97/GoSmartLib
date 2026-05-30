@@ -509,7 +509,7 @@ public class LoanService {
     }
 
     @Transactional
-    public void approveExtensionRequest(Long requestId, String librarianSub) {
+    public void approveExtensionRequest(Long requestId, String librarianSub, LocalDate newDueDate) {
         LoanExtensionRequest req = loanExtensionRequestRepository.findById(requestId)
                 .orElseThrow(
                         () -> new ApiException("Aanvraag niet gevonden", HttpStatus.NOT_FOUND, "REQUEST_NOT_FOUND"));
@@ -518,12 +518,12 @@ public class LoanService {
             throw new ApiException("Aanvraag is al verwerkt", HttpStatus.CONFLICT, "REQUEST_ALREADY_PROCESSED");
         }
 
-        LocalDate nextDueDate = req.getLoan().getDueDate().plusDays(14);
-        req.getLoan().setDueDate(nextDueDate);
+        LocalDate finalDueDate = (newDueDate != null) ? newDueDate : req.getLoan().getDueDate().plusDays(14);
+        req.getLoan().setDueDate(finalDueDate);
         req.setStatus(LoanExtensionRequest.RequestStatus.APPROVED);
         req.setProcessedByLibrarianSub(librarianSub);
         req.setProcessedDate(java.time.LocalDateTime.now());
-        req.setNewDueDate(nextDueDate);
+        req.setNewDueDate(finalDueDate);
 
         loanRepo.save(req.getLoan());
         loanExtensionRequestRepository.save(req);
