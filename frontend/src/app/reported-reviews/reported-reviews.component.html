@@ -24,20 +24,20 @@
     </div>
   } @else {
     <div class="reports-grid">
-      @for (report of reportedReviews; track report.id) {
-        <div class="report-card" [class.pending]="report.status === 'PENDING'">
+      @for (group of reportedReviews; track group.reviewId) {
+        <div class="report-card" [class.pending]="group.status === 'PENDING'">
           <div class="report-header">
             <span class="report-date">{{
-              getFormattedDate(report.reportedAt)
+              getFormattedDate(group.latestReportedAt)
             }}</span>
-            <span class="status-badge" [attr.data-status]="report.status">
-              {{ getStatusLabel(report.status) }}
+            <span class="status-badge" [attr.data-status]="group.status">
+              {{ getStatusLabel(group.status) }}
             </span>
           </div>
 
           <button
             class="book-info-link"
-            (click)="goToBookDetail(report.book.id)"
+            (click)="goToBookDetail(group.book.id)"
             title="Bekijk boek details"
           >
             <svg
@@ -54,7 +54,7 @@
               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
             </svg>
             <div class="book-title-group">
-              <h3>{{ report.book.titel }}</h3>
+              <h3>{{ group.book.titel }}</h3>
               <span class="view-book">Bekijk boek details →</span>
             </div>
           </button>
@@ -62,42 +62,50 @@
           <div class="review-preview">
             <p class="review-author">
               Review door:
-              <strong>{{ getAuthorDisplayName(report.review) }}</strong>
+              <strong>{{ getAuthorDisplayName(group.review) }}</strong>
             </p>
             <div class="review-body">
               <div class="rating-display">
                 @for (star of [1, 2, 3, 4, 5]; track star) {
                   <span
                     class="star"
-                    [class.filled]="star <= report.review.rating"
+                    [class.filled]="star <= group.review.rating"
                     >★</span
                   >
                 }
-                <span class="rating-text">{{ report.review.rating }}/5</span>
+                <span class="rating-text">{{ group.review.rating }}/5</span>
               </div>
               <blockquote class="review-comment">
-                "{{ report.review.comment }}"
+                "{{ group.review.comment }}"
               </blockquote>
             </div>
           </div>
 
-          <div class="report-reason-box">
-            <span class="reason-label">Reden van rapportage:</span>
-            <p class="reason-text">{{ report.reason }}</p>
-            <p class="reporter-info">
-              Gerapporteerd door: {{ report.reporterUserName }}
-            </p>
+          <div class="report-reasons-container">
+            <span class="reason-label"
+              >Meldingen ({{ group.reports.length }}):</span
+            >
+            @for (rep of group.reports; track rep.id) {
+              <div class="report-reason-item">
+                <p class="reason-text">"{{ rep.reason }}"</p>
+                <p class="reporter-info">
+                  — {{ rep.reporterUserName }} ({{
+                    getFormattedDate(rep.reportedAt)
+                  }})
+                </p>
+              </div>
+            }
           </div>
 
-          @if (report.status === "PENDING") {
+          @if (group.status === "PENDING") {
             <div class="action-footer">
               <button
                 class="resolve-btn"
-                (click)="openResolveDialog(report.id)"
+                (click)="openResolveDialog(group.reports[0].id)"
               >
                 Review behouden
               </button>
-              <button class="delete-btn" (click)="openDeleteDialog(report)">
+              <button class="delete-btn" (click)="openDeleteDialog(group)">
                 Review verwijderen
               </button>
             </div>

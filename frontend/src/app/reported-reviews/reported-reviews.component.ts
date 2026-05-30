@@ -9,6 +9,26 @@ import { Router } from "@angular/router";
 import { normalizeReviewAuthorName } from "../utils/name-utils";
 import axios from "axios";
 
+export interface GroupedReport {
+  reviewId: number;
+  book: { id: number; titel: string };
+  review: {
+    id: number;
+    rating: number;
+    comment: string;
+    reviewerUserName: string;
+    anonymous: boolean;
+  };
+  status: ReportedReviewStatus;
+  reports: {
+    id: number;
+    reporterUserName: string;
+    reason: string;
+    reportedAt: string;
+  }[];
+  latestReportedAt: string;
+}
+
 @Component({
   selector: "app-reported-reviews",
   templateUrl: "./reported-reviews.component.html",
@@ -16,7 +36,7 @@ import axios from "axios";
   standalone: false,
 })
 export class ReportedReviewsComponent implements OnInit {
-  reportedReviews: ReportedReview[] = [];
+  reportedReviews: GroupedReport[] = [];
   loading = true;
   error = "";
 
@@ -43,11 +63,37 @@ export class ReportedReviewsComponent implements OnInit {
     this.loading = true;
     this.error = "";
     try {
-      this.reportedReviews = await this.bookService.getReportedReviews();
-      // Sorteer op nieuwste meldingen eerst (descending)
-      this.reportedReviews.sort(
+      const reports = await this.bookService.getReportedReviews();
+      const groups = new Map<number, GroupedReport>();
+
+      for (const r of reports) {
+        const reviewId = r.review.id;
+        if (!groups.has(reviewId)) {
+          groups.set(reviewId, {
+            reviewId: reviewId,
+            book: r.book,
+            review: r.review,
+            status: r.status,
+            reports: [],
+            latestReportedAt: r.reportedAt,
+          });
+        }
+        const group = groups.get(reviewId)!;
+        group.reports.push({
+          id: r.id,
+          reporterUserName: r.reporterUserName,
+          reason: r.reason,
+          reportedAt: r.reportedAt,
+        });
+        if (new Date(r.reportedAt) > new Date(group.latestReportedAt)) {
+          group.latestReportedAt = r.reportedAt;
+        }
+      }
+
+      this.reportedReviews = Array.from(groups.values()).sort(
         (a, b) =>
-          new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime(),
+          new Date(b.latestReportedAt).getTime() -
+          new Date(a.latestReportedAt).getTime(),
       );
     } catch (err: unknown) {
       console.error("Failed to load reported reviews:", err);
@@ -95,10 +141,10 @@ export class ReportedReviewsComponent implements OnInit {
 
   // --- Verwijder Logica ---
 
-  openDeleteDialog(report: ReportedReview): void {
-    this.pendingReportId = report.id;
-    this.pendingBookId = report.book.id;
-    this.pendingReviewId = report.review.id;
+  openDeleteDialog(group: GroupedReport): void {
+    this.pendingReportId = group.reports[0]?.id || null;
+    this.pendingBookId = group.book.id;
+    this.pendingReviewId = group.reviewId;
     this.deleteReviewDialogOpen = true;
   }
 

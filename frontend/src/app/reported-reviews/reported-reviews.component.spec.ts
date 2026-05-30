@@ -73,9 +73,11 @@ describe("ReportedReviewsComponent", () => {
 
   it("confirmDeleteReview calls service and reloads list", async () => {
     bookServiceSpy.resolveReportedReview.and.resolveTo();
-    component.pendingReportId = 1;
-    component.pendingBookId = 10;
-    component.pendingReviewId = 5;
+    component.openDeleteDialog({
+      reports: [{ id: 1 }],
+      book: { id: 10 },
+      reviewId: 5,
+    } as any);
 
     await component.confirmDeleteReview();
 

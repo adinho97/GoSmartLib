@@ -201,15 +201,17 @@
 }
 
 /* Reason Box */
-.report-reason-box {
+.report-reasons-container {
   background: rgba(180, 110, 20, 0.05);
   border: 1px dashed rgba(180, 110, 20, 0.3);
   border-radius: 12px;
   padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .reason-label {
-  display: block;
   font-size: 12px;
   font-weight: 700;
   color: #b46e14;
@@ -217,9 +219,20 @@
   margin-bottom: 4px;
 }
 
+.report-reason-item {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(180, 110, 20, 0.1);
+}
+
+.report-reason-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
 .reason-text {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   font-weight: 600;
+  font-style: italic;
   color: var(--ink);
 }
 
