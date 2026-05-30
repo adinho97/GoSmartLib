@@ -6,6 +6,8 @@ import com.example.demo.entities.Book;
 import com.example.demo.entities.LestipAttachment;
 import com.example.demo.exception.ApiException;
 import com.example.demo.repositories.BookRepository;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,13 +32,19 @@ import java.util.stream.Collectors;
 public class LestipService {
 
     private final BookRepository bookRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private static final long MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
     private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(
             Arrays.asList("pdf", "ppt", "pptx", "doc", "docx", "txt"));
 
     public LestipService(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
+        JsonFactory jsonFactory = JsonFactory.builder()
+            .streamReadConstraints(StreamReadConstraints.builder()
+                .maxStringLength(100_000_000)
+                .build())
+            .build();
+        this.objectMapper = new ObjectMapper(jsonFactory);
     }
 
     @Transactional(readOnly = true)

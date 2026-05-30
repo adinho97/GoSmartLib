@@ -186,11 +186,14 @@ public class OneRosterSyncService {
      * visits the settings page for a newly synced school.
      */
     private void ensureSettingsExist(School school) {
+        if (school == null || school.getId() == null) {
+            logger.warn("Skipping school_settings init: missing school id");
+            return;
+        }
         if (!schoolSettingsRepository.existsById(school.getId())) {
             logger.info("Initializing default school_settings for: {}", school.getSubdomein());
             SchoolSettings settings = new SchoolSettings();
             settings.setSchool(school);
-            settings.setSchoolId(school.getId());
             // The SchoolSettings entity should handle default JSON for levels/hours 
             // via column definitions or a @PrePersist hook.
             schoolSettingsRepository.save(settings);

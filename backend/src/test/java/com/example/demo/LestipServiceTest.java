@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -227,8 +228,9 @@ class LestipServiceTest {
     @Test
     void updateLestipShouldRejectFileTooLarge() {
         UpdateLestipRequest req = new UpdateLestipRequest();
-        // Large data string to exceed the 25MB limit
-        String bigData = "YQ==".repeat(30 * 1024 * 1024); // Creating a massive Base64 string
+        // Base64 payload slightly above the 25MB limit
+        int oversizedBytes = (25 * 1024 * 1024) + 1;
+        String bigData = Base64.getEncoder().encodeToString(new byte[oversizedBytes]);
         req.setLestip("{\"text\":\"tip\",\"fileName\":\"test.pdf\",\"fileData\":\"data:application/pdf;base64," + bigData + "\"}");
         
         Book existing = book(1L, null, null);

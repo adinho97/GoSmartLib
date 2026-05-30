@@ -227,7 +227,7 @@ class BibbeheerderControllerTest {
         }
 
         @Test
-        @WithMockUser
+        @WithMockUser(roles = "BIBBEHEERDER")
         void getLibrariansForSchool_shouldReturnList() throws Exception {
                 AdminUserListItem item = makeItem(1L, "lib-sub", "bibbeheerder");
                 when(bibbeheerderService.getLibrariansInSchool(1L)).thenReturn(List.of(item));
