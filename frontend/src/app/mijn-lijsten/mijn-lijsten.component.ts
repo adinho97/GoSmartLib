@@ -66,8 +66,8 @@ export class MijnLijstenComponent implements OnInit {
   selectedLoanForMessage: Loan | null = null;
   confirmSendMessageToLibrarianCheckbox = false;
   isSendingLibrarianMessage = false;
-  messageSentSuccess = '';
-  messageSentError = '';
+  messageSentSuccess = "";
+  messageSentError = "";
   today = new Date().toISOString().split("T")[0];
 
   get userSub(): string {
@@ -390,8 +390,8 @@ export class MijnLijstenComponent implements OnInit {
   openLibrarianMessageModal(loan: Loan): void {
     this.selectedLoanForMessage = loan;
     this.confirmSendMessageToLibrarianCheckbox = false;
-    this.messageSentSuccess = '';
-    this.messageSentError = '';
+    this.messageSentSuccess = "";
+    this.messageSentError = "";
     this.showLibrarianMessageModal = true;
   }
 
@@ -399,8 +399,8 @@ export class MijnLijstenComponent implements OnInit {
     this.showLibrarianMessageModal = false;
     this.selectedLoanForMessage = null;
     this.confirmSendMessageToLibrarianCheckbox = false;
-    this.messageSentSuccess = '';
-    this.messageSentError = '';
+    this.messageSentSuccess = "";
+    this.messageSentError = "";
   }
 
   async confirmAndSendMessageToLibrarian(): Promise<void> {
@@ -418,20 +418,25 @@ export class MijnLijstenComponent implements OnInit {
     }
 
     this.isSendingLibrarianMessage = true;
-    this.messageSentError = '';
-    this.messageSentSuccess = '';
-    
+    this.messageSentError = "";
+    this.messageSentSuccess = "";
+
     try {
-      await this.loanService.createLoanExtensionRequestTicket( // Nieuwe methode aanroepen
+      await this.loanService.createLoanExtensionRequestTicket(
         this.selectedLoanForMessage.id,
         this.authContext.getEffectiveSub(),
       );
-      this.messageSentSuccess = `Bericht succesvol verzonden.`;
-      await this.loadLoans();
-      this.closeLibrarianMessageModal();
+      this.messageSentSuccess = `Aanvraag succesvol verzonden voor ${this.selectedLoanForMessage.bookTitel}.`;
+
+      // Wait a moment so the user sees the success state before closing
+      setTimeout(async () => {
+        await this.loadLoans();
+        this.closeLibrarianMessageModal();
+      }, 1500);
     } catch (error) {
       console.error("Error sending message to librarian:", error);
-      this.messageSentError = "Fout bij het verzenden van het bericht. Probeer opnieuw.";
+      this.messageSentError =
+        "Fout bij het verzenden van het bericht. Probeer opnieuw.";
     } finally {
       this.isSendingLibrarianMessage = false;
     }
