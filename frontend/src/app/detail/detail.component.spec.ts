@@ -794,6 +794,7 @@ describe("DetailComponent", () => {
   });
 
   it("confirmReportReview calls service and closes dialog on success", async () => {
+    //
     component.currentBookId = 1;
     component.pendingReportReviewId = 11;
     component.reportReason = "Bad words";
@@ -808,6 +809,7 @@ describe("DetailComponent", () => {
   });
 
   it("confirmReportReview shows error if reason is empty", async () => {
+    //
     component.currentBookId = 1;
     component.pendingReportReviewId = 11;
     component.reportReason = "   ";

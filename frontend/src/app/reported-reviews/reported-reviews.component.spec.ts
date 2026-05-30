@@ -16,7 +16,6 @@ describe("ReportedReviewsComponent", () => {
   beforeEach(async () => {
     bookServiceSpy = jasmine.createSpyObj("BookService", [
       "getReportedReviews",
-      "deleteReportedReview",
       "resolveReportedReview",
     ]);
     uiToastServiceSpy = jasmine.createSpyObj("UiToastService", [
@@ -73,14 +72,17 @@ describe("ReportedReviewsComponent", () => {
   });
 
   it("confirmDeleteReview calls service and reloads list", async () => {
-    bookServiceSpy.deleteReportedReview.and.resolveTo();
+    bookServiceSpy.resolveReportedReview.and.resolveTo();
     component.pendingReportId = 1;
     component.pendingBookId = 10;
     component.pendingReviewId = 5;
 
     await component.confirmDeleteReview();
 
-    expect(bookServiceSpy.deleteReportedReview).toHaveBeenCalledWith(1, 10, 5);
+    expect(bookServiceSpy.resolveReportedReview).toHaveBeenCalledWith(
+      1,
+      "inappropriate",
+    ); //
     expect(uiToastServiceSpy.success).toHaveBeenCalled();
     expect(bookServiceSpy.getReportedReviews).toHaveBeenCalledTimes(2); // Initial + Reload
     expect(component.deleteReviewDialogOpen).toBeFalse();
@@ -93,8 +95,9 @@ describe("ReportedReviewsComponent", () => {
     await component.confirmResolveReport();
 
     expect(bookServiceSpy.resolveReportedReview).toHaveBeenCalledWith(
+      //
       1,
-      ReportedReviewStatus.RESOLVED_KEPT,
+      "appropriate",
     );
     expect(uiToastServiceSpy.success).toHaveBeenCalled();
     expect(bookServiceSpy.getReportedReviews).toHaveBeenCalledTimes(2);
