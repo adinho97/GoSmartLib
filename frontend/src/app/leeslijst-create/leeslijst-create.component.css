@@ -114,7 +114,9 @@
   margin-bottom: 10px;
   cursor: pointer;
   border: 1px solid #f0dde5;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .global-toggle:hover {
@@ -324,7 +326,10 @@
   flex-direction: column;
   gap: 8px;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    border-color 0.15s;
   border-radius: 12px;
   padding: 10px;
   background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%);
@@ -474,11 +479,11 @@
 .btn-primary {
   background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.20);
+  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.2);
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 6px 18px rgba(135, 31, 66, 0.30);
+  box-shadow: 0 6px 18px rgba(135, 31, 66, 0.3);
   transform: translateY(-1px);
 }
 
@@ -516,11 +521,11 @@
 .btn-success {
   background: linear-gradient(135deg, #a14466 0%, #871f42 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.20);
+  box-shadow: 0 4px 12px rgba(135, 31, 66, 0.2);
 }
 
 .btn-success:hover:not(:disabled) {
-  box-shadow: 0 6px 18px rgba(135, 31, 66, 0.30);
+  box-shadow: 0 6px 18px rgba(135, 31, 66, 0.3);
   transform: translateY(-1px);
 }
 
