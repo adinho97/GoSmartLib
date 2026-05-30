@@ -89,7 +89,7 @@
               <div class="report-reason-item">
                 <p class="reason-text">"{{ rep.reason }}"</p>
                 <p class="reporter-info">
-                  — {{ rep.reporterUserName }} ({{
+                  — {{ rep.reporterUserName || "Onbekende melder" }} ({{
                     getFormattedDate(rep.reportedAt)
                   }})
                 </p>

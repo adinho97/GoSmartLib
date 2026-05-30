@@ -114,6 +114,6 @@ describe("ReportedReviewsComponent", () => {
     expect(component.getAuthorDisplayName(review)).toBe("Anoniem");
 
     review.anonymous = false;
-    expect(component.getAuthorDisplayName(review)).toBe("Jan Janssen");
+    expect(component.getAuthorDisplayName(review)).toBe("Jan Janssen"); // Should return the full string provided
   });
 });
