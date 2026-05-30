@@ -75,11 +75,16 @@ public class ReportedReviewService {
 
         if ("inappropriate".equalsIgnoreCase(action)) {
             Long reviewId = mainReport.getReview().getId();
-            reviewService.deleteReview(mainReport.getBook().getId(), reviewId, new ReviewContext(null, true, null));
-            
+            Long bookId = mainReport.getBook().getId();
+
+            // 1. Zoek alle meldingen die gekoppeld zijn aan deze specifieke review
             List<ReportedReview> reports = reportedReviewRepository.findByReviewId(reviewId);
-            reports.forEach(r -> r.setStatus(ReportedReviewStatus.RESOLVED_DELETED));
-            reportedReviewRepository.saveAll(reports);
+
+            // 2. Verwijder de meldingen eerst om de Foreign Key constraint (FK) te omzeilen
+            reportedReviewRepository.deleteAll(reports);
+
+            // 3. Nu de meldingen weg zijn, kan de review veilig verwijderd worden
+            reviewService.deleteReview(bookId, reviewId, new ReviewContext(null, true, null));
         } else if ("appropriate".equalsIgnoreCase(action)) {
             mainReport.setStatus(ReportedReviewStatus.RESOLVED_KEPT);
             reportedReviewRepository.save(mainReport);
