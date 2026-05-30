@@ -80,7 +80,10 @@ describe("ReportedReviewsComponent", () => {
 
     await component.confirmDeleteReview();
 
-    expect(bookServiceSpy.deleteReportedReview).toHaveBeenCalledWith(1, 10, 5);
+    expect(bookServiceSpy.resolveReportedReview).toHaveBeenCalledWith(
+      1,
+      "inappropriate",
+    ); //
     expect(uiToastServiceSpy.success).toHaveBeenCalled();
     expect(bookServiceSpy.getReportedReviews).toHaveBeenCalledTimes(2); // Initial + Reload
     expect(component.deleteReviewDialogOpen).toBeFalse();
@@ -93,8 +96,9 @@ describe("ReportedReviewsComponent", () => {
     await component.confirmResolveReport();
 
     expect(bookServiceSpy.resolveReportedReview).toHaveBeenCalledWith(
+      //
       1,
-      ReportedReviewStatus.RESOLVED_KEPT,
+      "appropriate",
     );
     expect(uiToastServiceSpy.success).toHaveBeenCalled();
     expect(bookServiceSpy.getReportedReviews).toHaveBeenCalledTimes(2);

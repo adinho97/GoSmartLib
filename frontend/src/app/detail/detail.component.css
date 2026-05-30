@@ -858,6 +858,12 @@
   color: #f5a524;
   background: #fffbf2;
 }
+
+.publish-review-card textarea {
+  min-height: 80px; /* Ensure textarea has a reasonable default height */
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
 /* Edit form */
 .review-edit-form {
   display: grid;
