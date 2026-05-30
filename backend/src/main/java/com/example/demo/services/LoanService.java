@@ -470,7 +470,7 @@ public class LoanService {
         LoanExtensionRequest extensionRequest = new LoanExtensionRequest(loan, ticket.getSenderSub());
         loanExtensionRequestRepository.save(extensionRequest);
 
-        logger.info("Nieuwe verlengingsaanvraag opgeslagen voor loanId {}: Lener {} vraagt verlenging aan",
+        logger.info("Nieuwe verlengingsaanvraag opgeslagen voor loanId {}: Lener {} vraagt verlenging aan voor de school.",
                 loanId, ticket.getSenderSub());
     }
 
