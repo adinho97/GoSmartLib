@@ -20,11 +20,13 @@ export class RecommendationCardComponent {
   @Input() isUnavailable: boolean = false;
   @Input() loanDate: string | null = null;
   @Input() loanReturned: boolean = false;
+  @Input() hasPendingExtensionRequest: boolean = false;
 
   @Output() toggleWishlist = new EventEmitter<MouseEvent>();
   @Output() viewDetails = new EventEmitter<void>();
   @Output() remove = new EventEmitter<void>();
   @Output() toggleBell = new EventEmitter<void>();
+  @Output() requestExtension = new EventEmitter<MouseEvent>();
 
   get isTeacherCard(): boolean {
     return this.variant === 'teacher' || (this.variant === 'didactic' && this.isTeacher);
@@ -79,6 +81,11 @@ export class RecommendationCardComponent {
     this.toggleBell.emit();
   }
 
+  onRequestExtension(event: MouseEvent) {
+    event.stopPropagation();
+    this.requestExtension.emit(event);
+  }
+
   getLanguageAbbr(language: string): string {
     const languageMap: { [key: string]: string } = {
       'nl': 'NL',
@@ -105,4 +112,3 @@ export class RecommendationCardComponent {
     return languageMap[language.toLowerCase()] || language.toUpperCase().slice(0, 2);
   }
 }
-

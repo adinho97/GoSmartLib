@@ -138,4 +138,19 @@
       </p>
     }
   </div>
+
+  <!-- Action area for extension -->
+  @if (profileVariant === "history" && !loanReturned) {
+    <div class="card-actions">
+      <button
+        class="extension-btn"
+        type="button"
+        (click)="onRequestExtension($event)"
+        [disabled]="hasPendingExtensionRequest"
+        [title]="hasPendingExtensionRequest ? 'Er is al een lopende aanvraag voor dit boek.' : 'Verlenging aanvragen'"
+      >
+        <i class="fas fa-calendar-plus"></i> Verlengen
+      </button>
+    </div>
+  }
 </div>

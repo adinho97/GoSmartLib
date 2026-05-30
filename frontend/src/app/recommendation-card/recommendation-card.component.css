@@ -7,7 +7,7 @@
   width: 190px;
   min-width: 180px;
   max-width: 320px;
-  height: 380px;
+  min-height: 380px;
   align-self: start;
   background: white;
   border-radius: 20px;
