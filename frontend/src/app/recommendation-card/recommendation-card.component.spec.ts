@@ -46,4 +46,26 @@ describe("RecommendationCardComponent", () => {
     component.onViewDetails();
     expect(component.viewDetails.emit).toHaveBeenCalled();
   });
+
+  it("should emit requestExtension when extension button is clicked", () => {
+    spyOn(component.requestExtension, "emit");
+    component.profileVariant = "history";
+    component.loanReturned = false;
+    fixture.detectChanges();
+
+    const event = new MouseEvent("click");
+    component.onRequestExtension(event);
+
+    expect(component.requestExtension.emit).toHaveBeenCalled();
+  });
+
+  it("should disable the extension button when hasPendingExtensionRequest is true", () => {
+    component.profileVariant = "history";
+    component.loanReturned = false;
+    component.hasPendingExtensionRequest = true;
+    fixture.detectChanges();
+
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector(".extension-btn");
+    expect(button.disabled).toBeTrue();
+  });
 });
