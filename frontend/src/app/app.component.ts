@@ -34,6 +34,7 @@ export class AppComponent implements OnInit {
   adminNavMenuOpen = false;
   mainNavOpen = false;
   adminMobileMenuOpen = false;
+  notificationMenuOpen = false;
   pendingReportsCount = 0;
   levelInfo$: Observable<LevelInfo>;
   pendingExtensionsCount = 0;
@@ -94,6 +95,10 @@ export class AppComponent implements OnInit {
       console.warn("Failed to fetch pending extensions count", err);
     }
   }
+  get totalNotifications(): number {
+    return this.pendingReportsCount + this.pendingExtensionsCount;
+  }
+
   private async loadPendingReportsCount(): Promise<void> {
     try {
       this.pendingReportsCount =
@@ -300,6 +305,7 @@ export class AppComponent implements OnInit {
     this.profileMenuOpen = !this.profileMenuOpen;
     if (this.profileMenuOpen) {
       this.mainNavOpen = false;
+      this.notificationMenuOpen = false;
       this.adminMobileMenuOpen = false;
     }
   }
@@ -309,6 +315,18 @@ export class AppComponent implements OnInit {
     this.mainNavOpen = !this.mainNavOpen;
     if (this.mainNavOpen) {
       this.profileMenuOpen = false;
+      this.adminNavMenuOpen = false;
+      this.notificationMenuOpen = false;
+      this.adminMobileMenuOpen = false;
+    }
+  }
+
+  toggleNotificationMenu(event: Event): void {
+    event.stopPropagation();
+    this.notificationMenuOpen = !this.notificationMenuOpen;
+    if (this.notificationMenuOpen) {
+      this.profileMenuOpen = false;
+      this.mainNavOpen = false;
       this.adminNavMenuOpen = false;
       this.adminMobileMenuOpen = false;
     }
@@ -407,6 +425,7 @@ export class AppComponent implements OnInit {
     this.profileMenuOpen = false;
     this.adminNavMenuOpen = false;
     this.mainNavOpen = false;
+    this.notificationMenuOpen = false;
     this.adminMobileMenuOpen = false;
   }
 

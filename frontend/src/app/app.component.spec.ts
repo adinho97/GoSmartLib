@@ -76,4 +76,10 @@ describe("AppComponent", () => {
   it("should create the app", () => {
     expect(component).toBeTruthy();
   });
+
+  it("toggleNotificationMenu should toggle notificationMenuOpen and close others", () => {
+    component.notificationMenuOpen = false;
+    component.toggleNotificationMenu(new MouseEvent("click"));
+    expect(component.notificationMenuOpen).toBeTrue();
+  });
 });
