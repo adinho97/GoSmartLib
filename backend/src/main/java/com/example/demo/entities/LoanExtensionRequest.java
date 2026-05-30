@@ -19,9 +19,6 @@ public class LoanExtensionRequest {
     @Column(name = "requester_user_sub", nullable = false)
     private String requesterUserSub;
 
-    @Column(name = "librarian_user_sub")
-    private String librarianUserSub; // No longer required at creation
-
     @Column(name = "request_date", nullable = false)
     private LocalDateTime requestDate;
 
@@ -83,14 +80,6 @@ public class LoanExtensionRequest {
 
     public void setRequesterUserSub(String requesterUserSub) {
         this.requesterUserSub = requesterUserSub;
-    }
-
-    public String getLibrarianUserSub() {
-        return librarianUserSub;
-    }
-
-    public void setLibrarianUserSub(String librarianUserSub) {
-        this.librarianUserSub = librarianUserSub;
     }
 
     public LocalDateTime getRequestDate() {
