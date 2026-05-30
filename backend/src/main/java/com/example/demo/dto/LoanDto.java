@@ -18,6 +18,7 @@ public class LoanDto {
     private BookCopy.CopyCondition loanedCondition;
     private BookCopy.CopyCondition returnedCondition;
     private BookCopy.CopyStatus returnedStatus;
+    private boolean hasPendingExtensionRequest;
 
     public Long getId() {
         return id;
@@ -129,5 +130,13 @@ public class LoanDto {
 
     public void setUserDisplayName(String userDisplayName) {
         this.userDisplayName = userDisplayName;
+    }
+
+    public boolean isHasPendingExtensionRequest() {
+        return hasPendingExtensionRequest;
+    }
+
+    public void setHasPendingExtensionRequest(boolean hasPendingExtensionRequest) {
+        this.hasPendingExtensionRequest = hasPendingExtensionRequest;
     }
 }

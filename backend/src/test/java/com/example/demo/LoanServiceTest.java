@@ -475,7 +475,6 @@ class LoanServiceTest {
         // Arrange
         Long loanId = 1L;
         ExtensionRequestTicket ticket = new ExtensionRequestTicket();
-        ticket.setLibrarianSub("lib-sub");
         ticket.setSenderSub("sender-sub");
 
         Book book = buildBook(1L, "Test Boek");
@@ -487,6 +486,7 @@ class LoanServiceTest {
         loan.setDueDate(LocalDate.now());
 
         when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(loanExtensionRequestRepository.existsByLoan_IdAndStatus(eq(loanId), any())).thenReturn(false);
         when(loanExtensionRequestRepository.save(any(LoanExtensionRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act

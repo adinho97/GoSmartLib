@@ -78,12 +78,14 @@ public class LoanService {
         }
 
         String userSub = requests.get(0).getUserSub();
-        if (requests.stream().anyMatch(request -> request.getUserSub() == null || !request.getUserSub().equals(userSub))) {
+        if (requests.stream()
+                .anyMatch(request -> request.getUserSub() == null || !request.getUserSub().equals(userSub))) {
             throw new IllegalArgumentException("All loans in one batch must belong to the same user");
         }
 
         LocalDate dueDate = requests.get(0).getDueDate();
-        if (requests.stream().anyMatch(request -> request.getDueDate() == null || !request.getDueDate().equals(dueDate))) {
+        if (requests.stream()
+                .anyMatch(request -> request.getDueDate() == null || !request.getDueDate().equals(dueDate))) {
             throw new IllegalArgumentException("All loans in one batch must have the same due date");
         }
 
@@ -99,7 +101,7 @@ public class LoanService {
     @Transactional
     public LoanDto createLoan(CreateLoanRequest request, String lenderSub, boolean sendMessage) {
         logger.info("Creating loan: bookId={}, copyId={}, userSub={}, dueDate={}, sendMessage={}",
-            request.getBookId(), request.getCopyId(), request.getUserSub(), request.getDueDate(), sendMessage);
+                request.getBookId(), request.getCopyId(), request.getUserSub(), request.getDueDate(), sendMessage);
 
         if (request.getBookId() == null) {
             logger.error("Invalid loan request: bookId is null");
@@ -116,14 +118,14 @@ public class LoanService {
 
         List<BookCopy> lendableCopies = copyRepo.findByBook_Id(request.getBookId())
                 .stream()
-            .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
-                || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
-            .sorted((a, b) -> {
-                // Prefer a copy in good state before lending out a damaged one.
-                int rankA = a.getStatus() == BookCopy.CopyStatus.AVAILABLE ? 0 : 1;
-                int rankB = b.getStatus() == BookCopy.CopyStatus.AVAILABLE ? 0 : 1;
-                return Integer.compare(rankA, rankB);
-            })
+                .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                        || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+                .sorted((a, b) -> {
+                    // Prefer a copy in good state before lending out a damaged one.
+                    int rankA = a.getStatus() == BookCopy.CopyStatus.AVAILABLE ? 0 : 1;
+                    int rankB = b.getStatus() == BookCopy.CopyStatus.AVAILABLE ? 0 : 1;
+                    return Integer.compare(rankA, rankB);
+                })
                 .collect(Collectors.toList());
 
         if (lendableCopies.isEmpty()) {
@@ -179,7 +181,7 @@ public class LoanService {
 
         Loan savedLoan = loanRepo.save(loan);
         logger.info("Loan created: id={}, bookId={}, userSub={}", savedLoan.getId(), request.getBookId(),
-            request.getUserSub());
+                request.getUserSub());
 
         if (sendMessage) {
             sendLoanConfirmationMessage(savedLoan);
@@ -191,27 +193,26 @@ public class LoanService {
     private void sendLoanConfirmationMessage(Loan loan) {
         try {
             authService.getUserInfoBySub(loan.getUserSub())
-                .flatMap(userInfo -> {
-                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
-                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
-                        : smartschoolProperties.getApiBaseUrl();
+                    .flatMap(userInfo -> {
+                        SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                        String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                                : smartschoolProperties.getApiBaseUrl();
 
-                    req.setPlatformUrl(platform);
-                    req.setSubject("Bevestiging: uitlening bibliotheekboek");
-                    req.setBody(buildSingleLoanHtml(
-                        userInfo.getName() != null ? userInfo.getName() : "Lezer",
-                        loan.getCopy().getBook().getTitel(),
-                        loan.getDueDate() != null ? loan.getDueDate().toString() : "onbekend"
-                    ));
+                        req.setPlatformUrl(platform);
+                        req.setSubject("Bevestiging: uitlening bibliotheekboek");
+                        req.setBody(buildSingleLoanHtml(
+                                userInfo.getName() != null ? userInfo.getName() : "Lezer",
+                                loan.getCopy().getBook().getTitel(),
+                                loan.getDueDate() != null ? loan.getDueDate().toString() : "onbekend"));
 
-                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
-                })
-                .doOnSuccess(res -> logger.info("Sent loan confirmation to {} for {}", loan.getUserSub(),
-                    loan.getCopy().getBook().getTitel()))
-                .doOnError(err -> logger.error("Failed to send loan confirmation for {}: {}", loan.getUserSub(),
-                    err.getMessage()))
-                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
-                .subscribe();
+                        return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                    })
+                    .doOnSuccess(res -> logger.info("Sent loan confirmation to {} for {}", loan.getUserSub(),
+                            loan.getCopy().getBook().getTitel()))
+                    .doOnError(err -> logger.error("Failed to send loan confirmation for {}: {}", loan.getUserSub(),
+                            err.getMessage()))
+                    .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                    .subscribe();
         } catch (RuntimeException ex) {
             logger.warn("Failed to start Smartschool confirmation pipeline ({}): {}",
                     ex.getClass().getSimpleName(), ex.getMessage(), ex);
@@ -231,29 +232,31 @@ public class LoanService {
 
         try {
             authService.getUserInfoBySub(userSub)
-                .flatMap(userInfo -> {
-                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
-                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
-                        : smartschoolProperties.getApiBaseUrl();
+                    .flatMap(userInfo -> {
+                        SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                        String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                                : smartschoolProperties.getApiBaseUrl();
 
-                    req.setPlatformUrl(platform);
-                    req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
+                        req.setPlatformUrl(platform);
+                        req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
 
-                    String name = userInfo.getName() != null ? userInfo.getName() : "Lezer";
-                    LocalDate dueDate = loans.get(0).getDueDate();
-                    String dueDateStr = dueDate != null ? dueDate.toString() : "onbekend";
-                    List<String> titles = loans.stream()
-                        .map(l -> l.getCopy().getBook().getTitel())
-                        .collect(Collectors.toList());
+                        String name = userInfo.getName() != null ? userInfo.getName() : "Lezer";
+                        LocalDate dueDate = loans.get(0).getDueDate();
+                        String dueDateStr = dueDate != null ? dueDate.toString() : "onbekend";
+                        List<String> titles = loans.stream()
+                                .map(l -> l.getCopy().getBook().getTitel())
+                                .collect(Collectors.toList());
 
-                    req.setBody(buildCombinedLoanHtml(name, titles, dueDateStr));
+                        req.setBody(buildCombinedLoanHtml(name, titles, dueDateStr));
 
-                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
-                })
-                .doOnSuccess(res -> logger.info("Sent combined loan confirmation to {} for {} books", userSub, loans.size()))
-                .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub, err.getMessage()))
-                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
-                .subscribe();
+                        return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                    })
+                    .doOnSuccess(res -> logger.info("Sent combined loan confirmation to {} for {} books", userSub,
+                            loans.size()))
+                    .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub,
+                            err.getMessage()))
+                    .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                    .subscribe();
         } catch (RuntimeException ex) {
             logger.warn("Failed to start combined Smartschool confirmation pipeline ({}): {}",
                     ex.getClass().getSimpleName(), ex.getMessage(), ex);
@@ -275,29 +278,31 @@ public class LoanService {
 
         try {
             authService.getUserInfoBySub(userSub)
-                .flatMap(userInfo -> {
-                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
-                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
-                        : smartschoolProperties.getApiBaseUrl();
+                    .flatMap(userInfo -> {
+                        SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                        String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                                : smartschoolProperties.getApiBaseUrl();
 
-                    req.setPlatformUrl(platform);
-                    req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
+                        req.setPlatformUrl(platform);
+                        req.setSubject(String.format("Bevestiging: uitlening %d boeken", loans.size()));
 
-                    String name = userInfo.getName() != null ? userInfo.getName() : "Lezer";
-                    LocalDate dueDate = loans.get(0).getDueDate();
-                    String dueDateStr = dueDate != null ? dueDate.toString() : "onbekend";
-                    List<String> titles = loans.stream()
-                        .map(LoanDto::getBookTitel)
-                        .collect(Collectors.toList());
+                        String name = userInfo.getName() != null ? userInfo.getName() : "Lezer";
+                        LocalDate dueDate = loans.get(0).getDueDate();
+                        String dueDateStr = dueDate != null ? dueDate.toString() : "onbekend";
+                        List<String> titles = loans.stream()
+                                .map(LoanDto::getBookTitel)
+                                .collect(Collectors.toList());
 
-                    req.setBody(buildCombinedLoanHtml(name, titles, dueDateStr));
+                        req.setBody(buildCombinedLoanHtml(name, titles, dueDateStr));
 
-                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
-                })
-                .doOnSuccess(res -> logger.info("Sent combined loan confirmation to {} for {} books", userSub, loans.size()))
-                .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub, err.getMessage()))
-                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
-                .subscribe();
+                        return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                    })
+                    .doOnSuccess(res -> logger.info("Sent combined loan confirmation to {} for {} books", userSub,
+                            loans.size()))
+                    .doOnError(err -> logger.error("Failed to send combined loan confirmation for {}: {}", userSub,
+                            err.getMessage()))
+                    .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                    .subscribe();
         } catch (RuntimeException ex) {
             logger.warn("Failed to start combined Smartschool confirmation pipeline ({}): {}",
                     ex.getClass().getSimpleName(), ex.getMessage(), ex);
@@ -322,25 +327,25 @@ public class LoanService {
     private void sendSingleLoanConfirmationByDto(String userSub, String title, String dueDateStr) {
         try {
             authService.getUserInfoBySub(userSub)
-                .flatMap(userInfo -> {
-                    SmartschoolMessageRequest req = new SmartschoolMessageRequest();
-                    String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
-                        : smartschoolProperties.getApiBaseUrl();
+                    .flatMap(userInfo -> {
+                        SmartschoolMessageRequest req = new SmartschoolMessageRequest();
+                        String platform = (userInfo.getPlatform() != null) ? userInfo.getPlatform()
+                                : smartschoolProperties.getApiBaseUrl();
 
-                    req.setPlatformUrl(platform);
-                    req.setSubject("Bevestiging: uitlening bibliotheekboek");
-                    req.setBody(buildSingleLoanHtml(
-                        userInfo.getName() != null ? userInfo.getName() : "Lezer",
-                        title,
-                        dueDateStr
-                    ));
+                        req.setPlatformUrl(platform);
+                        req.setSubject("Bevestiging: uitlening bibliotheekboek");
+                        req.setBody(buildSingleLoanHtml(
+                                userInfo.getName() != null ? userInfo.getName() : "Lezer",
+                                title,
+                                dueDateStr));
 
-                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
-                })
-                .doOnSuccess(res -> logger.info("Sent single loan confirmation to {} for {}", userSub, title))
-                .doOnError(err -> logger.error("Failed to send single loan confirmation for {}: {}", userSub, err.getMessage()))
-                .onErrorResume(e -> reactor.core.publisher.Mono.empty())
-                .subscribe();
+                        return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), req);
+                    })
+                    .doOnSuccess(res -> logger.info("Sent single loan confirmation to {} for {}", userSub, title))
+                    .doOnError(err -> logger.error("Failed to send single loan confirmation for {}: {}", userSub,
+                            err.getMessage()))
+                    .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                    .subscribe();
         } catch (RuntimeException ex) {
             logger.warn("Failed to start Smartschool confirmation pipeline ({}): {}",
                     ex.getClass().getSimpleName(), ex.getMessage(), ex);
@@ -350,39 +355,41 @@ public class LoanService {
     // ── HTML builders ──────────────────────────────────────────────────────────
 
     private String buildSingleLoanHtml(String name, String title, String dueDateStr) {
-        return String.format("""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
-              <div style="background-color: #1a3a5c; padding: 24px 32px;">
-                <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
-                   Bibliotheek — Uitleenbevestiging
-                </h1>
-              </div>
-              <div style="padding: 28px 32px;">
-                <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong>,</p>
-                <p style="margin: 0 0 24px; font-size: 15px; color: #333;">Hieronder vindt u het boek dat u hebt geleend.</p>
-                <table style="width: 100%%; border-collapse: collapse; margin-bottom: 24px; font-family: Arial, sans-serif;">
-                  <thead>
-                    <tr style="background-color: #1a3a5c; color: #fff;">
-                      <th style="padding: 10px 12px; text-align: left; font-size: 13px;">Titel</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style="background-color: #f9f9f9;">
-                      <td style="padding: 8px 12px; font-size: 14px; color: #222;">%s</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div style="background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px 18px; border-radius: 3px; margin-bottom: 24px;">
-                  <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Teruggavedatum:</strong> %s</p>
-                  <p style="margin: 6px 0 0; font-size: 13px; color: #9a7a20;">Gelieve het boek op deze datum terug te brengen.</p>
-                </div>
-                <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
-              </div>
-              <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
-                <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">Dit is een automatisch gegenereerd bericht — gelieve niet te antwoorden.</p>
-              </div>
-            </div>
-            """, escapeHtml(name), escapeHtml(title), dueDateStr);
+        return String.format(
+                """
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                          <div style="background-color: #1a3a5c; padding: 24px 32px;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
+                               Bibliotheek — Uitleenbevestiging
+                            </h1>
+                          </div>
+                          <div style="padding: 28px 32px;">
+                            <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong>,</p>
+                            <p style="margin: 0 0 24px; font-size: 15px; color: #333;">Hieronder vindt u het boek dat u hebt geleend.</p>
+                            <table style="width: 100%%; border-collapse: collapse; margin-bottom: 24px; font-family: Arial, sans-serif;">
+                              <thead>
+                                <tr style="background-color: #1a3a5c; color: #fff;">
+                                  <th style="padding: 10px 12px; text-align: left; font-size: 13px;">Titel</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr style="background-color: #f9f9f9;">
+                                  <td style="padding: 8px 12px; font-size: 14px; color: #222;">%s</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <div style="background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px 18px; border-radius: 3px; margin-bottom: 24px;">
+                              <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Teruggavedatum:</strong> %s</p>
+                              <p style="margin: 6px 0 0; font-size: 13px; color: #9a7a20;">Gelieve het boek op deze datum terug te brengen.</p>
+                            </div>
+                            <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
+                          </div>
+                          <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">Dit is een automatisch gegenereerd bericht — gelieve niet te antwoorden.</p>
+                          </div>
+                        </div>
+                        """,
+                escapeHtml(name), escapeHtml(title), dueDateStr);
     }
 
     private String buildCombinedLoanHtml(String name, List<String> titles, String dueDateStr) {
@@ -390,52 +397,54 @@ public class LoanService {
         for (int i = 0; i < titles.size(); i++) {
             String rowColor = (i % 2 == 0) ? "#f9f9f9" : "#ffffff";
             bookRows.append(String.format(
-                "<tr style=\"background-color:%s;\">" +
-                "  <td style=\"padding:8px 12px; color:#555; font-size:14px; width:40px;\">%d</td>" +
-                "  <td style=\"padding:8px 12px; font-size:14px; color:#222;\">%s</td>" +
-                "</tr>",
-                rowColor, i + 1, escapeHtml(titles.get(i))
-            ));
+                    "<tr style=\"background-color:%s;\">" +
+                            "  <td style=\"padding:8px 12px; color:#555; font-size:14px; width:40px;\">%d</td>" +
+                            "  <td style=\"padding:8px 12px; font-size:14px; color:#222;\">%s</td>" +
+                            "</tr>",
+                    rowColor, i + 1, escapeHtml(titles.get(i))));
         }
 
-        return String.format("""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
-              <div style="background-color: #1a3a5c; padding: 24px 32px;">
-                <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
-                   Bibliotheek — Uitleenbevestiging
-                </h1>
-              </div>
-              <div style="padding: 28px 32px;">
-                <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong>,</p>
-                <p style="margin: 0 0 24px; font-size: 15px; color: #333;">Hieronder vindt u een overzicht van de <strong>%d boeken</strong> die u hebt geleend.</p>
-                <table style="width: 100%%; border-collapse: collapse; margin-bottom: 24px; font-family: Arial, sans-serif;">
-                  <thead>
-                    <tr style="background-color: #1a3a5c; color: #fff;">
-                      <th style="padding: 10px 12px; text-align: left; font-size: 13px; width: 40px;">#</th>
-                      <th style="padding: 10px 12px; text-align: left; font-size: 13px;">Titel</th>
-                    </tr>
-                  </thead>
-                  <tbody>%s</tbody>
-                </table>
-                <div style="background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px 18px; border-radius: 3px; margin-bottom: 24px;">
-                  <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Teruggavedatum:</strong> %s</p>
-                  <p style="margin: 6px 0 0; font-size: 13px; color: #9a7a20;">Gelieve alle boeken op deze datum terug te brengen.</p>
-                </div>
-                <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
-              </div>
-              <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
-                <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">Dit is een automatisch gegenereerd bericht — gelieve niet te antwoorden.</p>
-              </div>
-            </div>
-            """, escapeHtml(name), titles.size(), bookRows.toString(), dueDateStr);
+        return String.format(
+                """
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                          <div style="background-color: #1a3a5c; padding: 24px 32px;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">
+                               Bibliotheek — Uitleenbevestiging
+                            </h1>
+                          </div>
+                          <div style="padding: 28px 32px;">
+                            <p style="margin: 0 0 16px; font-size: 15px; color: #333;">Beste <strong>%s</strong>,</p>
+                            <p style="margin: 0 0 24px; font-size: 15px; color: #333;">Hieronder vindt u een overzicht van de <strong>%d boeken</strong> die u hebt geleend.</p>
+                            <table style="width: 100%%; border-collapse: collapse; margin-bottom: 24px; font-family: Arial, sans-serif;">
+                              <thead>
+                                <tr style="background-color: #1a3a5c; color: #fff;">
+                                  <th style="padding: 10px 12px; text-align: left; font-size: 13px; width: 40px;">#</th>
+                                  <th style="padding: 10px 12px; text-align: left; font-size: 13px;">Titel</th>
+                                </tr>
+                              </thead>
+                              <tbody>%s</tbody>
+                            </table>
+                            <div style="background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px 18px; border-radius: 3px; margin-bottom: 24px;">
+                              <p style="margin: 0; font-size: 14px; color: #7a5c00;"><strong>Teruggavedatum:</strong> %s</p>
+                              <p style="margin: 6px 0 0; font-size: 13px; color: #9a7a20;">Gelieve alle boeken op deze datum terug te brengen.</p>
+                            </div>
+                            <p style="margin: 0; font-size: 14px; color: #555;">Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
+                          </div>
+                          <div style="background-color: #f5f5f5; padding: 14px 32px; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0; font-size: 12px; color: #999; text-align: center;">Dit is een automatisch gegenereerd bericht — gelieve niet te antwoorden.</p>
+                          </div>
+                        </div>
+                        """,
+                escapeHtml(name), titles.size(), bookRows.toString(), dueDateStr);
     }
 
     private String escapeHtml(String text) {
-        if (text == null) return "";
+        if (text == null)
+            return "";
         return text.replace("&", "&amp;")
-                   .replace("<", "&lt;")
-                   .replace(">", "&gt;")
-                   .replace("\"", "&quot;");
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
     }
 
     @Transactional
@@ -443,21 +452,34 @@ public class LoanService {
         Loan loan = loanRepo.findById(Objects.requireNonNull(loanId, "loanId"))
                 .orElseThrow(() -> new IllegalArgumentException("Lening niet gevonden"));
 
-        LoanExtensionRequest extensionRequest = new LoanExtensionRequest(loan, ticket.getSenderSub(), ticket.getLibrarianSub());
+        if (loan.getReturnedAt() != null) {
+            throw new ApiException("Kan geen verlenging aanvragen voor een ingeleverd boek", HttpStatus.BAD_REQUEST,
+                    "LOAN_ALREADY_RETURNED");
+        }
+
+        if (loanExtensionRequestRepository.existsByLoan_IdAndStatus(loanId,
+                LoanExtensionRequest.RequestStatus.PENDING)) {
+            throw new ApiException("Er is al een lopende aanvraag voor dit boek", HttpStatus.CONFLICT,
+                    "PENDING_REQUEST_EXISTS");
+        }
+
+        LoanExtensionRequest extensionRequest = new LoanExtensionRequest(loan, ticket.getSenderSub());
         loanExtensionRequestRepository.save(extensionRequest);
 
-        logger.info("Nieuwe verlengingsaanvraag opgeslagen voor loanId {}: Lener {} vraagt verlenging aan bij beheerder {}",
-                loanId, ticket.getSenderSub(), ticket.getLibrarianSub());
+        logger.info("Nieuwe verlengingsaanvraag opgeslagen voor loanId {}: Lener {} vraagt verlenging aan",
+                loanId, ticket.getSenderSub());
     }
 
     @Transactional(readOnly = true)
     public long getPendingExtensionRequestsCount(Long schoolId) {
-        return loanExtensionRequestRepository.countByLoan_Copy_Book_School_IdAndStatus(schoolId, LoanExtensionRequest.RequestStatus.PENDING);
+        return loanExtensionRequestRepository.countByLoan_Copy_Book_School_IdAndStatus(schoolId,
+                LoanExtensionRequest.RequestStatus.PENDING);
     }
 
     @Transactional(readOnly = true)
     public List<LoanExtensionRequestDto> getPendingExtensionRequests(Long schoolId) {
-        return loanExtensionRequestRepository.findByLoan_Copy_Book_School_IdAndStatus(schoolId, LoanExtensionRequest.RequestStatus.PENDING)
+        return loanExtensionRequestRepository
+                .findByLoan_Copy_Book_School_IdAndStatus(schoolId, LoanExtensionRequest.RequestStatus.PENDING)
                 .stream()
                 .map(this::toExtensionDto)
                 .collect(Collectors.toList());
@@ -476,7 +498,8 @@ public class LoanService {
         dto.setNewDueDate(req.getNewDueDate());
         dto.setLibrarianNotes(req.getLibrarianNotes());
 
-        // Naam wordt hier dynamisch opgelost, NIET uit de database tabel 'loan_extension_requests'
+        // Naam wordt hier dynamisch opgelost, NIET uit de database tabel
+        // 'loan_extension_requests'
         displayNameResolver.peek(req.getRequesterUserSub()).ifPresent(dto::setRequesterName);
         return dto;
     }
@@ -484,7 +507,8 @@ public class LoanService {
     @Transactional
     public void approveExtensionRequest(Long requestId, String librarianSub) {
         LoanExtensionRequest req = loanExtensionRequestRepository.findById(requestId)
-                .orElseThrow(() -> new ApiException("Aanvraag niet gevonden", HttpStatus.NOT_FOUND, "REQUEST_NOT_FOUND"));
+                .orElseThrow(
+                        () -> new ApiException("Aanvraag niet gevonden", HttpStatus.NOT_FOUND, "REQUEST_NOT_FOUND"));
 
         if (req.getStatus() != LoanExtensionRequest.RequestStatus.PENDING) {
             throw new ApiException("Aanvraag is al verwerkt", HttpStatus.CONFLICT, "REQUEST_ALREADY_PROCESSED");
@@ -506,7 +530,8 @@ public class LoanService {
     @Transactional
     public void rejectExtensionRequest(Long requestId, String librarianSub, String notes) {
         LoanExtensionRequest req = loanExtensionRequestRepository.findById(requestId)
-                .orElseThrow(() -> new ApiException("Aanvraag niet gevonden", HttpStatus.NOT_FOUND, "REQUEST_NOT_FOUND"));
+                .orElseThrow(
+                        () -> new ApiException("Aanvraag niet gevonden", HttpStatus.NOT_FOUND, "REQUEST_NOT_FOUND"));
 
         if (req.getStatus() != LoanExtensionRequest.RequestStatus.PENDING) {
             throw new ApiException("Aanvraag is al verwerkt", HttpStatus.CONFLICT, "REQUEST_ALREADY_PROCESSED");
@@ -525,34 +550,43 @@ public class LoanService {
     private void sendExtensionResponseSmartschoolMessage(LoanExtensionRequest req, boolean approved) {
         try {
             authService.getUserInfoBySub(req.getRequesterUserSub())
-                .flatMap(userInfo -> {
-                    SmartschoolMessageRequest msg = new SmartschoolMessageRequest();
-                    msg.setPlatformUrl(userInfo.getPlatform() != null ? userInfo.getPlatform() : smartschoolProperties.getApiBaseUrl());
-                    msg.setSubject(approved ? "Goedgekeurd: verlenging bibliotheekboek" : "Afgewezen: verlenging bibliotheekboek");
-                    
-                    String resultText = approved ? "goedgekeurd" : "afgewezen";
-                    String extraInfo = approved 
-                        ? String.format("<div style='background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px; margin: 15px 0;'><strong>Nieuwe inleverdatum:</strong> %s</div>", req.getNewDueDate()) 
-                        : String.format("<div style='background-color: #f9f9f9; border-left: 4px solid #8b1a1a; padding: 14px; margin: 15px 0;'><strong>Reden:</strong> %s</div>", escapeHtml(req.getLibrarianNotes()));
+                    .flatMap(userInfo -> {
+                        SmartschoolMessageRequest msg = new SmartschoolMessageRequest();
+                        msg.setPlatformUrl(userInfo.getPlatform() != null ? userInfo.getPlatform()
+                                : smartschoolProperties.getApiBaseUrl());
+                        msg.setSubject(approved ? "Goedgekeurd: verlenging bibliotheekboek"
+                                : "Afgewezen: verlenging bibliotheekboek");
 
-                    String body = String.format("""
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
-                          <div style="background-color: %s; padding: 24px 32px;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">Bibliotheek — Verlenging</h1>
-                          </div>
-                          <div style="padding: 28px 32px;">
-                            <p>Beste <strong>%s</strong>,</p>
-                            <p>Uw aanvraag voor de verlenging van <strong>%s</strong> is %s.</p>
-                            %s
-                            <p>Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
-                          </div>
-                        </div>
-                        """, approved ? "#1a3a5c" : "#8b1a1a", escapeHtml(userInfo.getName()), escapeHtml(req.getLoan().getCopy().getBook().getTitel()), resultText, extraInfo);
-                    msg.setBody(body);
-                    return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), msg);
-                }).subscribe();
-        } catch (Exception e) { 
-            logger.warn("Kon Smartschool-antwoord niet versturen: {}", e.getMessage()); 
+                        String resultText = approved ? "goedgekeurd" : "afgewezen";
+                        String extraInfo = approved
+                                ? String.format(
+                                        "<div style='background-color: #fff8e1; border-left: 4px solid #f0a500; padding: 14px; margin: 15px 0;'><strong>Nieuwe inleverdatum:</strong> %s</div>",
+                                        req.getNewDueDate())
+                                : String.format(
+                                        "<div style='background-color: #f9f9f9; border-left: 4px solid #8b1a1a; padding: 14px; margin: 15px 0;'><strong>Reden:</strong> %s</div>",
+                                        escapeHtml(req.getLibrarianNotes()));
+
+                        String body = String.format(
+                                """
+                                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                                          <div style="background-color: %s; padding: 24px 32px;">
+                                            <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: normal; letter-spacing: 0.5px;">Bibliotheek — Verlenging</h1>
+                                          </div>
+                                          <div style="padding: 28px 32px;">
+                                            <p>Beste <strong>%s</strong>,</p>
+                                            <p>Uw aanvraag voor de verlenging van <strong>%s</strong> is %s.</p>
+                                            %s
+                                            <p>Met vriendelijke groeten,<br><strong>De bibliotheek</strong></p>
+                                          </div>
+                                        </div>
+                                        """,
+                                approved ? "#1a3a5c" : "#8b1a1a", escapeHtml(userInfo.getName()),
+                                escapeHtml(req.getLoan().getCopy().getBook().getTitel()), resultText, extraInfo);
+                        msg.setBody(body);
+                        return smartschoolMessageService.sendMessage(userInfo.getAccessToken(), msg);
+                    }).subscribe();
+        } catch (Exception e) {
+            logger.warn("Kon Smartschool-antwoord niet versturen: {}", e.getMessage());
         }
     }
 
@@ -577,9 +611,9 @@ public class LoanService {
         // Count available copies BEFORE marking this one available aka a kind of
         // snapshot to check if the book just became available after this return
         long availableCopiesBefore = copyRepo.findByBook_Id(loan.getCopy().getBook().getId()).stream()
-            .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
-                || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
-            .count();
+                .filter(c -> c.getStatus() == BookCopy.CopyStatus.AVAILABLE
+                        || c.getStatus() == BookCopy.CopyStatus.DAMAGED)
+                .count();
 
         loan.setReturnedAt(returnedAt);
         loan.setReturnedStatus(targetStatus);
@@ -590,8 +624,8 @@ public class LoanService {
 
         // Check if book just became available (was 0, now 1+)
         if ((targetStatus == BookCopy.CopyStatus.AVAILABLE
-            || targetStatus == BookCopy.CopyStatus.DAMAGED)
-            && availableCopiesBefore == 0) {
+                || targetStatus == BookCopy.CopyStatus.DAMAGED)
+                && availableCopiesBefore == 0) {
             bookAvailabilityNotificationService.notifyWishlistersThatBookIsAvailable(loan.getCopy().getBook());
         }
 
@@ -609,7 +643,7 @@ public class LoanService {
         }
 
         if (request.getCondition() == ReturnLoanRequest.ReturnCondition.MODERATE
-            || request.getCondition() == ReturnLoanRequest.ReturnCondition.BAD) {
+                || request.getCondition() == ReturnLoanRequest.ReturnCondition.BAD) {
             return BookCopy.CopyStatus.DAMAGED;
         }
 
@@ -717,7 +751,8 @@ public class LoanService {
         });
 
         List<LoanConditionOverviewDto.BookStateDto> bookStates = new ArrayList<>(groupedStates.values());
-        bookStates.sort(Comparator.comparing(LoanConditionOverviewDto.BookStateDto::getBookTitel, String.CASE_INSENSITIVE_ORDER));
+        bookStates.sort(Comparator.comparing(LoanConditionOverviewDto.BookStateDto::getBookTitel,
+                String.CASE_INSENSITIVE_ORDER));
 
         List<LoanConditionOverviewDto.LostCopyDto> lostCopies = lostCopyEntities.stream()
                 .map(copy -> {
@@ -730,7 +765,8 @@ public class LoanService {
                     dto.setCondition(copy.getCondition());
                     return dto;
                 })
-                .sorted(Comparator.comparing(LoanConditionOverviewDto.LostCopyDto::getBookTitel, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(LoanConditionOverviewDto.LostCopyDto::getBookTitel,
+                        String.CASE_INSENSITIVE_ORDER))
                 .collect(Collectors.toList());
 
         LoanConditionOverviewDto overview = new LoanConditionOverviewDto();
@@ -787,7 +823,8 @@ public class LoanService {
         dto.setBookTitel(loan.getCopy().getBook().getTitel());
         dto.setBookCover(loan.getCopy().getBook().getCover());
         if (loan.getCopy().getBook().getGenres() != null) {
-            dto.setBookGenres(loan.getCopy().getBook().getGenres().stream().map(g -> g.getNaam()).collect(Collectors.joining(", ")));
+            dto.setBookGenres(loan.getCopy().getBook().getGenres().stream().map(g -> g.getNaam())
+                    .collect(Collectors.joining(", ")));
         }
         dto.setUserSub(loan.getUserSub());
         displayNameResolver.peek(loan.getUserSub()).ifPresent(dto::setUserDisplayName);
@@ -797,6 +834,8 @@ public class LoanService {
         dto.setLoanedCondition(loan.getLoanedCondition());
         dto.setReturnedCondition(loan.getReturnedCondition());
         dto.setReturnedStatus(loan.getReturnedStatus());
+        dto.setHasPendingExtensionRequest(loanExtensionRequestRepository.existsByLoan_IdAndStatus(loan.getId(),
+                LoanExtensionRequest.RequestStatus.PENDING));
         return dto;
     }
 
