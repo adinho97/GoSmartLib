@@ -43,7 +43,11 @@ public class ReportedReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ApiException("Review niet gevonden", HttpStatus.NOT_FOUND));
 
-        if (reportedReviewRepository.existsByReviewIdAndReporterUserSub(reviewId, reporterSub)) {
+        if (reporterSub == null || reporterSub.isBlank()) {
+            throw new ApiException("Gebruikersidentificatie ontbreekt.", HttpStatus.UNAUTHORIZED);
+        }
+
+        if (reportedReviewRepository.existsByReview_IdAndReporterUserSub(reviewId, reporterSub)) {
             throw new ApiException("Je hebt deze review al gerapporteerd.", HttpStatus.CONFLICT, "REVIEW_ALREADY_REPORTED");
         }
 
@@ -79,7 +83,7 @@ public class ReportedReviewService {
             Long bookId = mainReport.getBook().getId();
 
             // 1. Zoek alle meldingen die gekoppeld zijn aan deze specifieke review
-            List<ReportedReview> reports = reportedReviewRepository.findByReviewId(reviewId);
+            List<ReportedReview> reports = reportedReviewRepository.findByReview_Id(reviewId);
 
             // 2. Verwijder de meldingen eerst om de Foreign Key constraint (FK) te omzeilen
             reportedReviewRepository.deleteAll(reports);
@@ -89,7 +93,7 @@ public class ReportedReviewService {
         } else if ("appropriate".equalsIgnoreCase(action)) {
             Long reviewId = mainReport.getReview().getId();
             // Ook hier alle openstaande meldingen voor deze specifieke review afhandelen
-            List<ReportedReview> reports = reportedReviewRepository.findByReviewId(reviewId);
+            List<ReportedReview> reports = reportedReviewRepository.findByReview_Id(reviewId);
             reports.forEach(r -> r.setStatus(ReportedReviewStatus.RESOLVED_KEPT));
             reportedReviewRepository.saveAll(reports);
         } else {
