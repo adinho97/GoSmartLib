@@ -61,6 +61,7 @@ public class ReportedReviewService {
 
     public List<ReportedReviewDto> getAll() {
         return reportedReviewRepository.findAll().stream()
+                .filter(report -> report.getStatus() == ReportedReviewStatus.PENDING)
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
@@ -86,8 +87,11 @@ public class ReportedReviewService {
             // 3. Nu de meldingen weg zijn, kan de review veilig verwijderd worden
             reviewService.deleteReview(bookId, reviewId, new ReviewContext(null, true, null));
         } else if ("appropriate".equalsIgnoreCase(action)) {
-            mainReport.setStatus(ReportedReviewStatus.RESOLVED_KEPT);
-            reportedReviewRepository.save(mainReport);
+            Long reviewId = mainReport.getReview().getId();
+            // Ook hier alle openstaande meldingen voor deze specifieke review afhandelen
+            List<ReportedReview> reports = reportedReviewRepository.findByReviewId(reviewId);
+            reports.forEach(r -> r.setStatus(ReportedReviewStatus.RESOLVED_KEPT));
+            reportedReviewRepository.saveAll(reports);
         } else {
             throw new ApiException("Ongeldige actie: " + action, HttpStatus.BAD_REQUEST);
         }
