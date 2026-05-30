@@ -401,37 +401,98 @@
           </div>
         }
         @if (isLibrarian) {
-          <a
-            class="notification-bell"
-            routerLink="/mijn-taken/review-beheer"
-            title="Review meldingen"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
+          <div class="notification-menu" (click)="$event.stopPropagation()">
+            <button
+              type="button"
+              class="bell-btn consolidated-bell"
+              [class.active]="notificationMenuOpen"
+              [attr.aria-expanded]="notificationMenuOpen"
+              aria-label="Notificaties"
+              [title]="'Je hebt ' + totalNotifications + ' meldingen'"
+              (click)="toggleNotificationMenu($event)"
             >
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
-            @if (pendingReportsCount > 0) {
-              <span class="bell-badge">{{ pendingReportsCount }}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              @if (totalNotifications > 0) {
+                <span class="notification-badge">{{ totalNotifications }}</span>
+              }
+            </button>
+
+            @if (notificationMenuOpen) {
+              <div class="notification-dropdown" role="menu">
+                <p class="notif-dropdown-header">Meldingen</p>
+
+                <a
+                  routerLink="/reported-reviews"
+                  class="notif-item"
+                  role="menuitem"
+                >
+                  <div class="notif-icon-wrap warn">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                      ></path>
+                      <line x1="4" y1="22" x2="4" y2="15"></line>
+                    </svg>
+                  </div>
+                  <div class="notif-content">
+                    <span class="notif-title">Review beheer</span>
+                    <span class="notif-count"
+                      >{{ pendingReportsCount }} openstaand</span
+                    >
+                  </div>
+                </a>
+
+                <a
+                  routerLink="/ontleningen-verlengen"
+                  class="notif-item"
+                  role="menuitem"
+                >
+                  <div class="notif-icon-wrap info">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                  </div>
+                  <div class="notif-content">
+                    <span class="notif-title">Verlengingen</span>
+                    <span class="notif-count"
+                      >{{ pendingExtensionsCount }} openstaand</span
+                    >
+                  </div>
+                </a>
+              </div>
             }
-          </a>
-          <button
-            type="button"
-            class="bell-btn"
-            aria-label="Verlengingsaanvragen"
-            title="Verlengingsaanvragen"
-            [routerLink]="['/extension-requests']"
-          >
-            <i class="fas fa-bell"></i>
-            @if (pendingExtensionsCount > 0) {
-              <span class="notification-badge">{{ pendingExtensionsCount }}</span>
-            }
-          </button>
+          </div>
+
           <button
             type="button"
             class="cog-btn"
