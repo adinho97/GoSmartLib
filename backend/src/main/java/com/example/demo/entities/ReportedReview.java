@@ -26,10 +26,6 @@ public class ReportedReview {
     private String reporterUserSub;
 
     @NotBlank
-    @Column(name = "reporter_user_name", nullable = false)
-    private String reporterUserName;
-
-    @NotBlank
     @Size(max = 1000)
     @Column(nullable = false, length = 1000)
     private String reason;
@@ -50,8 +46,6 @@ public class ReportedReview {
     public void setReview(Review review) { this.review = review; }
     public String getReporterUserSub() { return reporterUserSub; }
     public void setReporterUserSub(String reporterUserSub) { this.reporterUserSub = reporterUserSub; }
-    public String getReporterUserName() { return reporterUserName; }
-    public void setReporterUserName(String reporterUserName) { this.reporterUserName = reporterUserName; }
     public String getReason() { return reason; }
     public void setReason(String reason) { this.reason = reason; }
     public LocalDateTime getReportedAt() { return reportedAt; }
