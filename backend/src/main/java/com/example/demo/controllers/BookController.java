@@ -350,12 +350,10 @@ public class BookController {
             @PathVariable @NonNull Long reviewId,
             Authentication authentication,
             @RequestHeader(value = "X-User-Sub", required = false) String subHeader,
-            @RequestHeader(value = "X-User-Name", required = false) String userNameHeader,
             @Valid @RequestBody ReportReviewRequest request) {
         String reporterSub = resolveUserSub(authentication, subHeader, null);
-        String reporterName = userNameHeader != null ? userNameHeader : "Onbekende gebruiker";
         String reason = request.getReason();
-        reportedReviewService.reportReview(bookId, reviewId, reporterSub, reporterName, reason);
+        reportedReviewService.reportReview(bookId, reviewId, reporterSub, reason);
         return ResponseEntity.accepted().build();
     }
 
