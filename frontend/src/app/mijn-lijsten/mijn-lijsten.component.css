@@ -141,6 +141,88 @@
     0 14px 30px rgba(230, 126, 34, 0.22);
 }
 
+/* Reading lists grid & cards */
+.leeslijst-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  padding-top: 8px;
+  padding-bottom: 32px;
+}
+
+.leeslijst-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: var(--shadow-1);
+  position: relative;
+}
+
+.leeslijst-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--brand-300);
+}
+
+.leeslijst-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: -4px;
+}
+
+.leeslijst-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.type-global { background: #e0f2fe; color: #0369a1; }
+.type-school { background: #f0fdf4; color: #15803d; }
+.type-shared { background: #fdf2f8; color: #be185d; }
+.type-personal { background: #f5f3ff; color: #6d28d9; }
+
+.leeslijst-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.leeslijst-desc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.leeslijst-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--ink-4);
+  font-weight: 500;
+}
+
 /* Loader */
 .loader-row {
   display: flex;
@@ -465,5 +547,9 @@
 
   .btn-message-bib {
     height: 44px; /* Optimal touch target size for mobile */
+  }
+
+  .leeslijst-grid {
+    grid-template-columns: 1fr;
   }
 }

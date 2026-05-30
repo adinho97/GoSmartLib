@@ -234,66 +234,30 @@
         Er zijn momenteel geen leeslijsten beschikbaar voor jouw klas.
       </p>
     } @else {
-      <div class="leeslisten-grid">
+      <div class="leeslijst-grid">
         @for (leeslijst of leeslisten; track leeslijst.id) {
-          <button
+          <div
             type="button"
             class="leeslijst-card"
             (click)="goToLeeslijst(leeslijst.id)"
           >
-            <div class="leeslijst-card-header">
-              <div class="leeslijst-card-icon" aria-hidden="true">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z"
-                  />
-                  <path d="M4 19.5A2.5 2.5 0 016.5 22H20v-5" />
-                </svg>
-              </div>
-              <span class="leeslijst-count">
-                {{ leeslijst.books.length }}
-                <span>{{
-                  leeslijst.books.length === 1 ? "boek" : "boeken"
-                }}</span>
+            <div class="leeslijst-card-head">
+              <span class="leeslijst-badge" [ngClass]="getListTypeInfo(leeslijst).class">
+                {{ getListTypeInfo(leeslijst).label }}
               </span>
             </div>
 
             <h3 class="leeslijst-title">{{ leeslijst.titel }}</h3>
 
             @if (leeslijst.description) {
-              <p class="leeslijst-description">{{ leeslijst.description }}</p>
+              <p class="leeslijst-desc">{{ leeslijst.description }}</p>
             }
 
-            <p class="leeslijst-author">
-              Door {{ displayCreatorName(leeslijst.createdByName) }}
-            </p>
-
-            <div class="leeslijst-klassen">
-              @if (
-                leeslijst.isGlobal &&
-                (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
-              ) {
-                <span class="klas-badge">Voor iedereen</span>
-              }
-              @if (
-                leeslijst.isSchool &&
-                (!leeslijst.klasNames || leeslijst.klasNames.length === 0)
-              ) {
-                <span class="klas-badge">Deze school</span>
-              }
-              @for (klas of leeslijst.klasNames; track klas) {
-                <span class="klas-badge">{{ klas }}</span>
-              }
+            <div class="leeslijst-footer">
+              <span>{{ leeslijst.books?.length || 0 }} boeken</span>
+              <span>{{ formatDate(leeslijst.createdAt) }}</span>
             </div>
-          </button>
+          </div>
         }
       </div>
     }

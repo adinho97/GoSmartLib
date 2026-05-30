@@ -163,29 +163,19 @@ export class MijnLijstenComponent implements OnInit {
     this.classReadingLoading = true;
     this.leeslistenLoading = true;
     try {
-      let klasLists: any[] = [];
-      let myLists: any[] = [];
+      const myLists = await this.bookService.getMyLeeslisten();
 
-      const schoolId = this.schoolService.getSelectedSchoolId();
-
-      // Always fetch all leeslisten the user should see (including global ones)
-      try {
-        myLists = await this.bookService.getMyLeeslisten();
-      } catch (error) {
-        console.error("Failed to fetch user's leeslisten:", error);
-        myLists = [];
-      }
-
-      // Merge all leeslisten by ID (deduplicate)
-      const mergedMap = new Map<number, any>();
+      // Merge and deduplicate by ID efficiently
+      const mergedMap = new Map<number, Leeslijst>();
       (myLists || []).forEach((l: any) => {
-        if (l && l.id) mergedMap.set(Number(l.id), l);
-      });
-      (myLists || []).forEach((l: any) => {
-        if (l && l.id) mergedMap.set(Number(l.id), l);
+        if (l?.id) mergedMap.set(Number(l.id), l);
       });
 
-      this.leeslisten = Array.from(mergedMap.values());
+      // Sort by newest first to improve UX
+      this.leeslisten = Array.from(mergedMap.values()).sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
       this.classReadingBooks = [];
     } catch (error) {
       console.error("Error loading class reading lists:", error);
@@ -297,6 +287,20 @@ export class MijnLijstenComponent implements OnInit {
 
   isOverdue(dueDate: string): boolean {
     return dueDate < this.today;
+  }
+
+  /**
+   * Returns metadata for badges based on list visibility.
+   * Use these in the template to apply dynamic CSS classes.
+   */
+  getListTypeInfo(list: Leeslijst): { label: string; class: string } {
+    if (list.isGlobal) return { label: "Globaal", class: "type-global" };
+    if (list.isSchool) return { label: "School", class: "type-school" };
+    const isOwn = list.createdByName === this.userSub;
+    return {
+      label: isOwn ? "Persoonlijk" : "Gedeeld",
+      class: isOwn ? "type-personal" : "type-shared",
+    };
   }
 
   goToDetail(bookId: number): void {
