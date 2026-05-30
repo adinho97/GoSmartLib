@@ -16,7 +16,6 @@ describe("ReportedReviewsComponent", () => {
   beforeEach(async () => {
     bookServiceSpy = jasmine.createSpyObj("BookService", [
       "getReportedReviews",
-      "deleteReportedReview",
       "resolveReportedReview",
     ]);
     uiToastServiceSpy = jasmine.createSpyObj("UiToastService", [
@@ -73,7 +72,7 @@ describe("ReportedReviewsComponent", () => {
   });
 
   it("confirmDeleteReview calls service and reloads list", async () => {
-    bookServiceSpy.deleteReportedReview.and.resolveTo();
+    bookServiceSpy.resolveReportedReview.and.resolveTo();
     component.pendingReportId = 1;
     component.pendingBookId = 10;
     component.pendingReviewId = 5;

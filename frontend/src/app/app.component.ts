@@ -81,6 +81,7 @@ export class AppComponent implements OnInit {
 
         if (this.isLibrarian) {
           this.fetchPendingExtensionsCount();
+          this.loadPendingReportsCount();
         }
       });
   }
