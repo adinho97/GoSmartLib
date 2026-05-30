@@ -12,7 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,20 +27,23 @@ public class ReportedReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewService reviewService;
     private final AppUserRepository appUserRepository;
+    private final DisplayNameResolver displayNameResolver;
 
     public ReportedReviewService(ReportedReviewRepository reportedReviewRepository,
                                  BookRepository bookRepository,
                                  ReviewRepository reviewRepository,
                                  ReviewService reviewService,
-                                 AppUserRepository appUserRepository) {
+                                 AppUserRepository appUserRepository,
+                                 DisplayNameResolver displayNameResolver) {
         this.reportedReviewRepository = reportedReviewRepository;
         this.bookRepository = bookRepository;
         this.reviewRepository = reviewRepository;
         this.reviewService = reviewService;
         this.appUserRepository = appUserRepository;
+        this.displayNameResolver = displayNameResolver;
     }
 
-    public void reportReview(Long bookId, Long reviewId, String reporterSub, String reporterName, String reason) {
+    public void reportReview(Long bookId, Long reviewId, String reporterSub, String reason) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ApiException("Boek niet gevonden", HttpStatus.NOT_FOUND));
         Review review = reviewRepository.findById(reviewId)
@@ -55,7 +61,6 @@ public class ReportedReviewService {
         report.setBook(book);
         report.setReview(review);
         report.setReporterUserSub(reporterSub);
-        report.setReporterUserName(reporterName);
         report.setReason(reason);
         report.setReportedAt(LocalDateTime.now());
         report.setStatus(ReportedReviewStatus.PENDING);
@@ -64,10 +69,35 @@ public class ReportedReviewService {
     }
 
     public List<ReportedReviewDto> getAll() {
-        return reportedReviewRepository.findAll().stream()
+        List<ReportedReview> reports = reportedReviewRepository.findAll().stream()
                 .filter(report -> report.getStatus() == ReportedReviewStatus.PENDING)
-                .map(this::toDto)
-                .collect(Collectors.toList());
+                .toList();
+
+        if (reports.isEmpty()) {
+            return List.of();
+        }
+
+        // Collect all subs to resolve (both reporters and reviewers)
+        Set<String> subsToResolve = new HashSet<>();
+        for (ReportedReview r : reports) {
+            subsToResolve.add(r.getReporterUserSub());
+            if (!Boolean.TRUE.equals(r.getReview().getAnonymous())) {
+                subsToResolve.add(r.getReview().getReviewerUserSub());
+            }
+        }
+
+        // Batch resolve names for efficiency
+        Map<String, String> names = displayNameResolver.resolveAll(null, subsToResolve);
+
+        return reports.stream().map(r -> {
+            ReportedReviewDto dto = toDto(r);
+            dto.setReporterUserName(names.getOrDefault(r.getReporterUserSub(), r.getReporterUserSub()));
+            if (!Boolean.TRUE.equals(r.getReview().getAnonymous())) {
+                String sub = r.getReview().getReviewerUserSub();
+                dto.getReview().setReviewerUserName(names.getOrDefault(sub, sub));
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     public long countPending() {
@@ -105,7 +135,6 @@ public class ReportedReviewService {
         ReportedReviewDto dto = new ReportedReviewDto();
         dto.setId(entity.getId());
         dto.setReporterUserSub(entity.getReporterUserSub());
-        dto.setReporterUserName(entity.getReporterUserName());
         dto.setReason(entity.getReason());
         dto.setReportedAt(entity.getReportedAt());
         dto.setStatus(entity.getStatus());
@@ -124,8 +153,9 @@ public class ReportedReviewService {
         boolean isAnonymous = Boolean.TRUE.equals(entity.getReview().getAnonymous());
         reviewDto.setAnonymous(isAnonymous);
 
-        String reviewerName = isAnonymous ? "Anoniem" : entity.getReview().getReviewerUserSub();
-        reviewDto.setReviewerUserName(reviewerName);
+        if (isAnonymous) {
+            reviewDto.setReviewerUserName("Anoniem");
+        }
 
         dto.setReview(reviewDto);
 
