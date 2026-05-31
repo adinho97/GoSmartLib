@@ -273,6 +273,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   toggleShortcutPop(): void {
+    if (!this.isLibrarian) return;
     this.shortcutPopOpen = !this.shortcutPopOpen;
   }
 
@@ -283,7 +284,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   addShortcut(id: string): void {
-    if (this.shortcutsAtMax) return;
+    if (!this.isLibrarian || this.shortcutsAtMax) return;
     this.updateConfig({
       ...this.config,
       shortcuts: [...this.activeShortcutIds, id],
@@ -291,6 +292,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   removeShortcut(id: string): void {
+    if (!this.isLibrarian) return;
     this.updateConfig({
       ...this.config,
       shortcuts: this.activeShortcutIds.filter((s) => s !== id),
@@ -298,6 +300,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   resetShortcuts(): void {
+    if (!this.isLibrarian) return;
     this.updateConfig({
       ...this.config,
       shortcuts: [...this.defaultShortcuts],
