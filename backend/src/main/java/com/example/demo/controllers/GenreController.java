@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/genres")
+@RequestMapping("/api/genres")
 public class GenreController {
 
     private final GenreService genreService;
