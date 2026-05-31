@@ -111,15 +111,13 @@ const SHORTCUT_CATALOG: ShortcutDef[] = [
     label: "Verlengingsaanvragen",
     route: "/extension-requests",
     roles: ["bibbeheerder"],
-    iconPaths: ["M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"],
+    iconPaths: [
+      "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z",
+    ],
   },
 ];
 
-const DEFAULT_SHORTCUTS_LEERKRACHT = [
-  "uitleen",
-  "boek-terugbrengen",
-  "leeslijst-create",
-];
+const DEFAULT_SHORTCUTS_LEERKRACHT = ["leeslijst-create"];
 const DEFAULT_SHORTCUTS_BIBBEHEERDER = [
   "uitleen",
   "boek-terugbrengen",
@@ -203,7 +201,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   schoolSettings: SchoolSettings | null = null;
   activeMessages: SchoolMessage[] = [];
   currentMessageIdx = 0;
-  messageAnimClass = '';
+  messageAnimClass = "";
   private messageBusy = false;
   private messageRotationTimer: any;
 
@@ -275,6 +273,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   toggleShortcutPop(): void {
+    if (!this.isLibrarian) return;
     this.shortcutPopOpen = !this.shortcutPopOpen;
   }
 
@@ -285,7 +284,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   addShortcut(id: string): void {
-    if (this.shortcutsAtMax) return;
+    if (!this.isLibrarian || this.shortcutsAtMax) return;
     this.updateConfig({
       ...this.config,
       shortcuts: [...this.activeShortcutIds, id],
@@ -293,6 +292,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   removeShortcut(id: string): void {
+    if (!this.isLibrarian) return;
     this.updateConfig({
       ...this.config,
       shortcuts: this.activeShortcutIds.filter((s) => s !== id),
@@ -300,6 +300,7 @@ export class LeerkrachtDashboardComponent implements OnInit {
   }
 
   resetShortcuts(): void {
+    if (!this.isLibrarian) return;
     this.updateConfig({
       ...this.config,
       shortcuts: [...this.defaultShortcuts],
@@ -502,21 +503,31 @@ export class LeerkrachtDashboardComponent implements OnInit {
     this.hoursOpen = !this.hoursOpen;
   }
 
-  get weekHours(): Array<{ label: string; key: string; hours: DayHours | null; isToday: boolean }> {
+  get weekHours(): Array<{
+    label: string;
+    key: string;
+    hours: DayHours | null;
+    isToday: boolean;
+  }> {
     const days = [
-      { label: 'Maandag', key: 'mon' },
-      { label: 'Dinsdag', key: 'tue' },
-      { label: 'Woensdag', key: 'wed' },
-      { label: 'Donderdag', key: 'thu' },
-      { label: 'Vrijdag', key: 'fri' },
-      { label: 'Zaterdag', key: 'sat' },
-      { label: 'Zondag', key: 'sun' },
+      { label: "Maandag", key: "mon" },
+      { label: "Dinsdag", key: "tue" },
+      { label: "Woensdag", key: "wed" },
+      { label: "Donderdag", key: "thu" },
+      { label: "Vrijdag", key: "fri" },
+      { label: "Zaterdag", key: "sat" },
+      { label: "Zondag", key: "sun" },
     ];
-    const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
-    return days.map(d => ({
+    const todayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
+      new Date().getDay()
+    ];
+    return days.map((d) => ({
       label: d.label,
       key: d.key,
-      hours: this.schoolSettings?.hours?.[d.key as keyof typeof this.schoolSettings.hours] ?? null,
+      hours:
+        this.schoolSettings?.hours?.[
+          d.key as keyof typeof this.schoolSettings.hours
+        ] ?? null,
       isToday: d.key === todayKey,
     }));
   }
@@ -524,12 +535,14 @@ export class LeerkrachtDashboardComponent implements OnInit {
   prevMessage(): void {
     if (this.activeMessages.length < 2 || this.messageBusy) return;
     this.messageBusy = true;
-    this.messageAnimClass = 'slide-out-right';
+    this.messageAnimClass = "slide-out-right";
     setTimeout(() => {
-      this.currentMessageIdx = (this.currentMessageIdx - 1 + this.activeMessages.length) % this.activeMessages.length;
-      this.messageAnimClass = 'slide-in-left';
+      this.currentMessageIdx =
+        (this.currentMessageIdx - 1 + this.activeMessages.length) %
+        this.activeMessages.length;
+      this.messageAnimClass = "slide-in-left";
       setTimeout(() => {
-        this.messageAnimClass = '';
+        this.messageAnimClass = "";
         this.messageBusy = false;
       }, 300);
     }, 180);
@@ -538,12 +551,13 @@ export class LeerkrachtDashboardComponent implements OnInit {
   nextMessage(): void {
     if (this.activeMessages.length < 2 || this.messageBusy) return;
     this.messageBusy = true;
-    this.messageAnimClass = 'slide-out-left';
+    this.messageAnimClass = "slide-out-left";
     setTimeout(() => {
-      this.currentMessageIdx = (this.currentMessageIdx + 1) % this.activeMessages.length;
-      this.messageAnimClass = 'slide-in-right';
+      this.currentMessageIdx =
+        (this.currentMessageIdx + 1) % this.activeMessages.length;
+      this.messageAnimClass = "slide-in-right";
       setTimeout(() => {
-        this.messageAnimClass = '';
+        this.messageAnimClass = "";
         this.messageBusy = false;
       }, 300);
     }, 180);
