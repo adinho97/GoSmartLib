@@ -235,7 +235,7 @@
       </p>
     } @else {
       <div class="leeslijst-grid">
-        @for (leeslijst of leeslisten; track leeslijst.id) {
+        @for (leeslijst of pagedLeeslisten; track leeslijst.id) {
           <div
             type="button"
             class="leeslijst-card"
@@ -260,6 +260,40 @@
           </div>
         }
       </div>
+
+      @if (totalLeeslijstPages > 1) {
+        <div class="pagination">
+          <button
+            class="page-btn"
+            [disabled]="leeslijstPage === 1"
+            (click)="goToLeeslijstPage(leeslijstPage - 1)"
+          >
+            Vorige
+          </button>
+
+          @for (p of leeslijstPageNumbers; track $index) {
+            @if (p === '...') {
+              <span class="page-dots">...</span>
+            } @else {
+              <button
+                class="page-btn"
+                [class.active]="p === leeslijstPage"
+                (click)="goToLeeslijstPage(p)"
+              >
+                {{ p }}
+              </button>
+            }
+          }
+
+          <button
+            class="page-btn"
+            [disabled]="leeslijstPage === totalLeeslijstPages"
+            (click)="goToLeeslijstPage(leeslijstPage + 1)"
+          >
+            Volgende
+          </button>
+        </div>
+      }
     }
   }
 

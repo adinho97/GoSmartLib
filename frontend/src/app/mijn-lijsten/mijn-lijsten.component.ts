@@ -70,6 +70,9 @@ export class MijnLijstenComponent implements OnInit {
   messageSentError = "";
   today = new Date().toISOString().split("T")[0];
 
+  leeslijstPage = 1;
+  readonly leeslijstPageSize = 12;
+
   get userSub(): string {
     return localStorage.getItem("sub") || "";
   }
@@ -264,9 +267,48 @@ export class MijnLijstenComponent implements OnInit {
   private readonly PAGE_SIZE = 10;
   visibleCount = this.PAGE_SIZE;
 
+  get totalLeeslijstPages(): number {
+    return Math.max(
+      1,
+      Math.ceil(this.leeslisten.length / this.leeslijstPageSize),
+    );
+  }
+
+  get pagedLeeslisten(): Leeslijst[] {
+    const start = (this.leeslijstPage - 1) * this.leeslijstPageSize;
+    return this.leeslisten.slice(start, start + this.leeslijstPageSize);
+  }
+
+  get leeslijstPageNumbers(): (number | "...")[] {
+    const total = this.totalLeeslijstPages;
+    const current = this.leeslijstPage;
+
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const pages: (number | "...")[] = [];
+    pages.push(1);
+    if (current > 4) pages.push("...");
+
+    const start = Math.max(2, current - 2);
+    const end = Math.min(total - 1, current + 2);
+    for (let i = start; i <= end; i++) pages.push(i);
+
+    if (current < total - 3) pages.push("...");
+    pages.push(total);
+    return pages;
+  }
+
+  goToLeeslijstPage(page: any): void {
+    if (typeof page !== "number") return;
+    this.leeslijstPage = page;
+  }
+
   selectTab(tab: Tab): void {
     this.activeTab = tab;
     this.visibleCount = this.PAGE_SIZE;
+    this.leeslijstPage = 1;
     this.router.navigate([], { fragment: tab, replaceUrl: true });
   }
 
