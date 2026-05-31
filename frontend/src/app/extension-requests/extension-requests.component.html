@@ -46,15 +46,6 @@
 
           @if (selectedRequestForReject?.id === request.id) {
             <div class="reject-form animate-in">
-              <label [for]="'reason-' + request.id"
-                >Reden voor afwijzing (optioneel):</label
-              >
-              <textarea
-                [id]="'reason-' + request.id"
-                name="rejectionReason"
-                [(ngModel)]="rejectionReason"
-                placeholder="Type hier de reden..."
-              ></textarea>
               <div class="reject-actions">
                 <button class="btn-ghost" (click)="cancelReject()">
                   Annuleren
