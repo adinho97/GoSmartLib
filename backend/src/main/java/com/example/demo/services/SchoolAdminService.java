@@ -82,7 +82,6 @@ public class SchoolAdminService {
         if (!schoolSettingsRepository.existsById(school.getId())) {
             SchoolSettings settings = new SchoolSettings();
             settings.setSchool(school);
-            settings.setSchoolId(school.getId());
             schoolSettingsRepository.save(settings);
         }
     }
