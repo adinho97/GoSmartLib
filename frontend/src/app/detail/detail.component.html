@@ -605,6 +605,15 @@
     <div class="publish-review-overlay" role="dialog" aria-modal="true">
       <div class="publish-review-card">
         <h3>Review rapporteren</h3>
+        <p>Waarom wil je deze review rapporteren?</p>
+        <textarea
+          id="reportReason"
+          name="reportReason"
+          rows="3"
+          maxlength="255"
+          [(ngModel)]="reportReason"
+          placeholder="Geef hier je reden op..."
+        ></textarea>
         @if (reviewError) {
           <p class="review-error">{{ reviewError }}</p>
         }
